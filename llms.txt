@@ -1,0 +1,27 @@
+# COVERED
+
+> COVERED is a UK social enterprise that installs smart wall-mounted dispensers giving out free, plastic-free and biodegradable period products. The service is funded entirely by brands advertising on the dispensers' 32-inch digital screens — users pay nothing, venues host at no cost, and advertisers fund the products. Tagline: "Free Period Products, Paid for by Advertising. We got you covered." The first pilot launches in Exeter, UK.
+
+## Key Pages
+
+- [Home](https://businessforteobaldoselva.github.io/)
+- [The problem — UK period poverty statistics](https://businessforteobaldoselva.github.io/#problem)
+- [How it works — QR, ad, dispense journey](https://businessforteobaldoselva.github.io/#how)
+- [For brands — advertising on COVERED dispensers](https://businessforteobaldoselva.github.io/#brands)
+- [Partners](https://businessforteobaldoselva.github.io/#partners)
+- [For venues — host a dispenser at zero cost](https://businessforteobaldoselva.github.io/#venues)
+- [Locations — Exeter pilot and UK roadmap](https://businessforteobaldoselva.github.io/#locations)
+- [FAQ](https://businessforteobaldoselva.github.io/#faq)
+
+## Key Facts
+
+- More than 1 in 10 (11%) UK women and people who menstruate struggled to afford period products in the last year (ActionAid UK polling).
+- COVERED dispensers give out free 4-packs of plastic-free, biodegradable pads and tampons.
+- The model is self-sustaining: advertising revenue funds product supply, restocking and maintenance.
+- Venues host units at zero cost; COVERED handles installation, stock and maintenance.
+- The initial Exeter pilot uses open (non-gated) dispensing and collects no personal data.
+- The platform is being built to UK GDPR and PECR standards, privacy by design.
+
+## Contact
+
+- Email: ameliaireland18@gmail.com
