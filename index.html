@@ -597,6 +597,89 @@
     .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
+    /* ---------- Partners wall ---------- */
+    .partner-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 3rem; }
+    @media (max-width: 820px) { .partner-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .partner-grid { grid-template-columns: 1fr; } }
+    .p-slot {
+      border: 2px dashed rgba(23, 19, 14, 0.28); border-radius: var(--radius);
+      min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.5rem; text-align: center; padding: 1.4rem; color: var(--muted);
+      background: rgba(255, 255, 255, 0.55);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .p-slot:hover { transform: rotate(-1.2deg) translateY(-3px); border-color: var(--red-deep); }
+    .p-slot .slot-logo { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+    .p-slot small { font-size: 0.8rem; }
+    .p-slot.founding { border-style: solid; border-color: var(--red-deep); background: #fff; box-shadow: var(--shadow); }
+    .p-slot.founding .stamp { font-size: 0.95rem; padding: 0.3em 0.7em; }
+
+    /* ---------- Locations / map ---------- */
+    .loc-grid { display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 3rem; margin-top: 3rem; align-items: start; }
+    @media (max-width: 880px) { .loc-grid { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; } }
+    .uk-map-wrap { background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.2rem; }
+    .uk-map { width: 100%; height: auto; display: block; }
+    .uk-land { fill: var(--sage); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .map-pin { cursor: pointer; }
+    .map-pin circle.core { fill: #fff; stroke: var(--ink); stroke-width: 2; transition: stroke-width 0.15s ease; }
+    .map-pin.live circle.core { fill: var(--red-deep); stroke: var(--red-deep); }
+    .map-pin.selected circle.core { stroke-width: 4; }
+    .map-pin .ring { fill: none; stroke: var(--red-deep); stroke-width: 2; opacity: 0; }
+    .map-pin.live .ring { animation: ringPulse 2.2s ease-out infinite; }
+    @keyframes ringPulse { 0% { r: 7; opacity: 0.7; } 70% { r: 17; opacity: 0; } 100% { r: 17; opacity: 0; } }
+    .map-legend { display: flex; gap: 1.2rem; margin-top: 0.9rem; font-size: 0.8rem; color: var(--muted); justify-content: center; flex-wrap: wrap; }
+    .map-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }
+    .map-legend .dot.live { background: var(--red-deep); }
+    .map-legend .dot.soon { background: #fff; border: 2px solid var(--ink); }
+
+    .city-chips { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-bottom: 1.4rem; }
+    .city-chip {
+      font-family: var(--font-head); font-weight: 600; font-size: 0.85rem;
+      border: 1.5px solid var(--line); background: var(--white); color: var(--ink-soft);
+      border-radius: 999px; padding: 0.45rem 1rem; cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .city-chip:hover { border-color: var(--red-deep); color: var(--ink); }
+    .city-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .city-chip .badge-live { color: var(--red-deep); font-size: 0.72rem; margin-left: 0.25rem; }
+    .city-chip[aria-pressed="true"] .badge-live { color: #FFB4AE; }
+    .city-detail {
+      background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 1.6rem 1.5rem; min-height: 130px;
+    }
+    .city-detail h3 { font-size: 1.2rem; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .city-detail .status-tag { font-family: var(--font-head); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 999px; padding: 0.25rem 0.7rem; }
+    .city-detail .status-tag.live { background: var(--red-deep); color: #fff; }
+    .city-detail .status-tag.soon { background: var(--paper-2); color: var(--ink-soft); border: 1px solid var(--line); }
+    .city-detail p { font-size: 0.93rem; color: var(--ink-soft); }
+    .loc-types { margin-top: 1.6rem; }
+    .loc-types .loc-types-title { font-family: var(--font-head); font-weight: 600; margin-bottom: 0.8rem; }
+    .loc-types .chip { border-color: var(--line); color: var(--ink-soft); }
+    .loc-types .chip-row { margin-top: 0; }
+    .loc-cta { margin-top: 1.6rem; }
+
+    /* ---------- Decorative visuals ---------- */
+    .texture-dots { background-image: radial-gradient(rgba(23, 19, 14, 0.06) 1.5px, transparent 1.5px); background-size: 24px 24px; }
+    .wave { display: block; width: 100%; height: 70px; margin-bottom: -1px; background: var(--paper); }
+    .wave svg { display: block; width: 100%; height: 70px; }
+    .wave.flip { transform: scaleY(-1); margin-bottom: 0; margin-top: -1px; }
+    .float-deco { position: absolute; pointer-events: none; z-index: 0; }
+    .float-deco.pack-deco {
+      width: 86px; height: 42px; background: #fff; border: 2.5px solid var(--red-deep); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-weight: 700; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--red-deep);
+      box-shadow: var(--shadow);
+    }
+    .float-deco.blob { border-radius: 50%; filter: blur(2px); }
+    .floaty { animation: floatY 7s ease-in-out infinite alternate; }
+    .floaty.slow { animation-duration: 10s; }
+    @keyframes floatY {
+      from { transform: translateY(-8px) rotate(var(--tilt, -6deg)); }
+      to { transform: translateY(10px) rotate(var(--tilt, -6deg)); }
+    }
+    @media (max-width: 900px) { .float-deco { display: none; } }
+    @media (max-width: 1080px) { .nav-links { gap: 1.05rem; } }
+
     @media print {
       #progress, header, .burger, .marquee, .hero-scroll { display: none !important; }
       .reveal { opacity: 1 !important; transform: none !important; }
@@ -629,10 +712,11 @@
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
-        <li><a href="#problem">The problem</a></li>
         <li><a href="#how">How it works</a></li>
         <li><a href="#brands">For brands</a></li>
+        <li><a href="#partners">Partners</a></li>
         <li><a href="#venues">For venues</a></li>
+        <li><a href="#locations">Locations</a></li>
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#brands" class="btn btn-primary">Advertise with us</a></li>
       </ul>
@@ -643,6 +727,10 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero" aria-label="Introduction">
+      <div class="float-deco pack-deco floaty" style="--tilt: -8deg; top: 20%; left: 6%;" aria-hidden="true">4-PACK</div>
+      <div class="float-deco pack-deco floaty slow" style="--tilt: 7deg; bottom: 16%; right: 7%;" aria-hidden="true">FREE</div>
+      <div class="float-deco blob floaty slow" style="width: 90px; height: 90px; background: rgba(30, 122, 90, 0.14); top: 32%; right: 12%;" aria-hidden="true"></div>
+      <div class="float-deco blob floaty" style="width: 60px; height: 60px; background: rgba(232, 68, 58, 0.13); bottom: 30%; left: 12%;" aria-hidden="true"></div>
       <div class="container hero-inner">
         <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> Pilot launching in Exeter, UK</span>
         <h1>Free period products. <span class="accent">Paid for by advertising.</span></h1>
@@ -710,7 +798,7 @@
     </section>
 
     <!-- ============ MODEL ============ -->
-    <section class="model-band" aria-labelledby="model-title">
+    <section class="model-band texture-dots" aria-labelledby="model-title">
       <div class="container">
         <div class="reveal" style="text-align:center;">
           <span class="kicker">The model</span>
@@ -792,6 +880,8 @@
         </p>
       </div>
     </section>
+
+    <div class="wave" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#17130E"/></svg></div>
 
     <!-- ============ FOR BRANDS ============ -->
     <section id="brands" class="dark" aria-labelledby="brands-title">
@@ -890,6 +980,39 @@
       </div>
     </section>
 
+    <div class="wave flip" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#17130E"/></svg></div>
+
+    <!-- ============ PARTNERS ============ -->
+    <section id="partners" aria-labelledby="partners-title">
+      <div class="container">
+        <div class="reveal">
+          <span class="kicker">Partners</span>
+          <h2 class="section-title" id="partners-title">The wall of brands<br />getting Britain covered.</h2>
+          <p class="section-sub">
+            Honestly? It's empty. We're pre-launch, and every slot on this wall is up for grabs —
+            the first brands in get founding-partner status and the best story in their next campaign report.
+          </p>
+        </div>
+
+        <div class="partner-grid">
+          <div class="p-slot founding reveal">
+            <span class="stamp">Reserved</span>
+            <span class="slot-logo">Founding partner</span>
+            <small>Waiting for the first brand bold enough to take it.</small>
+          </div>
+          <div class="p-slot reveal"><span class="slot-logo">Your logo here</span><small>Beauty &amp; personal care</small></div>
+          <div class="p-slot reveal"><span class="slot-logo">Your logo here</span><small>Health &amp; wellness</small></div>
+          <div class="p-slot reveal"><span class="slot-logo">Your logo here</span><small>Fashion &amp; lifestyle</small></div>
+          <div class="p-slot reveal"><span class="slot-logo">Your logo here</span><small>Student services</small></div>
+          <div class="p-slot reveal"><span class="slot-logo">Your logo here</span><small>Food &amp; drink</small></div>
+        </div>
+
+        <p class="reveal" style="margin-top: 2rem; text-align: center;">
+          <a href="#brands" class="btn btn-primary">Claim a founding slot</a>
+        </p>
+      </div>
+    </section>
+
     <!-- ============ FOR VENUES ============ -->
     <section id="venues" aria-labelledby="venues-title">
       <div class="container">
@@ -967,8 +1090,53 @@
       </div>
     </section>
 
+    <!-- ============ LOCATIONS ============ -->
+    <section id="locations" aria-labelledby="locations-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">Locations</span>
+          <h2 class="section-title" id="locations-title">One pin down.<br />A whole map to go.</h2>
+          <p class="section-sub" style="margin: 0 auto;">
+            We're starting where we live — Exeter — then following the footfall across the UK.
+            Tap a city to see where it sits on the roadmap.
+          </p>
+        </div>
+
+        <div class="loc-grid">
+          <div class="uk-map-wrap reveal">
+            <svg class="uk-map" viewBox="0 0 377 588" role="img" aria-label="Stylised map of the United Kingdom. Exeter is marked as the live pilot city; ten more cities are marked as on the roadmap.">
+              <path class="uk-land" d="M86.0,277.4L65.8,321.8L37.3,308.4L14.0,309.3L21.8,274.7L14.0,240.2L45.6,237.5L86.0,277.4Z M186.1,14.0L145.8,83.8L184.2,75.0L225.4,75.3L215.6,127.9L181.8,185.8L220.7,189.9L223.7,196.7L257.3,272.9L283.0,283.2L306.2,356.8L317.0,382.3L362.6,394.6L358.0,435.9L338.8,454.8L353.9,488.2L320.0,522.0L269.6,521.4L205.5,539.1L187.9,526.4L163.0,556.7L128.1,549.4L101.7,574.0L81.6,561.1L136.9,493.3L170.6,479.4L170.3,479.3L111.5,468.6L100.8,442.9L140.2,422.9L119.6,388.1L126.7,345.8L182.7,351.6L182.8,351.6L188.3,314.2L163.1,274.4L162.5,273.5L116.8,262.1L107.8,244.7L121.5,215.8L109.1,198.0L88.8,228.6L86.6,166.3L67.6,133.4L81.3,66.7L110.5,14.3L140.6,19.4L186.1,14.0Z"/>
+              <g id="mapPins" aria-hidden="true"></g>
+            </svg>
+            <div class="map-legend" aria-hidden="true">
+              <span><span class="dot live"></span>Pilot city</span>
+              <span><span class="dot soon"></span>On the roadmap</span>
+            </div>
+          </div>
+
+          <div class="reveal">
+            <div class="city-chips" id="cityChips" role="group" aria-label="Choose a city to see its status"></div>
+            <div class="city-detail" id="cityDetail" aria-live="polite"></div>
+            <div class="loc-types">
+              <p class="loc-types-title">The kinds of places we're targeting first:</p>
+              <div class="chip-row">
+                <span class="chip">🎓 Universities</span>
+                <span class="chip">🛍️ Shopping centres</span>
+                <span class="chip">🏟️ Stadiums</span>
+                <span class="chip">🚆 Transport hubs</span>
+                <span class="chip">☕ Hospitality</span>
+              </div>
+              <p class="loc-cta">
+                <a href="#venues" class="btn btn-outline">📍 Put your venue on the map</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ VISION ============ -->
-    <section class="vision-band" aria-labelledby="vision-title">
+    <section class="vision-band texture-dots" aria-labelledby="vision-title">
       <div class="container">
         <div class="reveal" style="text-align:center;">
           <span class="kicker">Where we're headed</span>
@@ -1119,6 +1287,7 @@
           <ul>
             <li><a href="#problem">The problem</a></li>
             <li><a href="#how">How it works</a></li>
+            <li><a href="#locations">Locations</a></li>
             <li><a href="#faq">FAQ</a></li>
           </ul>
         </nav>
@@ -1126,6 +1295,7 @@
           <p class="foot-head">Partner</p>
           <ul>
             <li><a href="#brands">Advertise with us</a></li>
+            <li><a href="#partners">Partner wall</a></li>
             <li><a href="#venues">Host a dispenser</a></li>
             <li><a href="mailto:ameliaireland18@gmail.com">Contact</a></li>
           </ul>
@@ -1361,6 +1531,86 @@
       }
 
       renderScan(false);
+
+      /* ---------- Locations map ---------- */
+      var CITY_DATA = [
+        { id: "exeter", name: "Exeter", x: 166.1, y: 525.0, live: true,
+          blurb: "Home turf and proof-of-concept city. Our first dispensers land here — and we're talking to Exeter venues right now." },
+        { id: "bristol", name: "Bristol", x: 201.8, y: 477.5,
+          blurb: "The South West's biggest student city — high on the Phase 2 list." },
+        { id: "cardiff", name: "Cardiff", x: 179.5, y: 475.8,
+          blurb: "Universities and a stadium in the middle of town — Cardiff makes a lot of sense." },
+        { id: "london", name: "London", x: 294.5, y: 474.1,
+          blurb: "The big one. Transport hubs and offices with serious footfall, when we're ready to scale." },
+        { id: "birmingham", name: "Birmingham", x: 228.0, y: 410.9,
+          blurb: "Five universities and some of the UK's busiest shopping footfall." },
+        { id: "manchester", name: "Manchester", x: 214.8, y: 346.7,
+          blurb: "One of Europe's largest student populations. Very much on the list." },
+        { id: "leeds", name: "Leeds", x: 240.9, y: 326.1,
+          blurb: "Compact, student-heavy and walkable — great dispenser territory." },
+        { id: "newcastle", name: "Newcastle", x: 238.3, y: 250.1,
+          blurb: "Big campus presence and a city centre that never sits still." },
+        { id: "edinburgh", name: "Edinburgh", x: 179.1, y: 187.1,
+          blurb: "Festivals, students, tourists — Scotland's front door." },
+        { id: "glasgow", name: "Glasgow", x: 139.1, y: 192.9,
+          blurb: "Scotland's biggest city, with venues to match." },
+        { id: "belfast", name: "Belfast", x: 75.9, y: 274.6,
+          blurb: "Bringing the model to Northern Ireland is firmly part of the plan." }
+      ];
+
+      var pinsG = document.getElementById("mapPins");
+      var chipsWrap = document.getElementById("cityChips");
+      var cityDetail = document.getElementById("cityDetail");
+      var SVGNS = "http://www.w3.org/2000/svg";
+
+      function selectCity(id) {
+        var c = null;
+        CITY_DATA.forEach(function (x) { if (x.id === id) { c = x; } });
+        if (!c) { return; }
+        document.querySelectorAll(".map-pin").forEach(function (p) {
+          p.classList.toggle("selected", p.getAttribute("data-city") === id);
+        });
+        document.querySelectorAll(".city-chip").forEach(function (ch) {
+          ch.setAttribute("aria-pressed", ch.getAttribute("data-city") === id ? "true" : "false");
+        });
+        cityDetail.innerHTML =
+          "<h3>" + c.name + " <span class=\"status-tag " + (c.live ? "live" : "soon") + "\">" +
+          (c.live ? "Pilot — recruiting venues" : "On the roadmap") + "</span></h3>" +
+          "<p>" + c.blurb + "</p>";
+      }
+
+      CITY_DATA.forEach(function (c) {
+        var g = document.createElementNS(SVGNS, "g");
+        g.setAttribute("class", "map-pin" + (c.live ? " live" : ""));
+        g.setAttribute("data-city", c.id);
+        if (c.live) {
+          var ring = document.createElementNS(SVGNS, "circle");
+          ring.setAttribute("class", "ring");
+          ring.setAttribute("cx", c.x);
+          ring.setAttribute("cy", c.y);
+          ring.setAttribute("r", 7);
+          g.appendChild(ring);
+        }
+        var core = document.createElementNS(SVGNS, "circle");
+        core.setAttribute("class", "core");
+        core.setAttribute("cx", c.x);
+        core.setAttribute("cy", c.y);
+        core.setAttribute("r", c.live ? 7 : 5.5);
+        g.appendChild(core);
+        g.addEventListener("click", function () { selectCity(c.id); });
+        pinsG.appendChild(g);
+
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "city-chip";
+        chip.setAttribute("data-city", c.id);
+        chip.setAttribute("aria-pressed", "false");
+        chip.innerHTML = c.name + (c.live ? ' <span class="badge-live">● pilot</span>' : "");
+        chip.addEventListener("click", function () { selectCity(c.id); });
+        chipsWrap.appendChild(chip);
+      });
+
+      selectCity("exeter");
 
       /* ---------- FAQ accordion ---------- */
       var faqItems = document.querySelectorAll(".faq-item");
