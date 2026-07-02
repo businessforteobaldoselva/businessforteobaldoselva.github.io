@@ -1,130 +1,1465 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>covered</title>
-  <meta name="description" content="covered — coming soon." />
+  <title>COVERED — Free Period Products, Paid for by Advertising</title>
+  <meta name="description" content="COVERED puts smart dispensers full of free, plastic-free period products in the places people actually need them — funded entirely by advertising. We got you covered." />
 
-  <!-- Favicon (simple inline SVG dot) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%23e8e6e1'/></svg>" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="COVERED — Free Period Products, Paid for by Advertising" />
+  <meta property="og:description" content="Smart dispensers. Free period products. Funded by brands, not users. We got you covered." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://businessforteobaldoselva.github.io/" />
+
+  <!-- Favicon: stamp-style C -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='none' stroke='%23E8443A' stroke-width='9'/%3E%3Ctext x='50' y='68' font-family='Arial Black,Arial,sans-serif' font-size='52' font-weight='900' fill='%23E8443A' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
-      --bg: #0e0e10;
-      --bg-accent: #16161a;
-      --fg: #e8e6e1;
-      --muted: #8a8a93;
-      --line: rgba(255, 255, 255, 0.08);
-      --accent: #c7b9a0;
+      --paper: #FAF6EF;
+      --paper-2: #F3EDE1;
+      --white: #FFFFFF;
+      --ink: #17130E;
+      --ink-soft: #4C463D;
+      --muted: #6B6459;
+      --red: #E8443A;
+      --red-deep: #C42F26;
+      --red-dark: #A2251E;
+      --green: #1E7A5A;
+      --sage: #E4EDE4;
+      --line: rgba(23, 19, 14, 0.12);
+      --radius: 20px;
+      --shadow: 0 10px 30px rgba(23, 19, 14, 0.08);
+      --font-head: "Space Grotesk", "Segoe UI", sans-serif;
+      --font-body: "Inter", "Segoe UI", sans-serif;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    html, body { height: 100%; }
+    html { scroll-behavior: smooth; scroll-padding-top: 86px; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background:
-        radial-gradient(1200px 600px at 50% -10%, var(--bg-accent), transparent 70%),
-        var(--bg);
-      color: var(--fg);
-      min-height: 100%;
-      display: flex;
-      flex-direction: column;
+      font-family: var(--font-body);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      overflow-x: hidden;
     }
 
-    .wrap {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
+    h1, h2, h3, h4 { font-family: var(--font-head); line-height: 1.1; letter-spacing: -0.02em; }
+
+    a { color: inherit; }
+
+    .container { width: min(1120px, 92%); margin: 0 auto; }
+
+    section { padding: 5.5rem 0; }
+
+    .kicker {
+      display: inline-block;
+      font-family: var(--font-head);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--red-deep);
+      margin-bottom: 1rem;
     }
 
-    .logo {
-      font-size: clamp(2.75rem, 12vw, 6rem);
-      font-weight: 600;
-      letter-spacing: -0.04em;
-      line-height: 1;
-    }
+    .section-title { font-size: clamp(1.9rem, 4.5vw, 3rem); font-weight: 700; margin-bottom: 1rem; }
+    .section-sub { font-size: clamp(1rem, 2vw, 1.15rem); color: var(--ink-soft); max-width: 58ch; }
 
-    .logo .dot { color: var(--accent); }
-
-    .tagline {
-      margin-top: 1.5rem;
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: var(--muted);
-      max-width: 32ch;
-      line-height: 1.5;
-    }
-
-    .badge {
-      margin-top: 2.5rem;
+    /* ---------- Buttons ---------- */
+    .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border: 1px solid var(--line);
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.85rem 1.6rem;
       border-radius: 999px;
-      font-size: 0.8rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
+      border: 2px solid var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: var(--red-deep); border-color: var(--red-deep); color: #fff; box-shadow: 0 6px 18px rgba(196, 47, 38, 0.35); }
+    .btn-primary:hover { background: var(--red-dark); border-color: var(--red-dark); }
+    .btn-outline { background: transparent; color: var(--ink); }
+    .btn-outline:hover { background: var(--ink); color: var(--paper); }
+    .btn-light { background: var(--paper); border-color: var(--paper); color: var(--ink); }
+    .btn-light:hover { background: #fff; }
+
+    /* ---------- Scroll progress ---------- */
+    #progress {
+      position: fixed; top: 0; left: 0; height: 4px; width: 0;
+      background: var(--red); z-index: 200;
     }
 
-    .badge .pulse {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 0 rgba(199, 185, 160, 0.6);
+    /* ---------- Nav ---------- */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(250, 246, 239, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 0;
+    }
+    .logo {
+      font-family: var(--font-head);
+      font-weight: 700; font-size: 1.3rem; letter-spacing: 0.04em;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.55rem;
+    }
+    .logo-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border: 3px solid var(--red); border-radius: 9px;
+      color: var(--red); font-weight: 700; font-size: 1.05rem;
+      transform: rotate(-6deg);
+    }
+    .nav-links { display: flex; align-items: center; gap: 1.6rem; list-style: none; }
+    .nav-links a:not(.btn) {
+      text-decoration: none; font-weight: 500; font-size: 0.95rem; color: var(--ink-soft);
+      transition: color 0.15s ease;
+    }
+    .nav-links a:not(.btn):hover { color: var(--red); }
+    .nav-links .btn { padding: 0.5rem 1.15rem; font-size: 0.9rem; }
+
+    .burger {
+      display: none; background: none; border: none; cursor: pointer; padding: 8px;
+    }
+    .burger span { display: block; width: 24px; height: 3px; background: var(--ink); margin: 5px 0; border-radius: 2px; transition: transform 0.2s ease, opacity 0.2s ease; }
+    .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    @media (max-width: 840px) {
+      .burger { display: block; }
+      .nav-links {
+        display: none;
+        position: absolute; top: 100%; left: 0; right: 0;
+        flex-direction: column; align-items: flex-start; gap: 0;
+        background: var(--paper); border-bottom: 1px solid var(--line);
+        padding: 0.5rem 4%;
+      }
+      .nav-links.open { display: flex; max-height: calc(100vh - 72px); max-height: calc(100dvh - 72px); overflow-y: auto; }
+      .nav-links li { width: 100%; }
+      .nav-links a:not(.btn) { display: block; padding: 0.85rem 0; font-size: 1.05rem; }
+      .nav-links .btn { margin: 0.75rem 0 1rem; }
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      position: relative;
+      padding: 6.5rem 0 5rem;
+      overflow: hidden;
+    }
+    .hero::before, .hero::after {
+      content: ""; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none;
+    }
+    .hero::before { width: 480px; height: 480px; background: rgba(232, 68, 58, 0.12); top: -140px; right: -120px; }
+    .hero::after { width: 420px; height: 420px; background: rgba(30, 122, 90, 0.10); bottom: -160px; left: -140px; }
+
+    .hero-inner { position: relative; z-index: 1; text-align: center; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      border: 1.5px solid var(--line); background: #fff;
+      border-radius: 999px; padding: 0.45rem 1.05rem;
+      font-size: 0.82rem; font-weight: 600; color: var(--ink-soft);
+      margin-bottom: 2rem;
+    }
+    .hero-badge .dot-pulse {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
       animation: pulse 2.2s infinite;
     }
-
     @keyframes pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(199, 185, 160, 0.5); }
-      70%  { box-shadow: 0 0 0 10px rgba(199, 185, 160, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(199, 185, 160, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(30, 122, 90, 0.45); }
+      70% { box-shadow: 0 0 0 9px rgba(30, 122, 90, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(30, 122, 90, 0); }
     }
 
-    footer {
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.8rem;
-      color: var(--muted);
-      border-top: 1px solid var(--line);
+    .hero h1 {
+      font-size: clamp(2.6rem, 7vw, 5rem);
+      font-weight: 700;
+      max-width: 17ch;
+      margin: 0 auto;
+    }
+    .hero h1 .accent { color: var(--red); }
+
+    .hero-stamp-row { margin: 2.2rem 0 1.6rem; min-height: 90px; display: flex; justify-content: center; }
+
+    .stamp {
+      display: inline-block;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      letter-spacing: 0.12em;
+      color: var(--red);
+      border: 4px solid var(--red);
+      border-radius: 14px;
+      padding: 0.35em 0.8em;
+      transform: rotate(-6deg);
+      position: relative;
+      text-transform: uppercase;
+      box-shadow: inset 0 0 0 2px rgba(232, 68, 58, 0.25);
+    }
+    .stamp::after {
+      content: ""; position: absolute; inset: 4px;
+      border: 1.5px dashed rgba(232, 68, 58, 0.4); border-radius: 9px;
+      pointer-events: none;
+    }
+    .stamp.stamp-in { animation: stampIn 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+    @keyframes stampIn {
+      0% { opacity: 0; transform: rotate(-6deg) scale(2.6); }
+      60% { opacity: 1; transform: rotate(-6deg) scale(0.94); }
+      80% { transform: rotate(-6deg) scale(1.04); }
+      100% { opacity: 1; transform: rotate(-6deg) scale(1); }
     }
 
-    footer a { color: var(--fg); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+    .hero-sub { font-size: clamp(1.05rem, 2.2vw, 1.25rem); color: var(--ink-soft); max-width: 52ch; margin: 0 auto 2.4rem; }
+
+    .hero-ctas { display: flex; gap: 0.9rem; justify-content: center; flex-wrap: wrap; }
+
+    .hero-scroll { margin-top: 3.2rem; font-size: 0.85rem; color: var(--muted); }
+    .hero-scroll a { text-decoration: none; }
+    .hero-scroll a:hover { color: var(--red); }
+
+    /* ---------- Marquee ---------- */
+    .marquee {
+      background: var(--ink); color: var(--paper);
+      padding: 0.9rem 0; overflow: hidden; white-space: nowrap;
+      border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    }
+    .marquee-track { display: inline-flex; animation: scrollX 36s linear infinite; }
+    .marquee span {
+      font-family: var(--font-head); font-weight: 600; font-size: 0.95rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0 1.4rem; display: inline-flex; align-items: center; gap: 1.4rem;
+    }
+    .marquee span::after { content: "●"; color: var(--red); font-size: 0.55rem; }
+    @keyframes scrollX { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .marquee { position: relative; }
+    .marquee:hover .marquee-track, .marquee.paused .marquee-track { animation-play-state: paused; }
+    .marquee-pause {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 2;
+      width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid rgba(250, 246, 239, 0.4);
+      background: var(--ink); color: var(--paper); cursor: pointer; font-size: 0.7rem; line-height: 1;
+    }
+    .marquee-pause:hover, .marquee-pause:focus-visible { border-color: var(--paper); }
+
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    /* ---------- Problem / stats ---------- */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-top: 3rem;
+    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .stats-grid { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
+      padding: 1.8rem 1.5rem; box-shadow: var(--shadow);
+    }
+    .stat-num {
+      font-family: var(--font-head); font-size: clamp(2.6rem, 5vw, 3.4rem);
+      font-weight: 700; color: var(--red); line-height: 1;
+    }
+    .stat-label { margin-top: 0.7rem; font-size: 0.95rem; color: var(--ink-soft); }
+    .stats-source { margin-top: 1.6rem; font-size: 0.82rem; color: var(--muted); }
+    .stats-source a { color: var(--muted); }
+
+    /* ---------- Model loop ---------- */
+    .model-band { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .loop { display: flex; align-items: stretch; justify-content: center; gap: 0; margin-top: 3rem; flex-wrap: wrap; }
+    .loop-step {
+      flex: 1 1 240px; max-width: 320px;
+      background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
+      padding: 1.9rem 1.6rem; box-shadow: var(--shadow); text-align: center;
+    }
+    .loop-emoji { font-size: 2rem; }
+    .loop-step h3 { font-size: 1.2rem; margin: 0.8rem 0 0.5rem; }
+    .loop-step p { font-size: 0.93rem; color: var(--ink-soft); }
+    .loop-arrow {
+      display: flex; align-items: center; padding: 0 1rem;
+      font-size: 1.8rem; color: var(--red); font-weight: 700;
+      animation: nudge 1.6s ease-in-out infinite;
+    }
+    @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
+    @media (max-width: 860px) {
+      .loop { flex-direction: column; align-items: center; }
+      .loop-arrow { transform: rotate(90deg); padding: 0.6rem 0; animation: none; }
+    }
+
+    /* ---------- How it works / demo ---------- */
+    .stepper { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2.6rem 0 2rem; list-style: none; padding: 0; }
+    .step-chip {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      border: 1.5px solid var(--line); background: var(--white);
+      border-radius: 999px; padding: 0.5rem 1.1rem;
+      font-size: 0.88rem; font-weight: 600; color: var(--muted);
+      transition: all 0.25s ease;
+    }
+    .step-chip .n {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--paper-2); color: var(--muted); font-size: 0.75rem; font-family: var(--font-head);
+    }
+    .step-chip.active { border-color: var(--red); color: var(--ink); box-shadow: 0 4px 14px rgba(232, 68, 58, 0.18); }
+    .step-chip.active .n { background: var(--red); color: #fff; }
+    .step-chip.done { color: var(--green); border-color: rgba(30, 122, 90, 0.4); }
+    .step-chip.done .n { background: var(--green); color: #fff; }
+
+    .demo-card {
+      background: var(--white); border: 2px solid var(--ink); border-radius: 28px;
+      box-shadow: 0 18px 50px rgba(23, 19, 14, 0.12);
+      padding: 2.6rem 2rem;
+      display: flex; gap: 3rem; align-items: center; justify-content: center; flex-wrap: wrap;
+    }
+
+    /* Machine */
+    .machine-stage { position: relative; }
+    .machine {
+      width: 250px; background: linear-gradient(180deg, #FFFFFF, #F1ECE2);
+      border: 3px solid var(--ink); border-radius: 22px;
+      padding: 14px; position: relative;
+    }
+    .m-screen {
+      height: 150px; background: var(--ink); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--paper); overflow: hidden; position: relative;
+    }
+    .m-screen .qr {
+      width: 76px; height: 76px; border-radius: 8px; background:
+        conic-gradient(var(--ink) 0 25%, #fff 0 50%, var(--ink) 0 75%, #fff 0) 0 0/50% 50%,
+        #fff;
+      outline: 6px solid #fff;
+      animation: qrPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes qrPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+    .m-screen .ad-live { text-align: center; font-family: var(--font-head); padding: 0 10px; }
+    .m-screen .ad-live small { display: block; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250,246,239,0.6); margin-bottom: 6px; }
+    .m-screen .ad-live strong { font-size: 1.05rem; }
+    .m-label {
+      text-align: center; font-family: var(--font-head); font-weight: 700;
+      letter-spacing: 0.14em; font-size: 0.8rem; color: var(--red-deep);
+      padding: 10px 0 8px; text-transform: uppercase;
+    }
+    .m-slot {
+      height: 58px; background: var(--ink); border-radius: 12px;
+      position: relative; overflow: hidden;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .m-slot::before {
+      content: ""; position: absolute; top: 8px; left: 14px; right: 14px; height: 5px;
+      background: rgba(250, 246, 239, 0.16); border-radius: 3px;
+    }
+    .pack {
+      width: 74px; height: 34px; background: var(--paper);
+      border: 2.5px solid var(--red); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-weight: 700; font-size: 0.55rem;
+      letter-spacing: 0.1em; color: var(--red);
+      margin-bottom: 6px;
+      opacity: 0; transform: translateY(-70px) rotate(-4deg);
+    }
+    .pack.drop { animation: packDrop 0.7s cubic-bezier(0.3, 1.3, 0.5, 1) both; }
+    @keyframes packDrop {
+      0% { opacity: 0; transform: translateY(-70px) rotate(-6deg); }
+      60% { opacity: 1; transform: translateY(4px) rotate(2deg); }
+      100% { opacity: 1; transform: translateY(0) rotate(0deg); }
+    }
+    .machine .led {
+      position: absolute; top: 20px; right: 22px; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px rgba(30, 122, 90, 0.8);
+    }
+    .machine-stamp {
+      position: absolute; top: 42%; left: 50%;
+      translate: -50% -50%;
+      font-size: 1.1rem; padding: 0.3em 0.7em;
+      background: rgba(250, 246, 239, 0.94);
+      opacity: 0; pointer-events: none; z-index: 5;
+    }
+    .machine-stamp.show { opacity: 1; animation: stampIn 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+    .confetti-bit {
+      position: absolute; top: 30%; width: 8px; height: 12px; border-radius: 2px;
+      pointer-events: none; z-index: 4;
+      animation: confettiFall 1.3s ease-in forwards;
+    }
+    @keyframes confettiFall {
+      0% { opacity: 1; transform: translateY(0) rotate(0); }
+      100% { opacity: 0; transform: translateY(190px) rotate(320deg); }
+    }
+
+    /* Phone */
+    .phone {
+      width: 230px; border: 3px solid var(--ink); border-radius: 30px;
+      background: #fff; padding: 12px; position: relative;
+    }
+    .phone::before {
+      content: ""; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      width: 72px; height: 16px; background: var(--ink); border-radius: 0 0 12px 12px; z-index: 2;
+    }
+    .p-screen {
+      border-radius: 20px; background: var(--paper); min-height: 300px;
+      padding: 2.2rem 1rem 1.2rem; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 0.8rem; text-align: center;
+    }
+    .p-screen h3 { font-size: 1.02rem; }
+    .p-screen p { font-size: 0.8rem; color: var(--ink-soft); }
+    .p-screen .btn { font-size: 0.85rem; padding: 0.6rem 1.2rem; }
+    .p-input {
+      pointer-events: none;
+      width: 100%; border: 1.5px solid var(--line); border-radius: 10px;
+      padding: 0.6rem 0.8rem; font-size: 0.82rem; font-family: var(--font-body);
+      background: #fff; color: var(--ink-soft); text-align: center;
+    }
+    .ad-box {
+      width: 100%; background: var(--ink); color: var(--paper); border-radius: 12px; padding: 1rem 0.8rem;
+    }
+    .ad-box small { display: block; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+    .ad-box strong { font-family: var(--font-head); font-size: 0.95rem; }
+    .ad-progress { width: 100%; height: 7px; background: var(--paper-2); border-radius: 4px; overflow: hidden; }
+    .ad-progress .bar { height: 100%; width: 0; background: var(--red); border-radius: 4px; }
+    .ad-progress .bar.run { animation: fillBar 3s linear forwards; }
+    @keyframes fillBar { to { width: 100%; } }
+    .p-stamp { font-size: 0.95rem; padding: 0.3em 0.7em; }
+
+    .demo-note { text-align: center; margin-top: 1.6rem; font-size: 0.86rem; color: var(--muted); }
+
+    /* ---------- Audience sections ---------- */
+    .dark { background: var(--ink); color: var(--paper); }
+    .dark .section-sub { color: rgba(250, 246, 239, 0.75); }
+    .dark .kicker { color: var(--red); }
+
+    .benefit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 3rem; }
+    @media (max-width: 900px) { .benefit-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .benefit-grid { grid-template-columns: 1fr; } }
+
+    .benefit {
+      border: 1.5px solid rgba(250, 246, 239, 0.16); border-radius: var(--radius);
+      padding: 1.7rem 1.5rem; background: rgba(250, 246, 239, 0.04);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .benefit:hover { transform: translateY(-4px); border-color: rgba(232, 68, 58, 0.6); }
+    .benefit .b-icon { font-size: 1.6rem; }
+    .benefit h3 { font-size: 1.08rem; margin: 0.8rem 0 0.45rem; }
+    .benefit p { font-size: 0.9rem; color: rgba(250, 246, 239, 0.72); }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2.2rem; }
+    .chip {
+      border: 1.5px solid rgba(250, 246, 239, 0.25); border-radius: 999px;
+      padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 500; color: rgba(250, 246, 239, 0.85);
+    }
+
+    /* ---------- Forms ---------- */
+    .form-card {
+      background: rgba(250, 246, 239, 0.05);
+      border: 1.5px solid rgba(250, 246, 239, 0.16);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-top: 3rem;
+    }
+    .form-card h3 { font-size: 1.3rem; margin-bottom: 1.4rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 0.82rem; font-weight: 600; }
+    .field input, .field select, .field textarea {
+      font-family: var(--font-body); font-size: 1rem;
+      padding: 0.75rem 0.9rem; border-radius: 12px;
+      border: 1.5px solid var(--line); background: var(--paper); color: var(--ink);
+    }
+    .field textarea { resize: vertical; min-height: 90px; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: 2px solid var(--red); outline-offset: 1px; border-color: var(--red);
+    }
+    .form-actions { margin-top: 1.4rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .form-hint { font-size: 0.8rem; color: rgba(250, 246, 239, 0.6); }
+    .light-form .form-hint { color: var(--muted); }
+
+    .light-form { background: var(--white); border: 1.5px solid var(--line); box-shadow: var(--shadow); }
+
+    /* ---------- Venues ---------- */
+    .pilot-ribbon {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      background: var(--sage); border: 1.5px solid rgba(30, 122, 90, 0.35);
+      color: var(--green); border-radius: 999px; padding: 0.5rem 1.2rem;
+      font-weight: 600; font-size: 0.88rem; margin-bottom: 1.4rem;
+    }
+    .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin-top: 3rem; }
+    @media (max-width: 760px) { .cols-2 { grid-template-columns: 1fr; } }
+    .list-card {
+      background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
+      padding: 1.9rem 1.7rem; box-shadow: var(--shadow);
+    }
+    .list-card h3 { font-size: 1.15rem; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.55rem; }
+    .list-card ul { list-style: none; }
+    .list-card li {
+      padding: 0.5rem 0; font-size: 0.95rem; color: var(--ink-soft);
+      display: flex; gap: 0.6rem; align-items: baseline;
+    }
+    .list-card li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; }
+    .list-card.wants li::before { content: "→"; color: var(--red); }
+
+    /* ---------- Vision ---------- */
+    .vision-band { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 3rem; }
+    @media (max-width: 800px) { .timeline { grid-template-columns: 1fr; } }
+    .milestone {
+      background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
+      padding: 1.8rem 1.6rem; box-shadow: var(--shadow); position: relative;
+    }
+    .milestone .phase-tag {
+      display: inline-block; font-family: var(--font-head); font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.14em; text-transform: uppercase; color: #fff; background: var(--red-deep);
+      border-radius: 999px; padding: 0.3rem 0.85rem; margin-bottom: 1rem;
+    }
+    .milestone:nth-child(2) .phase-tag { background: var(--ink); }
+    .milestone:nth-child(3) .phase-tag { background: var(--green); }
+    .milestone h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .milestone p { font-size: 0.92rem; color: var(--ink-soft); }
+
+    /* ---------- Build in public ---------- */
+    .bip {
+      margin-top: 4rem; text-align: center;
+      border: 2px dashed rgba(23, 19, 14, 0.25); border-radius: var(--radius);
+      padding: 2.2rem 1.6rem;
+    }
+    .bip h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .bip p { color: var(--ink-soft); font-size: 0.95rem; max-width: 52ch; margin: 0 auto 1.2rem; }
+    .soon-chips { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .soon-chips .chip { border-color: var(--line); color: var(--muted); }
+
+    /* ---------- FAQ ---------- */
+    .faq-list { margin-top: 2.6rem; max-width: 760px; margin-left: auto; margin-right: auto; }
+    .faq-item {
+      background: var(--white); border: 1.5px solid var(--line); border-radius: 16px;
+      margin-bottom: 0.8rem; overflow: hidden;
+    }
+    .faq-q {
+      width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+      font-family: var(--font-head); font-weight: 600; font-size: 1.02rem; color: var(--ink);
+      padding: 1.15rem 1.4rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    }
+    .faq-q .indicator { color: var(--red); font-size: 1.3rem; font-weight: 500; transition: transform 0.25s ease; flex-shrink: 0; }
+    .faq-item.open .indicator { transform: rotate(45deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .faq-a-inner { padding: 0 1.4rem 1.25rem; font-size: 0.94rem; color: var(--ink-soft); }
+
+    /* ---------- CTA banner ---------- */
+    .cta-banner {
+      background: var(--red); color: #fff; border-radius: 28px;
+      padding: 3.4rem 2.4rem; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-banner::before {
+      content: "COVERED."; position: absolute; font-family: var(--font-head); font-weight: 700;
+      font-size: 9rem; opacity: 0.08; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-6deg);
+      white-space: nowrap; pointer-events: none;
+    }
+    .cta-banner h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: 0.8rem; position: relative; }
+    .cta-banner p { opacity: 0.9; margin-bottom: 1.8rem; position: relative; }
+    .cta-banner .btn { position: relative; }
+
+    /* ---------- Footer ---------- */
+    footer { background: var(--ink); color: rgba(250, 246, 239, 0.75); padding: 3.5rem 0 2.5rem; }
+    .foot-grid { display: flex; justify-content: space-between; gap: 2rem; flex-wrap: wrap; align-items: flex-start; }
+    .foot-brand .logo { color: var(--paper); }
+    .foot-brand p { margin-top: 0.9rem; font-size: 0.9rem; max-width: 34ch; }
+    .foot-col .foot-head { font-family: var(--font-head); font-weight: 700; color: var(--paper); font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.9rem; }
+    .foot-col ul { list-style: none; }
+    .foot-col li { margin-bottom: 0.55rem; }
+    .foot-col a { text-decoration: none; font-size: 0.92rem; color: rgba(250, 246, 239, 0.75); }
+    .foot-col a:hover { color: var(--red); }
+    .foot-bottom {
+      margin-top: 2.8rem; padding-top: 1.6rem; border-top: 1px solid rgba(250, 246, 239, 0.12);
+      display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+      font-size: 0.8rem; color: rgba(250, 246, 239, 0.5);
+    }
+
+    /* ---------- Reveal on scroll ---------- */
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media print {
+      #progress, header, .burger, .marquee, .hero-scroll { display: none !important; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      .dark, footer { background: #fff !important; color: var(--ink) !important; }
+      .dark .section-sub, .benefit p, .chip, .form-hint, .foot-col a, footer { color: var(--ink-soft) !important; }
+      .benefit h3, .form-card h3, .foot-col .foot-head, .foot-brand .logo { color: var(--ink) !important; }
+      .faq-a, .faq-a[hidden] { display: block !important; max-height: none !important; }
+      .cta-banner { background: #fff !important; color: var(--ink) !important; border: 2px solid var(--ink); }
+    }
 
     @media (prefers-reduced-motion: reduce) {
-      .badge .pulse { animation: none; }
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.001s !important; }
+      .reveal { opacity: 1; transform: none; }
+      .marquee-track { animation: none; }
     }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <h1 class="logo">covered<span class="dot">.</span></h1>
-    <p class="tagline">Something new is on the way.</p>
 
-    <span class="badge">
-      <span class="pulse"></span>
-      Coming soon
-    </span>
+  <div id="progress" role="presentation"></div>
+
+  <header>
+    <div class="container nav">
+      <a href="#top" class="logo" aria-label="COVERED home">
+        <span class="logo-mark" aria-hidden="true">C</span>
+        COVERED
+      </a>
+      <button class="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#problem">The problem</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#brands">For brands</a></li>
+        <li><a href="#venues">For venues</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#brands" class="btn btn-primary">Advertise with us</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" aria-label="Introduction">
+      <div class="container hero-inner">
+        <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> Pilot launching in Exeter, UK</span>
+        <h1>Free period products. <span class="accent">Paid for by advertising.</span></h1>
+
+        <div class="hero-stamp-row">
+          <span class="stamp" id="heroStamp">We got you covered.</span>
+        </div>
+
+        <p class="hero-sub">
+          Smart dispensers stocked with free, plastic-free period products — in the places people
+          actually need them. No cost. No card. No catch. Brands fund it; everyone benefits.
+        </p>
+
+        <div class="hero-ctas">
+          <a href="#brands" class="btn btn-primary">I'm a brand — advertise</a>
+          <a href="#venues" class="btn btn-outline">I'm a venue — host a unit</a>
+        </div>
+
+        <p class="hero-scroll"><a href="#problem">↓ Why this matters</a></p>
+      </div>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee">
+      <button class="marquee-pause" id="marqueePause" aria-label="Pause scrolling venue list" aria-pressed="false">⏸</button>
+      <div class="marquee-track" aria-hidden="true">
+        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
+        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
+      </div>
+    </div>
+
+    <!-- ============ PROBLEM ============ -->
+    <section id="problem" aria-labelledby="problem-title">
+      <div class="container">
+        <div class="reveal">
+          <span class="kicker">The problem</span>
+          <h2 class="section-title" id="problem-title">Period poverty is real —<br />and it's happening here.</h2>
+          <p class="section-sub">
+            In the UK today, more than one in ten women and people who menstruate struggled to afford
+            period products in the last year. Behind that number are impossible choices no one should have to make.
+          </p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card reveal">
+            <div class="stat-num"><span class="count" data-target="11">0</span>%</div>
+            <p class="stat-label">struggled to afford period products for themselves or a dependent in the last year</p>
+          </div>
+          <div class="stat-card reveal">
+            <div class="stat-num"><span class="count" data-target="64">0</span>%</div>
+            <p class="stat-label">of those had to prioritise buying food instead</p>
+          </div>
+          <div class="stat-card reveal">
+            <div class="stat-num"><span class="count" data-target="36">0</span>%</div>
+            <p class="stat-label">of those wore single-use pads or tampons for longer, risking infection</p>
+          </div>
+          <div class="stat-card reveal">
+            <div class="stat-num"><span class="count" data-target="22">0</span>%</div>
+            <p class="stat-label">of those stayed at home as a result — shut out of work, school and daily life</p>
+          </div>
+        </div>
+
+        <p class="stats-source reveal">Source: <a href="https://www.actionaid.org.uk/latest-news/new-uk-period-poverty-poll-one-10-struggle-afford-period-products" target="_blank" rel="noopener">ActionAid UK period poverty polling</a>.</p>
+      </div>
+    </section>
+
+    <!-- ============ MODEL ============ -->
+    <section class="model-band" aria-labelledby="model-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">The model</span>
+          <h2 class="section-title" id="model-title">Brands pay. You don't.</h2>
+          <p class="section-sub" style="margin: 0 auto;">
+            A self-sustaining loop where advertising funds free access to essential products — no charity box, no coin slot.
+          </p>
+        </div>
+
+        <div class="loop reveal">
+          <div class="loop-step">
+            <div class="loop-emoji" aria-hidden="true">📣</div>
+            <h3>Brands buy ad space</h3>
+            <p>Partners advertise on our 32-inch HD screens and product packaging, reaching a highly relevant audience.</p>
+          </div>
+          <div class="loop-arrow" aria-hidden="true">→</div>
+          <div class="loop-step">
+            <div class="loop-emoji" aria-hidden="true">💷</div>
+            <h3>Ad revenue funds products</h3>
+            <p>Every campaign pays for the supply, stocking and maintenance of free period products.</p>
+          </div>
+          <div class="loop-arrow" aria-hidden="true">→</div>
+          <div class="loop-step">
+            <div class="loop-emoji" aria-hidden="true">💛</div>
+            <h3>Products reach people, free</h3>
+            <p>Plastic-free, biodegradable pads and tampons — available exactly when and where they're needed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS / DEMO ============ -->
+    <section id="how" aria-labelledby="how-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">How it works</span>
+          <h2 class="section-title" id="how-title">Scan. Check in. Watch. Covered.</h2>
+          <p class="section-sub" style="margin: 0 auto;">
+            Try it yourself — tap through the full experience we're building, right here.
+          </p>
+        </div>
+
+        <ol class="stepper reveal" id="stepper" aria-label="Demo progress">
+          <li class="step-chip active" data-step="0" aria-current="step"><span class="n" aria-hidden="true">1</span> Scan the QR</li>
+          <li class="step-chip" data-step="1"><span class="n" aria-hidden="true">2</span> Quick check-in</li>
+          <li class="step-chip" data-step="2"><span class="n" aria-hidden="true">3</span> A word from our sponsor</li>
+          <li class="step-chip" data-step="3"><span class="n" aria-hidden="true">4</span> Covered.</li>
+        </ol>
+
+        <div class="demo-card reveal">
+          <!-- Machine -->
+          <div class="machine-stage" id="machineStage">
+            <div class="machine" role="img" aria-label="Illustration of a COVERED wall-mounted dispenser">
+              <span class="led" aria-hidden="true"></span>
+              <div class="m-screen" id="machineScreen">
+                <div class="qr" aria-hidden="true"></div>
+              </div>
+              <div class="m-label">Covered</div>
+              <div class="m-slot" id="machineSlot">
+                <div class="pack" id="pack">4-PACK</div>
+              </div>
+            </div>
+            <span class="stamp machine-stamp" id="machineStamp">Covered.</span>
+          </div>
+
+          <!-- Phone -->
+          <div class="phone">
+            <div class="p-screen" id="phoneScreen" aria-live="polite" tabindex="-1">
+              <h3>Need a pad or tampon?</h3>
+              <p>Scan the QR code on the machine to get started — it's free.</p>
+              <button class="btn btn-primary" id="btnScan">📱 Simulate scan</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="demo-note">
+          During the Exeter pilot it's even simpler — take what you need, no scan required.
+          Longer term, a gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ FOR BRANDS ============ -->
+    <section id="brands" class="dark" aria-labelledby="brands-title">
+      <div class="container">
+        <div class="reveal">
+          <span class="kicker">For brands</span>
+          <h2 class="section-title" id="brands-title">Unskippable. Unblockable.<br />Actually appreciated.</h2>
+          <p class="section-sub">
+            Your ad funds something people genuinely need — and reaches them at a moment of full attention.
+            No ad-blockers, no doom-scrolling past. Just gratitude and dwell time.
+          </p>
+        </div>
+
+        <div class="benefit-grid">
+          <div class="benefit reveal">
+            <div class="b-icon" aria-hidden="true">⏱️</div>
+            <h3>Exceptional dwell time</h3>
+            <p>Your creative plays while the user waits for their product — undivided attention in a distraction-free environment.</p>
+          </div>
+          <div class="benefit reveal">
+            <div class="b-icon" aria-hidden="true">🤝</div>
+            <h3>Gratitude moments</h3>
+            <p>Reaching consumers at a moment of real need creates positive brand association money can't usually buy.</p>
+          </div>
+          <div class="benefit reveal">
+            <div class="b-icon" aria-hidden="true">📊</div>
+            <h3>First-party data</h3>
+            <p>GDPR-compliant interaction metrics: dwell time, click-throughs, conversions and post-campaign reports by location.</p>
+          </div>
+          <div class="benefit reveal">
+            <div class="b-icon" aria-hidden="true">📍</div>
+            <h3>High-footfall placement</h3>
+            <p>Universities, stadiums, transport hubs and busy retail locations — targeted, contextual and local-friendly.</p>
+          </div>
+          <div class="benefit reveal">
+            <div class="b-icon" aria-hidden="true">📈</div>
+            <h3>Trust uplift</h3>
+            <p>Being the brand that made it free earns real trust and warmth — the kind of association traditional media can't buy.</p>
+          </div>
+          <div class="benefit reveal">
+            <div class="b-icon" aria-hidden="true">🚫</div>
+            <h3>Unskippable by design</h3>
+            <p>A physical presence no ad-blocker can touch, wrapped in a social mission your CSR team will love.</p>
+          </div>
+        </div>
+
+        <div class="chip-row reveal">
+          <span class="chip">32-inch HD screens</span>
+          <span class="chip">QR-driven engagement</span>
+          <span class="chip">Post-campaign reports</span>
+          <span class="chip">Brand-safe environment</span>
+          <span class="chip">Privacy by design — built to UK GDPR &amp; PECR standards</span>
+        </div>
+
+        <div class="form-card reveal">
+          <h3>Get the media kit</h3>
+          <form id="brandForm" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="bName">Your name</label>
+                <input type="text" id="bName" name="name" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="bCompany">Company</label>
+                <input type="text" id="bCompany" name="company" autocomplete="organization" required />
+              </div>
+              <div class="field">
+                <label for="bEmail">Work email</label>
+                <input type="email" id="bEmail" name="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label for="bBudget">Indicative monthly budget</label>
+                <select id="bBudget" name="budget">
+                  <option value="">Prefer not to say</option>
+                  <option>Under £500</option>
+                  <option>£500 – £2,000</option>
+                  <option>£2,000 – £5,000</option>
+                  <option>£5,000+</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="bTiming">Preferred campaign timing</label>
+                <input type="text" id="bTiming" name="timing" placeholder="e.g. Sept – Dec 2026" />
+              </div>
+              <div class="field full">
+                <label for="bMsg">What are you looking to achieve?</label>
+                <textarea id="bMsg" name="message" placeholder="Campaign goals, timing, locations of interest…"></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Request media kit</button>
+              <span class="form-hint">Opens your email app with everything pre-filled — nothing is sent automatically.</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOR VENUES ============ -->
+    <section id="venues" aria-labelledby="venues-title">
+      <div class="container">
+        <div class="reveal">
+          <span class="pilot-ribbon">📍 Now recruiting Exeter pilot venues — 6–8 weeks, zero cost</span>
+          <span class="kicker" style="display:block;">For venues</span>
+          <h2 class="section-title" id="venues-title">Host a unit. Zero cost.<br />Zero hassle. Full credit.</h2>
+          <p class="section-sub">
+            We supply, install, stock and maintain the dispenser. You provide a wall and a plug socket.
+            Your visitors get looked after — and you get the wellbeing story to tell.
+          </p>
+        </div>
+
+        <div class="cols-2">
+          <div class="list-card reveal">
+            <h3><span aria-hidden="true">🛠️</span> We handle</h3>
+            <ul>
+              <li>Dispenser, screen and safe, tidy installation</li>
+              <li>Initial stock plus regular restocking</li>
+              <li>Maintenance, uptime and issue resolution</li>
+              <li>Brand-safe ad policy — no adult, gambling or political ads</li>
+              <li>A monthly impact report you can share</li>
+            </ul>
+          </div>
+          <div class="list-card wants reveal">
+            <h3><span aria-hidden="true">🧩</span> You provide</h3>
+            <ul>
+              <li>A visible wall space near or inside the toilets</li>
+              <li>Access to a standard plug socket — the screen's electricity (pennies a day) is the only cost</li>
+              <li>A named facilities contact</li>
+              <li>That's genuinely it — no rent, no fees, no admin</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="form-card light-form reveal">
+          <h3>Register your interest</h3>
+          <form id="venueForm" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="vName">Your name</label>
+                <input type="text" id="vName" name="name" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="vVenue">Venue / organisation</label>
+                <input type="text" id="vVenue" name="venue" autocomplete="organization" required />
+              </div>
+              <div class="field">
+                <label for="vEmail">Email</label>
+                <input type="email" id="vEmail" name="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label for="vType">Venue type</label>
+                <select id="vType" name="type">
+                  <option>University / school</option>
+                  <option>Shopping centre / retail</option>
+                  <option>Stadium / large venue</option>
+                  <option>Transport hub</option>
+                  <option>Office / workplace</option>
+                  <option>Hospitality</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="vMsg">Anything we should know?</label>
+                <textarea id="vMsg" name="message" placeholder="Location, footfall, timelines…"></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Talk to us about hosting</button>
+              <span class="form-hint">Opens your email app with everything pre-filled — nothing is sent automatically.</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VISION ============ -->
+    <section class="vision-band" aria-labelledby="vision-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">Where we're headed</span>
+          <h2 class="section-title" id="vision-title">Starting in Exeter.<br />Not stopping there.</h2>
+        </div>
+
+        <div class="timeline">
+          <div class="milestone reveal">
+            <span class="phase-tag">Phase 1 — Up first</span>
+            <h3>Exeter pilot</h3>
+            <p>Proof of concept: our first dispensers land in high-footfall Exeter locations. Real users, real data, real impact — from day one.</p>
+          </div>
+          <div class="milestone reveal">
+            <span class="phase-tag">Phase 2</span>
+            <h3>20+ machines across the UK</h3>
+            <p>Using pilot data to roll out to universities, stadiums and transport hubs nationwide — funded by advertising partners.</p>
+          </div>
+          <div class="milestone reveal">
+            <span class="phase-tag">The big picture</span>
+            <h3>Beyond the UK</h3>
+            <p>Partnering with larger advertisers to fund outreach in lower-income countries — because period poverty has no borders.</p>
+          </div>
+        </div>
+
+        <div class="bip reveal">
+          <h3>🎥 We're building this in public</h3>
+          <p>
+            Every step of the journey — the wins, the rejections, the spreadsheets — documented openly.
+            Social channels are launching alongside the pilot.
+          </p>
+          <div class="soon-chips">
+            <span class="chip">TikTok — soon</span>
+            <span class="chip">YouTube — soon</span>
+            <span class="chip">LinkedIn — soon</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">Questions</span>
+          <h2 class="section-title" id="faq-title">Fair enough — ask away.</h2>
+        </div>
+
+        <div class="faq-list">
+          <div class="faq-item reveal">
+            <button class="faq-q" aria-expanded="false">
+              Is it really free? What's the catch?
+              <span class="indicator" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a"><div class="faq-a-inner">
+              Really free — no coins, no cards, no subscriptions. Advertisers pay for the ad space on our
+              screens and packaging, and that revenue covers the products, the machines and the restocking.
+              The only "catch" is a short sponsor message while the machine dispenses.
+            </div></div>
+          </div>
+
+          <div class="faq-item reveal">
+            <button class="faq-q" aria-expanded="false">
+              What products do the machines dispense?
+              <span class="indicator" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a"><div class="faq-a-inner">
+              High-quality, plastic-free and biodegradable pads and tampons, dispensed in convenient 4-packs.
+              Good for you, better for the planet.
+            </div></div>
+          </div>
+
+          <div class="faq-item reveal">
+            <button class="faq-q" aria-expanded="false">
+              Who can use the dispensers?
+              <span class="indicator" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a"><div class="faq-a-inner">
+              Anyone who needs period products — students, commuters, visitors, anyone caught off guard.
+              A gentle monthly fair-use limit keeps stock available for everyone, with a simple way to
+              request more if you need it.
+            </div></div>
+          </div>
+
+          <div class="faq-item reveal">
+            <button class="faq-q" aria-expanded="false">
+              What happens with my data?
+              <span class="indicator" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a"><div class="faq-a-inner">
+              We're building to UK GDPR and PECR standards from day one — privacy by design. Marketing
+              consent is always a separate, un-ticked opt-in, and you keep full control of your data,
+              including the right to erasure. Our initial pilot collects no personal data at all.
+            </div></div>
+          </div>
+
+          <div class="faq-item reveal">
+            <button class="faq-q" aria-expanded="false">
+              What kind of ads will be shown?
+              <span class="indicator" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a"><div class="faq-a-inner">
+              Brand-safe only. Think beauty, wellness, fashion, food and student services — never adult,
+              gambling, political or otherwise sensitive content. Venues approve the environment their
+              visitors experience.
+            </div></div>
+          </div>
+
+          <div class="faq-item reveal">
+            <button class="faq-q" aria-expanded="false">
+              I'd love to help — what can I do?
+              <span class="indicator" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a"><div class="faq-a-inner">
+              If you run a venue, host a unit. If you work with a brand, tell your marketing team about us.
+              And if you just like the idea — follow the journey when our channels launch, and spread the word.
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section aria-label="Get in touch">
+      <div class="container">
+        <div class="cta-banner reveal">
+          <h2>Let's get everyone covered.</h2>
+          <p>Advertise with purpose, host a dispenser, or just say hello — we'd love to hear from you.</p>
+          <a class="btn btn-light" href="mailto:ameliaireland18@gmail.com?subject=COVERED%20—%20Hello">✉️ Say hello</a>
+        </div>
+      </div>
+    </section>
+
   </main>
 
+  <!-- ============ FOOTER ============ -->
   <footer>
-    &copy; <span id="year"></span> covered. All rights reserved.
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <a href="#top" class="logo" aria-label="COVERED home">
+            <span class="logo-mark" aria-hidden="true">C</span>
+            COVERED
+          </a>
+          <p>Free period products, paid for by advertising. We got you covered.</p>
+        </div>
+        <nav class="foot-col" aria-label="Footer — explore">
+          <p class="foot-head">Explore</p>
+          <ul>
+            <li><a href="#problem">The problem</a></li>
+            <li><a href="#how">How it works</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
+        </nav>
+        <nav class="foot-col" aria-label="Footer — partner">
+          <p class="foot-head">Partner</p>
+          <ul>
+            <li><a href="#brands">Advertise with us</a></li>
+            <li><a href="#venues">Host a dispenser</a></li>
+            <li><a href="mailto:ameliaireland18@gmail.com">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="foot-bottom">
+        <span>© <span id="year"></span> COVERED. All rights reserved.</span>
+        <span>Built in the open, from Exeter 💛</span>
+      </div>
+    </div>
   </footer>
 
   <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
+    (function () {
+      "use strict";
+      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* ---------- Footer year ---------- */
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      /* ---------- Scroll progress ---------- */
+      var progress = document.getElementById("progress");
+      function updateProgress() {
+        var h = document.documentElement;
+        var max = h.scrollHeight - h.clientHeight;
+        progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+      }
+      window.addEventListener("scroll", updateProgress, { passive: true });
+      window.addEventListener("resize", updateProgress);
+      if ("ResizeObserver" in window) {
+        new ResizeObserver(updateProgress).observe(document.body);
+      }
+      updateProgress();
+
+      /* ---------- Mobile nav ---------- */
+      var burger = document.querySelector(".burger");
+      var navLinks = document.getElementById("navLinks");
+      burger.addEventListener("click", function () {
+        var open = navLinks.classList.toggle("open");
+        burger.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      navLinks.addEventListener("click", function (e) {
+        if (e.target.tagName === "A") {
+          navLinks.classList.remove("open");
+          burger.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      /* ---------- Reveal on scroll ---------- */
+      var revealEls = document.querySelectorAll(".reveal");
+      if ("IntersectionObserver" in window && !reduced) {
+        var ro = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              ro.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12 });
+        revealEls.forEach(function (el) { ro.observe(el); });
+      } else {
+        revealEls.forEach(function (el) { el.classList.add("visible"); });
+      }
+
+      /* ---------- Hero stamp ---------- */
+      var heroStamp = document.getElementById("heroStamp");
+      if (!reduced) {
+        heroStamp.style.opacity = "0";
+        setTimeout(function () {
+          heroStamp.style.opacity = "";
+          heroStamp.classList.add("stamp-in");
+        }, 350);
+      }
+
+      /* ---------- Marquee pause ---------- */
+      var marqueePause = document.getElementById("marqueePause");
+      var marqueeEl = marqueePause.closest(".marquee");
+      marqueePause.addEventListener("click", function () {
+        var paused = marqueeEl.classList.toggle("paused");
+        marqueePause.setAttribute("aria-pressed", paused ? "true" : "false");
+        marqueePause.textContent = paused ? "▶" : "⏸";
+        marqueePause.setAttribute("aria-label", paused ? "Resume scrolling venue list" : "Pause scrolling venue list");
+      });
+
+      /* ---------- Animated counters ---------- */
+      function animateCount(el) {
+        var target = parseInt(el.getAttribute("data-target"), 10);
+        if (reduced) { el.textContent = target; return; }
+        var start = null;
+        var dur = 1300;
+        function tick(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / dur, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(eased * target);
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+      var counters = document.querySelectorAll(".count");
+      if ("IntersectionObserver" in window) {
+        var co = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              animateCount(entry.target);
+              co.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.6 });
+        counters.forEach(function (el) { co.observe(el); });
+      } else {
+        counters.forEach(function (el) { el.textContent = el.getAttribute("data-target"); });
+      }
+
+      /* ---------- Interactive demo ---------- */
+      var phoneScreen = document.getElementById("phoneScreen");
+      var machineScreen = document.getElementById("machineScreen");
+      var machineStamp = document.getElementById("machineStamp");
+      var machineStage = document.getElementById("machineStage");
+      var pack = document.getElementById("pack");
+      var chips = document.querySelectorAll("#stepper .step-chip");
+      var confettiColors = ["#E8443A", "#1E7A5A", "#F2B705", "#17130E"];
+
+      function setStep(n) {
+        chips.forEach(function (chip) {
+          var s = parseInt(chip.getAttribute("data-step"), 10);
+          var active = s === n;
+          var done = s < n;
+          chip.classList.toggle("active", active);
+          chip.classList.toggle("done", done);
+          if (active) { chip.setAttribute("aria-current", "step"); } else { chip.removeAttribute("aria-current"); }
+          var marker = chip.querySelector(".sr-state");
+          if (!marker) {
+            marker = document.createElement("span");
+            marker.className = "visually-hidden sr-state";
+            chip.appendChild(marker);
+          }
+          marker.textContent = done ? " (completed)" : "";
+        });
+      }
+
+      function machineShowQR() {
+        machineScreen.innerHTML = '<div class="qr" aria-hidden="true"></div>';
+      }
+      function machineShowAd() {
+        machineScreen.innerHTML =
+          '<div class="ad-live"><small>Sponsored</small><strong>Your brand, here 👋</strong></div>';
+      }
+
+      function confettiBurst() {
+        if (reduced) return;
+        for (var i = 0; i < 22; i++) {
+          var bit = document.createElement("span");
+          bit.className = "confetti-bit";
+          bit.style.left = (30 + Math.random() * 40) + "%";
+          bit.style.background = confettiColors[i % confettiColors.length];
+          bit.style.animationDelay = (Math.random() * 0.25) + "s";
+          machineStage.appendChild(bit);
+          (function (b) {
+            setTimeout(function () { b.remove(); }, 1800);
+          })(bit);
+        }
+      }
+
+      function renderScan(fromReset) {
+        setStep(0);
+        machineShowQR();
+        machineStamp.classList.remove("show");
+        pack.classList.remove("drop");
+        phoneScreen.innerHTML =
+          '<h3>Need a pad or tampon?</h3>' +
+          '<p>Scan the QR code on the machine to get started — it\'s free.</p>' +
+          '<button class="btn btn-primary" id="btnScan">📱 Simulate scan</button>';
+        var btn = document.getElementById("btnScan");
+        btn.addEventListener("click", renderVerify);
+        if (fromReset === true) { btn.focus(); }
+      }
+
+      function renderVerify() {
+        setStep(1);
+        phoneScreen.innerHTML =
+          '<h3>Quick check-in</h3>' +
+          '<p>A phone number or email keeps things fair — never spam.</p>' +
+          '<input class="p-input" type="text" value="you@example.com" readonly tabindex="-1" aria-label="Example email address" />' +
+          '<button class="btn btn-primary" id="btnVerify">Check in →</button>';
+        var btn = document.getElementById("btnVerify");
+        btn.addEventListener("click", renderAd);
+        btn.focus();
+      }
+
+      function renderAd() {
+        setStep(2);
+        machineShowAd();
+        phoneScreen.innerHTML =
+          '<h3>A word from our sponsor</h3>' +
+          '<div class="ad-box"><small>Sponsored</small><strong>Your brand, here 👋</strong></div>' +
+          '<div class="ad-progress" aria-hidden="true"><div class="bar" id="adBar"></div></div>' +
+          '<p>This short moment pays for the product. Nice one, sponsors.</p>';
+        phoneScreen.focus({ preventScroll: true });
+        var bar = document.getElementById("adBar");
+        var advanced = false;
+        function advance() {
+          if (advanced) { return; }
+          advanced = true;
+          renderDone();
+        }
+        if (reduced) {
+          bar.style.width = "100%";
+          setTimeout(advance, 500);
+        } else {
+          // force reflow so the animation always restarts cleanly
+          void bar.offsetWidth;
+          bar.classList.add("run");
+          bar.addEventListener("animationend", advance, { once: true });
+          // fallback: browsers throttle animations in background tabs
+          setTimeout(advance, 3400);
+        }
+      }
+
+      function renderDone() {
+        setStep(3);
+        pack.classList.add("drop");
+        machineStamp.classList.add("show");
+        confettiBurst();
+        phoneScreen.innerHTML =
+          '<span class="stamp p-stamp">Covered.</span>' +
+          '<h3>You\'re all set 💛</h3>' +
+          '<p>Grab your pack from the tray below. That\'s it — no cost, no card, no catch.</p>' +
+          '<button class="btn btn-outline" id="btnReset">↺ Run the demo again</button>';
+        var btn = document.getElementById("btnReset");
+        btn.addEventListener("click", function () { renderScan(true); });
+        btn.focus({ preventScroll: true });
+      }
+
+      renderScan(false);
+
+      /* ---------- FAQ accordion ---------- */
+      var faqItems = document.querySelectorAll(".faq-item");
+      function closeFaq(item) {
+        var btn = item.querySelector(".faq-q");
+        var panel = item.querySelector(".faq-a");
+        item.classList.remove("open");
+        btn.setAttribute("aria-expanded", "false");
+        panel.style.maxHeight = null;
+        clearTimeout(panel._hideTimer);
+        panel._hideTimer = setTimeout(function () { panel.hidden = true; }, 320);
+      }
+      faqItems.forEach(function (item, idx) {
+        var btn = item.querySelector(".faq-q");
+        var panel = item.querySelector(".faq-a");
+        panel.id = "faq-panel-" + (idx + 1);
+        btn.setAttribute("aria-controls", panel.id);
+        panel.hidden = true;
+        btn.addEventListener("click", function () {
+          var isOpen = item.classList.contains("open");
+          faqItems.forEach(function (other) {
+            if (other.classList.contains("open")) { closeFaq(other); }
+          });
+          if (!isOpen) {
+            clearTimeout(panel._hideTimer);
+            panel.hidden = false;
+            void panel.offsetHeight;
+            item.classList.add("open");
+            btn.setAttribute("aria-expanded", "true");
+            panel.style.maxHeight = panel.scrollHeight + "px";
+          }
+          setTimeout(updateProgress, 350);
+        });
+      });
+      window.addEventListener("resize", function () {
+        var openPanel = document.querySelector(".faq-item.open .faq-a");
+        if (openPanel) { openPanel.style.maxHeight = openPanel.scrollHeight + "px"; }
+      });
+
+      /* ---------- Forms → mailto ---------- */
+      var CONTACT = "ameliaireland18@gmail.com";
+
+      function buildMailto(subject, lines) {
+        return "mailto:" + CONTACT +
+          "?subject=" + encodeURIComponent(subject) +
+          "&body=" + encodeURIComponent(lines.join("\n"));
+      }
+
+      function hookForm(id, subjectPrefix, fieldsFn) {
+        var form = document.getElementById(id);
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var data = new FormData(form);
+          var get = function (k) { return (data.get(k) || "").toString().trim(); };
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          window.location.href = buildMailto(subjectPrefix, fieldsFn(get));
+        });
+      }
+
+      hookForm("brandForm", "COVERED — Advertising enquiry", function (get) {
+        return [
+          "Hi COVERED team,",
+          "",
+          "Please could you send over the media kit? We're interested in advertising on your dispensers.",
+          "",
+          "Name: " + get("name"),
+          "Company: " + get("company"),
+          "Email: " + get("email"),
+          "Indicative monthly budget: " + (get("budget") || "Not specified"),
+          "Preferred campaign timing: " + (get("timing") || "Not specified"),
+          "",
+          "Goals:",
+          get("message") || "-",
+          "",
+          "Thanks!"
+        ];
+      });
+
+      hookForm("venueForm", "COVERED — Venue hosting enquiry", function (get) {
+        return [
+          "Hi COVERED team,",
+          "",
+          "We're interested in hosting a dispenser.",
+          "",
+          "Name: " + get("name"),
+          "Venue: " + get("venue"),
+          "Email: " + get("email"),
+          "Venue type: " + get("type"),
+          "",
+          "Notes:",
+          get("message") || "-",
+          "",
+          "Thanks!"
+        ];
+      });
+    })();
   </script>
 </body>
 </html>
