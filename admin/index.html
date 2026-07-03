@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>COVERED · Admin Console</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!--
+    Static SPA. No build step. ES modules only.
+    Runs as-is from GitHub Pages or any static file server.
+    supabase-js is imported from esm.sh inside js/supabase.js.
+    An import map is intentionally omitted (bare specifiers are not used;
+    every import is a full URL or a relative path).
+  -->
+</head>
+<body>
+  <!-- Skip link for keyboard users -->
+  <a href="#view-root" class="skip-link">Skip to content</a>
+
+  <!--
+    #app is the single mount point. app.js paints either:
+      - the login view (full-bleed, no chrome), or
+      - the admin shell: <aside> sidebar nav + <main id="view-root">.
+    Nothing is server-rendered; JS owns the DOM.
+  -->
+  <div id="app" aria-busy="true">
+    <!-- Pre-boot splash; replaced by app.js once modules load. -->
+    <div class="boot">
+      <div class="boot-mark" aria-hidden="true">COVERED</div>
+      <p class="boot-sub">Loading admin console…</p>
+      <noscript>This console requires JavaScript.</noscript>
+    </div>
+  </div>
+
+  <!-- Toast host: toasts are appended here by ui.toast(). -->
+  <div id="toast-host" class="toast-host" role="region" aria-live="polite" aria-label="Notifications"></div>
+
+  <!-- Modal host: modals are appended here by ui.modal(). -->
+  <div id="modal-host"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
