@@ -30,6 +30,10 @@ export default async function mount(root, ctx) {
   const { supabase, ui, toast } = ctx;
   const TZ = ctx.adminStatus?.schedule_tz || 'Europe/London';
 
+  // Base URL every machine's QR encodes; the machineId query param is the ONLY
+  // thing that differs between machines (machines are data, not workflows).
+  const SCAN_BASE = 'https://coveredbymills.app.n8n.cloud/webhook/scan?machineId=';
+
   // Re-render clock: the "showing now" column depends on wall-clock time, so we
   // recompute the resolved ad once a minute. Tracked for cleanup.
   let tickTimer = null;
@@ -100,7 +104,11 @@ export default async function mount(root, ctx) {
       root.appendChild(ui.card({
         title: 'Machines',
         subtitle: 'Vending machines registered in the COVERED backend.',
-        body: ui.emptyState('No machines are registered yet.'),
+        actions: [ui.button({
+          label: 'Add machine', variant: 'primary', size: 'sm',
+          onClick: () => openMachineForm(),
+        })],
+        body: ui.emptyState('No machines are registered yet. Add your first machine to get its QR link.'),
       }));
       return;
     }
@@ -126,12 +134,20 @@ export default async function mount(root, ctx) {
       },
       {
         key: '_manage', label: '', align: 'right',
-        render: (_v, row) => ui.button({
-          label: 'Schedule',
-          variant: 'ghost',
-          size: 'sm',
-          onClick: () => openScheduleManager(row),
-        }),
+        render: (_v, row) => ui.el('div', { class: 'sched-row-actions' }, [
+          ui.button({
+            label: 'QR link',
+            variant: 'ghost',
+            size: 'sm',
+            onClick: () => openQrLink(row),
+          }),
+          ui.button({
+            label: 'Schedule',
+            variant: 'ghost',
+            size: 'sm',
+            onClick: () => openScheduleManager(row),
+          }),
+        ]),
       },
     ];
 
@@ -140,12 +156,152 @@ export default async function mount(root, ctx) {
     const cardEl = ui.card({
       title: 'Machines',
       subtitle: `${machines.length} machine${machines.length === 1 ? '' : 's'} · ${activeCount} active · dayparts in ${TZ}`,
+      actions: [ui.button({
+        label: 'Add machine', variant: 'primary', size: 'sm',
+        onClick: () => openMachineForm(),
+      })],
       body: ui.table(columns, machines, {
         empty: 'No machines registered.',
         className: 'machines-table',
       }),
     });
     root.appendChild(cardEl);
+  }
+
+  // ===========================================================================
+  // Add-machine form. machine_id is the permanent key that appears in the QR
+  // URL and every analytics row — validated to a URL-safe slug, no spaces.
+  // ===========================================================================
+  function openMachineForm() {
+    const idInput = ui.input({
+      type: 'text', placeholder: 'e.g. exeter-princesshay-01',
+      attrs: { autocomplete: 'off', spellcheck: 'false' },
+    });
+    const locInput = ui.input({ type: 'text', placeholder: 'e.g. Princesshay Shopping Centre, Exeter' });
+    const limitInput = ui.input({ type: 'number', value: '4', min: 1, step: 1 });
+    const activeCheck = ui.checkbox({ label: 'Active', checked: true });
+    const errorLine = ui.el('div', { class: 'auth-msg', attrs: { 'aria-live': 'polite' } });
+
+    const form = ui.el('form', { class: 'sched-form' }, [
+      ui.field('Machine ID', idInput, {
+        hint: 'Permanent, URL-safe name (letters, numbers, hyphens). It goes in the QR URL and all analytics — pick something meaningful like exeter-princesshay-01.',
+      }),
+      ui.field('Location', locInput, { hint: 'Where the machine lives (shown in reports).' }),
+      ui.el('div', { class: 'sched-grid-2' }, [
+        ui.field('Monthly limit per user', limitInput, {
+          hint: 'Products per user per month. NOTE: the limit is enforced globally per user across ALL machines; this per-machine value is the limit read when this machine dispenses.',
+        }),
+        ui.field('Status', activeCheck),
+      ]),
+      errorLine,
+    ]);
+
+    const saveBtn = ui.button({
+      label: 'Add machine',
+      variant: 'primary',
+      onClick: () => submit(),
+    });
+
+    const formModal = ui.modal({
+      title: 'New machine',
+      size: 'md',
+      body: form,
+      actions: [
+        ui.button({ label: 'Cancel', variant: 'ghost', onClick: () => formModal.close() }),
+        saveBtn,
+      ],
+    });
+
+    async function submit() {
+      errorLine.textContent = '';
+      const id = (idInput.value || '').trim().toLowerCase();
+
+      if (!id) { errorLine.textContent = 'Machine ID is required.'; return; }
+      if (!/^[a-z0-9][a-z0-9-]{1,47}$/.test(id)) {
+        errorLine.textContent = 'Machine ID must be 2–48 chars: letters, numbers and hyphens only (no spaces).';
+        return;
+      }
+      if (machines.some((m) => m.machine_id === id)) {
+        errorLine.textContent = `"${id}" already exists.`;
+        return;
+      }
+
+      const payload = {
+        machine_id: id,
+        location: (locInput.value || '').trim() || null,
+        monthly_limit_per_user: ui.clampInt(limitInput.value, 1, 1000, 4),
+        active: activeCheck.querySelector('input').checked,
+      };
+
+      saveBtn.disabled = true;
+      const span = saveBtn.querySelector('span');
+      const prevLabel = span ? span.textContent : '';
+      if (span) span.textContent = 'Adding…';
+
+      try {
+        const { data, error } = await supabase
+          .from('machines').insert(payload).select().single();
+        if (error) throw error;
+        machines.push(data);
+        machines.sort((a, b) => a.machine_id.localeCompare(b.machine_id));
+        toast(`Machine ${id} added.`, 'success');
+        formModal.close();
+        render();
+        // Hand the founder the QR link straight away — that's the next step.
+        openQrLink(data);
+      } catch (err) {
+        const msg = /duplicate|23505/i.test(err?.message || '')
+          ? `"${id}" already exists.`
+          : (err?.message || 'Could not add the machine.');
+        errorLine.textContent = msg;
+        toast(msg, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        if (span) span.textContent = prevLabel;
+      }
+    }
+  }
+
+  // ===========================================================================
+  // QR link modal — the exact URL this machine's QR must encode, with copy.
+  // ===========================================================================
+  function openQrLink(machine) {
+    const url = SCAN_BASE + encodeURIComponent(machine.machine_id);
+
+    const urlBox = ui.input({ type: 'text', value: url, attrs: { readonly: 'readonly' } });
+    urlBox.addEventListener('focus', () => urlBox.select());
+
+    const copyBtn = ui.button({
+      label: 'Copy URL',
+      variant: 'primary',
+      size: 'sm',
+      onClick: async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          toast('Scan URL copied.', 'success');
+        } catch {
+          urlBox.focus(); urlBox.select();
+          toast('Press Ctrl+C to copy the selected URL.', 'warn');
+        }
+      },
+    });
+
+    ui.modal({
+      title: `QR link · ${machine.machine_id}`,
+      size: 'md',
+      body: [
+        ui.el('p', {
+          class: 'sched-intro',
+          text: 'Generate this machine’s QR code from the URL below (any QR generator works — or the qr-generator-multi-machine.html tool). Every scan of that QR is logged against this machine.',
+        }),
+        ui.field('Scan URL', urlBox),
+        ui.el('div', { class: 'sched-row-actions' }, [copyBtn]),
+        ui.el('p', {
+          class: 'field-hint',
+          text: machine.location ? `Location on file: ${machine.location}` : 'Tip: set a location so reports are readable.',
+        }),
+      ],
+    });
   }
 
   // A "showing now" cell: badge with the resolved ad name (or a muted 'None').
