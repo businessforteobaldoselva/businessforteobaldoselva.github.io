@@ -1,11 +1,19 @@
 // =============================================================================
 // COVERED Admin Console — Machines view
 // -----------------------------------------------------------------------------
-// Lists every machine (id, location, active, monthly limit) and, per machine,
-// lets the founder manage its ad SCHEDULE (rows in `ad_schedules`). For each
-// machine it also computes — CLIENT-SIDE, mirroring the server SQL rules — which
-// ad is resolved as "showing right now", so the founder can glance and see
+// Lists every machine (id, location, active, monthly limit, STOCK) and, per
+// machine, lets the founder manage its ad SCHEDULE (rows in `ad_schedules`). For
+// each machine it also computes — CLIENT-SIDE, mirroring the server SQL rules —
+// which ad is resolved as "showing right now", so the founder can glance and see
 // "machine-001 is showing X".
+//
+// Founder-facing extras:
+//   * Add machine — creates a machines row and surfaces its QR scan URL.
+//   * Stock gauges + 'Mark restocked' — inline SVG gauge per machine, coloured by
+//     the low-stock threshold; 'Restock' opens a modal that calls
+//     fn_admin_set_stock (which logs a 'restock' event server-side).
+//   * Soft approval warning — scheduling a not-yet-approved ad is allowed but
+//     flagged, since fn_active_ad_for_machine won't serve it until it's approved.
 //
 // Everything is built with the shared ui.js helpers (all DB text goes through
 // textContent / safe cell renderers — no innerHTML with data). Every data call
@@ -53,10 +61,10 @@ export default async function mount(root, ctx) {
   async function loadAll() {
     const [mRes, aRes, sRes] = await Promise.all([
       supabase.from('machines')
-        .select('machine_id, active, location, campaign_id, monthly_limit_per_user')
+        .select('machine_id, active, location, campaign_id, monthly_limit_per_user, stock_level, capacity, low_stock_threshold')
         .order('machine_id', { ascending: true }),
       supabase.from('ads')
-        .select('id, name, headline, active')
+        .select('id, name, headline, active, approval_status')
         .order('name', { ascending: true }),
       supabase.from('ad_schedules')
         .select('*')
@@ -68,6 +76,19 @@ export default async function mount(root, ctx) {
     machines = mRes.data || [];
     ads = aRes.data || [];
     schedules = sRes.data || [];
+
+    // Enrich with server-computed stock status (low bool, days_to_empty).
+    // fn_admin_stock_status() is admin-guarded and returns a jsonb ARRAY.
+    try {
+      const { data: stock, error: stockErr } = await supabase.rpc('fn_admin_stock_status');
+      if (!stockErr && Array.isArray(stock)) {
+        const byId = new Map(stock.map((s) => [s.machine_id, s]));
+        machines = machines.map((m) => {
+          const s = byId.get(m.machine_id);
+          return s ? { ...m, _low: s.low, _daysToEmpty: s.days_to_empty } : m;
+        });
+      }
+    } catch { /* stock status is additive — never block the machines list */ }
   }
 
   try {
@@ -129,6 +150,10 @@ export default async function mount(root, ctx) {
         render: (v) => v == null ? '—' : String(v),
       },
       {
+        key: 'stock_level', label: 'Stock', align: 'center',
+        render: (_v, row) => stockCell(row),
+      },
+      {
         key: '_now', label: `Showing now (${TZ})`,
         render: (_v, row) => nowCell(row, adById),
       },
@@ -140,6 +165,12 @@ export default async function mount(root, ctx) {
             variant: 'ghost',
             size: 'sm',
             onClick: () => openQrLink(row),
+          }),
+          ui.button({
+            label: 'Restock',
+            variant: 'ghost',
+            size: 'sm',
+            onClick: () => openRestockForm(row),
           }),
           ui.button({
             label: 'Schedule',
@@ -174,17 +205,19 @@ export default async function mount(root, ctx) {
   // ===========================================================================
   function openMachineForm() {
     const idInput = ui.input({
-      type: 'text', placeholder: 'e.g. exeter-princesshay-01',
+      type: 'text', placeholder: 'e.g. machine-004',
       attrs: { autocomplete: 'off', spellcheck: 'false' },
     });
     const locInput = ui.input({ type: 'text', placeholder: 'e.g. Princesshay Shopping Centre, Exeter' });
     const limitInput = ui.input({ type: 'number', value: '4', min: 1, step: 1 });
     const activeCheck = ui.checkbox({ label: 'Active', checked: true });
+    const stockInput = ui.input({ type: 'number', placeholder: 'optional', min: 0, step: 1 });
+    const capInput = ui.input({ type: 'number', placeholder: 'optional', min: 0, step: 1 });
     const errorLine = ui.el('div', { class: 'auth-msg', attrs: { 'aria-live': 'polite' } });
 
     const form = ui.el('form', { class: 'sched-form' }, [
       ui.field('Machine ID', idInput, {
-        hint: 'Permanent, URL-safe name (letters, numbers, hyphens). It goes in the QR URL and all analytics — pick something meaningful like exeter-princesshay-01.',
+        hint: 'Permanent, URL-safe name (letters, numbers, hyphens). It goes in the QR URL and all analytics — pick something meaningful like machine-004.',
       }),
       ui.field('Location', locInput, { hint: 'Where the machine lives (shown in reports).' }),
       ui.el('div', { class: 'sched-grid-2' }, [
@@ -192,6 +225,10 @@ export default async function mount(root, ctx) {
           hint: 'Products per user per month. NOTE: the limit is enforced globally per user across ALL machines; this per-machine value is the limit read when this machine dispenses.',
         }),
         ui.field('Status', activeCheck),
+      ]),
+      ui.el('div', { class: 'sched-grid-2' }, [
+        ui.field('Initial stock level (optional)', stockInput, { hint: 'Units loaded now. Blank = untracked.' }),
+        ui.field('Capacity (optional)', capInput, { hint: 'Max units this machine holds.' }),
       ]),
       errorLine,
     ]);
@@ -214,11 +251,12 @@ export default async function mount(root, ctx) {
 
     async function submit() {
       errorLine.textContent = '';
-      const id = (idInput.value || '').trim().toLowerCase();
+      const id = (idInput.value || '').trim();
 
       if (!id) { errorLine.textContent = 'Machine ID is required.'; return; }
-      if (!/^[a-z0-9][a-z0-9-]{1,47}$/.test(id)) {
-        errorLine.textContent = 'Machine ID must be 2–48 chars: letters, numbers and hyphens only (no spaces).';
+      // URL-safe id used in the QR link: starts alphanumeric, then alnum/hyphen.
+      if (!/^[a-z0-9][a-z0-9-]{1,40}$/i.test(id)) {
+        errorLine.textContent = 'Machine ID must start with a letter or number and contain only letters, numbers and hyphens (2–41 chars, no spaces).';
         return;
       }
       if (machines.some((m) => m.machine_id === id)) {
@@ -226,11 +264,15 @@ export default async function mount(root, ctx) {
         return;
       }
 
+      const stockRaw = (stockInput.value || '').trim();
+      const capRaw = (capInput.value || '').trim();
       const payload = {
         machine_id: id,
         location: (locInput.value || '').trim() || null,
         monthly_limit_per_user: ui.clampInt(limitInput.value, 1, 1000, 4),
         active: activeCheck.querySelector('input').checked,
+        stock_level: stockRaw === '' ? null : ui.clampInt(stockRaw, 0, 100000, 0),
+        capacity: capRaw === '' ? null : ui.clampInt(capRaw, 0, 100000, 0),
       };
 
       saveBtn.disabled = true;
@@ -250,8 +292,8 @@ export default async function mount(root, ctx) {
         // Hand the founder the QR link straight away — that's the next step.
         openQrLink(data);
       } catch (err) {
-        const msg = /duplicate|23505/i.test(err?.message || '')
-          ? `"${id}" already exists.`
+        const msg = (err?.code === '23505' || /duplicate|23505|unique/i.test(err?.message || ''))
+          ? 'A machine with that ID already exists.'
           : (err?.message || 'Could not add the machine.');
         errorLine.textContent = msg;
         toast(msg, 'error');
@@ -316,6 +358,168 @@ export default async function mount(root, ctx) {
       wrap.appendChild(ui.badge(name, 'accent'));
     }
     return wrap;
+  }
+
+  // A per-machine stock cell: an inline SVG gauge + level/capacity text, or a
+  // muted 'Untracked' when stock_level is null. The bar goes red when at/below
+  // the low_stock_threshold (or when the server flagged _low). All text via
+  // textContent; the SVG is code-authored (no DB strings in markup).
+  function stockCell(machine) {
+    const level = machine.stock_level;
+    if (level == null) {
+      return ui.el('span', { class: 'stock-cell' }, ui.badge('Untracked', 'muted'));
+    }
+    const cap = machine.capacity != null && machine.capacity > 0 ? machine.capacity : null;
+    const threshold = machine.low_stock_threshold != null ? machine.low_stock_threshold : 10;
+    const pct = cap ? Math.max(0, Math.min(1, level / cap)) : (level > 0 ? 1 : 0);
+    const low = machine._low === true || level <= threshold;
+    const tone = level === 0 ? 'danger' : (low ? 'warn' : 'ok');
+
+    const wrap = ui.el('span', {
+      class: 'stock-cell',
+      dataset: { machine: machine.machine_id },
+      style: { display: 'inline-flex', alignItems: 'center', gap: '8px' },
+    });
+    wrap.appendChild(stockGauge(pct, tone));
+    wrap.appendChild(ui.el('span', {
+      class: 'stock-label',
+      style: { fontSize: '13px', whiteSpace: 'nowrap' },
+      // Level (/capacity if known). textContent — safe.
+      text: cap ? `${level} / ${cap}` : String(level),
+    }));
+    if (low) {
+      const days = machine._daysToEmpty;
+      wrap.appendChild(ui.badge(
+        level === 0 ? 'Empty'
+          : (days != null && Number.isFinite(Number(days)) ? `Low · ~${Number(days).toFixed(1)}d` : 'Low'),
+        tone,
+      ));
+    }
+    return wrap;
+  }
+
+  // A tiny fixed-width horizontal gauge as inline SVG. Colour maps to tone via
+  // CSS custom properties the console already defines. Code-authored markup.
+  function stockGauge(pct, tone) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const W = 56, H = 8, R = 4;
+    const fillColor = tone === 'danger' ? 'var(--danger, #e5484d)'
+      : tone === 'warn' ? 'var(--warn, #f5a623)'
+      : 'var(--ok, #30a46c)';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width', String(W));
+    svg.setAttribute('height', String(H));
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', `Stock ${Math.round(pct * 100)}%`);
+    svg.setAttribute('class', 'stock-gauge');
+    const track = document.createElementNS(NS, 'rect');
+    track.setAttribute('x', '0'); track.setAttribute('y', '0');
+    track.setAttribute('width', String(W)); track.setAttribute('height', String(H));
+    track.setAttribute('rx', String(R));
+    track.setAttribute('fill', 'var(--surface-2, rgba(255,255,255,0.12))');
+    svg.appendChild(track);
+    const fw = Math.max(0, Math.min(W, W * pct));
+    if (fw > 0) {
+      const fill = document.createElementNS(NS, 'rect');
+      fill.setAttribute('x', '0'); fill.setAttribute('y', '0');
+      fill.setAttribute('width', String(fw)); fill.setAttribute('height', String(H));
+      fill.setAttribute('rx', String(Math.min(R, fw / 2)));
+      fill.setAttribute('fill', fillColor);
+      svg.appendChild(fill);
+    }
+    return svg;
+  }
+
+  // ==========================================================================
+  // 'Mark restocked' modal. Calls fn_admin_set_stock(p_machine, p_stock,
+  // p_capacity). Server logs a 'restock' event + sets approved-by via auth.uid().
+  // ==========================================================================
+  function openRestockForm(machine) {
+    const capDefault = machine.capacity != null ? machine.capacity : '';
+    // Default the new level to capacity when known (a full restock), else blank.
+    const levelDefault = machine.capacity != null ? machine.capacity
+      : (machine.stock_level != null ? machine.stock_level : '');
+
+    const stockInput = ui.input({ type: 'number', value: String(levelDefault), min: 0, step: 1 });
+    const capInput = ui.input({ type: 'number', value: String(capDefault), min: 0, step: 1 });
+    const errorLine = ui.el('div', { class: 'auth-msg', attrs: { 'aria-live': 'polite' } });
+
+    const form = ui.el('form', { class: 'sched-form' }, [
+      ui.el('p', {
+        class: 'sched-intro',
+        text: machine.location
+          ? `${machine.machine_id} · ${machine.location} — set the stock level after refilling. Leaving capacity blank keeps the existing value.`
+          : `${machine.machine_id} — set the stock level after refilling. Leaving capacity blank keeps the existing value.`,
+      }),
+      ui.el('div', { class: 'sched-grid-2' }, [
+        ui.field('New stock level', stockInput, { hint: 'Units in the machine now. 0 = empty.' }),
+        ui.field('Capacity (optional)', capInput, { hint: 'Max units this machine holds. Blank = unchanged.' }),
+      ]),
+      errorLine,
+    ]);
+
+    const saveBtn = ui.button({ label: 'Mark restocked', variant: 'primary', onClick: () => submit() });
+
+    const formModal = ui.modal({
+      title: `Restock · ${machine.machine_id}`,
+      size: 'md',
+      body: form,
+      actions: [
+        ui.button({ label: 'Cancel', variant: 'ghost', onClick: () => formModal.close() }),
+        saveBtn,
+      ],
+    });
+
+    async function submit() {
+      errorLine.textContent = '';
+      const stockVal = stockInput.value === '' ? null : ui.clampInt(stockInput.value, 0, 100000, 0);
+      if (stockVal == null) { errorLine.textContent = 'Enter the new stock level.'; return; }
+      const capRaw = capInput.value.trim();
+      const capVal = capRaw === '' ? null : ui.clampInt(capRaw, 0, 100000, 0);
+
+      saveBtn.disabled = true;
+      const span = saveBtn.querySelector('span');
+      const prev = span ? span.textContent : '';
+      if (span) span.textContent = 'Saving…';
+
+      try {
+        const { data, error } = await supabase.rpc('fn_admin_set_stock', {
+          p_machine: machine.machine_id,
+          p_stock: stockVal,
+          p_capacity: capVal, // null => fn keeps existing capacity
+        });
+        if (error) throw error;
+        // Reflect the new numbers in the cached row (data may echo them back).
+        const newLevel = (data && data.new_level != null) ? data.new_level : stockVal;
+        machine.stock_level = newLevel;
+        if (capVal != null) machine.capacity = capVal;
+        machine._low = machine.low_stock_threshold != null
+          ? newLevel <= machine.low_stock_threshold
+          : newLevel <= 10;
+        machine._daysToEmpty = undefined; // reset until next status refresh
+        toast(`${machine.machine_id} marked restocked (${newLevel}).`, 'success');
+        formModal.close();
+        render();
+      } catch (err) {
+        const msg = friendlyStockError(err);
+        errorLine.textContent = msg;
+        toast(msg, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        if (span) span.textContent = prev;
+      }
+    }
+  }
+
+  // Map RPC errors (incl. not-admin) to a friendly message.
+  function friendlyStockError(err) {
+    const code = err?.code;
+    const msg = String(err?.message || '');
+    if (code === '42501' || /not_admin|permission denied/i.test(msg)) {
+      return 'You do not have admin access to change stock.';
+    }
+    return msg || 'Could not update stock.';
   }
 
   // Refresh just the "showing now" cells in place (called by the minute timer).
@@ -486,14 +690,41 @@ export default async function mount(root, ctx) {
     const s = existing || {};
 
     // --- Ad picker -----------------------------------------------------------
+    // Label non-approved ads so it's obvious in the picker.
     const adSelect = ui.select({
-      options: ads.map((a) => ({
-        value: a.id,
-        label: a.active ? a.name : `${a.name} (inactive)`,
-      })),
+      options: ads.map((a) => {
+        const suffix = a.approval_status && a.approval_status !== 'approved'
+          ? ` (${a.approval_status})`
+          : (a.active ? '' : ' (inactive)');
+        return { value: a.id, label: `${a.name}${suffix}` };
+      }),
       value: s.ad_id ?? ads[0].id,
       placeholder: isEdit ? undefined : 'Choose an ad…',
     });
+
+    // Soft approval warning: shown only when the chosen ad is not 'approved'.
+    // We DO NOT block saving — the row is allowed, but it won't serve until the
+    // ad is approved (enforced server-side in fn_active_ad_for_machine).
+    const approvalWarn = ui.el('div', {
+      class: 'field-hint sched-approval-warn',
+      attrs: { 'aria-live': 'polite' },
+      style: { display: 'none' },
+    });
+    function refreshApprovalWarn() {
+      const chosen = ads.find((a) => a.id === adSelect.value);
+      const st = chosen?.approval_status;
+      if (chosen && st && st !== 'approved') {
+        approvalWarn.style.display = '';
+        // textContent — safe.
+        approvalWarn.textContent =
+          `Heads up: “${chosen.name}” is ${st}, not approved. You can save this schedule, `
+          + 'but the machine will not play this ad until it is approved on the Ads page.';
+      } else {
+        approvalWarn.style.display = 'none';
+        approvalWarn.textContent = '';
+      }
+    }
+    adSelect.addEventListener('change', refreshApprovalWarn);
 
     // --- Scope (this machine vs all machines) --------------------------------
     const scopeSelect = ui.select({
@@ -534,6 +765,7 @@ export default async function mount(root, ctx) {
     startTime.addEventListener('input', refreshWindowPreview);
     endTime.addEventListener('input', refreshWindowPreview);
     refreshWindowPreview();
+    refreshApprovalWarn();
 
     // --- Priority + active ---------------------------------------------------
     const priorityInput = ui.input({
@@ -548,6 +780,7 @@ export default async function mount(root, ctx) {
 
     const form = ui.el('form', { class: 'sched-form' }, [
       ui.field('Ad', adSelect, { hint: 'Which ad this schedule plays.' }),
+      approvalWarn,
       ui.field('Scope', scopeSelect, {
         hint: 'Machine-specific schedules beat all-machines ones on a priority tie.',
       }),
