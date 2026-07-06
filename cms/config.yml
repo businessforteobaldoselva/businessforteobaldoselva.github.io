@@ -2,6 +2,10 @@ backend:
   name: git-gateway
   branch: main
 
+# Enables editing against the local repo when `npm run cms-local` is running
+# (ignored in production — it only activates if the local proxy is detected).
+local_backend: true
+
 media_folder: "images"
 public_folder: "/images"
 
