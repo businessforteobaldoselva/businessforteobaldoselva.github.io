@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Notice · COVERED</title>
+<meta name="description" content="How COVERED (Covered by Mills) handles your data when you use our free period product dispensers.">
+<meta name="robots" content="index,follow">
+<style>
+  :root { --ink:#1a1a1a; --muted:#555; --accent:#c2185b; --bg:#ffffff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         color: var(--ink); background: var(--bg); line-height: 1.65; }
+  main { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+  h1 { font-size: 2rem; margin-bottom: 4px; }
+  .updated { color: var(--muted); font-size: .85rem; margin-bottom: 32px; }
+  h2 { font-size: 1.15rem; margin: 32px 0 10px; }
+  p, li { font-size: .97rem; color: #2b2b2b; }
+  ul { padding-left: 22px; margin: 8px 0; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  .card { background: #faf7f8; border: 1px solid #eee; border-radius: 12px; padding: 16px 18px; margin: 18px 0; }
+  .back { display: inline-block; margin-bottom: 24px; font-size: .9rem; text-decoration: none; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: .92rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">&larr; covered</a>
+  <h1>Privacy Notice</h1>
+  <p class="updated">COVERED (“Covered by Mills”) &middot; Last updated 6 July 2026</p>
+
+  <p>COVERED provides free period products from dispensers funded by advertising.
+  To keep the service free and fairly shared, we ask you to verify a mobile number
+  before a product is dispensed. This notice explains exactly what we do — and
+  don’t do — with your information.</p>
+
+  <div class="card">
+    <strong>The short version:</strong>
+    <ul>
+      <li>We <strong>never store your phone number</strong>. It is converted to an
+          irreversible code (a “hash”) used only to apply the fair-use limit of
+          4 products per month.</li>
+      <li>Verification texts are sent by our SMS provider; we don’t see or keep the number afterwards.</li>
+      <li>No account, no name, no payment details — ever.</li>
+      <li>Marketing texts happen <strong>only if you tick the optional box</strong>, and you can withdraw any time.</li>
+      <li>Usage records are automatically deleted on a schedule.</li>
+    </ul>
+  </div>
+
+  <h2>Who we are</h2>
+  <p>COVERED is a UK social enterprise providing free period products.
+  Data protection contact: <a href="mailto:ameliaireland18@gmail.com">ameliaireland18@gmail.com</a>.</p>
+
+  <h2>What we collect and why</h2>
+  <table>
+    <tr><th>Data</th><th>Why</th><th>Legal basis (UK GDPR)</th></tr>
+    <tr>
+      <td>Your mobile number (moment of use only)</td>
+      <td>To text you a one-time verification code that proves you’re a real person and prevents stock abuse. The number itself is <em>not stored</em> by us — only a one-way hash.</td>
+      <td>Legitimate interests — protecting a limited free resource with the least intrusive workable check.</td>
+    </tr>
+    <tr>
+      <td>A one-way hash of your number, plus a monthly counter</td>
+      <td>To apply the fair-use limit (4 products per month per person). The hash cannot be turned back into your number.</td>
+      <td>Legitimate interests.</td>
+    </tr>
+    <tr>
+      <td>Session and usage events (scan time, machine, ad viewed, dispense)</td>
+      <td>To operate the machines, keep them stocked, and report anonymous totals to the venues and advertisers who fund the free products.</td>
+      <td>Legitimate interests.</td>
+    </tr>
+    <tr>
+      <td>Marketing consent flag + timestamp (optional)</td>
+      <td>Only if you tick the optional box: to text you offers and news from COVERED. Entirely separate from getting your product.</td>
+      <td>Consent (and PECR). Withdraw any time.</td>
+    </tr>
+  </table>
+
+  <h2>What we never do</h2>
+  <ul>
+    <li>We never sell your data.</li>
+    <li>We never store your raw phone number in our database.</li>
+    <li>We never profile you or track you across other websites.</li>
+    <li>We never make receiving a product conditional on marketing consent.</li>
+  </ul>
+
+  <h2>Who processes data for us</h2>
+  <ul>
+    <li><strong>Twilio</strong> — delivers the one-time verification text (sees the number to send the SMS, under its data-processing agreement).</li>
+    <li><strong>Supabase</strong> — hosts our database (hashed identifiers and usage records).</li>
+    <li><strong>n8n</strong> — runs the workflow that connects the pieces (EU-hosted).</li>
+  </ul>
+
+  <h2>How long we keep things</h2>
+  <ul>
+    <li>Verification attempt logs: <strong>24 hours</strong>.</li>
+    <li>Session and usage events: <strong>90 days</strong>, then deleted automatically every night.</li>
+    <li>The hashed identifier and monthly counter: kept while the service operates, solely to enforce the monthly limit.</li>
+    <li>Marketing consent record: until you withdraw it or ask us to erase you.</li>
+  </ul>
+
+  <h2>Your rights</h2>
+  <p>You can ask us to <strong>access</strong>, <strong>erase</strong>, or
+  <strong>export</strong> the data linked to your number, to <strong>withdraw
+  marketing consent</strong>, or to <strong>object</strong> to our processing.
+  Email <a href="mailto:ameliaireland18@gmail.com">ameliaireland18@gmail.com</a>
+  from a message that includes the mobile number you used (we need it to compute
+  the hash and find your records — we can’t look you up any other way).
+  We respond within one month.</p>
+  <p>If you’re unhappy with our answer you can complain to the UK Information
+  Commissioner’s Office at <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a>.</p>
+
+  <h2>Changes</h2>
+  <p>We’ll update this page if the service changes, and material changes will be
+  signposted on the machines and in the app.</p>
+</main>
+</body>
+</html>
