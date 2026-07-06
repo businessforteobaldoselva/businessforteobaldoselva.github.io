@@ -1,0 +1,14 @@
+{
+  "kicker": "Partners",
+  "title": "The wall of brands<br />getting Britain covered.",
+  "subtitle": "Honestly? It's empty. We're pre-launch, and every slot on this wall is up for grabs — the first brands in get founding-partner status and the best story in their next campaign report.",
+  "slots": [
+    { "founding": true, "logoText": "Founding partner", "category": "Waiting for the first brand bold enough to take it." },
+    { "founding": false, "logoText": "Your logo here", "category": "Beauty &amp; personal care" },
+    { "founding": false, "logoText": "Your logo here", "category": "Health &amp; wellness" },
+    { "founding": false, "logoText": "Your logo here", "category": "Fashion &amp; lifestyle" },
+    { "founding": false, "logoText": "Your logo here", "category": "Student services" },
+    { "founding": false, "logoText": "Your logo here", "category": "Food &amp; drink" }
+  ],
+  "ctaButton": "Claim a founding slot"
+}
