@@ -56,7 +56,35 @@ export default async function mount(root, ctx) {
   const integrationsHost = ui.el('div', { class: 'status-integrations', style: { marginTop: '20px' } });
   const complianceHost = ui.el('div', { class: 'status-compliance', style: { marginTop: '20px' } });
 
-  ui.appendChildren(root, [headerRow, systemHost, complianceHost, integrationsHost]);
+  // ---------------------------------------------------------------------------
+  // Website & content editor shortcuts. The marketing site is hosted on
+  // Netlify; content edits happen in the Decap CMS at /cms on that site.
+  // If the Netlify site is ever renamed, update WEBSITE_URL here.
+  // ---------------------------------------------------------------------------
+  const WEBSITE_URL = 'https://clinquant-malasada-f8323d.netlify.app';
+
+  function linkBtn(label, href, variant) {
+    return ui.el('a', {
+      class: `btn btn--${variant}`,
+      text: label,
+      attrs: { href, target: '_blank', rel: 'noopener' },
+      style: { textDecoration: 'none' },
+    });
+  }
+
+  const websiteCard = ui.card({
+    title: 'Website & content editor',
+    subtitle: 'Edit the public site with live previews — no code needed.',
+    body: ui.el('div', {
+      style: { display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' },
+    }, [
+      linkBtn('✏️ Open website editor (log in)', WEBSITE_URL + '/cms/', 'primary'),
+      linkBtn('🌐 View live site', WEBSITE_URL + '/', 'ghost'),
+    ]),
+  });
+  const websiteHost = ui.el('div', { class: 'status-website', style: { marginBottom: '20px' } }, [websiteCard]);
+
+  ui.appendChildren(root, [headerRow, websiteHost, systemHost, complianceHost, integrationsHost]);
 
   // ---------------------------------------------------------------------------
   // Panel 1: System health tiles from fn_admin_status().
