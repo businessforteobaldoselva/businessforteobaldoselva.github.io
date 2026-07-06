@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>COVERED — Updates</title>
   <subtitle>Free period products, paid for by advertising. Building in the open from Exeter, UK.</subtitle>
-  <link href="https://businessforteobaldoselva.github.io/feed.xml" rel="self"/>
-  <link href="https://businessforteobaldoselva.github.io/"/>
-  <id>https://businessforteobaldoselva.github.io/</id>
-  <updated>2026-07-03T12:00:00Z</updated>
+  <link href="https://coveredaccess.com/feed.xml" rel="self"/>
+  <link href="https://coveredaccess.com/"/>
+  <id>https://coveredaccess.com/</id>
+  <updated>2026-07-06T12:00:00Z</updated>
   <author>
     <name>COVERED</name>
     <email>ameliaireland18@gmail.com</email>
@@ -13,8 +13,8 @@
 
   <entry>
     <title>Exeter pilot: recruiting venues and founding advertising partners</title>
-    <link href="https://businessforteobaldoselva.github.io/#venues"/>
-    <id>https://businessforteobaldoselva.github.io/#pilot-recruiting</id>
+    <link href="https://coveredaccess.com/#venues"/>
+    <id>https://coveredaccess.com/#pilot-recruiting</id>
     <published>2026-07-03T12:00:00Z</published>
     <updated>2026-07-03T12:00:00Z</updated>
     <summary>COVERED is recruiting Exeter venues for a 6–8 week zero-cost pilot of its free period product dispensers, and founding advertising partners for the ad-funded model. Venues provide wall space and a plug socket; COVERED handles installation, restocking, maintenance and monthly impact reporting.</summary>
@@ -22,8 +22,8 @@
 
   <entry>
     <title>COVERED launches: free period products, paid for by advertising</title>
-    <link href="https://businessforteobaldoselva.github.io/"/>
-    <id>https://businessforteobaldoselva.github.io/#launch</id>
+    <link href="https://coveredaccess.com/"/>
+    <id>https://coveredaccess.com/#launch</id>
     <published>2026-06-28T12:00:00Z</published>
     <updated>2026-06-28T12:00:00Z</updated>
     <summary>COVERED is a UK social enterprise installing smart wall-mounted dispensers that give out free, plastic-free period products, funded entirely by brands advertising on the dispensers' 32-inch screens. More than 1 in 10 UK women and people who menstruate struggled to afford period products in the last year (ActionAid UK).</summary>
