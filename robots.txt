@@ -28,4 +28,4 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-Sitemap: https://businessforteobaldoselva.github.io/sitemap.xml
+Sitemap: https://coveredaccess.com/sitemap.xml

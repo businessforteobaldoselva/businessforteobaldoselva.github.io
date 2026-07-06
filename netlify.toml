@@ -4,3 +4,28 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Canonicalise every alias onto https://coveredaccess.com
+[[redirects]]
+  from = "https://coveredaccess.co.uk/*"
+  to = "https://coveredaccess.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://coveredaccess.co.uk/*"
+  to = "https://coveredaccess.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.coveredaccess.co.uk/*"
+  to = "https://coveredaccess.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.coveredaccess.co.uk/*"
+  to = "https://coveredaccess.com/:splat"
+  status = 301
+  force = true
