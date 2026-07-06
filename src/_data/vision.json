@@ -1,0 +1,12 @@
+{
+  "kicker": "Where we're headed",
+  "title": "Starting in Exeter.<br />Not stopping there.",
+  "milestones": [
+    { "tag": "Phase 1 — Up first", "title": "Exeter pilot", "desc": "Proof of concept: our first dispensers land in high-footfall Exeter locations. Real users, real data, real impact — from day one." },
+    { "tag": "Phase 2", "title": "20+ machines across the UK", "desc": "Using pilot data to roll out to universities, stadiums and transport hubs nationwide — funded by advertising partners." },
+    { "tag": "The big picture", "title": "Beyond the UK", "desc": "Partnering with larger advertisers to fund outreach in lower-income countries — because period poverty has no borders." }
+  ],
+  "bipTitle": "🎥 We're building this in public",
+  "bipText": "Every step of the journey — the wins, the rejections, the spreadsheets — documented openly. Social channels are launching alongside the pilot.",
+  "soonChips": ["TikTok — soon", "YouTube — soon", "LinkedIn — soon"]
+}

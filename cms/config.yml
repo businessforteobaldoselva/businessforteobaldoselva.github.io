@@ -1,0 +1,221 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images"
+public_folder: "/images"
+
+site_url: https://businessforteobaldoselva.github.io
+display_url: https://businessforteobaldoselva.github.io
+
+locale: "en"
+
+collections:
+  - name: "content"
+    label: "Website Content"
+    files:
+      - name: "site"
+        label: "Site-wide (title, contact, CTA)"
+        file: "src/_data/site.json"
+        fields:
+          - { label: "Page title (browser tab)", name: "pageTitle", widget: "string" }
+          - { label: "Meta description (search engines)", name: "metaDescription", widget: "text" }
+          - { label: "Social share description", name: "ogDescription", widget: "text" }
+          - { label: "Contact email", name: "contactEmail", widget: "string" }
+          - { label: "Footer tagline", name: "footerTagline", widget: "string" }
+          - { label: "Last updated date (shown in footer)", name: "lastUpdated", widget: "string" }
+          - { label: "Closing banner — heading", name: "ctaBannerTitle", widget: "string" }
+          - { label: "Closing banner — text", name: "ctaBannerText", widget: "text" }
+          - { label: "Closing banner — button label", name: "ctaBannerButton", widget: "string" }
+
+      - name: "hero"
+        label: "Hero (top of page)"
+        file: "src/_data/hero.json"
+        fields:
+          - { label: "Badge text", name: "badge", widget: "string" }
+          - { label: "Headline — main part", name: "headlineMain", widget: "string" }
+          - { label: "Headline — accent part (red)", name: "headlineAccent", widget: "string" }
+          - { label: "Stamp text", name: "stamp", widget: "string" }
+          - { label: "Subheading", name: "subhead", widget: "text" }
+          - { label: "Button — brand CTA", name: "ctaBrand", widget: "string" }
+          - { label: "Button — venue CTA", name: "ctaVenue", widget: "string" }
+          - { label: "Scroll-down link text", name: "scrollText", widget: "string" }
+
+      - name: "problem"
+        label: "The Problem section"
+        file: "src/_data/problem.json"
+        fields:
+          - { label: "Kicker (small label above heading)", name: "kicker", widget: "string" }
+          - { label: "Heading (HTML allowed, e.g. <br />)", name: "title", widget: "string" }
+          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - label: "Statistics"
+            name: "stats"
+            widget: "list"
+            fields:
+              - { label: "Number (%)", name: "number", widget: "number" }
+              - { label: "Label text", name: "label", widget: "text" }
+          - { label: "Source citation text", name: "sourceText", widget: "string" }
+          - { label: "Source URL", name: "sourceUrl", widget: "string" }
+          - label: "Photos"
+            name: "photos"
+            widget: "list"
+            fields:
+              - { label: "Image path", name: "src", widget: "hidden" }
+              - { label: "Width", name: "width", widget: "hidden" }
+              - { label: "Height", name: "height", widget: "hidden" }
+              - { label: "Rotation", name: "tilt", widget: "hidden" }
+              - { label: "Alt text (accessibility)", name: "alt", widget: "text" }
+              - { label: "Caption", name: "caption", widget: "string" }
+
+      - name: "model"
+        label: "The Model (Brands pay. You don't.)"
+        file: "src/_data/model.json"
+        fields:
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading", name: "title", widget: "string" }
+          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - label: "Steps"
+            name: "steps"
+            widget: "list"
+            fields:
+              - { label: "Emoji", name: "emoji", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Description", name: "desc", widget: "text" }
+
+      - name: "how"
+        label: "How It Works (demo section text)"
+        file: "src/_data/how.json"
+        fields:
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading", name: "title", widget: "string" }
+          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Note below the demo", name: "demoNote", widget: "text" }
+
+      - name: "brands"
+        label: "For Brands section"
+        file: "src/_data/brands.json"
+        fields:
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - label: "Header photo"
+            name: "headerPhoto"
+            widget: "object"
+            fields:
+              - { label: "Image path", name: "src", widget: "hidden" }
+              - { label: "Width", name: "width", widget: "hidden" }
+              - { label: "Height", name: "height", widget: "hidden" }
+              - { label: "Alt text (accessibility)", name: "alt", widget: "text" }
+              - { label: "Caption", name: "caption", widget: "string" }
+          - label: "Benefits"
+            name: "benefits"
+            widget: "list"
+            fields:
+              - { label: "Icon (emoji)", name: "icon", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Description", name: "desc", widget: "text" }
+          - label: "Chips"
+            name: "chips"
+            widget: "list"
+            field: { label: "Chip text", name: "chip", widget: "string" }
+          - { label: "Form heading", name: "formHeading", widget: "string" }
+          - { label: "Form button label", name: "formButton", widget: "string" }
+          - { label: "Form hint text", name: "formHint", widget: "string" }
+
+      - name: "partners"
+        label: "Partners wall"
+        file: "src/_data/partners.json"
+        fields:
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - label: "Partner slots"
+            name: "slots"
+            widget: "list"
+            fields:
+              - { label: "Founding-partner slot?", name: "founding", widget: "boolean", default: false }
+              - { label: "Logo text / brand name", name: "logoText", widget: "string" }
+              - { label: "Category label", name: "category", widget: "string" }
+          - { label: "Button label", name: "ctaButton", widget: "string" }
+
+      - name: "venues"
+        label: "For Venues section"
+        file: "src/_data/venues.json"
+        fields:
+          - { label: "Pilot ribbon text", name: "ribbon", widget: "string" }
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - label: "We handle (list)"
+            name: "weHandle"
+            widget: "list"
+            field: { label: "Item", name: "item", widget: "string" }
+          - label: "You provide (list)"
+            name: "youProvide"
+            widget: "list"
+            field: { label: "Item", name: "item", widget: "string" }
+          - { label: "Form heading", name: "formHeading", widget: "string" }
+          - { label: "Form button label", name: "formButton", widget: "string" }
+          - { label: "Form hint text", name: "formHint", widget: "string" }
+
+      - name: "locations"
+        label: "Locations / UK map"
+        file: "src/_data/locations.json"
+        fields:
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Map viewBox (do not edit)", name: "svgViewBox", widget: "hidden" }
+          - { label: "Map alt text (do not edit)", name: "svgAriaLabel", widget: "hidden" }
+          - { label: "Map geometry — neighbours (do not edit)", name: "neighborPath", widget: "hidden" }
+          - { label: "Map geometry — UK (do not edit)", name: "landPath", widget: "hidden" }
+          - label: "Cities"
+            name: "cities"
+            widget: "list"
+            fields:
+              - { label: "ID (do not edit)", name: "id", widget: "hidden" }
+              - { label: "City name", name: "name", widget: "string" }
+              - { label: "Map X position (do not edit)", name: "x", widget: "hidden" }
+              - { label: "Map Y position (do not edit)", name: "y", widget: "hidden" }
+              - { label: "Is this the live pilot city?", name: "live", widget: "boolean", default: false }
+              - { label: "Description shown when selected", name: "blurb", widget: "text" }
+          - label: "Venue types targeted"
+            name: "placeTypes"
+            widget: "list"
+            fields:
+              - { label: "Emoji", name: "emoji", widget: "string" }
+              - { label: "Label", name: "label", widget: "string" }
+          - { label: "Button label", name: "ctaButton", widget: "string" }
+
+      - name: "vision"
+        label: "Vision / roadmap"
+        file: "src/_data/vision.json"
+        fields:
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - label: "Milestones"
+            name: "milestones"
+            widget: "list"
+            fields:
+              - { label: "Phase tag", name: "tag", widget: "string" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Description", name: "desc", widget: "text" }
+          - { label: "'Build in public' heading", name: "bipTitle", widget: "string" }
+          - { label: "'Build in public' text", name: "bipText", widget: "text" }
+          - label: "Social channel chips"
+            name: "soonChips"
+            widget: "list"
+            field: { label: "Chip text", name: "chip", widget: "string" }
+
+      - name: "faq"
+        label: "FAQ"
+        file: "src/_data/faq.json"
+        fields:
+          - { label: "Kicker", name: "kicker", widget: "string" }
+          - { label: "Heading", name: "title", widget: "string" }
+          - label: "Questions"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Question", name: "q", widget: "string" }
+              - { label: "Answer", name: "a", widget: "text" }

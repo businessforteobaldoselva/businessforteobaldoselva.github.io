@@ -1,0 +1,10 @@
+{
+  "kicker": "The model",
+  "title": "Brands pay. You don't.",
+  "subtitle": "A self-sustaining loop where advertising funds free access to essential products — no charity box, no coin slot.",
+  "steps": [
+    { "emoji": "📣", "title": "Brands buy ad space", "desc": "Partners advertise on our 32-inch HD screens and product packaging, reaching a highly relevant audience." },
+    { "emoji": "💷", "title": "Ad revenue funds products", "desc": "Every campaign pays for the supply, stocking and maintenance of free period products." },
+    { "emoji": "💛", "title": "Products reach people, free", "desc": "Plastic-free, biodegradable pads and tampons — available exactly when and where they're needed." }
+  ]
+}

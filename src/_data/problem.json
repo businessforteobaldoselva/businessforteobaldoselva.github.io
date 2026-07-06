@@ -1,0 +1,18 @@
+{
+  "kicker": "The problem",
+  "title": "Period poverty is real —<br />and it's happening here.",
+  "subtitle": "In the UK today, more than one in ten women and people who menstruate struggled to afford period products in the last year. Behind that number are impossible choices no one should have to make.",
+  "stats": [
+    { "number": 11, "label": "struggled to afford period products for themselves or a dependent in the last year" },
+    { "number": 64, "label": "of those had to prioritise buying food instead" },
+    { "number": 36, "label": "of those wore single-use pads or tampons for longer, risking infection" },
+    { "number": 22, "label": "of those stayed at home as a result — shut out of work, school and daily life" }
+  ],
+  "sourceText": "ActionAid UK period poverty polling",
+  "sourceUrl": "https://www.actionaid.org.uk/latest-news/new-uk-period-poverty-poll-one-10-struggle-afford-period-products",
+  "photos": [
+    { "src": "images/friends-laughing.jpg", "width": 1200, "height": 800, "alt": "Three friends laughing together — period poverty should never force anyone to sit life out", "caption": "No one should have to sit life out.", "tilt": "-3deg" },
+    { "src": "images/pads-beige.jpg", "width": 900, "height": 1350, "alt": "Plastic-free pads on a warm beige background — the products COVERED dispenses free of charge", "caption": "Plastic-free. Biodegradable. Free.", "tilt": "2deg" },
+    { "src": "images/students-campus.jpg", "width": 1200, "height": 800, "alt": "Students walking through a university campus — the high-footfall venues where COVERED dispensers live", "caption": "Right where people actually are.", "tilt": "-1.5deg" }
+  ]
+}
