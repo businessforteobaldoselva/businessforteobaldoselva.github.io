@@ -1,0 +1,103 @@
+/* COVERED theme for the Decap CMS editor UI.
+   Conservative attribute-substring selectors: if Decap renames a class the
+   rule simply stops applying — the editor never breaks, it just loses flair. */
+
+:root {
+  --cov-red: #C42F26;
+  --cov-red-bright: #E8443A;
+  --cov-red-dark: #A2251E;
+  --cov-ink: #17130E;
+  --cov-paper: #FAF6EF;
+  --cov-paper-2: #F3EDE1;
+  --cov-green: #1E7A5A;
+}
+
+body {
+  background: var(--cov-paper) !important;
+}
+
+/* ---------- Login screen ---------- */
+[class*="AuthenticationPage"] {
+  background:
+    radial-gradient(900px 500px at 80% -10%, rgba(232, 68, 58, 0.08), transparent 70%),
+    radial-gradient(700px 420px at 10% 110%, rgba(30, 122, 90, 0.08), transparent 70%),
+    var(--cov-paper) !important;
+}
+[class*="AuthenticationPage"] img[class*="Logo"],
+img[class*="CustomLogo"] {
+  width: 300px !important;
+  height: auto !important;
+}
+[class*="AuthenticationPage"] button {
+  background: var(--cov-red) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  padding: 14px 28px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 6px 18px rgba(196, 47, 38, 0.35) !important;
+}
+[class*="AuthenticationPage"] button:hover {
+  background: var(--cov-red-dark) !important;
+}
+
+/* ---------- App header bar ---------- */
+[class*="AppHeader"] {
+  background: var(--cov-ink) !important;
+}
+[class*="AppHeader"] a[class*="ActiveNavLink"],
+[class*="AppHeader"] a:hover {
+  color: var(--cov-red-bright) !important;
+}
+
+/* ---------- Sidebar & collection cards ---------- */
+[class*="SidebarNavList"] a {
+  border-radius: 12px !important;
+  font-size: 15px !important;
+}
+[class*="SidebarNavList"] a[class*="active"],
+[class*="SidebarNavLink"][class*="active"] {
+  color: var(--cov-red) !important;
+}
+[class*="Card"] {
+  border-radius: 14px !important;
+}
+[class*="ListCard"] {
+  border-radius: 14px !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+[class*="ListCard"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(23, 19, 14, 0.12) !important;
+}
+
+/* ---------- Buttons (publish, save, actions) ---------- */
+button[class*="Publish"],
+[class*="ToolbarButton"][class*="publish"],
+[class*="PublishedToolbarButton"] {
+  background: var(--cov-red) !important;
+  border-radius: 999px !important;
+}
+button[class*="Publish"]:hover {
+  background: var(--cov-red-dark) !important;
+}
+
+/* ---------- Editor panes ---------- */
+[class*="ControlPaneContainer"] {
+  background: #fff;
+}
+[class*="PreviewPaneContainer"] {
+  background: var(--cov-paper) !important;
+}
+label[class*="FieldLabel"],
+label[class*="ControlLabel"] {
+  color: var(--cov-ink) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+}
+input[class*="TextControl"]:focus,
+textarea:focus,
+[class*="WidgetControl"]:focus-within {
+  outline-color: var(--cov-red-bright) !important;
+  border-color: var(--cov-red-bright) !important;
+}

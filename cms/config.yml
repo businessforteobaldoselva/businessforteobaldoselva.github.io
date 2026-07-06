@@ -11,15 +11,16 @@ public_folder: "/images"
 
 site_url: https://clinquant-malasada-f8323d.netlify.app
 display_url: https://clinquant-malasada-f8323d.netlify.app
+logo_url: /images/covered-logo.svg
 
 locale: "en"
 
 collections:
   - name: "content"
-    label: "Website Content"
+    label: "✏️ Website Content"
     files:
       - name: "site"
-        label: "Site-wide (title, contact, CTA)"
+        label: "⚙️ Site-wide (title, contact, CTA)"
         file: "src/_data/site.json"
         fields:
           - { label: "Page title (browser tab)", name: "pageTitle", widget: "string" }
@@ -33,7 +34,7 @@ collections:
           - { label: "Closing banner — button label", name: "ctaBannerButton", widget: "string" }
 
       - name: "hero"
-        label: "Hero (top of page)"
+        label: "🏠 Hero (top of page)"
         file: "src/_data/hero.json"
         fields:
           - { label: "Badge text", name: "badge", widget: "string" }
@@ -46,7 +47,7 @@ collections:
           - { label: "Scroll-down link text", name: "scrollText", widget: "string" }
 
       - name: "problem"
-        label: "The Problem section"
+        label: "📊 The Problem section"
         file: "src/_data/problem.json"
         fields:
           - { label: "Kicker (small label above heading)", name: "kicker", widget: "string" }
@@ -72,7 +73,7 @@ collections:
               - { label: "Caption", name: "caption", widget: "string" }
 
       - name: "model"
-        label: "The Model (Brands pay. You don't.)"
+        label: "🔁 The Model (Brands pay. You don't.)"
         file: "src/_data/model.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
@@ -87,7 +88,7 @@ collections:
               - { label: "Description", name: "desc", widget: "text" }
 
       - name: "how"
-        label: "How It Works (demo section text)"
+        label: "📱 How It Works (demo section text)"
         file: "src/_data/how.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
@@ -96,7 +97,7 @@ collections:
           - { label: "Note below the demo", name: "demoNote", widget: "text" }
 
       - name: "brands"
-        label: "For Brands section"
+        label: "📣 For Brands section"
         file: "src/_data/brands.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
@@ -127,7 +128,7 @@ collections:
           - { label: "Form hint text", name: "formHint", widget: "string" }
 
       - name: "partners"
-        label: "Partners wall"
+        label: "🤝 Partners wall"
         file: "src/_data/partners.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
@@ -143,7 +144,7 @@ collections:
           - { label: "Button label", name: "ctaButton", widget: "string" }
 
       - name: "venues"
-        label: "For Venues section"
+        label: "🏟️ For Venues section"
         file: "src/_data/venues.json"
         fields:
           - { label: "Pilot ribbon text", name: "ribbon", widget: "string" }
@@ -163,7 +164,7 @@ collections:
           - { label: "Form hint text", name: "formHint", widget: "string" }
 
       - name: "locations"
-        label: "Locations / UK map"
+        label: "🗺️ Locations / UK map"
         file: "src/_data/locations.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
@@ -192,7 +193,7 @@ collections:
           - { label: "Button label", name: "ctaButton", widget: "string" }
 
       - name: "vision"
-        label: "Vision / roadmap"
+        label: "🚀 Vision / roadmap"
         file: "src/_data/vision.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
@@ -212,7 +213,7 @@ collections:
             field: { label: "Chip text", name: "chip", widget: "string" }
 
       - name: "faq"
-        label: "FAQ"
+        label: "❓ FAQ"
         file: "src/_data/faq.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
