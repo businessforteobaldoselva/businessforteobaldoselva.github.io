@@ -3,12 +3,15 @@
 // -----------------------------------------------------------------------------
 // Full CRUD over the `ads` table plus a live consumer-card preview.
 //
-//   • Lists all ads in a table (name, advertiser, duration, active, updated).
+//   • Lists all ads in a table (name, advertiser, duration, active, approval,
+//       updated).
 //   • "New ad" and per-row "Edit" open a modal form with every ad field:
 //       name (required), headline, tagline, cta_text, bg_gradient, text_color,
 //       image_url, duration_seconds (2..30), advertiser, active.
 //   • The modal shows a LIVE PREVIEW (ui.adCard) that re-renders as you type,
 //       exactly mirroring the consumer ad card.
+//   • Per-row Approve/Reject drive the approval_status via the admin RPC
+//       fn_admin_set_ad_approval (Reject prompts for a reason).
 //   • Per-row Delete asks for confirmation (ui.confirmDialog) then removes.
 //
 // CONTRACT NOTES this file honours:
@@ -18,6 +21,11 @@
 //   - ALL DB/user text is rendered with textContent (ui.el text / table cells /
 //     adCard). Gradient/colour/image only ever reach a style property through
 //     ui.safeGradient / safeColor / safeImageUrl (adCard does this internally).
+//   - The ad create/edit insert+update payloads contain ONLY content columns —
+//     NEVER the approval_* columns. Those column grants are REVOKED for the
+//     console; approval changes MUST go through fn_admin_set_ad_approval, which
+//     sets approval_status + approved_by/approved_at server-side. Including any
+//     approval_* field in a PATCH/POST returns PostgREST 403.
 //   - Returns a cleanup fn that stops the live preview countdown + closes any
 //     open modal, so the router can tear the view down cleanly.
 // =============================================================================
@@ -103,6 +111,11 @@ export default async function mount(root, ctx) {
         render: (v) => v ? ui.badge('Active', 'ok') : ui.badge('Paused', 'muted'),
       },
       {
+        key: 'approval_status',
+        label: 'Approval',
+        render: (v) => approvalBadge(v),
+      },
+      {
         key: 'updated_at',
         label: 'Updated',
         render: (v) => ui.el('span', {
@@ -113,16 +126,33 @@ export default async function mount(root, ctx) {
         key: 'id',
         label: 'Actions',
         align: 'right',
-        render: (_v, row) => ui.el('div', { class: 'row-actions' }, [
-          ui.button({
-            label: 'Edit', variant: 'ghost', size: 'sm',
-            onClick: () => openForm(row),
-          }),
-          ui.button({
+        render: (_v, row) => {
+          const status = row.approval_status || 'draft';
+          const kids = [
+            ui.button({
+              label: 'Edit', variant: 'ghost', size: 'sm',
+              onClick: () => openForm(row),
+            }),
+          ];
+          // Approve unless already approved; Reject unless already rejected.
+          if (status !== 'approved') {
+            kids.push(ui.button({
+              label: 'Approve', variant: 'ghost', size: 'sm',
+              onClick: () => setApproval(row, 'approved'),
+            }));
+          }
+          if (status !== 'rejected') {
+            kids.push(ui.button({
+              label: 'Reject', variant: 'ghost', size: 'sm',
+              onClick: () => setApproval(row, 'rejected'),
+            }));
+          }
+          kids.push(ui.button({
             label: 'Delete', variant: 'danger', size: 'sm',
             onClick: () => onDelete(row),
-          }),
-        ]),
+          }));
+          return ui.el('div', { class: 'row-actions' }, kids);
+        },
       },
     ];
 
@@ -160,6 +190,93 @@ export default async function mount(root, ctx) {
     }
     ui.toast('Ad deleted.', 'success');
     loadAds();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Approval (approve / reject via fn_admin_set_ad_approval).
+  // ---------------------------------------------------------------------------
+
+  // Map approval_status -> a toned badge. Unknown/blank => 'draft'.
+  function approvalBadge(status) {
+    const s = String(status || 'draft');
+    const tone = s === 'approved' ? 'ok'
+      : s === 'rejected' ? 'danger'
+      : s === 'pending' ? 'warn'
+      : 'muted'; // draft
+    const label = s.charAt(0).toUpperCase() + s.slice(1);
+    return ui.badge(label, tone);
+  }
+
+  // Approve or reject an ad via fn_admin_set_ad_approval(p_ad_id, p_status,
+  // p_reason). approved_by / approved_at are set SERVER-SIDE from auth.uid(), so
+  // the client can never spoof the approver. Reject prompts for a reason.
+  async function setApproval(ad, status) {
+    let reason = null;
+    if (status === 'rejected') {
+      reason = await promptReason(ad);
+      if (reason === null) return; // cancelled
+    } else {
+      const ok = await ui.confirmDialog({
+        title: 'Approve ad?',
+        message: `“${ad.name || ui.shortId(ad.id)}” will become eligible to serve on machines.`,
+        confirmLabel: 'Approve',
+      });
+      if (!ok) return;
+    }
+    if (destroyed) return;
+
+    let error;
+    try {
+      ({ error } = await supabase.rpc('fn_admin_set_ad_approval', {
+        p_ad_id: ad.id,
+        p_status: status,
+        p_reason: reason, // null for approve
+      }));
+    } catch (err) {
+      error = err;
+    }
+    if (destroyed) return;
+
+    if (error) {
+      const code = error.code;
+      const msg = (code === '42501' || /not_admin|permission denied/i.test(String(error.message || '')))
+        ? 'You do not have admin access to change ad approval.'
+        : (error.message || 'Could not update approval.');
+      ui.toast(msg, 'error');
+      return;
+    }
+    ui.toast(status === 'approved' ? 'Ad approved.' : 'Ad rejected.', 'success');
+    loadAds();
+  }
+
+  // A small modal that collects an optional rejection reason. Resolves to the
+  // string (possibly empty) on confirm, or null on cancel.
+  function promptReason(ad) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (v) => { if (done) return; done = true; m.close(); resolve(v); };
+      const reasonInput = ui.textarea({
+        placeholder: 'Why is this creative rejected? (optional — shown to whoever revisits it)',
+        rows: 3,
+      });
+      const body = ui.el('div', {}, [
+        ui.el('p', {
+          class: 'confirm-msg',
+          text: `Reject “${ad.name || ui.shortId(ad.id)}”? It will stop serving on all machines immediately.`,
+        }),
+        ui.field('Reason', reasonInput),
+      ]);
+      const m = ui.modal({
+        title: 'Reject ad',
+        size: 'sm',
+        body,
+        actions: [
+          ui.button({ label: 'Cancel', variant: 'ghost', onClick: () => finish(null) }),
+          ui.button({ label: 'Reject', variant: 'danger', onClick: () => finish((reasonInput.value || '').trim() || null) }),
+        ],
+        onClose: () => finish(null),
+      });
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -312,6 +429,11 @@ export default async function mount(root, ctx) {
 
       // Build the payload. Empty optional strings are stored as null so the
       // consumer app + validators treat them as "unset" rather than "".
+      //
+      // IMPORTANT: only CONTENT columns go here. The approval_* columns
+      // (approval_status, approved_by, approved_at, rejection_reason) are
+      // REVOKED for the console and are set exclusively by
+      // fn_admin_set_ad_approval — including any of them here would 403.
       const payload = {
         name,
         headline: nn(model.headline),

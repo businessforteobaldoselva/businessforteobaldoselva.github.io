@@ -54,8 +54,9 @@ export default async function mount(root, ctx) {
 
   const systemHost = ui.el('div', { class: 'status-system' });
   const integrationsHost = ui.el('div', { class: 'status-integrations', style: { marginTop: '20px' } });
+  const complianceHost = ui.el('div', { class: 'status-compliance', style: { marginTop: '20px' } });
 
-  ui.appendChildren(root, [headerRow, systemHost, integrationsHost]);
+  ui.appendChildren(root, [headerRow, systemHost, complianceHost, integrationsHost]);
 
   // ---------------------------------------------------------------------------
   // Panel 1: System health tiles from fn_admin_status().
@@ -288,6 +289,104 @@ export default async function mount(root, ctx) {
   }
 
   // ---------------------------------------------------------------------------
+  // Panel 3: Compliance status from fn_admin_compliance_status().
+  // ---------------------------------------------------------------------------
+
+  // fn_admin_compliance_status() returns jsonb:
+  //   { rls_enabled_all bool, tables_missing_rls text[], last_purge_ts timestamptz,
+  //     users_with_raw_contact int, consented_users int }
+  function renderCompliance(c) {
+    const rlsOk = c?.rls_enabled_all === true;
+    const missing = Array.isArray(c?.tables_missing_rls) ? c.tables_missing_rls : [];
+    const lastPurge = c?.last_purge_ts ?? null;
+    const rawContact = c?.users_with_raw_contact ?? null;
+    const consented = c?.consented_users ?? null;
+
+    // Stat tiles: RLS state, raw-contact backlog, consented users, last purge.
+    const tiles = ui.el('div', { class: 'grid grid-auto' }, [
+      ui.stat({
+        label: 'RLS on vending tables',
+        value: rlsOk ? 'Enabled' : 'Gaps',
+        sub: rlsOk ? 'all 6 tables deny-all' : `${missing.length} table${missing.length === 1 ? '' : 's'} exposed`,
+        tone: rlsOk ? 'ok' : 'danger',
+      }),
+      ui.stat({
+        label: 'Users with raw contact',
+        value: fmtNum(rawContact),
+        sub: 'awaiting 30-day PII purge',
+        tone: (rawContact ?? 0) > 0 ? 'warn' : 'ok',
+      }),
+      ui.stat({
+        label: 'Marketing consented',
+        value: fmtNum(consented),
+        sub: 'opted in to future marketing',
+        tone: (consented ?? 0) > 0 ? 'accent' : '',
+      }),
+      ui.stat({
+        label: 'Last purge',
+        value: lastPurge ? ui.relativeTime(lastPurge) : 'Never',
+        sub: lastPurge ? ui.fmtDate(lastPurge, { mode: 'datetime', tz }) : 'WF7 has not run yet',
+        tone: lastPurge ? '' : 'warn',
+      }),
+    ]);
+
+    // If any tables are missing RLS, list them as danger badges (each name via
+    // textContent inside ui.badge — no innerHTML).
+    const missingBlock = missing.length
+      ? ui.el('div', { class: 'compliance-missing', style: { marginTop: '14px' } }, [
+          ui.el('p', {
+            class: 'muted',
+            style: { margin: '0 0 8px' },
+            text: 'Tables WITHOUT row-level security (these expose data to authenticated clients — apply 06-quickwins.sql):',
+          }),
+          ui.el('div', {
+            class: 'badge-row',
+            style: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
+          }, missing.map((t) => ui.badge(String(t), 'danger'))),
+        ])
+      : ui.el('p', {
+          class: 'muted',
+          style: { margin: '14px 0 0' },
+          text: 'All vending tables enforce deny-all RLS. Service-role (n8n) bypasses RLS, so WF1–WF5 are unaffected.',
+        });
+
+    const cardEl = ui.card({
+      title: 'Compliance',
+      subtitle: 'RLS coverage, PII retention and marketing-consent posture.',
+      tone: rlsOk && missing.length === 0 ? 'ok' : 'warn',
+      body: ui.el('div', {}, [tiles, missingBlock]),
+    });
+    ui.render(complianceHost, cardEl);
+  }
+
+  function renderComplianceError(msg) {
+    const cardEl = ui.card({
+      title: 'Compliance',
+      tone: 'danger',
+      body: ui.errorState(msg, () => refreshCompliance()),
+    });
+    ui.render(complianceHost, cardEl);
+  }
+
+  async function refreshCompliance() {
+    ui.render(complianceHost, ui.card({
+      title: 'Compliance',
+      body: ui.spinner('Checking compliance…'),
+    }));
+    try {
+      const { data, error } = await supabase.rpc('fn_admin_compliance_status');
+      if (!live) return;
+      if (error) throw error;
+      renderCompliance(data || {});
+    } catch (err) {
+      if (!live) return;
+      const msg = friendlyRpcError(err);
+      toast(msg, 'error');
+      renderComplianceError(msg);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Orchestration.
   // ---------------------------------------------------------------------------
 
@@ -299,7 +398,7 @@ export default async function mount(root, ctx) {
     if (!live) return;
     refreshBtn.disabled = true;
     try {
-      await Promise.all([refreshSystem(), refreshIntegrations()]);
+      await Promise.all([refreshSystem(), refreshCompliance(), refreshIntegrations()]);
       if (live) stampChecked();
     } finally {
       if (live) refreshBtn.disabled = false;
@@ -316,6 +415,7 @@ export default async function mount(root, ctx) {
     refreshSystem();
   }
   refreshIntegrations();
+  refreshCompliance();
   stampChecked();
 
   // ---- Cleanup -------------------------------------------------------------
