@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    /* Netlify Identity emails (invites, password recovery) link to the site
+       root with a token in the hash — forward them to the CMS login page. */
+    (function () {
+      var h = document.location.hash;
+      if (h && /(invite_token|recovery_token|confirmation_token|email_change_token)=/.test(h)) {
+        document.location.replace("/cms/" + h);
+      }
+    })();
+  </script>
   <title>{{ site.pageTitle }}</title>
   <meta name="description" content="{{ site.metaDescription }}" />
 

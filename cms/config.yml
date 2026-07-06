@@ -5,8 +5,8 @@ backend:
 media_folder: "images"
 public_folder: "/images"
 
-site_url: https://businessforteobaldoselva.github.io
-display_url: https://businessforteobaldoselva.github.io
+site_url: https://clinquant-malasada-f8323d.netlify.app
+display_url: https://clinquant-malasada-f8323d.netlify.app
 
 locale: "en"
 
