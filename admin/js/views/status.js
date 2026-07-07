@@ -61,7 +61,7 @@ export default async function mount(root, ctx) {
   // Netlify; content edits happen in the Decap CMS at /cms on that site.
   // If the Netlify site is ever renamed, update WEBSITE_URL here.
   // ---------------------------------------------------------------------------
-  const WEBSITE_URL = 'https://clinquant-malasada-f8323d.netlify.app';
+  const WEBSITE_URL = 'https://coveredaccess.netlify.app';
 
   function linkBtn(label, href, variant) {
     return ui.el('a', {
