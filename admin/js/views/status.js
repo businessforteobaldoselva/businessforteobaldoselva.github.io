@@ -1,7 +1,13 @@
 // =============================================================================
 // COVERED Admin Console — Status view
 // -----------------------------------------------------------------------------
-// Two panels:
+// Panels (top to bottom):
+//
+//  0) PILOT — the go-live switch. Reads settings via fn_admin_get_settings()
+//     (settings.pilot_live) and flips it with fn_admin_set_pilot_live(p_live).
+//     While OFF, scheduled reports (the weekly evidence pack) stay dormant;
+//     switching ON marks the pilot as launched. Both directions go through a
+//     confirm dialog and re-render the card from the server's response.
 //
 //  1) SYSTEM HEALTH — health tiles derived from fn_admin_status(). We reuse the
 //     cached payload the router put on ctx.adminStatus (it was fetched by the
@@ -14,7 +20,7 @@
 //     "unavailable" state gracefully instead of crashing. Twilio shows a
 //     trial-vs-live pill and a balance if the proxy returns one.
 //
-// A single Refresh button reloads BOTH panels and stamps the "last checked"
+// A single Refresh button reloads ALL panels and stamps the "last checked"
 // time. All DB/API text is rendered via ui.el text props / textContent — no
 // innerHTML with data, no XSS surface.
 // =============================================================================
@@ -29,7 +35,7 @@ export default async function mount(root, ctx) {
   let live = true;
 
   // ---- Layout scaffold -----------------------------------------------------
-  // A small header row (last-checked stamp + Refresh) and two panel hosts we
+  // A small header row (last-checked stamp + Refresh) and panel hosts we
   // re-render into.
   const checkedStamp = ui.el('span', {
     class: 'muted status-checked',
@@ -52,6 +58,7 @@ export default async function mount(root, ctx) {
     },
   }, [checkedStamp, refreshBtn]);
 
+  const pilotHost = ui.el('div', { class: 'status-pilot', style: { marginBottom: '20px' } });
   const systemHost = ui.el('div', { class: 'status-system' });
   const integrationsHost = ui.el('div', { class: 'status-integrations', style: { marginTop: '20px' } });
   const complianceHost = ui.el('div', { class: 'status-compliance', style: { marginTop: '20px' } });
@@ -84,7 +91,105 @@ export default async function mount(root, ctx) {
   });
   const websiteHost = ui.el('div', { class: 'status-website', style: { marginBottom: '20px' } }, [websiteCard]);
 
-  ui.appendChildren(root, [headerRow, websiteHost, systemHost, complianceHost, integrationsHost]);
+  // Pilot card goes FIRST, above System health (and the website shortcuts).
+  ui.appendChildren(root, [headerRow, pilotHost, websiteHost, systemHost, complianceHost, integrationsHost]);
+
+  // ---------------------------------------------------------------------------
+  // Panel 0: Pilot go-live switch.
+  //
+  // fn_admin_get_settings() returns jsonb settings; we read settings.pilot_live
+  // (boolean). fn_admin_set_pilot_live({ p_live }) flips it server-side (admin
+  // guarded). The card re-renders from a fresh fn_admin_get_settings() read
+  // after every toggle so the UI always reflects the server's truth.
+  // ---------------------------------------------------------------------------
+
+  function renderPilot(settings) {
+    const isLive = settings?.pilot_live === true;
+
+    const badgeRow = ui.el('div', {
+      style: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
+    }, [
+      ui.badge(isLive ? 'LIVE' : 'Not launched', isLive ? 'ok' : 'muted'),
+    ]);
+
+    const explainer = ui.el('p', {
+      class: 'muted',
+      style: { margin: '10px 0 14px' },
+      text: isLive
+        ? 'The pilot is live. Scheduled reports — including the weekly pilot evidence pack — are running. You can switch it off again any time.'
+        : 'While the pilot is off, scheduled reports (the weekly evidence pack) stay dormant. Go live when the pilot launches to start them.',
+    });
+
+    const toggleBtn = ui.button({
+      label: isLive ? 'Switch off' : 'Go live',
+      variant: isLive ? 'danger' : 'primary',
+      onClick: () => setPilotLive(!isLive, toggleBtn),
+    });
+
+    const c = ui.card({
+      title: 'Pilot',
+      subtitle: 'Go-live switch for the pilot and its scheduled reporting.',
+      tone: isLive ? 'ok' : '',
+      body: ui.el('div', { class: 'status-pilot-body' }, [badgeRow, explainer, toggleBtn]),
+    });
+    ui.render(pilotHost, c);
+  }
+
+  function renderPilotError(msg) {
+    const c = ui.card({
+      title: 'Pilot',
+      tone: 'danger',
+      body: ui.errorState(msg, () => refreshPilot()),
+    });
+    ui.render(pilotHost, c);
+  }
+
+  async function refreshPilot() {
+    ui.render(pilotHost, ui.card({ title: 'Pilot', body: ui.spinner('Loading pilot state…') }));
+    try {
+      const { data, error } = await supabase.rpc('fn_admin_get_settings');
+      if (!live) return;
+      if (error) throw error;
+      renderPilot(data || {});
+    } catch (err) {
+      if (!live) return;
+      const msg = friendlyRpcError(err);
+      toast(msg, 'error');
+      renderPilotError(msg);
+    }
+  }
+
+  // Confirm, flip via fn_admin_set_pilot_live, toast, and re-render the card.
+  async function setPilotLive(next, btn) {
+    const confirmed = await ui.confirmDialog(next
+      ? {
+          title: 'Go live?',
+          message: 'Going live enables the weekly pilot evidence pack and marks the pilot as launched. You can switch it off again any time.',
+          confirmLabel: 'Go live',
+        }
+      : {
+          title: 'Switch the pilot off?',
+          message: 'Switching off pauses scheduled reports, including the weekly pilot evidence pack. No data is deleted — you can go live again any time.',
+          confirmLabel: 'Switch off',
+          danger: true,
+        });
+    if (!confirmed || !live) return;
+
+    if (btn) btn.disabled = true;
+    try {
+      const { error } = await supabase.rpc('fn_admin_set_pilot_live', { p_live: next });
+      if (!live) return;
+      if (error) throw error;
+      toast(next
+        ? 'Pilot is LIVE — the weekly evidence pack is now enabled.'
+        : 'Pilot switched off — scheduled reports are dormant.', 'success');
+      await refreshPilot();
+    } catch (err) {
+      if (!live) return;
+      toast(friendlyRpcError(err), 'error');
+      if (btn) btn.disabled = false;
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Panel 1: System health tiles from fn_admin_status().
@@ -426,7 +531,7 @@ export default async function mount(root, ctx) {
     if (!live) return;
     refreshBtn.disabled = true;
     try {
-      await Promise.all([refreshSystem(), refreshCompliance(), refreshIntegrations()]);
+      await Promise.all([refreshPilot(), refreshSystem(), refreshCompliance(), refreshIntegrations()]);
       if (live) stampChecked();
     } finally {
       if (live) refreshBtn.disabled = false;
@@ -435,13 +540,15 @@ export default async function mount(root, ctx) {
 
   // ---- First paint ---------------------------------------------------------
   // Reuse the cached fn_admin_status payload for an instant system panel; still
-  // hit WF6 for integrations. Stamp the initial check time.
+  // hit WF6 for integrations and the DB for pilot + compliance. Stamp the
+  // initial check time.
   if (ctx.adminStatus) {
     renderSystem(ctx.adminStatus);
   } else {
     // No cached payload (gate may have returned null) — fetch it now.
     refreshSystem();
   }
+  refreshPilot();
   refreshIntegrations();
   refreshCompliance();
   stampChecked();

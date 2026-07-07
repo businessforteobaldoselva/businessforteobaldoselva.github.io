@@ -4,7 +4,7 @@
 // Entry point (loaded as a module from index.html). Responsibilities:
 //   1. Assemble the shared `ctx` handed to every view (supabase helpers, api,
 //      ui, toast, current user).
-//   2. Register the views (login + notAuthorised are built in below; the five
+//   2. Register the views (login + notAuthorised are built in below; the
 //      admin views are lazy-loaded from js/views/*).
 //   3. Provide the `shell` renderer the router calls to paint app chrome for
 //      each mode ('login' | 'notAuthorised' | 'admin') and return the content
@@ -34,14 +34,27 @@ const ctx = {
 };
 
 // -----------------------------------------------------------------------------
-// View registry. The five admin views are lazy dynamic imports so the shell can
+// View registry. The admin views are lazy dynamic imports so the shell can
 // ship and run before those files exist / while they are built in parallel.
 // -----------------------------------------------------------------------------
 router.register('status',    () => import('./views/status.js'),    { title: 'Status' });
 router.register('ads',       () => import('./views/ads.js'),       { title: 'Ads' });
 router.register('machines',  () => import('./views/machines.js'),  { title: 'Machines' });
+router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tasks' });
 router.register('analytics', () => import('./views/analytics.js'), { title: 'Analytics' });
 router.register('data',      () => import('./views/data.js'),      { title: 'Data' });
+
+// Sidebar entry for Tasks, between Machines and Analytics. router.NAV drives
+// the sidebar and is read on every shell render, so splicing here keeps
+// router.js untouched.
+if (!router.NAV.some((n) => n.name === 'tasks')) {
+  const analyticsIdx = router.NAV.findIndex((n) => n.name === 'analytics');
+  router.NAV.splice(
+    analyticsIdx === -1 ? router.NAV.length : analyticsIdx,
+    0,
+    { name: 'tasks', label: 'Tasks' },
+  );
+}
 
 // =============================================================================
 // The shell renderer. Returns the content root the router mounts a view into.
