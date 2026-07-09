@@ -3,13 +3,13 @@
    rule simply stops applying — the editor never breaks, it just loses flair. */
 
 :root {
-  --cov-red: #C42F26;
-  --cov-red-bright: #E8443A;
-  --cov-red-dark: #A2251E;
-  --cov-ink: #17130E;
-  --cov-paper: #FAF6EF;
-  --cov-paper-2: #F3EDE1;
-  --cov-green: #1E7A5A;
+  --cov-red: #C94D00;
+  --cov-red-bright: #E85502;
+  --cov-red-dark: #A63F00;
+  --cov-ink: #1D2452;
+  --cov-paper: #EAF3FA;
+  --cov-paper-2: #D9E7F4;
+  --cov-green: #3D5BBF;
 }
 
 body {
@@ -19,8 +19,8 @@ body {
 /* ---------- Login screen ---------- */
 [class*="AuthenticationPage"] {
   background:
-    radial-gradient(900px 500px at 80% -10%, rgba(232, 68, 58, 0.08), transparent 70%),
-    radial-gradient(700px 420px at 10% 110%, rgba(30, 122, 90, 0.08), transparent 70%),
+    radial-gradient(900px 500px at 80% -10%, rgba(232, 85, 2, 0.08), transparent 70%),
+    radial-gradient(700px 420px at 10% 110%, rgba(61, 91, 191, 0.08), transparent 70%),
     var(--cov-paper) !important;
 }
 [class*="AuthenticationPage"] img[class*="Logo"],
@@ -35,7 +35,7 @@ img[class*="CustomLogo"] {
   padding: 14px 28px !important;
   font-size: 15px !important;
   font-weight: 600 !important;
-  box-shadow: 0 6px 18px rgba(196, 47, 38, 0.35) !important;
+  box-shadow: 0 6px 18px rgba(201, 77, 0, 0.35) !important;
 }
 [class*="AuthenticationPage"] button:hover {
   background: var(--cov-red-dark) !important;
@@ -68,7 +68,7 @@ img[class*="CustomLogo"] {
 }
 [class*="ListCard"]:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(23, 19, 14, 0.12) !important;
+  box-shadow: 0 10px 26px rgba(29, 36, 82, 0.12) !important;
 }
 
 /* ---------- Buttons (publish, save, actions) ---------- */
