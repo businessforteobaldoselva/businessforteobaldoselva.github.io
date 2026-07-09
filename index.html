@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    /* Netlify Identity emails (invites, password recovery) link to the site
+       root with a token in the hash — forward them to the CMS login page. */
+    (function () {
+      var h = document.location.hash;
+      if (h && /(invite_token|recovery_token|confirmation_token|email_change_token)=/.test(h)) {
+        document.location.replace("/cms/" + h);
+      }
+    })();
+  </script>
   <title>COVERED — Free Period Products, Paid for by Advertising</title>
   <meta name="description" content="COVERED puts smart dispensers full of free, plastic-free period products in the places people actually need them — funded entirely by advertising. We got you covered." />
 
@@ -10,19 +20,19 @@
   <meta property="og:title" content="COVERED — Free Period Products, Paid for by Advertising" />
   <meta property="og:description" content="Smart dispensers. Free period products. Funded by brands, not users. We got you covered." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://businessforteobaldoselva.github.io/" />
+  <meta property="og:url" content="https://coveredaccess.com/" />
   <meta property="og:site_name" content="COVERED" />
-  <meta property="og:image" content="https://businessforteobaldoselva.github.io/images/covered-og.jpg" />
+  <meta property="og:image" content="https://coveredaccess.com/images/covered-og.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="article:published_time" content="2026-06-28T12:00:00Z" />
-  <meta property="article:modified_time" content="2026-07-03T12:00:00Z" />
+  <meta property="article:modified_time" content="2026-07-06T12:00:00Z" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="canonical" href="https://businessforteobaldoselva.github.io/" />
+  <link rel="canonical" href="https://coveredaccess.com/" />
   <link rel="alternate" type="application/atom+xml" title="COVERED updates" href="/feed.xml" />
 
   <!-- Favicon: stamp-style C -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='none' stroke='%23E8443A' stroke-width='9'/%3E%3Ctext x='50' y='68' font-family='Arial Black,Arial,sans-serif' font-size='52' font-weight='900' fill='%23E8443A' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='none' stroke='%23E85502' stroke-width='9'/%3E%3Ctext x='50' y='68' font-family='Arial Black,Arial,sans-serif' font-size='52' font-weight='900' fill='%23E85502' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,29 +44,29 @@
     "@graph": [
       {
         "@type": "Organization",
-        "@id": "https://businessforteobaldoselva.github.io/#org",
+        "@id": "https://coveredaccess.com/#org",
         "name": "COVERED",
-        "url": "https://businessforteobaldoselva.github.io/",
+        "url": "https://coveredaccess.com/",
         "email": "ameliaireland18@gmail.com",
         "slogan": "Free Period Products, Paid for by Advertising. We got you covered.",
         "description": "COVERED is a UK social enterprise that installs smart wall-mounted dispensers giving out free, plastic-free period products, funded entirely by brands advertising on the dispensers' 32-inch digital screens.",
         "foundingLocation": { "@type": "Place", "name": "Exeter, United Kingdom" },
         "areaServed": "GB",
-        "logo": "https://businessforteobaldoselva.github.io/images/covered-og.jpg"
+        "logo": "https://coveredaccess.com/images/covered-og.jpg"
       },
       {
         "@type": "WebSite",
-        "@id": "https://businessforteobaldoselva.github.io/#website",
-        "url": "https://businessforteobaldoselva.github.io/",
+        "@id": "https://coveredaccess.com/#website",
+        "url": "https://coveredaccess.com/",
         "name": "COVERED — Free Period Products, Paid for by Advertising",
-        "publisher": { "@id": "https://businessforteobaldoselva.github.io/#org" },
+        "publisher": { "@id": "https://coveredaccess.com/#org" },
         "inLanguage": "en-GB",
         "datePublished": "2026-06-28",
-        "dateModified": "2026-07-03"
+        "dateModified": "2026-07-06"
       },
       {
         "@type": "FAQPage",
-        "@id": "https://businessforteobaldoselva.github.io/#faqpage",
+        "@id": "https://coveredaccess.com/#faqpage",
         "mainEntity": [
           {
             "@type": "Question",
@@ -66,32 +76,32 @@
           {
             "@type": "Question",
             "name": "Is it really free? What's the catch?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Really free — no coins, no cards, no subscriptions. Advertisers pay for ad space on COVERED's screens and packaging, and that revenue covers the products, the machines and the restocking. The only 'catch' is a short sponsor message while the machine dispenses." }
+            "acceptedAnswer": { "@type": "Answer", "text": "Really free — no coins, no cards, no subscriptions. Advertisers pay for the ad space on our screens and packaging, and that revenue covers the products, the machines and the restocking. The only \"catch\" is a short sponsor message while the machine dispenses." }
           },
           {
             "@type": "Question",
             "name": "What products do the machines dispense?",
-            "acceptedAnswer": { "@type": "Answer", "text": "High-quality, plastic-free and biodegradable pads and tampons, dispensed in convenient 4-packs." }
+            "acceptedAnswer": { "@type": "Answer", "text": "High-quality, plastic-free and biodegradable pads and tampons, dispensed in convenient 4-packs. Good for you, better for the planet." }
           },
           {
             "@type": "Question",
             "name": "Who can use the dispensers?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Anyone who needs period products — students, commuters, visitors, anyone caught off guard. A gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more." }
+            "acceptedAnswer": { "@type": "Answer", "text": "Anyone who needs period products — students, commuters, visitors, anyone caught off guard. A gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more if you need it." }
           },
           {
             "@type": "Question",
             "name": "What happens with my data?",
-            "acceptedAnswer": { "@type": "Answer", "text": "COVERED is built to UK GDPR and PECR standards from day one — privacy by design. Marketing consent is always a separate, un-ticked opt-in, and users keep full control of their data, including the right to erasure. The initial pilot collects no personal data at all." }
+            "acceptedAnswer": { "@type": "Answer", "text": "We're building to UK GDPR and PECR standards from day one — privacy by design. Marketing consent is always a separate, un-ticked opt-in, and you keep full control of your data, including the right to erasure. Our initial pilot collects no personal data at all." }
           },
           {
             "@type": "Question",
             "name": "What kind of ads will be shown?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Brand-safe only: beauty, wellness, fashion, food and student services — never adult, gambling, political or otherwise sensitive content. Venues approve the environment their visitors experience." }
+            "acceptedAnswer": { "@type": "Answer", "text": "Brand-safe only. Think beauty, wellness, fashion, food and student services — never adult, gambling, political or otherwise sensitive content. Venues approve the environment their visitors experience." }
           },
           {
             "@type": "Question",
             "name": "I'd love to help — what can I do?",
-            "acceptedAnswer": { "@type": "Answer", "text": "If you run a venue, host a unit. If you work with a brand, tell your marketing team about COVERED. And if you just like the idea — follow the journey when the social channels launch, and spread the word." }
+            "acceptedAnswer": { "@type": "Answer", "text": "If you run a venue, host a unit. If you work with a brand, tell your marketing team about us. And if you just like the idea — follow the journey when our channels launch, and spread the word." }
           }
         ]
       }
@@ -101,20 +111,20 @@
 
   <style>
     :root {
-      --paper: #FAF6EF;
-      --paper-2: #F3EDE1;
+      --paper: #EAF3FA;
+      --paper-2: #D9E7F4;
       --white: #FFFFFF;
-      --ink: #17130E;
-      --ink-soft: #4C463D;
-      --muted: #6B6459;
-      --red: #E8443A;
-      --red-deep: #C42F26;
-      --red-dark: #A2251E;
-      --green: #1E7A5A;
-      --sage: #E4EDE4;
-      --line: rgba(23, 19, 14, 0.12);
+      --ink: #1D2452;
+      --ink-soft: #3A4265;
+      --muted: #56618A;
+      --red: #E85502;
+      --red-deep: #C94D00;
+      --red-dark: #A63F00;
+      --green: #3D5BBF;
+      --sage: #E8B4BA;
+      --line: rgba(29, 36, 82, 0.12);
       --radius: 20px;
-      --shadow: 0 10px 30px rgba(23, 19, 14, 0.08);
+      --shadow: 0 10px 30px rgba(29, 36, 82, 0.08);
       --font-head: "Space Grotesk", "Segoe UI", sans-serif;
       --font-body: "Inter", "Segoe UI", sans-serif;
     }
@@ -148,7 +158,7 @@
       font-weight: 700;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--red-deep);
+      color: var(--red-dark);
       margin-bottom: 1rem;
     }
 
@@ -173,7 +183,7 @@
     }
     .btn:hover { transform: translateY(-2px); }
     .btn:active { transform: translateY(0); }
-    .btn-primary { background: var(--red-deep); border-color: var(--red-deep); color: #fff; box-shadow: 0 6px 18px rgba(196, 47, 38, 0.35); }
+    .btn-primary { background: var(--red-deep); border-color: var(--red-deep); color: #fff; box-shadow: 0 6px 18px rgba(201, 77, 0, 0.35); }
     .btn-primary:hover { background: var(--red-dark); border-color: var(--red-dark); }
     .btn-outline { background: transparent; color: var(--ink); }
     .btn-outline:hover { background: var(--ink); color: var(--paper); }
@@ -189,7 +199,7 @@
     /* ---------- Nav ---------- */
     header {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(250, 246, 239, 0.92);
+      background: rgba(239, 244, 255, 0.92);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line);
     }
@@ -248,8 +258,8 @@
     .hero::before, .hero::after {
       content: ""; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none;
     }
-    .hero::before { width: 480px; height: 480px; background: rgba(232, 68, 58, 0.12); top: -140px; right: -120px; }
-    .hero::after { width: 420px; height: 420px; background: rgba(30, 122, 90, 0.10); bottom: -160px; left: -140px; }
+    .hero::before { width: 480px; height: 480px; background: rgba(232, 85, 2, 0.12); top: -140px; right: -120px; }
+    .hero::after { width: 420px; height: 420px; background: rgba(61, 91, 191, 0.10); bottom: -160px; left: -140px; }
 
     .hero-inner { position: relative; z-index: 1; text-align: center; }
 
@@ -265,9 +275,9 @@
       animation: pulse 2.2s infinite;
     }
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(30, 122, 90, 0.45); }
-      70% { box-shadow: 0 0 0 9px rgba(30, 122, 90, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(30, 122, 90, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(61, 91, 191, 0.45); }
+      70% { box-shadow: 0 0 0 9px rgba(61, 91, 191, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(61, 91, 191, 0); }
     }
 
     .hero h1 {
@@ -293,11 +303,11 @@
       transform: rotate(-6deg);
       position: relative;
       text-transform: uppercase;
-      box-shadow: inset 0 0 0 2px rgba(232, 68, 58, 0.25);
+      box-shadow: inset 0 0 0 2px rgba(232, 85, 2, 0.25);
     }
     .stamp::after {
       content: ""; position: absolute; inset: 4px;
-      border: 1.5px dashed rgba(232, 68, 58, 0.4); border-radius: 9px;
+      border: 1.5px dashed rgba(232, 85, 2, 0.4); border-radius: 9px;
       pointer-events: none;
     }
     .stamp.stamp-in { animation: stampIn 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
@@ -334,7 +344,7 @@
     .marquee:hover .marquee-track, .marquee.paused .marquee-track { animation-play-state: paused; }
     .marquee-pause {
       position: absolute; right: 10px; top: 50%; transform: translateY(-50%); z-index: 2;
-      width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid rgba(250, 246, 239, 0.4);
+      width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid rgba(239, 244, 255, 0.4);
       background: var(--ink); color: var(--paper); cursor: pointer; font-size: 0.7rem; line-height: 1;
     }
     .marquee-pause:hover, .marquee-pause:focus-visible { border-color: var(--paper); }
@@ -364,7 +374,7 @@
     .stats-source a { color: var(--muted); }
 
     /* ---------- Model loop ---------- */
-    .model-band { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .model-band { background: #CDD1F2; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
     .loop { display: flex; align-items: stretch; justify-content: center; gap: 0; margin-top: 3rem; flex-wrap: wrap; }
     .loop-step {
       flex: 1 1 240px; max-width: 320px;
@@ -399,14 +409,14 @@
       width: 22px; height: 22px; border-radius: 50%;
       background: var(--paper-2); color: var(--muted); font-size: 0.75rem; font-family: var(--font-head);
     }
-    .step-chip.active { border-color: var(--red); color: var(--ink); box-shadow: 0 4px 14px rgba(232, 68, 58, 0.18); }
+    .step-chip.active { border-color: var(--red); color: var(--ink); box-shadow: 0 4px 14px rgba(232, 85, 2, 0.18); }
     .step-chip.active .n { background: var(--red); color: #fff; }
-    .step-chip.done { color: var(--green); border-color: rgba(30, 122, 90, 0.4); }
+    .step-chip.done { color: var(--green); border-color: rgba(61, 91, 191, 0.4); }
     .step-chip.done .n { background: var(--green); color: #fff; }
 
     .demo-card {
       background: var(--white); border: 2px solid var(--ink); border-radius: 28px;
-      box-shadow: 0 18px 50px rgba(23, 19, 14, 0.12);
+      box-shadow: 0 18px 50px rgba(29, 36, 82, 0.12);
       padding: 2.6rem 2rem;
       display: flex; gap: 3rem; align-items: center; justify-content: center; flex-wrap: wrap;
     }
@@ -446,7 +456,7 @@
     }
     .m-slot::before {
       content: ""; position: absolute; top: 8px; left: 14px; right: 14px; height: 5px;
-      background: rgba(250, 246, 239, 0.16); border-radius: 3px;
+      background: rgba(239, 244, 255, 0.16); border-radius: 3px;
     }
     .pack {
       width: 74px; height: 34px; background: var(--paper);
@@ -465,13 +475,13 @@
     }
     .machine .led {
       position: absolute; top: 20px; right: 22px; width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green); box-shadow: 0 0 8px rgba(30, 122, 90, 0.8);
+      background: var(--green); box-shadow: 0 0 8px rgba(61, 91, 191, 0.8);
     }
     .machine-stamp {
       position: absolute; top: 42%; left: 50%;
       translate: -50% -50%;
       font-size: 1.1rem; padding: 0.3em 0.7em;
-      background: rgba(250, 246, 239, 0.94);
+      background: rgba(239, 244, 255, 0.94);
       opacity: 0; pointer-events: none; z-index: 5;
     }
     .machine-stamp.show { opacity: 1; animation: stampIn 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
@@ -524,7 +534,7 @@
 
     /* ---------- Audience sections ---------- */
     .dark { background: var(--ink); color: var(--paper); }
-    .dark .section-sub { color: rgba(250, 246, 239, 0.75); }
+    .dark .section-sub { color: rgba(239, 244, 255, 0.75); }
     .dark .kicker { color: var(--red); }
 
     .benefit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 3rem; }
@@ -532,25 +542,25 @@
     @media (max-width: 560px) { .benefit-grid { grid-template-columns: 1fr; } }
 
     .benefit {
-      border: 1.5px solid rgba(250, 246, 239, 0.16); border-radius: var(--radius);
-      padding: 1.7rem 1.5rem; background: rgba(250, 246, 239, 0.04);
+      border: 1.5px solid rgba(239, 244, 255, 0.16); border-radius: var(--radius);
+      padding: 1.7rem 1.5rem; background: rgba(239, 244, 255, 0.04);
       transition: transform 0.2s ease, border-color 0.2s ease;
     }
-    .benefit:hover { transform: translateY(-4px); border-color: rgba(232, 68, 58, 0.6); }
+    .benefit:hover { transform: translateY(-4px); border-color: rgba(232, 85, 2, 0.6); }
     .benefit .b-icon { font-size: 1.6rem; }
     .benefit h3 { font-size: 1.08rem; margin: 0.8rem 0 0.45rem; }
-    .benefit p { font-size: 0.9rem; color: rgba(250, 246, 239, 0.72); }
+    .benefit p { font-size: 0.9rem; color: rgba(239, 244, 255, 0.72); }
 
     .chip-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2.2rem; }
     .chip {
-      border: 1.5px solid rgba(250, 246, 239, 0.25); border-radius: 999px;
-      padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 500; color: rgba(250, 246, 239, 0.85);
+      border: 1.5px solid rgba(239, 244, 255, 0.25); border-radius: 999px;
+      padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 500; color: rgba(239, 244, 255, 0.85);
     }
 
     /* ---------- Forms ---------- */
     .form-card {
-      background: rgba(250, 246, 239, 0.05);
-      border: 1.5px solid rgba(250, 246, 239, 0.16);
+      background: rgba(239, 244, 255, 0.05);
+      border: 1.5px solid rgba(239, 244, 255, 0.16);
       border-radius: var(--radius);
       padding: 2rem;
       margin-top: 3rem;
@@ -571,7 +581,7 @@
       outline: 2px solid var(--red); outline-offset: 1px; border-color: var(--red);
     }
     .form-actions { margin-top: 1.4rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-    .form-hint { font-size: 0.8rem; color: rgba(250, 246, 239, 0.6); }
+    .form-hint { font-size: 0.8rem; color: rgba(239, 244, 255, 0.6); }
     .light-form .form-hint { color: var(--muted); }
 
     .light-form { background: var(--white); border: 1.5px solid var(--line); box-shadow: var(--shadow); }
@@ -579,8 +589,8 @@
     /* ---------- Venues ---------- */
     .pilot-ribbon {
       display: inline-flex; align-items: center; gap: 0.6rem;
-      background: var(--sage); border: 1.5px solid rgba(30, 122, 90, 0.35);
-      color: var(--green); border-radius: 999px; padding: 0.5rem 1.2rem;
+      background: var(--sage); border: 1.5px solid rgba(34, 55, 127, 0.35);
+      color: #22377F; border-radius: 999px; padding: 0.5rem 1.2rem;
       font-weight: 600; font-size: 0.88rem; margin-bottom: 1.4rem;
     }
     .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin-top: 3rem; }
@@ -599,7 +609,7 @@
     .list-card.wants li::before { content: "→"; color: var(--red); }
 
     /* ---------- Vision ---------- */
-    .vision-band { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .vision-band { background: #F2D3D8; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
     .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 3rem; }
     @media (max-width: 800px) { .timeline { grid-template-columns: 1fr; } }
     .milestone {
@@ -619,7 +629,7 @@
     /* ---------- Build in public ---------- */
     .bip {
       margin-top: 4rem; text-align: center;
-      border: 2px dashed rgba(23, 19, 14, 0.25); border-radius: var(--radius);
+      border: 2px dashed rgba(29, 36, 82, 0.25); border-radius: var(--radius);
       padding: 2.2rem 1.6rem;
     }
     .bip h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
@@ -645,7 +655,7 @@
 
     /* ---------- CTA banner ---------- */
     .cta-banner {
-      background: var(--red); color: #fff; border-radius: 28px;
+      background: var(--red-deep); color: #fff; border-radius: 28px;
       padding: 3.4rem 2.4rem; text-align: center; position: relative; overflow: hidden;
     }
     .cta-banner::before {
@@ -658,19 +668,19 @@
     .cta-banner .btn { position: relative; }
 
     /* ---------- Footer ---------- */
-    footer { background: var(--ink); color: rgba(250, 246, 239, 0.75); padding: 3.5rem 0 2.5rem; }
+    footer { background: var(--ink); color: rgba(239, 244, 255, 0.75); padding: 3.5rem 0 2.5rem; }
     .foot-grid { display: flex; justify-content: space-between; gap: 2rem; flex-wrap: wrap; align-items: flex-start; }
     .foot-brand .logo { color: var(--paper); }
     .foot-brand p { margin-top: 0.9rem; font-size: 0.9rem; max-width: 34ch; }
     .foot-col .foot-head { font-family: var(--font-head); font-weight: 700; color: var(--paper); font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.9rem; }
     .foot-col ul { list-style: none; }
     .foot-col li { margin-bottom: 0.55rem; }
-    .foot-col a { text-decoration: none; font-size: 0.92rem; color: rgba(250, 246, 239, 0.75); }
+    .foot-col a { text-decoration: none; font-size: 0.92rem; color: rgba(239, 244, 255, 0.75); }
     .foot-col a:hover { color: var(--red); }
     .foot-bottom {
-      margin-top: 2.8rem; padding-top: 1.6rem; border-top: 1px solid rgba(250, 246, 239, 0.12);
+      margin-top: 2.8rem; padding-top: 1.6rem; border-top: 1px solid rgba(239, 244, 255, 0.12);
       display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-      font-size: 0.8rem; color: rgba(250, 246, 239, 0.5);
+      font-size: 0.8rem; color: rgba(239, 244, 255, 0.5);
     }
 
     /* ---------- Reveal on scroll ---------- */
@@ -682,7 +692,7 @@
     @media (max-width: 820px) { .partner-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 480px) { .partner-grid { grid-template-columns: 1fr; } }
     .p-slot {
-      border: 2px dashed rgba(23, 19, 14, 0.28); border-radius: var(--radius);
+      border: 2px dashed rgba(29, 36, 82, 0.28); border-radius: var(--radius);
       min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 0.5rem; text-align: center; padding: 1.4rem; color: var(--muted);
       background: rgba(255, 255, 255, 0.55);
@@ -700,7 +710,7 @@
     .uk-map-wrap { background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.2rem; }
     .uk-map { width: 100%; height: auto; display: block; }
     .uk-land { fill: var(--sage); stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
-    .uk-neighbor { fill: var(--paper-2); stroke: rgba(23, 19, 14, 0.28); stroke-width: 1; stroke-linejoin: round; }
+    .uk-neighbor { fill: var(--paper-2); stroke: rgba(29, 36, 82, 0.28); stroke-width: 1; stroke-linejoin: round; }
     .map-pin { cursor: pointer; }
     .map-pin circle.core { fill: #fff; stroke: var(--ink); stroke-width: 2; transition: stroke-width 0.15s ease; }
     .map-pin.live circle.core { fill: var(--red-deep); stroke: var(--red-deep); }
@@ -723,7 +733,7 @@
     .city-chip:hover { border-color: var(--red-deep); color: var(--ink); }
     .city-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
     .city-chip .badge-live { color: var(--red-deep); font-size: 0.72rem; margin-left: 0.25rem; }
-    .city-chip[aria-pressed="true"] .badge-live { color: #FFB4AE; }
+    .city-chip[aria-pressed="true"] .badge-live { color: #FFC79E; }
     .city-detail {
       background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
       box-shadow: var(--shadow); padding: 1.6rem 1.5rem; min-height: 130px;
@@ -740,7 +750,7 @@
     .loc-cta { margin-top: 1.6rem; }
 
     /* ---------- Decorative visuals ---------- */
-    .texture-dots { background-image: radial-gradient(rgba(23, 19, 14, 0.06) 1.5px, transparent 1.5px); background-size: 24px 24px; }
+    .texture-dots { background-image: radial-gradient(rgba(29, 36, 82, 0.06) 1.5px, transparent 1.5px); background-size: 24px 24px; }
     .wave { display: block; width: 100%; height: 70px; margin-bottom: -1px; background: var(--paper); }
     .wave svg { display: block; width: 100%; height: 70px; }
     .wave.flip { transform: scaleY(-1); margin-bottom: 0; margin-top: -1px; }
@@ -760,14 +770,14 @@
     @media (max-width: 780px) { .photo-strip { grid-template-columns: 1fr; max-width: 360px; margin-left: auto; margin-right: auto; } }
     .polaroid {
       margin: 0; background: #fff; border: 1px solid var(--line); border-radius: 6px;
-      padding: 12px 12px 14px; box-shadow: 0 14px 34px rgba(23, 19, 14, 0.16);
+      padding: 12px 12px 14px; box-shadow: 0 14px 34px rgba(29, 36, 82, 0.16);
       transform: rotate(var(--tilt, -2deg)); position: relative;
       transition: transform 0.25s ease;
     }
     .polaroid:hover { transform: rotate(0deg) scale(1.02); }
     .polaroid::before {
       content: ""; position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(-3deg);
-      width: 92px; height: 26px; background: rgba(232, 68, 58, 0.28); border-radius: 2px; z-index: 1;
+      width: 92px; height: 26px; background: rgba(232, 85, 2, 0.28); border-radius: 2px; z-index: 1;
     }
     .polaroid img { width: 100%; height: 220px; object-fit: cover; border-radius: 3px; display: block; }
     .polaroid figcaption { font-family: var(--font-head); font-weight: 600; font-size: 0.9rem; text-align: center; padding-top: 0.8rem; color: var(--ink-soft); }
@@ -801,7 +811,7 @@
     /* ---------- Production line ---------- */
     .conveyor {
       margin-top: 3rem; overflow: hidden; padding: 1.1rem 0;
-      border-top: 2px dashed rgba(23, 19, 14, 0.22); border-bottom: 2px dashed rgba(23, 19, 14, 0.22);
+      border-top: 2px dashed rgba(29, 36, 82, 0.22); border-bottom: 2px dashed rgba(29, 36, 82, 0.22);
     }
     .belt-track { display: inline-flex; white-space: nowrap; animation: beltMove 24s linear infinite; }
     .belt-pack {
@@ -870,8 +880,8 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero" aria-label="Introduction">
-      <div class="float-deco blob floaty slow" style="width: 90px; height: 90px; background: rgba(30, 122, 90, 0.14); top: 32%; right: 12%;" aria-hidden="true"></div>
-      <div class="float-deco blob floaty" style="width: 60px; height: 60px; background: rgba(232, 68, 58, 0.13); bottom: 30%; left: 12%;" aria-hidden="true"></div>
+      <div class="float-deco blob floaty slow" style="width: 90px; height: 90px; background: rgba(61, 91, 191, 0.14); top: 32%; right: 12%;" aria-hidden="true"></div>
+      <div class="float-deco blob floaty" style="width: 60px; height: 60px; background: rgba(232, 85, 2, 0.13); bottom: 30%; left: 12%;" aria-hidden="true"></div>
       <div class="container hero-inner">
         <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> Pilot launching in Exeter, UK</span>
         <h1>Free period products. <span class="accent">Paid for by advertising.</span></h1>
@@ -881,13 +891,12 @@
         </div>
 
         <p class="hero-sub">
-          Smart dispensers stocked with free, plastic-free period products — in the places people
-          actually need them. No cost. No card. No catch. Brands fund it; everyone benefits.
+          Smart dispensers stocked with free, plastic-free period products — in the places people actually need them. No cost. No card. No catch. Brands fund it; everyone benefits.
         </p>
 
         <div class="hero-ctas">
-          <a href="#brands" class="btn btn-primary">I'm a brand — advertise</a>
-          <a href="#venues" class="btn btn-outline">I'm a venue — host a unit</a>
+          <a href="#brands" class="btn btn-primary">I&#39;m a brand — advertise</a>
+          <a href="#venues" class="btn btn-outline">I&#39;m a venue — host a unit</a>
         </div>
 
         <p class="hero-scroll"><a href="#problem">↓ Why this matters</a></p>
@@ -910,8 +919,7 @@
           <span class="kicker">The problem</span>
           <h2 class="section-title" id="problem-title">Period poverty is real —<br />and it's happening here.</h2>
           <p class="section-sub">
-            In the UK today, more than one in ten women and people who menstruate struggled to afford
-            period products in the last year. Behind that number are impossible choices no one should have to make.
+            In the UK today, more than one in ten women and people who menstruate struggled to afford period products in the last year. Behind that number are impossible choices no one should have to make.
           </p>
         </div>
 
@@ -961,7 +969,7 @@
       <div class="container">
         <div class="reveal" style="text-align:center;">
           <span class="kicker">The model</span>
-          <h2 class="section-title" id="model-title">Brands pay. You don't.</h2>
+          <h2 class="section-title" id="model-title">Brands pay. You don&#39;t.</h2>
           <p class="section-sub" style="margin: 0 auto;">
             A self-sustaining loop where advertising funds free access to essential products — no charity box, no coin slot.
           </p>
@@ -972,18 +980,16 @@
             <div class="loop-emoji" aria-hidden="true">📣</div>
             <h3>Brands buy ad space</h3>
             <p>Partners advertise on our 32-inch HD screens and product packaging, reaching a highly relevant audience.</p>
-          </div>
-          <div class="loop-arrow" aria-hidden="true">→</div>
+          </div><div class="loop-arrow" aria-hidden="true">→</div>
           <div class="loop-step">
             <div class="loop-emoji" aria-hidden="true">💷</div>
             <h3>Ad revenue funds products</h3>
             <p>Every campaign pays for the supply, stocking and maintenance of free period products.</p>
-          </div>
-          <div class="loop-arrow" aria-hidden="true">→</div>
+          </div><div class="loop-arrow" aria-hidden="true">→</div>
           <div class="loop-step">
             <div class="loop-emoji" aria-hidden="true">💛</div>
             <h3>Products reach people, free</h3>
-            <p>Plastic-free, biodegradable pads and tampons — available exactly when and where they're needed.</p>
+            <p>Plastic-free, biodegradable pads and tampons — available exactly when and where they&#39;re needed.</p>
           </div>
         </div>
 
@@ -1002,7 +1008,7 @@
           <span class="kicker">How it works</span>
           <h2 class="section-title" id="how-title">Scan. Check in. Watch. Covered.</h2>
           <p class="section-sub" style="margin: 0 auto;">
-            Try it yourself — tap through the full experience we're building, right here.
+            Try it yourself — tap through the full experience we&#39;re building, right here.
           </p>
         </div>
 
@@ -1040,13 +1046,12 @@
         </div>
 
         <p class="demo-note">
-          During the Exeter pilot it's even simpler — take what you need, no scan required.
-          Longer term, a gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more.
+          During the Exeter pilot it&#39;s even simpler — take what you need, no scan required. Longer term, a gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more.
         </p>
       </div>
     </section>
 
-    <div class="wave" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#17130E"/></svg></div>
+    <div class="wave" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#1D2452"/></svg></div>
 
     <!-- ============ FOR BRANDS ============ -->
     <section id="brands" class="dark" aria-labelledby="brands-title">
@@ -1056,13 +1061,12 @@
             <span class="kicker">For brands</span>
             <h2 class="section-title" id="brands-title">Unskippable. Unblockable.<br />Actually appreciated.</h2>
             <p class="section-sub">
-              Your ad funds something people genuinely need — and reaches them at a moment of full attention.
-              No ad-blockers, no doom-scrolling past. Just gratitude and dwell time.
+              Your ad funds something people genuinely need — and reaches them at a moment of full attention. No ad-blockers, no doom-scrolling past. Just gratitude and dwell time.
             </p>
           </div>
           <figure class="polaroid">
             <img src="images/tampon-coral.jpg" width="900" height="1350" loading="lazy"
-                 alt="A tampon styled on coral fabric — every free COVERED pack is funded by a brand's advertising" />
+                 alt="A tampon styled on coral fabric — every free COVERED pack is funded by a brand&#39;s advertising" />
             <figcaption>Your brand, at the moment it matters.</figcaption>
           </figure>
         </div>
@@ -1076,7 +1080,7 @@
           <div class="benefit reveal">
             <div class="b-icon" aria-hidden="true">🤝</div>
             <h3>Gratitude moments</h3>
-            <p>Reaching consumers at a moment of real need creates positive brand association money can't usually buy.</p>
+            <p>Reaching consumers at a moment of real need creates positive brand association money can&#39;t usually buy.</p>
           </div>
           <div class="benefit reveal">
             <div class="b-icon" aria-hidden="true">📊</div>
@@ -1091,7 +1095,7 @@
           <div class="benefit reveal">
             <div class="b-icon" aria-hidden="true">📈</div>
             <h3>Trust uplift</h3>
-            <p>Being the brand that made it free earns real trust and warmth — the kind of association traditional media can't buy.</p>
+            <p>Being the brand that made it free earns real trust and warmth — the kind of association traditional media can&#39;t buy.</p>
           </div>
           <div class="benefit reveal">
             <div class="b-icon" aria-hidden="true">🚫</div>
@@ -1152,7 +1156,7 @@
       </div>
     </section>
 
-    <div class="wave flip" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#17130E"/></svg></div>
+    <div class="wave flip" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#1D2452"/></svg></div>
 
     <!-- ============ PARTNERS ============ -->
     <section id="partners" aria-labelledby="partners-title">
@@ -1161,8 +1165,7 @@
           <span class="kicker">Partners</span>
           <h2 class="section-title" id="partners-title">The wall of brands<br />getting Britain covered.</h2>
           <p class="section-sub">
-            Honestly? It's empty. We're pre-launch, and every slot on this wall is up for grabs —
-            the first brands in get founding-partner status and the best story in their next campaign report.
+            Honestly? It&#39;s empty. We&#39;re pre-launch, and every slot on this wall is up for grabs — the first brands in get founding-partner status and the best story in their next campaign report.
           </p>
         </div>
 
@@ -1193,8 +1196,7 @@
           <span class="kicker" style="display:block;">For venues</span>
           <h2 class="section-title" id="venues-title">Host a unit. Zero cost.<br />Zero hassle. Full credit.</h2>
           <p class="section-sub">
-            We supply, install, stock and maintain the dispenser. You provide a wall and a plug socket.
-            Your visitors get looked after — and you get the wellbeing story to tell.
+            We supply, install, stock and maintain the dispenser. You provide a wall and a plug socket. Your visitors get looked after — and you get the wellbeing story to tell.
           </p>
         </div>
 
@@ -1213,9 +1215,9 @@
             <h3><span aria-hidden="true">🧩</span> You provide</h3>
             <ul>
               <li>A visible wall space near or inside the toilets</li>
-              <li>Access to a standard plug socket — the screen's electricity (pennies a day) is the only cost</li>
+              <li>Access to a standard plug socket — the screen&#39;s electricity (pennies a day) is the only cost</li>
               <li>A named facilities contact</li>
-              <li>That's genuinely it — no rent, no fees, no admin</li>
+              <li>That&#39;s genuinely it — no rent, no fees, no admin</li>
             </ul>
           </div>
         </div>
@@ -1269,8 +1271,7 @@
           <span class="kicker">Locations</span>
           <h2 class="section-title" id="locations-title">One pin down.<br />A whole map to go.</h2>
           <p class="section-sub" style="margin: 0 auto;">
-            We're starting where we live — Exeter — then following the footfall across the UK.
-            Tap a city to see where it sits on the roadmap.
+            We&#39;re starting where we live — Exeter — then following the footfall across the UK. Tap a city to see where it sits on the roadmap.
           </p>
         </div>
 
@@ -1312,7 +1313,7 @@
     <section class="vision-band texture-dots" aria-labelledby="vision-title">
       <div class="container">
         <div class="reveal" style="text-align:center;">
-          <span class="kicker">Where we're headed</span>
+          <span class="kicker">Where we&#39;re headed</span>
           <h2 class="section-title" id="vision-title">Starting in Exeter.<br />Not stopping there.</h2>
         </div>
 
@@ -1335,10 +1336,9 @@
         </div>
 
         <div class="bip reveal">
-          <h3>🎥 We're building this in public</h3>
+          <h3>🎥 We&#39;re building this in public</h3>
           <p>
-            Every step of the journey — the wins, the rejections, the spreadsheets — documented openly.
-            Social channels are launching alongside the pilot.
+            Every step of the journey — the wins, the rejections, the spreadsheets — documented openly. Social channels are launching alongside the pilot.
           </p>
           <div class="soon-chips">
             <span class="chip">TikTok — soon</span>
@@ -1364,80 +1364,61 @@
               <span class="indicator" aria-hidden="true">+</span>
             </button>
             <div class="faq-a"><div class="faq-a-inner">
-              COVERED is a UK social enterprise that installs smart dispensers giving out free, plastic-free
-              period products. The service is funded entirely by brands advertising on the dispensers'
-              32-inch screens — users pay nothing, venues host for free, and advertisers fund the products.
-              The first pilot launches in Exeter.
+              COVERED is a UK social enterprise that installs smart dispensers giving out free, plastic-free period products. The service is funded entirely by brands advertising on the dispensers&#39; 32-inch screens — users pay nothing, venues host for free, and advertisers fund the products. The first pilot launches in Exeter.
             </div></div>
           </div>
-
           <div class="faq-item reveal">
             <button class="faq-q" aria-expanded="false">
-              Is it really free? What's the catch?
+              Is it really free? What&#39;s the catch?
               <span class="indicator" aria-hidden="true">+</span>
             </button>
             <div class="faq-a"><div class="faq-a-inner">
-              Really free — no coins, no cards, no subscriptions. Advertisers pay for the ad space on our
-              screens and packaging, and that revenue covers the products, the machines and the restocking.
-              The only "catch" is a short sponsor message while the machine dispenses.
+              Really free — no coins, no cards, no subscriptions. Advertisers pay for the ad space on our screens and packaging, and that revenue covers the products, the machines and the restocking. The only &quot;catch&quot; is a short sponsor message while the machine dispenses.
             </div></div>
           </div>
-
           <div class="faq-item reveal">
             <button class="faq-q" aria-expanded="false">
               What products do the machines dispense?
               <span class="indicator" aria-hidden="true">+</span>
             </button>
             <div class="faq-a"><div class="faq-a-inner">
-              High-quality, plastic-free and biodegradable pads and tampons, dispensed in convenient 4-packs.
-              Good for you, better for the planet.
+              High-quality, plastic-free and biodegradable pads and tampons, dispensed in convenient 4-packs. Good for you, better for the planet.
             </div></div>
           </div>
-
           <div class="faq-item reveal">
             <button class="faq-q" aria-expanded="false">
               Who can use the dispensers?
               <span class="indicator" aria-hidden="true">+</span>
             </button>
             <div class="faq-a"><div class="faq-a-inner">
-              Anyone who needs period products — students, commuters, visitors, anyone caught off guard.
-              A gentle monthly fair-use limit keeps stock available for everyone, with a simple way to
-              request more if you need it.
+              Anyone who needs period products — students, commuters, visitors, anyone caught off guard. A gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more if you need it.
             </div></div>
           </div>
-
           <div class="faq-item reveal">
             <button class="faq-q" aria-expanded="false">
               What happens with my data?
               <span class="indicator" aria-hidden="true">+</span>
             </button>
             <div class="faq-a"><div class="faq-a-inner">
-              We're building to UK GDPR and PECR standards from day one — privacy by design. Marketing
-              consent is always a separate, un-ticked opt-in, and you keep full control of your data,
-              including the right to erasure. Our initial pilot collects no personal data at all.
+              We&#39;re building to UK GDPR and PECR standards from day one — privacy by design. Marketing consent is always a separate, un-ticked opt-in, and you keep full control of your data, including the right to erasure. Our initial pilot collects no personal data at all.
             </div></div>
           </div>
-
           <div class="faq-item reveal">
             <button class="faq-q" aria-expanded="false">
               What kind of ads will be shown?
               <span class="indicator" aria-hidden="true">+</span>
             </button>
             <div class="faq-a"><div class="faq-a-inner">
-              Brand-safe only. Think beauty, wellness, fashion, food and student services — never adult,
-              gambling, political or otherwise sensitive content. Venues approve the environment their
-              visitors experience.
+              Brand-safe only. Think beauty, wellness, fashion, food and student services — never adult, gambling, political or otherwise sensitive content. Venues approve the environment their visitors experience.
             </div></div>
           </div>
-
           <div class="faq-item reveal">
             <button class="faq-q" aria-expanded="false">
-              I'd love to help — what can I do?
+              I&#39;d love to help — what can I do?
               <span class="indicator" aria-hidden="true">+</span>
             </button>
             <div class="faq-a"><div class="faq-a-inner">
-              If you run a venue, host a unit. If you work with a brand, tell your marketing team about us.
-              And if you just like the idea — follow the journey when our channels launch, and spread the word.
+              If you run a venue, host a unit. If you work with a brand, tell your marketing team about us. And if you just like the idea — follow the journey when our channels launch, and spread the word.
             </div></div>
           </div>
         </div>
@@ -1448,8 +1429,8 @@
     <section aria-label="Get in touch">
       <div class="container">
         <div class="cta-banner reveal">
-          <h2>Let's get everyone covered.</h2>
-          <p>Advertise with purpose, host a dispenser, or just say hello — we'd love to hear from you.</p>
+          <h2>Let&#39;s get everyone covered.</h2>
+          <p>Advertise with purpose, host a dispenser, or just say hello — we&#39;d love to hear from you.</p>
           <a class="btn btn-light" href="mailto:ameliaireland18@gmail.com?subject=COVERED%20—%20Hello">✉️ Say hello</a>
         </div>
       </div>
@@ -1471,25 +1452,25 @@
         <nav class="foot-col" aria-label="Footer — explore">
           <p class="foot-head">Explore</p>
           <ul>
-            <li><a href="https://businessforteobaldoselva.github.io/#problem">The problem</a></li>
-            <li><a href="https://businessforteobaldoselva.github.io/#how">How it works</a></li>
-            <li><a href="https://businessforteobaldoselva.github.io/#locations">Locations</a></li>
-            <li><a href="https://businessforteobaldoselva.github.io/#faq">FAQ</a></li>
+            <li><a href="https://coveredaccess.com/#problem">The problem</a></li>
+            <li><a href="https://coveredaccess.com/#how">How it works</a></li>
+            <li><a href="https://coveredaccess.com/#locations">Locations</a></li>
+            <li><a href="https://coveredaccess.com/#faq">FAQ</a></li>
           </ul>
         </nav>
         <nav class="foot-col" aria-label="Footer — partner">
           <p class="foot-head">Partner</p>
           <ul>
-            <li><a href="https://businessforteobaldoselva.github.io/#brands">Advertise with us</a></li>
-            <li><a href="https://businessforteobaldoselva.github.io/#partners">Partner wall</a></li>
-            <li><a href="https://businessforteobaldoselva.github.io/#venues">Host a dispenser</a></li>
+            <li><a href="https://coveredaccess.com/#brands">Advertise with us</a></li>
+            <li><a href="https://coveredaccess.com/#partners">Partner wall</a></li>
+            <li><a href="https://coveredaccess.com/#venues">Host a dispenser</a></li>
             <li><a href="mailto:ameliaireland18@gmail.com">Contact</a></li>
           </ul>
         </nav>
       </div>
       <div class="foot-bottom">
         <span>© <span id="year"></span> COVERED. All rights reserved.</span>
-        <span>Last updated: 3 July 2026</span>
+        <span>Last updated: 6 July 2026</span>
         <span>Built in the open, from Exeter 💛</span>
       </div>
     </div>
@@ -1645,7 +1626,7 @@
       var machineStage = document.getElementById("machineStage");
       var pack = document.getElementById("pack");
       var chips = document.querySelectorAll("#stepper .step-chip");
-      var confettiColors = ["#E8443A", "#1E7A5A", "#F2B705", "#17130E"];
+      var confettiColors = ["#E85502", "#3D5BBF", "#E8B4BA", "#1D2452"];
 
       function setStep(n) {
         chips.forEach(function (chip) {
@@ -1762,7 +1743,7 @@
 
       /* ---------- Locations map ---------- */
       var CITY_DATA = [
-        { id: "exeter", name: "Exeter", x: 267.0, y: 567.2, live: true,
+        { id: "exeter", name: "Exeter", x: 267, y: 567.2, live: true,
           blurb: "Home turf and proof-of-concept city. Our first dispensers land here — and we're talking to Exeter venues right now." },
         { id: "bristol", name: "Bristol", x: 302.2, y: 519.8,
           blurb: "The South West's biggest student city — high on the Phase 2 list." },
@@ -1772,7 +1753,7 @@
           blurb: "The big one. Transport hubs and offices with serious footfall, when we're ready to scale." },
         { id: "birmingham", name: "Birmingham", x: 328.1, y: 453.4,
           blurb: "Five universities and some of the UK's busiest shopping footfall." },
-        { id: "manchester", name: "Manchester", x: 315.0, y: 389.4,
+        { id: "manchester", name: "Manchester", x: 315, y: 389.4,
           blurb: "One of Europe's largest student populations. Very much on the list." },
         { id: "leeds", name: "Leeds", x: 340.8, y: 368.8,
           blurb: "Compact, student-heavy and walkable — great dispenser territory." },

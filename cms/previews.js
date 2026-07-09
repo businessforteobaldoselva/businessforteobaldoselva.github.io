@@ -11,13 +11,13 @@
   // Preview-only overrides: no scroll-reveal hiding, no animations, breathing room
   CMS.registerPreviewStyle(
     [
-      "body { background: #FAF6EF; margin: 0; }",
+      "body { background: #EAF3FA; margin: 0; }",
       "*, *::before, *::after { animation: none !important; transition: none !important; }",
       ".reveal { opacity: 1 !important; transform: none !important; }",
       ".w-rise { opacity: 1 !important; transform: none !important; }",
       "section { padding: 3rem 0 !important; }",
       ".faq-a { max-height: none !important; }",
-      ".cms-note { font-family: Inter, sans-serif; font-size: 12px; color: #6B6459; background: #F3EDE1; border: 1px dashed #c9c2b4; border-radius: 8px; padding: 8px 12px; margin: 12px auto; width: min(1120px, 92%); }",
+      ".cms-note { font-family: Inter, sans-serif; font-size: 12px; color: #56618A; background: #D9E7F4; border: 1px dashed #b9c5da; border-radius: 8px; padding: 8px 12px; margin: 12px auto; width: min(1120px, 92%); }",
     ].join("\n"),
     { raw: true }
   );
@@ -392,8 +392,8 @@
                         cx: c.x,
                         cy: c.y,
                         r: c.live ? 7 : 5.5,
-                        fill: c.live ? "#C42F26" : "#fff",
-                        stroke: c.live ? "#C42F26" : "#17130E",
+                        fill: c.live ? "#C94D00" : "#fff",
+                        stroke: c.live ? "#C94D00" : "#1D2452",
                         strokeWidth: 2,
                       });
                     })
