@@ -1,0 +1,180 @@
+{
+  "name": "WF1 - QR Scan + Web App",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## WF1 - QR Scan + Web App (dynamic ads)\nGET /scan?machineId=machine-001\n1. RPC fn_scan_session: creates pending session + resolves active APPROVED ad for the machine.\n2. Build Page injects __SESSION_ID__ and __AD_JSON__ into the web app HTML.\n   __AD_JSON__ is script-safe: '<' escaped as \\u003c after JSON.stringify.\n3. Serve HTML (200). AD=null in the page keeps the built-in GLOW placeholder.\nError path (RPC failure OR ok:false/missing session) -> Serve Error Page (503 friendly HTML).",
+        "height": 260,
+        "width": 460
+      },
+      "id": "note-wf1",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "scan",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-wf1-webhook",
+      "name": "GET /scan",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        360
+      ],
+      "webhookId": "qr-scan-001"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/rpc/fn_scan_session",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p_machine_id: $json.query.machineId || 'machine-001' }) }}",
+        "options": {}
+      },
+      "id": "node-wf1-scan",
+      "name": "Scan Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        360
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json;\nconst res = Array.isArray(raw) ? (raw[0] || {}) : (raw || {});\nconst sessionId = res.session_id || res.sessionId || res.id || '';\nif (res.ok === false || !sessionId) {\n  throw new Error('fn_scan_session failed: ' + JSON.stringify(res).slice(0, 300));\n}\nconst ad = (res.ad && typeof res.ad === 'object' && !Array.isArray(res.ad)) ? res.ad : null;\nconst adJson = JSON.stringify(ad).replace(/</g, '\\\\u003c');\nconst html = \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"UTF-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width,initial-scale=1,maximum-scale=1\\\">\\n<title>Claim your free product</title>\\n<style>\\n*{box-sizing:border-box;margin:0;padding:0}\\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}\\n.card{background:#111;border-radius:20px;padding:32px 24px;max-width:380px;width:100%;text-align:center}\\n.brand{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:24px}\\nh1{font-size:26px;font-weight:700;margin-bottom:8px}\\n.sub{color:#888;font-size:14px;margin-bottom:32px}\\ninput{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:16px;color:#fff;font-size:18px;text-align:center;letter-spacing:2px;outline:none;-webkit-appearance:none}\\ninput:focus{border-color:#fff}\\ninput::placeholder{color:#444;letter-spacing:0}\\n.btn{width:100%;background:#fff;color:#000;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:600;cursor:pointer;margin-top:12px;transition:opacity .2s}\\n.btn:disabled{opacity:0.45;cursor:not-allowed}\\n.btn-ghost{background:transparent;color:#666;border:none;font-size:13px;margin-top:16px;cursor:pointer;text-decoration:underline}\\n.error{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:18px}\\n.info{color:#aaa;font-size:12px;margin-top:10px;min-height:18px}\\n.hint{color:#555;font-size:11px;margin-top:14px}\\n.screen{display:none}\\n.screen.active{display:block}\\n.otp-input{letter-spacing:8px;font-size:24px}\\n.ad-creative{position:relative;border-radius:16px;height:230px;margin-bottom:18px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff7eb3 0%,#ff758c 40%,#7367f0 100%)}\\n.ad-logo{font-size:30px;font-weight:800;letter-spacing:1px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.25)}\\n.ad-tag{font-size:14px;color:rgba(255,255,255,.92);margin-top:8px;font-weight:500}\\n.ad-cta{margin-top:14px;font-size:12px;background:rgba(255,255,255,.9);color:#111;padding:7px 16px;border-radius:20px;font-weight:600}\\n.ad-badge{position:absolute;top:10px;left:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;background:rgba(0,0,0,.35);color:#fff;padding:3px 8px;border-radius:6px}\\n.ad-timer{position:absolute;bottom:10px;right:10px;font-size:12px;background:rgba(0,0,0,.45);color:#fff;padding:4px 10px;border-radius:20px;font-variant-numeric:tabular-nums}\\n.ad-progress{position:absolute;left:0;bottom:0;height:4px;background:rgba(255,255,255,.95);width:0%;transition:width 1s linear}\\n.done-icon{font-size:48px;margin-bottom:16px}\\n.privacy-note{font-size:11px;line-height:1.45;color:#666;margin:12px 0 2px;text-align:left}\\n.privacy-note a{color:#888;text-decoration:underline}\\n.consent-row{display:flex;align-items:flex-start;gap:8px;margin:8px 0 4px;font-size:12px;line-height:1.4;text-align:left;color:#888}\\n.consent-row input[type=\\\"checkbox\\\"]{margin-top:2px;flex:0 0 auto;accent-color:#ff7eb3}\\n.consent-row a{color:#888;text-decoration:underline}\\n</style>\\n</head>\\n<body>\\n<div class=\\\"card\\\">\\n  <div class=\\\"screen active\\\" id=\\\"s-phone\\\">\\n    <div class=\\\"brand\\\">Covered by Mills</div>\\n    <h1>&#127873; Free product inside</h1>\\n    <p class=\\\"sub\\\">Enter your number to claim a free product from this machine.</p>\\n    <input type=\\\"tel\\\" id=\\\"contact\\\" placeholder=\\\"+44 7700 900000\\\" autocomplete=\\\"tel\\\">\\n    <p class=\\\"privacy-note\\\">We text you a one-time code to verify your number and prevent misuse of the free service. We store only a one-way <em>hash</em> of your number &mdash; never the number itself. <a href=\\\"https://businessforteobaldoselva.github.io/privacy.html\\\" target=\\\"_blank\\\" rel=\\\"noopener noreferrer\\\">Privacy notice</a></p>\\n    <label class=\\\"consent-row\\\" for=\\\"marketing-consent\\\">\\n      <input type=\\\"checkbox\\\" id=\\\"marketing-consent\\\">\\n      <span>Text me offers and news from COVERED (optional &mdash; you'll get your product either way).</span>\\n    </label>\\n    <button class=\\\"btn\\\" id=\\\"btn-send\\\" onclick=\\\"sendOtp()\\\">Send verification code &#8594;</button>\\n    <div class=\\\"error\\\" id=\\\"err-phone\\\"></div>\\n    <div class=\\\"hint\\\">We'll text you a 6-digit code to confirm it's you.</div>\\n  </div>\\n\\n  <div class=\\\"screen\\\" id=\\\"s-otp\\\">\\n    <div class=\\\"brand\\\">Covered by Mills</div>\\n    <h1>Enter your code</h1>\\n    <p class=\\\"sub\\\" id=\\\"otp-hint\\\">Code sent to your number</p>\\n    <input type=\\\"text\\\" inputmode=\\\"numeric\\\" pattern=\\\"[0-9]*\\\" id=\\\"otp\\\" class=\\\"otp-input\\\" placeholder=\\\"000000\\\" maxlength=\\\"6\\\" autocomplete=\\\"one-time-code\\\">\\n    <button class=\\\"btn\\\" id=\\\"btn-verify\\\" onclick=\\\"verifyOtp()\\\">Verify &#8594;</button>\\n    <button class=\\\"btn-ghost\\\" id=\\\"btn-resend\\\" onclick=\\\"resendOtp()\\\">Didn't receive it? Resend</button>\\n    <button class=\\\"btn-ghost\\\" id=\\\"btn-changenum\\\" onclick=\\\"changeNumber()\\\">Wrong number? Change it</button>\\n    <div class=\\\"error\\\" id=\\\"err-otp\\\"></div>\\n    <div class=\\\"info\\\" id=\\\"info-otp\\\"></div>\\n  </div>\\n\\n  <div class=\\\"screen\\\" id=\\\"s-ad\\\">\\n    <div class=\\\"brand\\\">Sponsored</div>\\n    <div class=\\\"ad-creative\\\">\\n      <div class=\\\"ad-badge\\\">Ad</div>\\n      <div class=\\\"ad-logo\\\">&#10024; GLOW</div>\\n      <div class=\\\"ad-tag\\\">Skincare that loves you back</div>\\n      <div class=\\\"ad-cta\\\">Shop the collection</div>\\n      <div class=\\\"ad-timer\\\" id=\\\"ad-timer\\\">5s</div>\\n      <div class=\\\"ad-progress\\\" id=\\\"ad-progress\\\"></div>\\n    </div>\\n    <button class=\\\"btn\\\" id=\\\"btn-ad\\\" onclick=\\\"adDone()\\\" disabled>Claim your free product &#8594;</button>\\n    <p class=\\\"info\\\" id=\\\"ad-hint\\\">Watch the full ad to claim.</p>\\n  </div>\\n\\n  <div class=\\\"screen\\\" id=\\\"s-done\\\">\\n    <div class=\\\"done-icon\\\">&#9989;</div>\\n    <h1>Enjoy!</h1>\\n    <p class=\\\"sub\\\">Your product is being dispensed. Thanks for engaging!</p>\\n  </div>\\n\\n  <div class=\\\"screen\\\" id=\\\"s-limit\\\">\\n    <div class=\\\"done-icon\\\">&#9203;</div>\\n    <h1>Come back later</h1>\\n    <p class=\\\"sub\\\">You've reached your monthly limit. See you next month!</p>\\n  </div>\\n</div>\\n\\n<script>\\nconst SESSION_ID = '__SESSION_ID__';\\nconst AD = __AD_JSON__;\\nconst BASE = 'https://coveredbymills.app.n8n.cloud/webhook';\\nlet sessionToken = null;\\nlet currentContact = '';\\nlet sending = false;\\nlet verifying = false;\\n\\nfunction clampAdInt(v, min, max, dflt) {\\n  const n = parseInt(v, 10);\\n  if (!isFinite(n)) return dflt;\\n  return Math.min(max, Math.max(min, n));\\n}\\nconst AD_SECONDS = (AD && typeof AD === 'object') ? clampAdInt(AD.duration_seconds, 2, 30, 5) : 5;\\n\\nfunction safeAdGradient(v) {\\n  if (typeof v !== 'string') return '';\\n  const s = v.trim();\\n  if (!s || s.length > 300) return '';\\n  if (/[<>;{}]/.test(s)) return '';\\n  if (/url\\\\s*\\\\(|expression|javascript:/i.test(s)) return '';\\n  if (/^(linear-gradient|radial-gradient|conic-gradient)\\\\s*\\\\(.+\\\\)$/i.test(s)) return s;\\n  if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;\\n  if (/^rgba?\\\\([\\\\d.,\\\\s%]+\\\\)$/i.test(s)) return s;\\n  if (/^hsla?\\\\([\\\\d.,\\\\s%deg]+\\\\)$/i.test(s)) return s;\\n  if (/^[a-zA-Z]{3,20}$/.test(s)) return s;\\n  return '';\\n}\\nfunction safeAdColor(v) {\\n  if (typeof v !== 'string') return '';\\n  const s = v.trim();\\n  if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;\\n  if (/^rgba?\\\\([\\\\d.,\\\\s%]+\\\\)$/i.test(s)) return s;\\n  if (/^hsla?\\\\([\\\\d.,\\\\s%deg]+\\\\)$/i.test(s)) return s;\\n  if (/^[a-zA-Z]{3,20}$/.test(s)) return s;\\n  return '';\\n}\\nfunction safeAdClickUrl(v) {\\n  if (typeof v !== 'string') return '';\\n  const s = v.trim();\\n  if (!s || s.length > 500) return '';\\n  if (/[<>\\\"'\\\\s\\\\\\\\]/.test(s)) return '';\\n  if (!/^https?:\\\\/\\\\//i.test(s)) return '';\\n  return s;\\n}\\n\\n(function renderAd() {\\n  if (!AD || typeof AD !== 'object') return;\\n  const logo = document.querySelector('.ad-logo');\\n  const tag = document.querySelector('.ad-tag');\\n  const cta = document.querySelector('.ad-cta');\\n  const creative = document.querySelector('.ad-creative');\\n  const name = (typeof AD.name === 'string' && AD.name.trim()) ? AD.name.trim()\\n    : (typeof AD.headline === 'string' && AD.headline.trim()) ? AD.headline.trim() : '';\\n  if (logo && name) logo.textContent = name;\\n  if (tag && typeof AD.tagline === 'string' && AD.tagline.trim()) tag.textContent = AD.tagline.trim();\\n  if (cta && typeof AD.cta_text === 'string' && AD.cta_text.trim()) cta.textContent = AD.cta_text.trim();\\n  const grad = safeAdGradient(AD.bg_gradient);\\n  if (creative && grad) creative.style.background = grad;\\n  const color = safeAdColor(AD.text_color);\\n  if (color) {\\n    if (logo) logo.style.color = color;\\n    if (tag) tag.style.color = color;\\n  }\\n  const clickUrl = safeAdClickUrl(AD.click_url);\\n  if (cta && clickUrl) {\\n    cta.style.cursor = 'pointer';\\n    cta.addEventListener('click', function() {\\n      fireEvent('ad_clicked');\\n      window.open(clickUrl, '_blank', 'noopener');\\n    });\\n  }\\n})();\\n\\nfunction show(id) {\\n  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));\\n  document.getElementById(id).classList.add('active');\\n}\\nfunction setBtn(id, disabled, text) { const b = document.getElementById(id); if (b) { b.disabled = disabled; if (text) b.textContent = text; } }\\nfunction setErr(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg || ''; }\\nfunction setInfo(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg || ''; }\\n\\nfunction changeNumber() {\\n  setErr('err-phone',''); setInfo('info-otp',''); setErr('err-otp','');\\n  document.getElementById('otp').value = '';\\n  show('s-phone');\\n}\\n\\nasync function sendOtp(isResend) {\\n  if (sending) return;\\n  const contact = isResend ? currentContact : document.getElementById('contact').value.trim();\\n  if (!contact) { setErr('err-phone', 'Please enter your phone number'); return; }\\n  sending = true;\\n  const btnId = isResend ? 'btn-resend' : 'btn-send';\\n  setBtn(btnId, true, 'Sending...');\\n  setErr(isResend ? 'err-otp' : 'err-phone', '');\\n  try {\\n    const r = await fetch(BASE + '/auth/send-otp', {\\n      method: 'POST', headers: {'Content-Type':'application/json'},\\n      body: JSON.stringify({ sessionId: SESSION_ID, contact })\\n    });\\n    const data = await r.json().catch(() => ({}));\\n    if (r.ok && data.ok) {\\n      currentContact = contact;\\n      document.getElementById('otp').value = '';\\n      document.getElementById('otp-hint').textContent = 'Code sent to ' + contact;\\n      if (isResend) { setInfo('info-otp', 'New code sent - use the latest SMS'); }\\n      else { show('s-otp'); }\\n    } else {\\n      setErr(isResend ? 'err-otp' : 'err-phone', data.message || data.reason || 'Could not send a code. Please try again.');\\n    }\\n  } catch(e) {\\n    setErr(isResend ? 'err-otp' : 'err-phone', 'Network error - try again');\\n  } finally {\\n    sending = false;\\n    setBtn('btn-send', false, 'Send verification code \\u2192');\\n    setBtn('btn-resend', false, \\\"Didn't receive it? Resend\\\");\\n  }\\n}\\nasync function resendOtp() { setInfo('info-otp', ''); await sendOtp(true); }\\n\\nasync function verifyOtp() {\\n  if (verifying) return;\\n  const otp = document.getElementById('otp').value.trim();\\n  if (otp.length < 4) { setErr('err-otp', 'Enter the full code'); return; }\\n  verifying = true;\\n  setBtn('btn-verify', true, 'Verifying...');\\n  setErr('err-otp', ''); setInfo('info-otp', '');\\n  try {\\n    const consentBox = document.getElementById('marketing-consent');\\n    const marketingConsent = !!(consentBox && consentBox.checked);\\n    const r = await fetch(BASE + '/auth/verify-otp', {\\n      method: 'POST', headers: {'Content-Type':'application/json'},\\n      body: JSON.stringify({ sessionId: SESSION_ID, contact: currentContact, otp, marketing_consent: marketingConsent })\\n    });\\n    const data = await r.json().catch(() => ({}));\\n    if (data.ok) {\\n      sessionToken = data.sessionToken;\\n      show('s-ad');\\n      startAd();\\n    } else if (data.reason === 'monthly_limit_reached') {\\n      show('s-limit');\\n    } else {\\n      setErr('err-otp', data.message || 'That code did not work. Tap Resend for a new one.');\\n      setBtn('btn-verify', false, 'Verify \\u2192');\\n    }\\n  } catch(e) {\\n    setErr('err-otp', 'Network error - try again');\\n    setBtn('btn-verify', false, 'Verify \\u2192');\\n  } finally { verifying = false; }\\n}\\n\\nfunction startAd() {\\n  let remaining = AD_SECONDS;\\n  const timer = document.getElementById('ad-timer');\\n  const prog = document.getElementById('ad-progress');\\n  const btn = document.getElementById('btn-ad');\\n  const hint = document.getElementById('ad-hint');\\n  btn.disabled = true;\\n  timer.textContent = remaining + 's';\\n  prog.style.width = '0%';\\n  fireEvent('ad_started');\\n  const iv = setInterval(function() {\\n    remaining--;\\n    prog.style.width = ((AD_SECONDS - remaining) / AD_SECONDS * 100) + '%';\\n    if (remaining > 0) {\\n      timer.textContent = remaining + 's';\\n    } else {\\n      clearInterval(iv);\\n      timer.textContent = 'Done';\\n      prog.style.width = '100%';\\n      btn.disabled = false;\\n      hint.textContent = 'Thanks for watching!';\\n    }\\n  }, 1000);\\n}\\n\\nfunction fireEvent(type) {\\n  try {\\n    fetch(BASE + '/events', {\\n      method: 'POST', headers: {'Content-Type':'application/json'},\\n      body: JSON.stringify({ sessionId: SESSION_ID, sessionToken, event: type })\\n    });\\n  } catch(e) {}\\n}\\n\\nasync function adDone() {\\n  setBtn('btn-ad', true, 'Claiming...');\\n  fireEvent('ad_completed');\\n  try {\\n    const r = await fetch(BASE + '/dispense', {\\n      method: 'POST', headers: {'Content-Type':'application/json'},\\n      body: JSON.stringify({ sessionId: SESSION_ID, sessionToken })\\n    });\\n    const data = await r.json().catch(() => ({}));\\n    if (data && data.reason === 'monthly_limit_reached') { show('s-limit'); return; }\\n  } catch(e) {}\\n  show('s-done');\\n}\\n</script>\\n</body>\\n</html>\\n\"\n  .replace('__SESSION_ID__', function () { return sessionId; })\n  .replace('__AD_JSON__', function () { return adJson; });\nreturn [{ json: { html, sessionId } }];"
+      },
+      "id": "node-wf1-build",
+      "name": "Build Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        360
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "node-wf1-respond",
+      "name": "Serve HTML",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        880,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Temporarily unavailable</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;margin:0}.card{background:#111;border-radius:20px;padding:32px 24px;max-width:380px;width:100%;text-align:center}.brand{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-bottom:24px}h1{font-size:22px;font-weight:700;margin-bottom:8px}p{color:#888;font-size:14px}</style></head><body><div class=\"card\"><div class=\"brand\">Covered by Mills</div><h1>&#9203; One moment</h1><p>This machine is temporarily unavailable - please try again shortly.</p></div></body></html>",
+        "options": {
+          "responseCode": 503,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "node-wf1-error",
+      "name": "Serve Error Page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        880,
+        560
+      ]
+    }
+  ],
+  "connections": {
+    "GET /scan": {
+      "main": [
+        [
+          {
+            "node": "Scan Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scan Session": {
+      "main": [
+        [
+          {
+            "node": "Build Page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Serve Error Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Page": {
+      "main": [
+        [
+          {
+            "node": "Serve HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Serve Error Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

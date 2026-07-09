@@ -1,0 +1,468 @@
+{
+  "name": "WF10 - Monthly Reports",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## WF10 - Monthly Reports\nCron 1st of month 08:30 UTC.\nGATED by app_settings.pilot_live (set from the console\nStatus page 'Go live' button). If the flag is false the\nworkflow ends at the Dormant noOp - nothing runs before\nlaunch.\nWhen live: two parallel chains call\nfn_report_pcr_internal() and fn_report_host_internal()\nvia service_role, each stored as ONE events row\n(type='report_pcr' / type='report_host') viewable in the\nadmin console Reports tab.\nRecipients are managed in the console Reports tab\n(report_recipients table). Email delivery is currently a\ndocumented PLACEHOLDER - packs are viewable in-console.",
+        "height": 380,
+        "width": 480
+      },
+      "id": "s10",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 8 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "w10-cron",
+      "name": "Monthly 1st 08:30 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/app_settings?key=eq.pilot_live&select=key,value",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "id": "w10-flag",
+      "name": "Get pilot flag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        460
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// PostgREST returns an array of app_settings rows; n8n may deliver it\n// as one item per row or as a single item holding the array. Normalize\n// both shapes, then read the jsonb boolean 'value'. Never throw:\n// any unexpected shape => live=false (workflow stays dormant).\nlet live = false;\ntry {\n  const rows = $input.all().map(i => i.json);\n  const flat = [];\n  for (const r of rows) {\n    if (Array.isArray(r)) flat.push(...r);\n    else if (r && typeof r === 'object') flat.push(r);\n  }\n  const row = flat.find(r => r && r.key === 'pilot_live') || flat[0];\n  if (row && Object.prototype.hasOwnProperty.call(row, 'value')) {\n    const v = row.value;\n    live = v === true || v === 'true';\n  }\n} catch (e) {\n  live = false;\n}\nreturn [{ json: { live } }];"
+      },
+      "id": "w10-parse",
+      "name": "Parse flag",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-w10-live",
+              "leftValue": "={{ $json.live }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "w10-live",
+      "name": "Pilot live?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        460
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "w10-dormant",
+      "name": "Dormant - not launched",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/rpc/fn_report_pcr_internal",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "w10-build-pcr",
+      "name": "Build PCR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        220
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/events",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'report_pcr', payload: $json, ts: new Date().toISOString() }) }}",
+        "options": {}
+      },
+      "id": "w10-store-pcr",
+      "name": "Store PCR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        220
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/report_recipients?report_type=eq.pcr&active=eq.true&select=email",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "id": "w10-rcpt-pcr",
+      "name": "Get PCR recipients",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        220
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "w10-email-pcr",
+      "name": "Email PCR (placeholder)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/rpc/fn_report_host_internal",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {}
+      },
+      "id": "w10-build-host",
+      "name": "Build host report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        440
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/events",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'report_host', payload: $json, ts: new Date().toISOString() }) }}",
+        "options": {}
+      },
+      "id": "w10-store-host",
+      "name": "Store host report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        440
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://ajvpypzdwmgblaotysbt.supabase.co/rest/v1/report_recipients?report_type=eq.host_report&active=eq.true&select=email",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "id": "w10-rcpt-host",
+      "name": "Get host recipients",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        440
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Iyc1EWawoTDI1Avp",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "w10-email-host",
+      "name": "Email host (placeholder)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "content": "PLACEHOLDER: to enable delivery, replace each 'Email ...\n(placeholder)' noOp with an n8n Send Email/Gmail node\nusing a credential the founder adds. Loop items = one\nemail per recipient (rows from the Get ... recipients\nnode). Body = link to the console Reports tab + key\ntotals from the stored pack. Not wired yet - reports are\nalready persisted as events rows type='report_pcr' /\ntype='report_host' and viewable in the console.",
+        "height": 220,
+        "width": 400
+      },
+      "id": "s10b",
+      "name": "Delivery placeholder",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        620
+      ]
+    }
+  ],
+  "connections": {
+    "Monthly 1st 08:30 UTC": {
+      "main": [
+        [
+          {
+            "node": "Get pilot flag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get pilot flag": {
+      "main": [
+        [
+          {
+            "node": "Parse flag",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Parse flag": {
+      "main": [
+        [
+          {
+            "node": "Pilot live?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pilot live?": {
+      "main": [
+        [
+          {
+            "node": "Build PCR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build host report",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dormant - not launched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build PCR": {
+      "main": [
+        [
+          {
+            "node": "Store PCR",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Store PCR": {
+      "main": [
+        [
+          {
+            "node": "Get PCR recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get PCR recipients": {
+      "main": [
+        [
+          {
+            "node": "Email PCR (placeholder)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Build host report": {
+      "main": [
+        [
+          {
+            "node": "Store host report",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Store host report": {
+      "main": [
+        [
+          {
+            "node": "Get host recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get host recipients": {
+      "main": [
+        [
+          {
+            "node": "Email host (placeholder)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
