@@ -42,6 +42,7 @@ router.register('ads',       () => import('./views/ads.js'),       { title: 'Ads
 router.register('machines',  () => import('./views/machines.js'),  { title: 'Machines' });
 router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tasks' });
 router.register('analytics', () => import('./views/analytics.js'), { title: 'Analytics' });
+router.register('reports',   () => import('./views/reports.js'),   { title: 'Reports' });
 router.register('data',      () => import('./views/data.js'),      { title: 'Data' });
 
 // Sidebar entry for Tasks, between Machines and Analytics. router.NAV drives
@@ -53,6 +54,18 @@ if (!router.NAV.some((n) => n.name === 'tasks')) {
     analyticsIdx === -1 ? router.NAV.length : analyticsIdx,
     0,
     { name: 'tasks', label: 'Tasks' },
+  );
+}
+
+// Sidebar entry for Reports, between Analytics and Data. Same splice pattern
+// as Tasks above: insert just before 'data' (or append if 'data' is missing)
+// so router.js stays untouched.
+if (!router.NAV.some((n) => n.name === 'reports')) {
+  const dataIdx = router.NAV.findIndex((n) => n.name === 'data');
+  router.NAV.splice(
+    dataIdx === -1 ? router.NAV.length : dataIdx,
+    0,
+    { name: 'reports', label: 'Reports' },
   );
 }
 
