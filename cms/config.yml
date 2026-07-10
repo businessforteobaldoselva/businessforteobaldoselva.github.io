@@ -9,8 +9,8 @@ local_backend: true
 media_folder: "images"
 public_folder: "/images"
 
-site_url: https://coveredaccess.com
-display_url: https://coveredaccess.com
+site_url: https://coveredaccess.netlify.app
+display_url: https://coveredaccess.netlify.app
 logo_url: /images/covered-logo.svg
 
 locale: "en"
