@@ -11,7 +11,7 @@
   // Preview-only overrides: no scroll-reveal hiding, no animations, breathing room
   CMS.registerPreviewStyle(
     [
-      "body { background: #EAF3FA; margin: 0; }",
+      "body { background: #1D2452; margin: 0; color: #EAF3FA; }",
       "*, *::before, *::after { animation: none !important; transition: none !important; }",
       ".reveal { opacity: 1 !important; transform: none !important; }",
       ".w-rise { opacity: 1 !important; transform: none !important; }",
