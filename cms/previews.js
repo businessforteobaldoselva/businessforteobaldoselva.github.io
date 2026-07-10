@@ -533,6 +533,79 @@
     })
   );
 
+  // ---------- Editor-created pages (block builder) ----------
+  CMS.registerPreviewTemplate(
+    "pages",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var blocks = e.getIn(["data", "sections"]);
+        blocks = blocks && blocks.toJS ? blocks.toJS() : [];
+        function paras(text) {
+          return String(text || "").split(/\n\n+/).filter(Boolean).map(function (p, i) {
+            return h("p", { key: i, style: { marginBottom: "0.8em" } }, p);
+          });
+        }
+        return h(
+          "div",
+          {},
+          blocks.length === 0 ? note("Add sections with the “Add page sections” button — they preview here as you type.") : null,
+          blocks.map(function (b, i) {
+            if (b.type === "hero") {
+              return h("section", { className: "hero", key: i, style: { padding: "4rem 0 2.5rem" } },
+                h("div", { className: "container hero-inner" },
+                  h("h1", {}, b.heading || "", b.accent ? h("span", { className: "accent" }, " " + b.accent) : null),
+                  b.sub ? h("p", { className: "hero-sub" }, b.sub) : null,
+                  b.ctaText ? h("div", { className: "hero-ctas" }, h("span", { className: "btn btn-primary" }, b.ctaText)) : null));
+            }
+            if (b.type === "text") {
+              return h("section", { key: i }, h("div", { className: "container" },
+                b.kicker ? h("span", { className: "kicker" }, b.kicker) : null,
+                b.heading ? h("h2", { className: "section-title" }, b.heading) : null,
+                h("div", { className: "section-sub" }, paras(b.body))));
+            }
+            if (b.type === "imageText") {
+              var img = h("figure", { className: "polaroid", style: { maxWidth: "380px" } },
+                h("img", { src: b.image && b.image.charAt(0) === "/" ? b.image : "/" + (b.image || "") }),
+                b.caption ? h("figcaption", {}, b.caption) : null);
+              var txt = h("div", {},
+                b.heading ? h("h2", { className: "section-title" }, b.heading) : null,
+                h("div", { className: "section-sub" }, paras(b.body)));
+              return h("section", { key: i }, h("div", { className: "container", style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2.5rem", alignItems: "center" } },
+                b.imageRight ? txt : img, b.imageRight ? img : txt));
+            }
+            if (b.type === "stats") {
+              return h("section", { key: i }, h("div", { className: "container" },
+                b.heading ? h("h2", { className: "section-title", style: { textAlign: "center" } }, b.heading) : null,
+                h("div", { className: "stats-grid" }, (b.items || []).map(function (it, j) {
+                  return h("div", { className: "stat-card", key: j },
+                    h("div", { className: "stat-num" }, it.number || ""),
+                    h("p", { className: "stat-label" }, it.label || ""));
+                }))));
+            }
+            if (b.type === "banner") {
+              return h("section", { key: i }, h("div", { className: "container" },
+                h("div", { className: "cta-banner" },
+                  h("h2", {}, b.title || ""),
+                  b.text ? h("p", {}, b.text) : null,
+                  b.buttonText ? h("span", { className: "btn btn-light" }, b.buttonText) : null)));
+            }
+            if (b.type === "faq") {
+              return h("section", { key: i }, h("div", { className: "container" },
+                b.heading ? h("h2", { className: "section-title", style: { textAlign: "center" } }, b.heading) : null,
+                h("div", { className: "faq-list" }, (b.items || []).map(function (it, j) {
+                  return h("div", { className: "faq-item open", key: j },
+                    h("div", { className: "faq-q" }, it.q || ""),
+                    h("div", { className: "faq-a", style: { maxHeight: "none" } }, h("div", { className: "faq-a-inner" }, it.a || "")));
+                }))));
+            }
+            return null;
+          })
+        );
+      },
+    })
+  );
+
   // ---------- Site-wide ----------
   CMS.registerPreviewTemplate(
     "site",

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }} — COVERED</title>
+  {% if description %}<meta name="description" content="{{ description }}" />{% endif %}
+  <meta property="og:title" content="{{ title }} — COVERED" />
+  {% if description %}<meta property="og:description" content="{{ description }}" />{% endif %}
+  <meta property="og:image" content="https://coveredaccess.com/images/covered-og.jpg" />
+  <link rel="canonical" href="https://coveredaccess.com{{ page.url }}" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='none' stroke='%23E85502' stroke-width='9'/%3E%3Ctext x='50' y='68' font-family='Arial Black,Arial,sans-serif' font-size='52' font-weight='900' fill='%23E85502' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
+</head>
+<body>
+
+  <header>
+    <div class="container nav">
+      <a href="/" class="logo" aria-label="COVERED home">
+        <span class="logo-mark" aria-hidden="true">C</span>
+        COVERED
+      </a>
+      <ul class="nav-links" style="display: flex;">
+        <li><a href="/" class="btn btn-primary">Back to main site</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    {%- for block in sections %}
+
+      {%- if block.type == "hero" %}
+    <section class="hero" style="padding: 5rem 0 3rem;">
+      <div class="container hero-inner">
+        <h1>{{ block.heading }}{% if block.accent %} <span class="accent">{{ block.accent }}</span>{% endif %}</h1>
+        {% if block.sub %}<p class="hero-sub">{{ block.sub }}</p>{% endif %}
+        {% if block.ctaText %}<div class="hero-ctas"><a href="{{ block.ctaLink or '/' }}" class="btn btn-primary">{{ block.ctaText }}</a></div>{% endif %}
+      </div>
+    </section>
+
+      {%- elif block.type == "text" %}
+    <section>
+      <div class="container">
+        {% if block.kicker %}<span class="kicker">{{ block.kicker }}</span>{% endif %}
+        {% if block.heading %}<h2 class="section-title">{{ block.heading }}</h2>{% endif %}
+        <div class="section-sub" style="max-width: 66ch;">{{ block.body | md | safe }}</div>
+      </div>
+    </section>
+
+      {%- elif block.type == "imageText" %}
+    <section>
+      <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; align-items: center;">
+        {% if not block.imageRight %}
+        <figure class="polaroid" style="--tilt: -2deg; max-width: 420px;">
+          <img src="{{ block.image }}" alt="{{ block.alt }}" loading="lazy" />
+          {% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endif %}
+        <div>
+          {% if block.heading %}<h2 class="section-title">{{ block.heading }}</h2>{% endif %}
+          <div class="section-sub">{{ block.body | md | safe }}</div>
+        </div>
+        {% if block.imageRight %}
+        <figure class="polaroid" style="--tilt: 2deg; max-width: 420px;">
+          <img src="{{ block.image }}" alt="{{ block.alt }}" loading="lazy" />
+          {% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endif %}
+      </div>
+    </section>
+
+      {%- elif block.type == "stats" %}
+    <section>
+      <div class="container">
+        {% if block.heading %}<h2 class="section-title" style="text-align: center;">{{ block.heading }}</h2>{% endif %}
+        <div class="stats-grid">
+          {%- for item in block.items %}
+          <div class="stat-card">
+            <div class="stat-num">{{ item.number }}</div>
+            <p class="stat-label">{{ item.label }}</p>
+          </div>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>
+
+      {%- elif block.type == "banner" %}
+    <section>
+      <div class="container">
+        <div class="cta-banner">
+          <h2>{{ block.title }}</h2>
+          {% if block.text %}<p>{{ block.text }}</p>{% endif %}
+          {% if block.buttonText %}<a class="btn btn-light" href="{{ block.buttonLink or '/' }}">{{ block.buttonText }}</a>{% endif %}
+        </div>
+      </div>
+    </section>
+
+      {%- elif block.type == "faq" %}
+    <section>
+      <div class="container">
+        {% if block.heading %}<h2 class="section-title" style="text-align: center;">{{ block.heading }}</h2>{% endif %}
+        <div class="faq-list">
+          {%- for item in block.items %}
+          <div class="faq-item open">
+            <div class="faq-q" style="cursor: default;">{{ item.q }}</div>
+            <div class="faq-a" style="max-height: none;"><div class="faq-a-inner">{{ item.a }}</div></div>
+          </div>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>
+      {%- endif %}
+
+    {%- endfor %}
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="foot-bottom" style="margin-top: 0; padding-top: 0; border-top: none;">
+        <span>© COVERED. All rights reserved.</span>
+        <span><a href="/" style="color: inherit;">coveredaccess.com</a></span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
