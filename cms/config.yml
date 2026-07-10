@@ -224,3 +224,101 @@ collections:
             fields:
               - { label: "Question", name: "q", widget: "string" }
               - { label: "Answer", name: "a", widget: "text" }
+
+  # ---------------------------------------------------------------
+  # Editor-created pages: assembled from configurable blocks.
+  # ---------------------------------------------------------------
+  - name: "pages"
+    label: "📄 Pages (add your own)"
+    label_singular: "Page"
+    folder: "src/pages"
+    create: true
+    slug: "{{slug}}"
+    editor:
+      preview: true
+    fields:
+      - { label: "Page title", name: "title", widget: "string" }
+      - { label: "URL path", name: "permalink", widget: "string", hint: "Where the page will live, e.g. /about/ — lowercase, wrapped in slashes", pattern: ["^/[a-z0-9-]+/$", "Must look like /about/ — lowercase letters, numbers or dashes, wrapped in slashes"] }
+      - { label: "Search description", name: "description", widget: "string", required: false }
+      - { label: "Layout", name: "layout", widget: "hidden", default: "page.njk" }
+      - label: "Page sections"
+        name: "sections"
+        widget: "list"
+        summary: "{{fields.heading}}{{fields.title}}"
+        types:
+          - label: "🏠 Big heading (top of page)"
+            name: "hero"
+            widget: "object"
+            fields:
+              - { label: "Heading", name: "heading", widget: "string" }
+              - { label: "Heading — orange part", name: "accent", widget: "string", required: false }
+              - { label: "Subtitle", name: "sub", widget: "text", required: false }
+              - { label: "Button text", name: "ctaText", widget: "string", required: false }
+              - { label: "Button link", name: "ctaLink", widget: "string", required: false, hint: "e.g. /#brands or /about/" }
+          - label: "📝 Text section"
+            name: "text"
+            widget: "object"
+            fields:
+              - { label: "Small label above heading", name: "kicker", widget: "string", required: false }
+              - { label: "Heading", name: "heading", widget: "string", required: false }
+              - { label: "Text", name: "body", widget: "markdown" }
+          - label: "🖼️ Image + text"
+            name: "imageText"
+            widget: "object"
+            fields:
+              - { label: "Image", name: "image", widget: "image" }
+              - { label: "Image description (accessibility)", name: "alt", widget: "string" }
+              - { label: "Caption under image", name: "caption", widget: "string", required: false }
+              - { label: "Heading", name: "heading", widget: "string", required: false }
+              - { label: "Text", name: "body", widget: "markdown" }
+              - { label: "Image on the right?", name: "imageRight", widget: "boolean", default: false }
+          - label: "🔢 Number cards"
+            name: "stats"
+            widget: "object"
+            fields:
+              - { label: "Heading", name: "heading", widget: "string", required: false }
+              - label: "Cards"
+                name: "items"
+                widget: "list"
+                fields:
+                  - { label: "Big number (e.g. 11% or 20+)", name: "number", widget: "string" }
+                  - { label: "Label underneath", name: "label", widget: "string" }
+          - label: "📣 Big orange banner"
+            name: "banner"
+            widget: "object"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Text", name: "text", widget: "text", required: false }
+              - { label: "Button text", name: "buttonText", widget: "string", required: false }
+              - { label: "Button link", name: "buttonLink", widget: "string", required: false }
+          - label: "❓ Questions & answers"
+            name: "faq"
+            widget: "object"
+            fields:
+              - { label: "Heading", name: "heading", widget: "string", required: false }
+              - label: "Questions"
+                name: "items"
+                widget: "list"
+                fields:
+                  - { label: "Question", name: "q", widget: "string" }
+                  - { label: "Answer", name: "a", widget: "text" }
+
+  # ---------------------------------------------------------------
+  # Direct channel to Claude: publishing an entry commits it to the
+  # repo, where Claude reads and actions it.
+  # ---------------------------------------------------------------
+  - name: "requests"
+    label: "🤖 Ask Claude (change requests)"
+    label_singular: "request"
+    folder: "requests"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    editor:
+      preview: false
+    fields:
+      - { label: "What do you want changed?", name: "title", widget: "string" }
+      - { label: "Details — the more specific, the better", name: "body", widget: "markdown" }
+      - { label: "Which page or section?", name: "where", widget: "string", required: false }
+      - { label: "How urgent?", name: "priority", widget: "select", options: ["Whenever", "This week", "ASAP"], default: "Whenever" }
+      - { label: "Status (Claude updates this)", name: "status", widget: "select", options: ["New", "In progress", "Done"], default: "New" }
+
