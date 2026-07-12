@@ -2,16 +2,47 @@
   "kicker": "For brands",
   "title": "Unskippable. Unblockable.<br />Actually appreciated.",
   "subtitle": "Your ad funds something people genuinely need — and reaches them at a moment of full attention. No ad-blockers, no doom-scrolling past. Just gratitude and dwell time.",
-  "headerPhoto": { "src": "images/tampon-coral.jpg", "width": 900, "height": 1350, "alt": "A tampon styled on coral fabric — every free COVERED pack is funded by a brand's advertising", "caption": "Your brand, at the moment it matters." },
+  "headerPhoto": {
+    "src": "images/tampon-coral.jpg",
+    "width": 900,
+    "height": 1350,
+    "alt": "A tampon styled on coral fabric — every free COVERED pack is funded by a brand's advertising",
+    "caption": "Your brand, at the moment it matters."
+  },
   "benefits": [
-    { "icon": "⏱️", "title": "Exceptional dwell time", "desc": "Your creative plays while the user waits for their product — undivided attention in a distraction-free environment." },
-    { "icon": "🤝", "title": "Gratitude moments", "desc": "Reaching consumers at a moment of real need creates positive brand association money can't usually buy." },
-    { "icon": "📊", "title": "First-party data", "desc": "GDPR-compliant interaction metrics: dwell time, click-throughs, conversions and post-campaign reports by location." },
-    { "icon": "📍", "title": "High-footfall placement", "desc": "Universities, stadiums, transport hubs and busy retail locations — targeted, contextual and local-friendly." },
-    { "icon": "📈", "title": "Trust uplift", "desc": "Being the brand that made it free earns real trust and warmth — the kind of association traditional media can't buy." },
-    { "icon": "🚫", "title": "Unskippable by design", "desc": "A physical presence no ad-blocker can touch, wrapped in a social mission your CSR team will love." }
+    {
+      "icon": "⏱️",
+      "title": "Exceptional dwell time",
+      "desc": "Up to 76 seconds of undivided attention while your ad funds their product — no scrolling past, no skipping."
+    },
+    {
+      "icon": "🤝",
+      "title": "Gratitude moments",
+      "desc": "Reaching consumers at a moment of real need creates positive brand association money can't usually buy."
+    },
+    {
+      "icon": "📊",
+      "title": "First-party data",
+      "desc": "GDPR-compliant interaction metrics: dwell time, click-throughs, conversions and post-campaign reports by location."
+    },
+    {
+      "icon": "📍",
+      "title": "High-footfall placement",
+      "desc": "Universities, stadiums, transport hubs and busy retail locations — targeted, contextual and local-friendly."
+    },
+    {
+      "icon": "📈",
+      "title": "Trust uplift",
+      "desc": "Being the brand that made it free earns real trust and warmth — the kind of association traditional media can't buy."
+    },
+    {
+      "icon": "🚫",
+      "title": "Unskippable by design",
+      "desc": "A physical presence no ad-blocker can touch, wrapped in a social mission your CSR team will love."
+    }
   ],
   "chips": [
+    "Up to 76-second dwell times",
     "32-inch HD screens",
     "QR-driven engagement",
     "Post-campaign reports",

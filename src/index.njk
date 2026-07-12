@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+{% import "icons.njk" as ic %}<!DOCTYPE html>
 <html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1D2452" />
+  <meta name="theme-color" content="#C9DFEF" />
   <script>
     /* Netlify Identity emails (invites, password recovery) link to the site
        root with a token in the hash — forward them to the CMS login page. */
@@ -33,11 +33,11 @@
   <link rel="alternate" type="application/atom+xml" title="COVERED updates" href="/feed.xml" />
 
   <!-- Favicon: stamp-style C -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='none' stroke='%23E85502' stroke-width='9'/%3E%3Ctext x='50' y='68' font-family='Arial Black,Arial,sans-serif' font-size='52' font-weight='900' fill='%23E85502' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z' fill='%23FF671F'/%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
 
   <script type="application/ld+json">
   {
@@ -95,7 +95,7 @@
   <header>
     <div class="container nav">
       <a href="#top" class="logo" aria-label="COVERED home">
-        <span class="logo-mark" aria-hidden="true">C</span>
+        <span class="logo-heart" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></span>
         COVERED
       </a>
       <button class="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
@@ -117,8 +117,8 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero" aria-label="Introduction">
-      <div class="float-deco blob floaty slow" style="width: 90px; height: 90px; background: rgba(85, 118, 209, 0.30); top: 32%; right: 12%;" aria-hidden="true"></div>
-      <div class="float-deco blob floaty" style="width: 60px; height: 60px; background: rgba(255, 103, 31, 0.24); bottom: 30%; left: 12%;" aria-hidden="true"></div>
+      <div class="heart-deco floaty" style="width: 72px; height: 72px; top: 24%; right: 10%; --tilt: 14deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
+      <div class="heart-deco floaty slow" style="width: 46px; height: 46px; bottom: 26%; left: 9%; --tilt: -12deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
       <div class="container hero-inner">
         <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> {{ hero.badge }}</span>
         <h1>{{ hero.headlineMain }} <span class="accent">{{ hero.headlineAccent }}</span></h1>
@@ -197,7 +197,7 @@
         <div class="loop reveal">
           {%- for step in model.steps %}
           <div class="loop-step">
-            <div class="loop-emoji" aria-hidden="true">{{ step.emoji }}</div>
+            <div class="loop-emoji" aria-hidden="true">{{ ic.emojiIcon(step.emoji) }}</div>
             <h3>{{ step.title }}</h3>
             <p>{{ step.desc }}</p>
           </div>
@@ -252,7 +252,7 @@
             <div class="p-screen" id="phoneScreen" aria-live="polite" tabindex="-1">
               <h3>Need a pad or tampon?</h3>
               <p>Scan the QR code on the machine to get started — it's free.</p>
-              <button class="btn btn-primary" id="btnScan">📱 Simulate scan</button>
+              <button class="btn btn-primary" id="btnScan">Simulate scan</button>
             </div>
           </div>
         </div>
@@ -286,7 +286,7 @@
         <div class="benefit-grid">
           {%- for b in brands.benefits %}
           <div class="benefit reveal">
-            <div class="b-icon" aria-hidden="true">{{ b.icon }}</div>
+            <div class="b-icon" aria-hidden="true">{{ ic.emojiIcon(b.icon) }}</div>
             <h3>{{ b.title }}</h3>
             <p>{{ b.desc }}</p>
           </div>
@@ -305,15 +305,15 @@
             <input type="hidden" name="form-name" value="brand-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
             <div class="form-grid">
               <div class="field">
-                <label for="bName">Your name</label>
+                <label for="bName">Your name <span class="req" aria-hidden="true">*</span></label>
                 <input type="text" id="bName" name="name" autocomplete="name" required />
               </div>
               <div class="field">
-                <label for="bCompany">Company</label>
+                <label for="bCompany">Company <span class="req" aria-hidden="true">*</span></label>
                 <input type="text" id="bCompany" name="company" autocomplete="organization" required />
               </div>
               <div class="field">
-                <label for="bEmail">Work email</label>
+                <label for="bEmail">Work email <span class="req" aria-hidden="true">*</span></label>
                 <input type="email" id="bEmail" name="email" autocomplete="email" required />
               </div>
               <div class="field">
@@ -391,7 +391,7 @@
 
         <div class="cols-2">
           <div class="list-card reveal">
-            <h3><span aria-hidden="true">🛠️</span> We handle</h3>
+            <h3>{{ ic.emojiIcon("🛠️") }} We handle</h3>
             <ul>
               {%- for item in venues.weHandle %}
               <li>{{ item }}</li>
@@ -399,7 +399,7 @@
             </ul>
           </div>
           <div class="list-card wants reveal">
-            <h3><span aria-hidden="true">🧩</span> You provide</h3>
+            <h3>{{ ic.emojiIcon("🧩") }} You provide</h3>
             <ul>
               {%- for item in venues.youProvide %}
               <li>{{ item }}</li>
@@ -414,15 +414,15 @@
             <input type="hidden" name="form-name" value="venue-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
             <div class="form-grid">
               <div class="field">
-                <label for="vName">Your name</label>
+                <label for="vName">Your name <span class="req" aria-hidden="true">*</span></label>
                 <input type="text" id="vName" name="name" autocomplete="name" required />
               </div>
               <div class="field">
-                <label for="vVenue">Venue / organisation</label>
+                <label for="vVenue">Venue / organisation <span class="req" aria-hidden="true">*</span></label>
                 <input type="text" id="vVenue" name="venue" autocomplete="organization" required />
               </div>
               <div class="field">
-                <label for="vEmail">Email</label>
+                <label for="vEmail">Email <span class="req" aria-hidden="true">*</span></label>
                 <input type="email" id="vEmail" name="email" autocomplete="email" required />
               </div>
               <div class="field">
@@ -482,7 +482,7 @@
               <p class="loc-types-title">The kinds of places we're targeting first:</p>
               <div class="chip-row">
                 {%- for pt in locations.placeTypes %}
-                <span class="chip">{{ pt.emoji }} {{ pt.label }}</span>
+                <span class="chip">{{ ic.emojiIcon(pt.emoji) }} {{ pt.label }}</span>
                 {%- endfor %}
               </div>
               <p class="loc-cta">
@@ -522,6 +522,12 @@
             <span class="chip">{{ chip }}</span>
             {%- endfor %}
           </div>
+          <form name="launch-notify" method="POST" data-netlify="true" class="notify-form" id="notifyForm">
+            <input type="hidden" name="form-name" value="launch-notify" />
+            <label class="visually-hidden" for="nEmail">Your email</label>
+            <input id="nEmail" type="email" name="email" required placeholder="you@email.com" autocomplete="email" />
+            <button class="btn btn-primary" type="submit">Tell me when Exeter goes live</button>
+          </form>
         </div>
       </div>
     </section>
@@ -569,7 +575,7 @@
       <div class="foot-grid">
         <div class="foot-brand">
           <a href="#top" class="logo" aria-label="COVERED home">
-            <span class="logo-mark" aria-hidden="true">C</span>
+            <span class="logo-heart" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></span>
             COVERED
           </a>
           <p>{{ site.footerTagline }}</p>
@@ -669,7 +675,7 @@
             if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
             var s = document.createElement("span");
             s.className = "w-rise";
-            s.style.animationDelay = (0.08 + wordIndex * 0.07) + "s";
+            s.style.animationDelay = (0.05 + wordIndex * 0.04) + "s";
             s.textContent = part;
             frag.appendChild(s);
             wordIndex++;
@@ -693,17 +699,17 @@
           heroStamp.style.opacity = "";
           heroStamp.classList.add("stamp-in");
           setTimeout(function () { heroInner.classList.add("hero-shake"); }, 300);
-        }, 950);
+        }, 700);
 
         /* 3. floating packs drift in last */
-        var decos = document.querySelectorAll(".float-deco");
+        var decos = document.querySelectorAll(".float-deco, .heart-deco");
         decos.forEach(function (d) { d.style.opacity = "0"; });
         setTimeout(function () {
           decos.forEach(function (d) {
             d.style.transition = "opacity 1s ease";
             d.style.opacity = "";
           });
-        }, 1600);
+        }, 1100);
       }
 
       /* ---------- Marquee pause ---------- */
@@ -804,7 +810,7 @@
         phoneScreen.innerHTML =
           '<h3>Need a pad or tampon?</h3>' +
           '<p>Scan the QR code on the machine to get started — it\'s free.</p>' +
-          '<button class="btn btn-primary" id="btnScan">📱 Simulate scan</button>';
+          '<button class="btn btn-primary" id="btnScan">Simulate scan</button>';
         var btn = document.getElementById("btnScan");
         btn.addEventListener("click", renderVerify);
         if (fromReset === true) { btn.focus(); }
@@ -858,9 +864,9 @@
         confettiBurst();
         phoneScreen.innerHTML =
           '<span class="stamp p-stamp">Covered.</span>' +
-          '<h3>You\'re all set 💛</h3>' +
+          '<h3>You\'re all set</h3>' +
           '<p>Grab your pack from the tray below. That\'s it — no cost, no card, no catch.</p>' +
-          '<button class="btn btn-outline" id="btnReset">↺ Run the demo again</button>';
+          '<button class="btn btn-outline" id="btnReset">Run the demo again</button>';
         var btn = document.getElementById("btnReset");
         btn.addEventListener("click", function () { renderScan(true); });
         btn.focus({ preventScroll: true });
@@ -913,6 +919,12 @@
         core.setAttribute("cy", c.y);
         core.setAttribute("r", c.live ? 7 : 5.5);
         g.appendChild(core);
+        var hit = document.createElementNS(SVGNS, "circle");
+        hit.setAttribute("cx", c.x);
+        hit.setAttribute("cy", c.y);
+        hit.setAttribute("r", 16);
+        hit.setAttribute("fill", "transparent");
+        g.appendChild(hit);
         g.addEventListener("click", function () { selectCity(c.id); });
         pinsG.appendChild(g);
 
@@ -1076,6 +1088,49 @@
           "Thanks!"
         ];
       });
+
+      /* ---------- Scrollspy ---------- */
+      var spyLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]:not(.btn)'));
+      if ("IntersectionObserver" in window && spyLinks.length) {
+        var spyMap = {};
+        spyLinks.forEach(function (a) { spyMap[a.getAttribute("href").slice(1)] = a; });
+        var spy = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting && spyMap[en.target.id]) {
+              spyLinks.forEach(function (a) { a.classList.remove("active"); a.removeAttribute("aria-current"); });
+              spyMap[en.target.id].classList.add("active");
+              spyMap[en.target.id].setAttribute("aria-current", "true");
+            }
+          });
+        }, { rootMargin: "-40% 0px -55% 0px" });
+        Object.keys(spyMap).forEach(function (id) {
+          var sec = document.getElementById(id);
+          if (sec) { spy.observe(sec); }
+        });
+      }
+
+      /* ---------- Launch-notify mini form ---------- */
+      var notifyForm = document.getElementById("notifyForm");
+      if (notifyForm) {
+        notifyForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (!notifyForm.checkValidity()) { notifyForm.reportValidity(); return; }
+          fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(notifyForm)).toString(),
+          }).then(function (r) {
+            if (!r.ok) { throw new Error("HTTP " + r.status); }
+            var ok = document.createElement("p");
+            ok.className = "form-success";
+            ok.setAttribute("role", "status");
+            ok.textContent = "You're on the list — we'll email you the moment Exeter goes live.";
+            notifyForm.replaceWith(ok);
+          }).catch(function () {
+            window.location.href = "mailto:" + CONTACT + "?subject=" + encodeURIComponent("Tell me when Exeter goes live");
+          });
+        });
+      }
     })();
   </script>
 </body>
