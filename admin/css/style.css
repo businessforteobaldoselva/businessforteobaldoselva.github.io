@@ -598,10 +598,11 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
     left: 0; top: 0;
     z-index: 60;
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    visibility: hidden; /* removes off-screen links from the tab order */
+    transition: transform 0.2s ease, visibility 0.2s;
     width: 260px;
   }
-  .shell.nav-open .sidebar { transform: none; box-shadow: var(--shadow); }
+  .shell.nav-open .sidebar { transform: none; visibility: visible; box-shadow: var(--shadow); }
   .view-root { padding: 16px; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .modal-actions { flex-direction: column-reverse; }
@@ -611,4 +612,52 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
 /* Reduced motion: kill animations for users who ask. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+
+/* ============================================================================
+   Audit wave 2 — previously-undefined component families (analytics funnel,
+   legend, segmented controls, schedule + ad forms, status rows) and a
+   contrast bump for tertiary text on raised surfaces.
+   ========================================================================== */
+:root { --text-3: #9a9aa6; }
+
+.view-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.view-title { font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+.view-subtitle { color: var(--text-2); font-size: 13.5px; margin-top: 2px; }
+
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 14px 0; }
+
+.seg { display: inline-flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; flex-wrap: wrap; }
+
+.funnel-row { display: grid; grid-template-columns: 150px 1fr 130px; gap: 12px; align-items: center; margin: 10px 0; }
+.funnel-label { color: var(--text-2); font-size: 13px; }
+.funnel-track { height: 14px; border-radius: 7px; background: var(--surface-3); border: 1px solid var(--border); overflow: hidden; }
+.funnel-fill { height: 100%; border-radius: 7px; background: var(--accent-grad); min-width: 2px; }
+.funnel-meta { font-size: 12.5px; color: var(--text-2); text-align: right; font-variant-numeric: tabular-nums; }
+
+.legend-item { display: inline-flex; align-items: center; gap: 6px; margin-right: 14px; font-size: 12.5px; color: var(--text-2); }
+.legend-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+
+.table-hint { color: var(--text-3); font-size: 12px; margin-top: 8px; }
+.card--nested { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+
+.sched-form { display: flex; flex-direction: column; gap: 12px; }
+.sched-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sched-intro { color: var(--text-2); font-size: 13px; }
+.sched-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.sched-list-host { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.sched-now { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; background: var(--accent-soft); border: 1px solid var(--border-2); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.sched-now-label { font-weight: 700; }
+.sched-now-sub { color: var(--text-2); font-size: 12.5px; width: 100%; }
+
+.ad-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.status-svc { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.status-svc:last-child { border-bottom: 0; }
+.status-kv { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-2); padding: 4px 0; }
+
+@media (max-width: 720px) {
+  .sched-grid-2, .ad-form-grid { grid-template-columns: 1fr; }
+  .funnel-row { grid-template-columns: 105px 1fr 95px; }
 }

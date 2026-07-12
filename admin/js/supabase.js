@@ -6,7 +6,7 @@
 // lives here, so views never touch the raw client for auth concerns.
 // =============================================================================
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, IS_CONFIGURED } from './config.js';
 
 // One shared client for the whole app. Session is persisted to localStorage and
@@ -27,7 +27,7 @@ export { IS_CONFIGURED };
 /**
  * Current session or null. Never throws — a missing/expired session resolves
  * to null so callers can branch cleanly.
- * @returns {Promise<import('https://esm.sh/@supabase/supabase-js@2').Session|null>}
+ * @returns {Promise<import('https://esm.sh/@supabase/supabase-js@2.49.4').Session|null>}
  */
 export async function getSession() {
   const { data, error } = await supabase.auth.getSession();

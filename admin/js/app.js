@@ -116,8 +116,13 @@ function topbar(activeName) {
     ui.el('button', {
       class: 'nav-toggle',
       text: '☰',
-      attrs: { 'aria-label': 'Toggle navigation' },
-      onclick: () => document.querySelector('.shell')?.classList.toggle('nav-open'),
+      attrs: { 'aria-label': 'Toggle navigation', 'aria-expanded': 'false' },
+      onclick: (e) => {
+        const shell = document.querySelector('.shell');
+        const open = shell ? shell.classList.toggle('nav-open') : false;
+        e.currentTarget.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) document.querySelector('.sidebar a, .sidebar button')?.focus();
+      },
     }),
     ui.el('h1', { class: 'topbar-title', text: label }),
   ]);
@@ -202,10 +207,27 @@ async function doSignOut() {
 // =============================================================================
 // Boot.
 // =============================================================================
+// Close the mobile nav on Escape and restore focus to the toggle.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const shell = document.querySelector('.shell.nav-open');
+  if (!shell) return;
+  shell.classList.remove('nav-open');
+  const t = document.querySelector('.nav-toggle');
+  if (t) { t.setAttribute('aria-expanded', 'false'); t.focus(); }
+});
+
 async function boot() {
   // Keep ctx.user + the router in sync with auth state.
   auth.onAuthChange(async (event, session) => {
+    const prevId = ctx.user?.id || null;
+    const nextId = session?.user?.id || null;
     ctx.user = session?.user || null;
+    // TOKEN_REFRESHED fires ~hourly and INITIAL_SESSION duplicates boot's own
+    // start() — neither may remount the app (it closes modals and destroys
+    // unsaved form work). Only real identity changes re-route.
+    if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') return;
+    if (event === 'SIGNED_IN' && prevId !== null && prevId === nextId) return;
     router.reset(); // force a fresh admin check on the new session
     await router.start();
   });

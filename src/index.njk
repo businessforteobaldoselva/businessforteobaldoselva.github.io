@@ -148,6 +148,7 @@
         <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
       </div>
     </div>
+    <p class="visually-hidden">Target venues include universities, train stations, stadiums, festivals, offices, shopping centres, airports, schools and community centres.</p>
 
     <!-- ============ PROBLEM ============ -->
     <section id="problem" aria-labelledby="problem-title">
@@ -174,8 +175,8 @@
         <div class="photo-strip">
           {%- for photo in problem.photos %}
           <figure class="polaroid reveal" style="--tilt: {{ photo.tilt }};">
-            <img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
-                 alt="{{ photo.alt }}" />
+            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '.webp') }}" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
+                 alt="{{ photo.alt }}" /></picture>
             <figcaption>{{ photo.caption }}</figcaption>
           </figure>
           {%- endfor %}
@@ -277,8 +278,8 @@
             </p>
           </div>
           <figure class="polaroid">
-            <img src="{{ brands.headerPhoto.src }}" width="{{ brands.headerPhoto.width }}" height="{{ brands.headerPhoto.height }}" loading="lazy"
-                 alt="{{ brands.headerPhoto.alt }}" />
+            <picture><source type="image/webp" srcset="{{ brands.headerPhoto.src | replace('.jpg', '.webp') }}" /><img src="{{ brands.headerPhoto.src }}" width="{{ brands.headerPhoto.width }}" height="{{ brands.headerPhoto.height }}" loading="lazy"
+                 alt="{{ brands.headerPhoto.alt }}" /></picture>
             <figcaption>{{ brands.headerPhoto.caption }}</figcaption>
           </figure>
         </div>

@@ -91,12 +91,31 @@ export default async function mount(root, ctx) {
     } catch { /* stock status is additive — never block the machines list */ }
   }
 
+  // Retry must reuse THIS mount's lifecycle: re-invoking mount() would stack
+  // UI into an uncleared root and orphan the interval the router tears down.
+  async function reloadView() {
+    ui.clear(root);
+    root.appendChild(ui.spinner('Loading machines…'));
+    try {
+      await loadAll();
+      ui.clear(root);
+      render();
+      if (!tickTimer) tickTimer = setInterval(() => { updateNowColumns(); }, 60_000);
+    } catch (err2) {
+      ui.render(root, ui.errorState(
+        'Could not load machines. ' + (err2?.message || ''),
+        reloadView,
+      ));
+      toast(err2?.message || 'Failed to load machines.', 'error');
+    }
+  }
+
   try {
     await loadAll();
   } catch (err) {
     ui.render(root, ui.errorState(
       'Could not load machines. ' + (err?.message || ''),
-      () => mount(root, ctx),
+      reloadView,
     ));
     toast(err?.message || 'Failed to load machines.', 'error');
     return () => { if (tickTimer) clearInterval(tickTimer); };
