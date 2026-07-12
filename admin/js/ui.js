@@ -159,13 +159,11 @@ export function table(columns, rows, opts = {}) {
     ));
   } else {
     tbody = el('tbody', {}, rows.map((row, i) => {
+      // Pointer-only convenience on the row; role/tabindex on <tr> would
+      // destroy table semantics for screen readers (WCAG 1.3.1/4.1.2).
       const tr = el('tr', {
         class: onRowClick ? 'row-clickable' : '',
-        ...(onRowClick ? { attrs: { tabindex: '0', role: 'button' } } : {}),
         onclick: onRowClick ? () => onRowClick(row, i) : undefined,
-        onkeydown: onRowClick
-          ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick(row, i); } }
-          : undefined,
       }, columns.map((c) => {
         const value = row[c.key];
         const td = el('td', { style: c.align ? { textAlign: c.align } : undefined });

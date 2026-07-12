@@ -298,7 +298,7 @@
       border: 1.5px solid var(--line); background: var(--white);
       border-radius: 999px; padding: 0.5rem 1.1rem;
       font-size: 0.88rem; font-weight: 600; color: var(--muted);
-      transition: all 0.25s ease;
+      transition: color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
     .step-chip .n {
       display: inline-flex; align-items: center; justify-content: center;
@@ -659,7 +659,7 @@
       font-family: var(--font-head); font-weight: 600; font-size: 0.85rem;
       border: 1.5px solid var(--line); background: var(--white); color: var(--ink-soft);
       border-radius: 999px; padding: 0.45rem 1rem; cursor: pointer;
-      transition: all 0.15s ease;
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
     .city-chip:hover { border-color: var(--red-deep); color: var(--ink); }
     .city-chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
