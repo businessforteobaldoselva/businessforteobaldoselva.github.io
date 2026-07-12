@@ -1,5 +1,5 @@
 ---
-title: About COVERED
+title: About us
 permalink: /about/
 description: COVERED is a UK social enterprise giving out free, plastic-free period products from smart dispensers — funded entirely by advertising.
 layout: page.njk

@@ -478,6 +478,41 @@
     .light-form .form-hint { color: var(--muted); }
 
     .light-form { background: var(--white); border: 1.5px solid var(--line); box-shadow: var(--shadow); }
+    .light-form .field input, .light-form .field select, .light-form .field textarea {
+      border-color: rgba(29, 36, 82, 0.45);
+      background: #fff;
+    }
+
+    .skip-link {
+      position: absolute; left: -9999px; top: 0; z-index: 300;
+      background: var(--red-deep); color: #fff; padding: 10px 18px; border-radius: 0 0 10px 0;
+      font-weight: 700; text-decoration: none;
+    }
+    .skip-link:focus { left: 0; }
+
+    :focus-visible {
+      outline: 2.5px solid var(--red-bright, #E85502);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    ::selection { background: var(--red, #E85502); color: #fff; }
+
+    .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .form-success {
+      margin-top: 2rem; padding: 1.2rem 1.5rem; border-radius: 14px;
+      background: rgba(61, 91, 191, 0.12); border: 1.5px solid rgba(61, 91, 191, 0.4);
+      font-weight: 600;
+    }
+
+    .nav-links--static {
+      display: flex !important;
+      position: static !important;
+      flex-direction: row !important;
+      background: none !important;
+      border: 0 !important;
+      padding: 0 !important;
+      max-height: none !important;
+    }
 
     /* ---------- Venues ---------- */
     .pilot-ribbon {
@@ -751,7 +786,7 @@
 
     /* Kickers: rosa on the navy canvas, dark orange on light bands */
     .kicker { color: #E8B4BA; }
-    .model-band .kicker, .vision-band .kicker { color: var(--red-dark); }
+    .model-band .kicker, .vision-band .kicker { color: #8F3600; }
     .dark .kicker { color: #E8B4BA; }
 
     /* Light cards keep navy text on the dark canvas */

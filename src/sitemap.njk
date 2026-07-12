@@ -1,0 +1,15 @@
+---
+permalink: sitemap.xml
+eleventyExcludeFromCollections: true
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{%- for p in collections.all %}
+{%- if p.url and "." not in p.url %}
+  <url>
+    <loc>https://coveredaccess.com{{ p.url }}</loc>
+    <lastmod>{{ p.date.toISOString().split("T")[0] }}</lastmod>
+  </url>
+{%- endif %}
+{%- endfor %}
+</urlset>
