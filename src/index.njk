@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1D2452" />
   <script>
     /* Netlify Identity emails (invites, password recovery) link to the site
        root with a token in the hash — forward them to the CMS login page. */
@@ -36,7 +37,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Instrument+Serif&display=swap" rel="stylesheet" />
 
   <script type="application/ld+json">
   {
@@ -71,8 +72,8 @@
           {%- for item in faq.items %}
           {
             "@type": "Question",
-            "name": {{ item.q | dump | safe }},
-            "acceptedAnswer": { "@type": "Answer", "text": {{ item.a | dump | safe }} }
+            "name": {{ item.q | dump | replace("<", "\\u003c") | safe }},
+            "acceptedAnswer": { "@type": "Answer", "text": {{ item.a | dump | replace("<", "\\u003c") | safe }} }
           }{% if not loop.last %},{% endif %}
           {%- endfor %}
         ]
@@ -83,9 +84,11 @@
 
   <style>
 {% include "site-styles.css" %}  </style>
-  <noscript><style>.reveal { opacity: 1; transform: none; }</style></noscript>
+  <noscript><style>.reveal { opacity: 1; transform: none; } .faq-a { max-height: none !important; } .faq-a[hidden] { display: block; }</style></noscript>
 </head>
 <body>
+
+  <a class="skip-link" href="#top">Skip to content</a>
 
   <div id="progress" role="presentation"></div>
 
@@ -100,10 +103,10 @@
       </button>
       <ul class="nav-links" id="navLinks">
         <li><a href="#how">How it works</a></li>
-        <li><a href="#brands">For brands</a></li>
         <li><a href="#partners">Partners</a></li>
         <li><a href="#venues">For venues</a></li>
         <li><a href="#locations">Locations</a></li>
+        <li><a href="/about/">About</a></li>
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#brands" class="btn btn-primary">Advertise with us</a></li>
       </ul>
@@ -160,7 +163,7 @@
         <div class="stats-grid">
           {%- for stat in problem.stats %}
           <div class="stat-card reveal">
-            <div class="stat-num"><span class="count" data-target="{{ stat.number }}">0</span>%</div>
+            <div class="stat-num"><span class="count" data-target="{{ stat.number }}">{{ stat.number }}</span>%</div>
             <p class="stat-label">{{ stat.label }}</p>
           </div>
           {%- endfor %}
@@ -298,7 +301,8 @@
 
         <div class="form-card reveal">
           <h3>{{ brands.formHeading }}</h3>
-          <form id="brandForm" novalidate>
+          <form id="brandForm" name="brand-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+            <input type="hidden" name="form-name" value="brand-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
             <div class="form-grid">
               <div class="field">
                 <label for="bName">Your name</label>
@@ -406,7 +410,8 @@
 
         <div class="form-card light-form reveal">
           <h3>{{ venues.formHeading }}</h3>
-          <form id="venueForm" novalidate>
+          <form id="venueForm" name="venue-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+            <input type="hidden" name="form-name" value="venue-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
             <div class="form-grid">
               <div class="field">
                 <label for="vName">Your name</label>
@@ -572,18 +577,20 @@
         <nav class="foot-col" aria-label="Footer — explore">
           <p class="foot-head">Explore</p>
           <ul>
-            <li><a href="https://coveredaccess.com/#problem">The problem</a></li>
-            <li><a href="https://coveredaccess.com/#how">How it works</a></li>
-            <li><a href="https://coveredaccess.com/#locations">Locations</a></li>
-            <li><a href="https://coveredaccess.com/#faq">FAQ</a></li>
+            <li><a href="/#problem">The problem</a></li>
+            <li><a href="/#how">How it works</a></li>
+            <li><a href="/#locations">Locations</a></li>
+            <li><a href="/#faq">FAQ</a></li>
+            <li><a href="/about/">About</a></li>
+            <li><a href="/privacy/">Privacy</a></li>
           </ul>
         </nav>
         <nav class="foot-col" aria-label="Footer — partner">
           <p class="foot-head">Partner</p>
           <ul>
-            <li><a href="https://coveredaccess.com/#brands">Advertise with us</a></li>
-            <li><a href="https://coveredaccess.com/#partners">Partner wall</a></li>
-            <li><a href="https://coveredaccess.com/#venues">Host a dispenser</a></li>
+            <li><a href="/#brands">Advertise with us</a></li>
+            <li><a href="/#partners">Partner wall</a></li>
+            <li><a href="/#venues">Host a dispenser</a></li>
             <li><a href="mailto:{{ site.contactEmail }}">Contact</a></li>
           </ul>
         </nav>
@@ -862,12 +869,8 @@
       renderScan(false);
 
       /* ---------- Locations map ---------- */
-      var CITY_DATA = [
-        {%- for c in locations.cities %}
-        { id: {{ c.id | dump | safe }}, name: {{ c.name | dump | safe }}, x: {{ c.x }}, y: {{ c.y }}{% if c.live %}, live: true{% endif %},
-          blurb: {{ c.blurb | dump | safe }} }{% if not loop.last %},{% endif %}
-        {%- endfor %}
-      ];
+      var CITY_DATA = ({{ locations.cities | dump | replace("<", "\\u003c") | safe }} || [])
+        .filter(function (c) { return c && c.id && isFinite(c.x) && isFinite(c.y); });
 
       var pinsG = document.getElementById("mapPins");
       var chipsWrap = document.getElementById("cityChips");
@@ -994,7 +997,7 @@
       });
 
       /* ---------- Forms → mailto ---------- */
-      var CONTACT = "ameliaireland18@gmail.com";
+      var CONTACT = {{ site.contactEmail | dump | safe }};
 
       function buildMailto(subject, lines) {
         return "mailto:" + CONTACT +
@@ -1006,13 +1009,34 @@
         var form = document.getElementById(id);
         form.addEventListener("submit", function (e) {
           e.preventDefault();
-          var data = new FormData(form);
-          var get = function (k) { return (data.get(k) || "").toString().trim(); };
           if (!form.checkValidity()) {
             form.reportValidity();
             return;
           }
-          window.location.href = buildMailto(subjectPrefix, fieldsFn(get));
+          var data = new FormData(form);
+          var get = function (k) { return (data.get(k) || "").toString().trim(); };
+          var btn = form.querySelector('button[type="submit"]');
+          var label = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = "Sending…";
+          fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(data).toString(),
+          })
+            .then(function (r) {
+              if (!r.ok) { throw new Error("HTTP " + r.status); }
+              var note = document.createElement("p");
+              note.className = "form-success";
+              note.setAttribute("role", "status");
+              note.textContent = "Sent — thank you! We'll get back to you within a couple of days.";
+              form.replaceWith(note);
+            })
+            .catch(function () {
+              btn.disabled = false;
+              btn.textContent = label;
+              window.location.href = buildMailto(subjectPrefix, fieldsFn(get));
+            });
         });
       }
 
