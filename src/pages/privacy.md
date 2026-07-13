@@ -33,5 +33,5 @@ sections:
     title: "Questions about your data?"
     text: "Ask us anything — we'd rather over-explain than under-deliver."
     buttonText: "Contact us"
-    buttonLink: "/#faq"
+    buttonLink: "mailto:ameliaireland18@gmail.com?subject=Privacy%20question"
 ---

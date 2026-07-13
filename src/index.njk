@@ -26,8 +26,6 @@
   <meta property="og:image" content="https://coveredaccess.com/images/covered-og.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="article:published_time" content="2026-06-28T12:00:00Z" />
-  <meta property="article:modified_time" content="2026-07-06T12:00:00Z" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="canonical" href="https://coveredaccess.com/" />
   <link rel="alternate" type="application/atom+xml" title="COVERED updates" href="/feed.xml" />
@@ -62,7 +60,7 @@
         "publisher": { "@id": "https://coveredaccess.com/#org" },
         "inLanguage": "en-GB",
         "datePublished": "2026-06-28",
-        "dateModified": "2026-07-06"
+        "dateModified": "2026-07-13"
       },
       {
         "@type": "FAQPage",
@@ -263,7 +261,6 @@
       </div>
     </section>
 
-    <div class="wave" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#1D2452"/></svg></div>
 
     <!-- ============ FOR BRANDS ============ -->
     <section id="brands" class="dark" aria-labelledby="brands-title">
@@ -344,7 +341,6 @@
       </div>
     </section>
 
-    <div class="wave flip" aria-hidden="true"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,40 C240,70 480,10 720,35 C960,60 1200,15 1440,45 L1440,70 L0,70 Z" fill="#1D2452"/></svg></div>
 
     <!-- ============ PARTNERS ============ -->
     <section id="partners" aria-labelledby="partners-title">
@@ -522,8 +518,9 @@
             <span class="chip">{{ chip }}</span>
             {%- endfor %}
           </div>
-          <form name="launch-notify" method="POST" data-netlify="true" class="notify-form" id="notifyForm">
+          <form name="launch-notify" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="notify-form" id="notifyForm">
             <input type="hidden" name="form-name" value="launch-notify" />
+            <p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
             <label class="visually-hidden" for="nEmail">Your email</label>
             <input id="nEmail" type="email" name="email" required placeholder="you@email.com" autocomplete="email" />
             <button class="btn btn-primary" type="submit">Tell me when Exeter goes live</button>

@@ -15,7 +15,7 @@
       --ink: #2F41A8;
       --ink-deep: #22307E;
       --ink-soft: #3A4692;
-      --muted: #56618A;
+      --muted: #49546E;
       --red: #FF671F;
       --red-deep: #C94D00;
       --red-dark: #A63F00;
@@ -164,7 +164,7 @@
       overflow: hidden;
     }
     .hero::before, .hero::after {
-      content: ""; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; opacity: 1.6;
+      content: ""; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; opacity: 1;
     }
     .hero::before { width: 480px; height: 480px; background: rgba(255, 103, 31, 0.22); top: -140px; right: -120px; }
     .hero::after { width: 420px; height: 420px; background: rgba(85, 118, 209, 0.26); bottom: -160px; left: -140px; }
@@ -278,7 +278,7 @@
     }
     .stat-num {
       font-family: var(--font-head); font-size: clamp(2.6rem, 5vw, 3.4rem);
-      font-weight: 700; color: var(--red); line-height: 1;
+      font-weight: 700; color: var(--red-deep); line-height: 1;
     }
     .stat-label { margin-top: 0.7rem; font-size: var(--text-sm); color: var(--ink-soft); }
     .stats-source { margin-top: 1.6rem; font-size: 0.82rem; color: var(--muted); }
@@ -320,7 +320,7 @@
       width: 22px; height: 22px; border-radius: 50%;
       background: var(--paper-2); color: var(--muted); font-size: 0.75rem; font-family: var(--font-head);
     }
-    .step-chip.active { border-color: var(--red); color: var(--ink); box-shadow: 0 4px 14px rgba(232, 85, 2, 0.18); }
+    .step-chip.active { border-color: var(--red); color: var(--ink); box-shadow: 0 4px 14px rgba(255, 103, 31, 0.18); }
     .step-chip.active .n { background: var(--red); color: #fff; }
     .step-chip.done { color: var(--green); border-color: rgba(61, 91, 191, 0.4); }
     .step-chip.done .n { background: var(--green); color: #fff; }
@@ -457,7 +457,7 @@
       padding: 1.7rem 1.5rem; background: rgba(239, 244, 255, 0.04);
       transition: transform 0.2s ease, border-color 0.2s ease;
     }
-    .benefit:hover { transform: translateY(-4px); border-color: rgba(232, 85, 2, 0.6); }
+    .benefit:hover { transform: translateY(-4px); border-color: rgba(255, 103, 31, 0.6); }
     .benefit .b-icon { font-size: 1.6rem; }
     .benefit h3 { font-size: 1.08rem; margin: 0.8rem 0 0.45rem; }
     .benefit p { font-size: var(--text-sm); color: rgba(239, 244, 255, 0.72); }
@@ -492,7 +492,7 @@
       outline: 2px solid var(--red); outline-offset: 1px; border-color: var(--red);
     }
     .form-actions { margin-top: 1.4rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-    .form-hint { font-size: 0.85rem; color: rgba(239, 244, 255, 0.6); }
+    .form-hint { font-size: 0.85rem; color: rgba(239, 244, 255, 0.74); }
     .light-form .form-hint { color: var(--muted); }
 
     .light-form { background: var(--white); border: 1.5px solid var(--line); box-shadow: var(--shadow); }
@@ -509,11 +509,11 @@
     .skip-link:focus { left: 0; }
 
     :focus-visible {
-      outline: 2.5px solid var(--red-bright, #E85502);
+      outline: 2.5px solid var(--red-dark, #A63F00);
       outline-offset: 2px;
       border-radius: 4px;
     }
-    ::selection { background: var(--red, #E85502); color: #fff; }
+    ::selection { background: var(--ink); color: #fff; }
 
     .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
     .form-success {
@@ -594,7 +594,7 @@
       font-family: var(--font-head); font-weight: 600; font-size: 1.02rem; color: var(--ink);
       padding: 1.15rem 1.4rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;
     }
-    .faq-q .indicator { color: var(--red); font-size: 1.3rem; font-weight: 500; transition: transform 0.25s ease; flex-shrink: 0; }
+    .faq-q .indicator { color: var(--red-deep); font-size: 1.3rem; font-weight: 500; transition: transform 0.25s ease; flex-shrink: 0; }
     .faq-item.open .indicator { transform: rotate(45deg); }
     .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
     .faq-a-inner { padding: 0 1.4rem 1.25rem; font-size: var(--text-sm); color: var(--ink-soft); }
@@ -626,7 +626,7 @@
     .foot-bottom {
       margin-top: 2.8rem; padding-top: 1.6rem; border-top: 1px solid rgba(239, 244, 255, 0.12);
       display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-      font-size: 0.8rem; color: rgba(239, 244, 255, 0.5);
+      font-size: 0.8rem; color: rgba(239, 244, 255, 0.68);
     }
 
     /* ---------- Reveal on scroll ---------- */
@@ -697,9 +697,6 @@
 
     /* ---------- Decorative visuals ---------- */
     .texture-dots { background-image: radial-gradient(rgba(29, 36, 82, 0.06) 1.5px, transparent 1.5px); background-size: 24px 24px; }
-    .wave { display: block; width: 100%; height: 70px; margin-bottom: -1px; background: var(--paper); }
-    .wave svg { display: block; width: 100%; height: 70px; }
-    .wave.flip { transform: scaleY(-1); margin-bottom: 0; margin-top: -1px; }
     .float-deco { position: absolute; pointer-events: none; z-index: 0; }
     .float-deco.blob { border-radius: 50%; filter: blur(2px); }
     .floaty { animation: floatY 7s ease-in-out infinite alternate; }
@@ -723,7 +720,7 @@
     .polaroid:hover { transform: rotate(0deg) scale(1.02); }
     .polaroid::before {
       content: ""; position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(-3deg);
-      width: 92px; height: 26px; background: rgba(232, 85, 2, 0.28); border-radius: 2px; z-index: 1;
+      width: 92px; height: 26px; background: rgba(255, 103, 31, 0.28); border-radius: 2px; z-index: 1;
     }
     .polaroid img { width: 100%; height: 220px; object-fit: cover; border-radius: 3px; display: block; }
     .polaroid figcaption { font-family: var(--font-head); font-weight: 600; font-size: 0.9rem; text-align: center; padding-top: 0.8rem; color: var(--ink-soft); }
@@ -860,7 +857,6 @@
     .btn-primary::after { content: "\2192"; margin-left: 0.45rem; display: inline-block; transition: transform 0.2s ease; }
     .btn-primary:hover::after { transform: translateX(3px); }
 
-    .wave { display: none; }
     .marquee-pause { background: transparent; border-color: rgba(255, 255, 255, 0.6); color: #fff; width: 44px; height: 44px; font-size: 0.85rem; }
 
     /* floating hearts */
