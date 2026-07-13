@@ -42,6 +42,8 @@ router.register('ads',       () => import('./views/ads.js'),       { title: 'Ads
 router.register('machines',  () => import('./views/machines.js'),  { title: 'Machines' });
 router.register('analytics', () => import('./views/analytics.js'), { title: 'Analytics' });
 router.register('data',      () => import('./views/data.js'),      { title: 'Data' });
+  router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tasks' });
+  router.register('reports',   () => import('./views/reports.js'),   { title: 'Reports' });
 
 // =============================================================================
 // The shell renderer. Returns the content root the router mounts a view into.

@@ -46,6 +46,8 @@ export const NAV = [
   { name: 'machines',  label: 'Machines' },
   { name: 'analytics', label: 'Analytics' },
   { name: 'data',      label: 'Data' },
+  { name: 'tasks',     label: 'Tasks' },
+  { name: 'reports',   label: 'Reports' },
 ];
 
 /** Programmatic navigation: sets the hash, which triggers handleRoute(). */
