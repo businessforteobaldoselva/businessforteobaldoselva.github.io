@@ -143,8 +143,9 @@ export default async function mount(root, ctx) {
           ui.toast('This dispense has no linked session to trace.', 'warn');
           return;
         }
-        // Reflect the selection in the URL and open the drawer.
-        router.navigate('data', { session: row.session_id });
+        // Reflect the selection in the URL WITHOUT remounting the view
+        // (replaceState fires no hashchange), then open the drawer directly.
+        history.replaceState(null, '', '#data?session=' + encodeURIComponent(row.session_id));
         runTrace(row.session_id);
       },
     });

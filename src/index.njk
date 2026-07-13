@@ -175,7 +175,7 @@
         <div class="photo-strip">
           {%- for photo in problem.photos %}
           <figure class="polaroid reveal" style="--tilt: {{ photo.tilt }};">
-            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '.webp') }}" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
+            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '-480.webp') }} 480w, {{ photo.src | replace('.jpg', '.webp') }} 1200w" sizes="(max-width: 780px) 92vw, 420px" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
                  alt="{{ photo.alt }}" /></picture>
             <figcaption>{{ photo.caption }}</figcaption>
           </figure>
@@ -278,7 +278,7 @@
             </p>
           </div>
           <figure class="polaroid">
-            <picture><source type="image/webp" srcset="{{ brands.headerPhoto.src | replace('.jpg', '.webp') }}" /><img src="{{ brands.headerPhoto.src }}" width="{{ brands.headerPhoto.width }}" height="{{ brands.headerPhoto.height }}" loading="lazy"
+            <picture><source type="image/webp" srcset="{{ brands.headerPhoto.src | replace('.jpg', '-480.webp') }} 480w, {{ brands.headerPhoto.src | replace('.jpg', '.webp') }} 1200w" sizes="250px" /><img src="{{ brands.headerPhoto.src }}" width="{{ brands.headerPhoto.width }}" height="{{ brands.headerPhoto.height }}" loading="lazy"
                  alt="{{ brands.headerPhoto.alt }}" /></picture>
             <figcaption>{{ brands.headerPhoto.caption }}</figcaption>
           </figure>
@@ -720,7 +720,6 @@
         var paused = marqueeEl.classList.toggle("paused");
         marqueePause.setAttribute("aria-pressed", paused ? "true" : "false");
         marqueePause.textContent = paused ? "▶" : "⏸";
-        marqueePause.setAttribute("aria-label", paused ? "Resume scrolling venue list" : "Pause scrolling venue list");
       });
 
       /* ---------- Animated counters ---------- */

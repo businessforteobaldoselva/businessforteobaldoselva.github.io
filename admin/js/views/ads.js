@@ -379,6 +379,9 @@ export default async function mount(root, ctx) {
       // Submitting via Enter should save, not reload the page.
       onSubmit: (e) => { e.preventDefault(); save(); },
     }, [
+      // Hidden submit button so pressing Enter actually fires the form's
+      // submit event (implicit submission needs a submit control).
+      ui.el('button', { attrs: { type: 'submit', hidden: 'hidden' }, text: 'Save' }),
       ui.el('div', { class: 'ad-form-grid' }, [
         // Left column: the editable fields.
         ui.el('div', { class: 'ad-form-fields' }, [
