@@ -1,3 +1,9 @@
+    /* Open Sauce One — the brand's paragraph typeface (self-hosted, SIL OFL). */
+    @font-face { font-family: "Open Sauce One"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/open-sauce-one-400.woff2") format("woff2"); }
+    @font-face { font-family: "Open Sauce One"; font-style: normal; font-weight: 500; font-display: swap; src: url("/fonts/open-sauce-one-500.woff2") format("woff2"); }
+    @font-face { font-family: "Open Sauce One"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/open-sauce-one-600.woff2") format("woff2"); }
+    @font-face { font-family: "Open Sauce One"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/open-sauce-one-700.woff2") format("woff2"); }
+
     :root {
       --paper: #C9DFEF;
       --paper-2: #EAF3FA;
@@ -20,8 +26,8 @@
       --peach: #FFC79E;
       --kicker-band: #8F3600;
       --font-display: "Oswald", "Arial Narrow", Arial, sans-serif;
-      --font-head: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --font-head: "Open Sauce One", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --font-body: "Open Sauce One", "Helvetica Neue", Helvetica, Arial, sans-serif;
       --font-script: "Dancing Script", cursive;
       --font-stamp: "Oswald", "Arial Narrow", Arial, sans-serif;
       color-scheme: light;

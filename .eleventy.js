@@ -24,6 +24,7 @@ module.exports = function (eleventyConfig) {
   });
 
   eleventyConfig.addPassthroughCopy("images");
+  eleventyConfig.addPassthroughCopy("fonts");
   eleventyConfig.addPassthroughCopy("admin");
   eleventyConfig.addPassthroughCopy("cms");
   eleventyConfig.addPassthroughCopy("robots.txt");

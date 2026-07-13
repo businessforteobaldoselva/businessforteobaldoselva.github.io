@@ -25,6 +25,13 @@
 //     the view down cleanly.
 // =============================================================================
 
+const TEAM = ['Teo', 'Amelia', 'Molly', 'Claude'];
+
+// Split a stored assignee string ("Teo, Amelia") into trimmed names.
+function splitAssignees(v) {
+  return String(v || '').split(',').map((x) => x.trim()).filter(Boolean);
+}
+
 const STATUSES = [
   { value: 'not_started', label: 'Not started', tone: 'muted' },
   { value: 'in_progress', label: 'In progress', tone: 'accent' },
@@ -202,7 +209,20 @@ export default async function mount(root, ctx) {
       {
         key: 'assignee',
         label: 'Assignee',
-        render: (v) => ui.el('span', { text: (v == null || String(v).trim() === '') ? '—' : String(v) }),
+        render: (v) => {
+          const names = splitAssignees(v);
+          if (!names.length) return ui.el('span', { text: '—' });
+          return ui.el('div', { class: 'assignee-chips', style: { display: 'flex', gap: '4px', flexWrap: 'wrap' } },
+            names.map((n) => ui.badge(n, 'accent')));
+        },
+      },
+      {
+        key: 'progress',
+        label: 'Progress',
+        render: (v) => ui.el('span', {
+          text: (v == null || String(v).trim() === '') ? '—' : String(v),
+          style: { fontSize: '0.85rem', opacity: '0.9', display: 'inline-block', maxWidth: '320px', whiteSpace: 'pre-wrap' },
+        }),
       },
       {
         key: 'status',
@@ -246,6 +266,7 @@ export default async function mount(root, ctx) {
     const detailBits = [];
     if (row.goal != null && String(row.goal).trim() !== '') detailBits.push(detailLine('Goal', row.goal));
     if (row.plan != null && String(row.plan).trim() !== '') detailBits.push(detailLine('Plan', row.plan));
+    if (row.progress != null && String(row.progress).trim() !== '') detailBits.push(detailLine('Progress', row.progress));
     if (row.notes != null && String(row.notes).trim() !== '') detailBits.push(detailLine('Notes', row.notes));
 
     if (detailBits.length) {
@@ -389,6 +410,7 @@ export default async function mount(root, ctx) {
       goal: task?.goal ?? '',
       plan: task?.plan ?? '',
       assignee: task?.assignee ?? '',
+      progress: task?.progress ?? '',
       notes: task?.notes ?? '',
       status: STATUSES.some((s) => s.value === String(task?.status)) ? String(task.status) : 'not_started',
     };
@@ -435,9 +457,33 @@ export default async function mount(root, ctx) {
       value: model.plan, rows: 3, placeholder: 'How it will get done (steps, links)',
       onInput: (e) => { model.plan = e.target.value; },
     });
-    const assigneeInput = ui.input({
-      value: model.assignee, placeholder: 'Who owns this',
-      onInput: (e) => { model.assignee = e.target.value; },
+    // Multi-assignee: tick the team members on it; free-text box for anyone else.
+    const picked = new Set(splitAssignees(model.assignee).filter((n) => TEAM.includes(n)));
+    const otherInput = ui.input({
+      value: splitAssignees(model.assignee).filter((n) => !TEAM.includes(n)).join(', '),
+      placeholder: 'Other names (comma-separated)',
+      onInput: () => syncAssignee(),
+    });
+    function syncAssignee() {
+      const others = String(otherInput.value || '').split(',').map((x) => x.trim()).filter(Boolean);
+      model.assignee = [...TEAM.filter((n) => picked.has(n)), ...others].join(', ');
+    }
+    const assigneeBoxes = ui.el('div', {
+      class: 'assignee-picker',
+      style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '6px' },
+    }, TEAM.map((name) => {
+      const box = ui.el('input', {
+        attrs: { type: 'checkbox' },
+        onchange: (e) => { if (e.target.checked) picked.add(name); else picked.delete(name); syncAssignee(); },
+      });
+      if (picked.has(name)) box.checked = true;
+      return ui.el('label', { style: { display: 'inline-flex', alignItems: 'center', gap: '5px', cursor: 'pointer' } }, [box, ui.el('span', { text: name })]);
+    }));
+    const assigneeInput = ui.el('div', {}, [assigneeBoxes, otherInput]);
+
+    const progressInput = ui.textarea({
+      value: model.progress, rows: 2, placeholder: 'What has actually happened so far — anyone can fill this in',
+      onInput: (e) => { model.progress = e.target.value; },
     });
     const notesInput = ui.textarea({
       value: model.notes, rows: 3, placeholder: 'Anything else worth knowing',
@@ -459,6 +505,7 @@ export default async function mount(root, ctx) {
       ui.field('Goal', goalInput),
       ui.field('Plan', planInput),
       ui.field('Assignee', assigneeInput),
+      ui.field('Current progress', progressInput, { hint: 'A running note anyone on the team can update.' }),
       ui.field('Notes', notesInput),
       ui.field('Status', statusSelect),
     ]);
@@ -492,6 +539,7 @@ export default async function mount(root, ctx) {
         goal: nn(model.goal),
         plan: nn(model.plan),
         assignee: nn(model.assignee),
+        progress: nn(model.progress),
         notes: nn(model.notes),
         status: STATUSES.some((s) => s.value === model.status) ? model.status : 'not_started',
       };

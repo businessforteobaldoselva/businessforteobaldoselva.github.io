@@ -44,6 +44,8 @@ router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tas
 router.register('analytics', () => import('./views/analytics.js'), { title: 'Analytics' });
 router.register('reports',   () => import('./views/reports.js'),   { title: 'Reports' });
 router.register('data',      () => import('./views/data.js'),      { title: 'Data' });
+  router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tasks' });
+  router.register('reports',   () => import('./views/reports.js'),   { title: 'Reports' });
 
 // Sidebar entry for Tasks, between Machines and Analytics. router.NAV drives
 // the sidebar and is read on every shell render, so splicing here keeps
