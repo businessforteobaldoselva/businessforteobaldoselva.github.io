@@ -811,6 +811,17 @@
       padding: 0 0.08em;
     }
     .script { font-family: var(--font-script); text-transform: none; letter-spacing: 0; }
+    /* Rumble Brave (signature script) on the non-title accent text so the brand
+       voice is visible. Long body paragraphs stay Open Sauce for readability. */
+    .hero-sub, .polaroid figcaption, .cta-banner p, .pilot-ribbon, .stats-source, .demo-note {
+      font-family: var(--font-script);
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .hero-sub { font-size: clamp(1.4rem, 3.2vw, 2.1rem); line-height: 1.4; }
+    .polaroid figcaption { font-size: 1.2rem; }
+    .cta-banner p { font-size: 1.35rem; opacity: 1; }
+    .pilot-ribbon { font-size: 1.05rem; }
 
     /* grid-paper motif from the brand board */
     .hero, .bip {
