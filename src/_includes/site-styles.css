@@ -878,10 +878,12 @@
     .city-chip { min-height: 44px; padding: 0.6rem 1.15rem; }
     .nav-links .btn { padding: 0.62rem 1.25rem; }
 
-    /* UX: 320px viewport */
-    .machine { width: min(250px, 100%); }
-    .phone { width: min(230px, 100%); }
-    .demo-card { padding: 2.2rem clamp(0.8rem, 4vw, 2rem); }
+    /* Demo devices hold their natural size (the machine sits in a wrapper whose
+       width follows it, so min(…,100%) collapsed it — keep fixed widths and let
+       them wrap/shrink only on genuinely tiny screens). */
+    .machine-stage, .phone { flex: 0 0 auto; max-width: 100%; }
+    .demo-card { padding: 2.6rem clamp(1rem, 4vw, 2rem); gap: clamp(2rem, 5vw, 3.5rem); }
+    @media (max-width: 340px) { .machine, .phone { width: 100%; } }
 
     /* UX: readable FAQ measure */
     .faq-a-inner { max-width: 65ch; }
