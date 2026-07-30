@@ -525,6 +525,9 @@
       outline-offset: 2px;
       border-radius: 4px;
     }
+    /* band-aware focus colour — dark-orange fails 3:1 on the full-strength bands */
+    .dark :focus-visible, .cta-banner :focus-visible, footer :focus-visible { outline-color: var(--paper-2); }
+    .model-band :focus-visible, .vision-band :focus-visible, .marquee :focus-visible { outline-color: var(--ink-deep); }
     ::selection { background: var(--ink); color: #fff; }
 
     .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
