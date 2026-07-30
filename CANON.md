@@ -61,6 +61,19 @@ No new typeface decision. Motor / Rumble Brave / Open Sauce are licensed,
 brand-book-mandated faces (client HARD constraint) — the Google-Fonts mandate
 applies to new type decisions, none of which this engagement makes.
 
+## Engine validation (2026-07-30, engine v2026.07.12.1 via bun 1.3.14)
+- `route` → `engage` / `web` ✓
+- `run` (seed 42, 4 records) → `status: success`, **0 violations**, coverage
+  `uncovered: []` — all rationale/citation/colour/motion gates passed. The
+  engine's seeded operator pick for seed 42 (lateral-thinking + scamper)
+  matched the manually documented selection.
+- `unique` (6 probes, live landscape search recorded) → **`oneOfAKind`**,
+  0 violations, 0 fixMoves.
+- Open item: the `judge` visual-judgement workflow still needs a perception
+  pass (session screenshot tooling was down; DOM/computed-style verification
+  was used instead — 12 brand-period nodes ≥3:1 per band, receipt rendered,
+  reduced-motion path intact).
+
 ## Kill-list (converge stage)
 1. **Custom orange-dot cursor** — a11y cost, no provenance beyond novelty.
 2. **Dispenser-POV copy** ("I live in the loo at…") — fights CMS-owned voice.
