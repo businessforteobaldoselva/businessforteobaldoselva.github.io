@@ -10,8 +10,13 @@
 
     :root {
       /* ---- COVERED brand palette (violet · orange · lavender · grass) ---- */
-      --paper: #FFFFFF;        /* main canvas (neutral ground) */
+      --paper: #F6F1FB;        /* canvas — light lavender wash */
       --paper-2: #F3EDFB;      /* faint lavender tint — alt sections, inputs */
+      --band-grass: #F2ECCE;   /* light grass band */
+      /* logo asset colours — fixed by the logo artwork, not part of the UI palette */
+      --logo-green: #3A5641;
+      --logo-sage: #94AB8D;
+      --logo-orange: #F0A35C;
       --white: #FFFFFF;
       --ink: #472549;          /* VIOLET — body text + dark-section backgrounds */
       --ink-deep: #33193A;     /* deeper violet — footer, heading depth */
@@ -164,12 +169,14 @@
       position: relative;
       padding: 6.5rem 0 5rem;
       overflow: hidden;
+      background-color: var(--band-lav);
+      border-bottom: 1px solid var(--line);
     }
     .hero::before, .hero::after {
       content: ""; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; opacity: 1;
     }
-    .hero::before { width: 480px; height: 480px; background: rgba(240, 130, 11, 0.22); top: -140px; right: -120px; }
-    .hero::after { width: 420px; height: 420px; background: rgba(180, 156, 219, 0.45); bottom: -160px; left: -140px; }
+    .hero::before { width: 480px; height: 480px; background: rgba(240, 130, 11, 0.38); top: -140px; right: -120px; }
+    .hero::after { width: 420px; height: 420px; background: rgba(185, 160, 15, 0.30); bottom: -160px; left: -140px; }
 
     .hero-inner { position: relative; z-index: 1; text-align: left; }
 
@@ -241,7 +248,7 @@
 
     /* ---------- Marquee ---------- */
     .marquee {
-      background: var(--ink); color: #fff;
+      background: var(--green); color: var(--ink-deep);
       padding: 0.9rem 0; overflow: hidden; white-space: nowrap;
       border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
     }
@@ -251,7 +258,7 @@
       letter-spacing: 0.06em; text-transform: uppercase;
       padding: 0 1.4rem; display: inline-flex; align-items: center; gap: 1.4rem;
     }
-    .marquee span::after { content: "●"; color: rgba(255, 255, 255, 0.65); font-size: 0.55rem; }
+    .marquee span::after { content: "●"; color: rgba(71, 37, 73, 0.6); font-size: 0.55rem; }
     @keyframes scrollX { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     .marquee { position: relative; }
     .marquee:hover .marquee-track, .marquee.paused .marquee-track { animation-play-state: paused; }
@@ -287,7 +294,10 @@
     .stats-source a { color: var(--muted); }
 
     /* ---------- Model loop ---------- */
-    .model-band { background: var(--band-lav); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .model-band { background: var(--sage); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .model-band .section-sub, .model-band .loop-arrow { color: var(--ink); }
+    #how { background: var(--band-rosa); border-bottom: 1px solid var(--line); }
+    #partners { background: var(--band-grass); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
     .loop { display: flex; align-items: stretch; justify-content: center; gap: 0; margin-top: 3rem; flex-wrap: wrap; }
     .loop-step {
       flex: 1 1 240px; max-width: 320px;
@@ -557,7 +567,8 @@
     .list-card.wants li::before { content: "→"; color: var(--red-deep); }
 
     /* ---------- Vision ---------- */
-    .vision-band { background: var(--band-rosa); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .vision-band { background: var(--red); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .vision-band .section-sub, .vision-band .stats-source, .vision-band .stats-source a { color: var(--ink-deep); }
     .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 3rem; }
     @media (max-width: 800px) { .timeline { grid-template-columns: 1fr; } }
     .milestone {
@@ -611,6 +622,8 @@
       font-size: 9rem; opacity: 0.08; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-6deg);
       white-space: nowrap; pointer-events: none;
     }
+    .cta-banner .btn-light { background: var(--red); border-color: var(--red); color: var(--ink-deep); }
+    .cta-banner .btn-light:hover { background: var(--peach); border-color: var(--peach); }
     .cta-banner h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: 0.8rem; position: relative; }
     .cta-banner p { opacity: 0.9; margin-bottom: 1.8rem; position: relative; }
     .cta-banner .btn { position: relative; }
@@ -624,6 +637,7 @@
     .foot-col ul { list-style: none; }
     .foot-col li { margin-bottom: 0.55rem; }
     .foot-col a { text-decoration: none; font-size: var(--text-sm); color: rgba(245, 240, 251, 0.75); }
+    .foot-col a:hover { color: var(--green); }
     .foot-col a:hover { color: var(--peach); }
     .foot-bottom {
       margin-top: 2.8rem; padding-top: 1.6rem; border-top: 1px solid rgba(245, 240, 251, 0.12);
@@ -781,6 +795,8 @@
       #progress, header, .burger, .marquee, .hero-scroll { display: none !important; }
       .reveal { opacity: 1 !important; transform: none !important; }
       .dark, footer { background: #fff !important; color: var(--ink) !important; }
+      body, .hero, .model-band, .vision-band, #how, #partners { background: #fff !important; }
+      .vision-band .section-sub, .model-band .section-sub { color: var(--ink-soft) !important; }
       .dark .section-sub, .benefit p, .chip, .form-hint, .foot-col a, footer { color: var(--ink-soft) !important; }
       .benefit h3, .form-card h3, .foot-col .foot-head, .foot-brand .logo { color: var(--ink) !important; }
       .faq-a, .faq-a[hidden] { display: block !important; max-height: none !important; }
@@ -831,7 +847,7 @@
         linear-gradient(90deg, rgba(71, 37, 73, 0.07) 1px, transparent 1px);
       background-size: 28px 28px;
     }
-    .bip { background-color: var(--paper-2); border-color: rgba(71, 37, 73, 0.3); }
+    .bip { background-color: var(--white); border-color: rgba(71, 37, 73, 0.3); }
 
     /* hero overline: sticker, not pill */
     .hero-badge {
@@ -840,10 +856,11 @@
       font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500;
     }
 
-    /* wordmark heart */
-    .logo { color: var(--ink); font-family: var(--font-display); font-weight: 600; letter-spacing: 0.12em; font-size: 1.4rem; }
-    .logo .logo-heart { display: inline-flex; width: 22px; height: 22px; color: var(--red); }
-    .logo .logo-heart svg { width: 100%; height: 100%; }
+    /* logo lockup — official brand asset colours (fixed, exempt from site palette) */
+    .logo { color: var(--logo-green); font-family: var(--font-display); font-weight: 600; letter-spacing: 0.12em; font-size: 1.4rem; }
+    .logo .logo-mark { display: inline-flex; width: 26px; height: 26px; }
+    .logo .logo-mark svg { width: 100%; height: 100%; }
+    .logo .logo-dot { color: var(--logo-orange); margin-left: 0.05em; }
     .foot-brand .logo { color: var(--paper-2); }
 
     /* icon system */
@@ -856,7 +873,7 @@
 
     .kicker { color: var(--red-dark); }
     .dark .kicker { color: var(--sage); }
-    .model-band .kicker, .vision-band .kicker { color: var(--kicker-band); }
+    .model-band .kicker, .vision-band .kicker { color: var(--ink-deep); }
 
     .btn-outline { color: var(--ink); border-color: var(--ink); }
     .btn-outline:hover { background: var(--ink); color: #fff; }
@@ -869,7 +886,7 @@
     .btn-primary::after { content: "\2192"; margin-left: 0.45rem; display: inline-block; transition: transform 0.2s ease; }
     .btn-primary:hover::after { transform: translateX(3px); }
 
-    .marquee-pause { background: transparent; border-color: rgba(255, 255, 255, 0.6); color: #fff; width: 44px; height: 44px; font-size: 0.85rem; }
+    .marquee-pause { background: transparent; border-color: rgba(71, 37, 73, 0.55); color: var(--ink-deep); width: 44px; height: 44px; font-size: 0.85rem; }
 
     /* floating hearts */
     .heart-deco { position: absolute; pointer-events: none; color: var(--red); opacity: 0.85; z-index: 0; }
