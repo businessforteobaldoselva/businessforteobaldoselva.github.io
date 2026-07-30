@@ -132,5 +132,25 @@
     </div>
   </footer>
 
+  <script>
+    /* Brand period: colour the final full stop of display lines (see index). */
+    (function () {
+      document.querySelectorAll(".section-title, .page-hero h1").forEach(function (el) {
+        if (el.querySelector(".brand-period")) return;
+        var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+        var lastText = null, node;
+        while ((node = walker.nextNode())) { if (node.textContent.trim()) lastText = node; }
+        if (!lastText) return;
+        if (lastText.textContent.replace(/\s+$/, "").slice(-1) !== ".") return;
+        var idx = lastText.textContent.lastIndexOf(".");
+        var tail = lastText.splitText(idx);
+        tail.textContent = tail.textContent.slice(1);
+        var dot = document.createElement("span");
+        dot.className = "brand-period";
+        dot.textContent = ".";
+        lastText.parentNode.insertBefore(dot, tail);
+      });
+    })();
+  </script>
 </body>
 </html>

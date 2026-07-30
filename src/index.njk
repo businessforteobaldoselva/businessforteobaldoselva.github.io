@@ -208,6 +208,18 @@
             <span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span>
           </div>
         </div>
+
+        <aside class="receipt reveal" aria-label="Example receipt: pads £0.00, tampons £0.00, judgement none — total due £0.00, paid in full by advertisers">
+          <p class="r-brand">COVERED<span class="brand-period">.</span></p>
+          <p class="r-meta">Dispenser Nº 001 — Exeter</p>
+          <div class="r-row"><span>Pads (plastic-free)</span><span>£0.00</span></div>
+          <div class="r-row"><span>Tampons (organic)</span><span>£0.00</span></div>
+          <div class="r-row"><span>Judgement</span><span>None</span></div>
+          <div class="r-row r-total"><span>Total due</span><span>£0.00</span></div>
+          <p class="r-paid">Paid in full by brands that get it</p>
+          <div class="r-code" aria-hidden="true"></div>
+          <p class="r-script">We got you covered. Period.</p>
+        </aside>
       </div>
     </section>
 
@@ -747,6 +759,29 @@
       } else {
         counters.forEach(function (el) { el.textContent = el.getAttribute("data-target"); });
       }
+
+      /* ---------- Brand period: colour the final full stop of display lines ----------
+         The voice writes in short declaratives; the logo ends in an orange dot.
+         This makes every ending full stop the brand's own mark. Progressive
+         enhancement — with JS off the text is simply unstyled. */
+      (function () {
+        var targets = document.querySelectorAll(".section-title, .hero h1, .cta-banner h2");
+        targets.forEach(function (el) {
+          if (el.querySelector(".brand-period")) return;
+          var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+          var lastText = null, node;
+          while ((node = walker.nextNode())) { if (node.textContent.trim()) lastText = node; }
+          if (!lastText) return;
+          if (lastText.textContent.replace(/\s+$/, "").slice(-1) !== ".") return;
+          var idx = lastText.textContent.lastIndexOf(".");
+          var tail = lastText.splitText(idx);
+          tail.textContent = tail.textContent.slice(1);
+          var dot = document.createElement("span");
+          dot.className = "brand-period";
+          dot.textContent = ".";
+          lastText.parentNode.insertBefore(dot, tail);
+        });
+      })();
 
       /* ---------- Interactive demo ---------- */
       var phoneScreen = document.getElementById("phoneScreen");

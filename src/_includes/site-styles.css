@@ -649,8 +649,32 @@
     }
 
     /* ---------- Reveal on scroll ---------- */
-    .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    /* Reveal = the dispense: content drops in and settles, same easing as the
+       demo machine's packDrop — the system's own native motion, not a stock fade. */
+    .reveal { opacity: 0; transform: translateY(-18px); transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.3, 1.3, 0.5, 1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ---------- The brand period — display lines end in the logo's dot ---------- */
+    .brand-period { color: var(--red-deep); }
+    .dark .brand-period, .cta-banner .brand-period { color: var(--red); }
+    .model-band .brand-period, .vision-band .brand-period { color: var(--ink-deep); }
+
+    /* ---------- Receipt — proof of the model: your total is £0.00 ---------- */
+    .receipt {
+      width: 280px; margin: 3rem auto 0; background: var(--white);
+      padding: 1.4rem 1.3rem 1.7rem; box-shadow: var(--shadow);
+      transform: rotate(-1.5deg);
+      font-family: var(--font-head); color: var(--ink);
+      font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), 95% 100%, 90% calc(100% - 7px), 85% 100%, 80% calc(100% - 7px), 75% 100%, 70% calc(100% - 7px), 65% 100%, 60% calc(100% - 7px), 55% 100%, 50% calc(100% - 7px), 45% 100%, 40% calc(100% - 7px), 35% 100%, 30% calc(100% - 7px), 25% 100%, 20% calc(100% - 7px), 15% 100%, 10% calc(100% - 7px), 5% 100%, 0 calc(100% - 7px));
+    }
+    .receipt .r-brand { font-family: var(--font-display); font-size: 1.05rem; letter-spacing: 0.16em; text-align: center; margin-bottom: 0.2rem; }
+    .receipt .r-meta { text-align: center; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 0.9rem; }
+    .receipt .r-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; border-top: 1px dashed var(--line); }
+    .receipt .r-total { border-top: 1.5px solid var(--ink); font-weight: 700; }
+    .receipt .r-paid { text-align: center; font-size: 0.6rem; letter-spacing: 0.14em; color: var(--red-dark); margin: 0.7rem 0 0.9rem; }
+    .receipt .r-code { height: 30px; background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 7px, transparent 7px 9px, var(--ink) 9px 10px, transparent 10px 14px); margin-bottom: 0.8rem; }
+    .receipt .r-script { font-family: var(--font-script); text-transform: none; letter-spacing: 0.02em; font-size: 1.05rem; text-align: center; color: var(--ink); }
 
     /* ---------- Partners wall ---------- */
     .partner-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 3rem; }
