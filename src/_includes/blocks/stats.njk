@@ -1,0 +1,13 @@
+    <section{% if block.anchor %} id="{{ block.anchor }}"{% endif %}>
+      <div class="container">
+        {% if block.heading %}<h2 class="section-title" style="text-align: center;">{{ block.heading }}</h2>{% endif %}
+        <div class="stats-grid">
+          {%- for item in block.items %}
+          <div class="stat-card">
+            <div class="stat-num">{{ item.number }}</div>
+            <p class="stat-label">{{ item.label }}</p>
+          </div>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>

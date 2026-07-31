@@ -1,0 +1,33 @@
+    <!-- ============ PROBLEM ============ -->
+    <section id="problem" aria-labelledby="problem-title">
+      <div class="container">
+        <div class="reveal">
+          <span class="kicker">{{ problem.kicker }}</span>
+          <h2 class="section-title" id="problem-title">{{ problem.title | safe }}</h2>
+          <p class="section-sub">
+            {{ problem.subtitle }}
+          </p>
+        </div>
+
+        <div class="stats-grid">
+          {%- for stat in problem.stats %}
+          <div class="stat-card reveal">
+            <div class="stat-num"><span class="count" data-target="{{ stat.number }}">{{ stat.number }}</span>%</div>
+            <p class="stat-label">{{ stat.label }}</p>
+          </div>
+          {%- endfor %}
+        </div>
+
+        <p class="stats-source reveal">Source: <a href="{{ problem.sourceUrl }}" target="_blank" rel="noopener">{{ problem.sourceText }}</a>.</p>
+
+        <div class="photo-strip">
+          {%- for photo in problem.photos %}
+          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt }};">
+            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '-480.webp') }} 480w, {{ photo.src | replace('.jpg', '.webp') }} 1200w" sizes="(max-width: 780px) 92vw, 420px" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
+                 alt="{{ photo.alt }}" /></picture>
+            <figcaption>{{ photo.caption }}</figcaption>
+          </figure>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>

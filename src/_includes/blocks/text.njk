@@ -1,0 +1,7 @@
+    <section{% if block.anchor %} id="{{ block.anchor }}"{% endif %}>
+      <div class="container">
+        {% if block.kicker %}<span class="kicker">{{ block.kicker }}</span>{% endif %}
+        {% if block.heading %}<h2 class="section-title">{{ block.heading }}</h2>{% endif %}
+        <div class="section-sub" style="max-width: 66ch;">{{ block.body | md | safe }}</div>
+      </div>
+    </section>

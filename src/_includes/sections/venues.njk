@@ -1,0 +1,73 @@
+    <!-- ============ FOR VENUES ============ -->
+    <section id="venues" aria-labelledby="venues-title">
+      <div class="container">
+        <div class="reveal">
+          <span class="pilot-ribbon">{{ venues.ribbon }}</span>
+          <span class="kicker" style="display:block;">{{ venues.kicker }}</span>
+          <h2 class="section-title" id="venues-title">{{ venues.title | safe }}</h2>
+          <p class="section-sub">
+            {{ venues.subtitle }}
+          </p>
+        </div>
+
+        <div class="cols-2">
+          <div class="list-card reveal">
+            <h3>{{ ic.emojiIcon("🛠️") }} We handle</h3>
+            <ul>
+              {%- for item in venues.weHandle %}
+              <li>{{ item }}</li>
+              {%- endfor %}
+            </ul>
+          </div>
+          <div class="list-card wants reveal">
+            <h3>{{ ic.emojiIcon("🧩") }} You provide</h3>
+            <ul>
+              {%- for item in venues.youProvide %}
+              <li>{{ item }}</li>
+              {%- endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="form-card light-form reveal">
+          <h3>{{ venues.formHeading }}</h3>
+          <form id="venueForm" name="venue-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+            <input type="hidden" name="form-name" value="venue-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+            <div class="form-grid">
+              <div class="field">
+                <label for="vName">Your name <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="vName" name="name" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="vVenue">Venue / organisation <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="vVenue" name="venue" autocomplete="organization" required />
+              </div>
+              <div class="field">
+                <label for="vEmail">Email <span class="req" aria-hidden="true">*</span></label>
+                <input type="email" id="vEmail" name="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label for="vType">Venue type</label>
+                <select id="vType" name="type">
+                  <option>University / school</option>
+                  <option>Shopping centre / retail</option>
+                  <option>Stadium / large venue</option>
+                  <option>Transport hub</option>
+                  <option>Office / workplace</option>
+                  <option>Hospitality</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="vMsg">Anything we should know?</label>
+                <textarea id="vMsg" name="message" placeholder="Location, footfall, timelines…"></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">{{ venues.formButton }}</button>
+              <span class="form-hint">{{ venues.formHint }}</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>

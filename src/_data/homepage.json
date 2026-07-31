@@ -1,0 +1,52 @@
+{
+  "sections": [
+    {
+      "type": "hero",
+      "enabled": true
+    },
+    {
+      "type": "marquee",
+      "enabled": true
+    },
+    {
+      "type": "problem",
+      "enabled": false
+    },
+    {
+      "type": "model",
+      "enabled": true
+    },
+    {
+      "type": "how",
+      "enabled": true
+    },
+    {
+      "type": "brands",
+      "enabled": true
+    },
+    {
+      "type": "partners",
+      "enabled": true
+    },
+    {
+      "type": "venues",
+      "enabled": true
+    },
+    {
+      "type": "locations",
+      "enabled": true
+    },
+    {
+      "type": "vision",
+      "enabled": true
+    },
+    {
+      "type": "faq",
+      "enabled": true
+    },
+    {
+      "type": "cta",
+      "enabled": true
+    }
+  ]
+}

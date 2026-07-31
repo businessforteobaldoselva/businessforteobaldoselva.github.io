@@ -1,0 +1,9 @@
+    <section{% if block.anchor %} id="{{ block.anchor }}"{% endif %}>
+      <div class="container">
+        <div class="cta-banner">
+          <h2>{{ block.title }}</h2>
+          {% if block.text %}<p>{{ block.text }}</p>{% endif %}
+          {% if block.buttonText %}<a class="btn btn-light" href="{{ block.buttonLink or '/' }}">{{ block.buttonText }}</a>{% endif %}
+        </div>
+      </div>
+    </section>

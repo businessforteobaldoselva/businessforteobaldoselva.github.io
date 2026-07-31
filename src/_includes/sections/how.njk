@@ -1,0 +1,49 @@
+    <!-- ============ HOW IT WORKS / DEMO ============ -->
+    <section id="how" aria-labelledby="how-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">{{ how.kicker }}</span>
+          <h2 class="section-title" id="how-title">{{ how.title }}</h2>
+          <p class="section-sub" style="margin: 0 auto;">
+            {{ how.subtitle }}
+          </p>
+        </div>
+
+        <ol class="stepper reveal" id="stepper" aria-label="Demo progress">
+          <li class="step-chip active" data-step="0" aria-current="step"><span class="n" aria-hidden="true">1</span> Scan the QR</li>
+          <li class="step-chip" data-step="1"><span class="n" aria-hidden="true">2</span> Quick check-in</li>
+          <li class="step-chip" data-step="2"><span class="n" aria-hidden="true">3</span> A word from our sponsor</li>
+          <li class="step-chip" data-step="3"><span class="n" aria-hidden="true">4</span> Covered.</li>
+        </ol>
+
+        <div class="demo-card reveal">
+          <!-- Machine -->
+          <div class="machine-stage" id="machineStage">
+            <div class="machine" role="img" aria-label="Illustration of a COVERED wall-mounted dispenser">
+              <span class="led" aria-hidden="true"></span>
+              <div class="m-screen" id="machineScreen">
+                <div class="qr" aria-hidden="true"></div>
+              </div>
+              <div class="m-label">Covered</div>
+              <div class="m-slot" id="machineSlot">
+                <div class="pack" id="pack">4-PACK</div>
+              </div>
+            </div>
+            <span class="stamp machine-stamp" id="machineStamp">Covered.</span>
+          </div>
+
+          <!-- Phone -->
+          <div class="phone">
+            <div class="p-screen" id="phoneScreen" aria-live="polite" tabindex="-1">
+              <h3>Need a pad or tampon?</h3>
+              <p>Scan the QR code on the machine to get started — it's free.</p>
+              <button class="btn btn-primary" id="btnScan">Simulate scan</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="demo-note">
+          {{ how.demoNote }}
+        </p>
+      </div>
+    </section>

@@ -1,0 +1,7 @@
+    <section class="hero"{% if block.anchor %} id="{{ block.anchor }}"{% endif %} style="padding: 5rem 0 3rem;">
+      <div class="container hero-inner">
+        <h1>{{ block.heading }}{% if block.accent %} <span class="accent">{{ block.accent }}</span>{% endif %}</h1>
+        {% if block.sub %}<p class="hero-sub">{{ block.sub }}</p>{% endif %}
+        {% if block.ctaText %}<div class="hero-ctas"><a href="{{ block.ctaLink or '/' }}" class="btn btn-primary">{{ block.ctaText }}</a></div>{% endif %}
+      </div>
+    </section>

@@ -1,0 +1,24 @@
+    <!-- ============ HERO ============ -->
+    <section class="hero" aria-label="Introduction">
+      <div class="heart-deco floaty" style="width: 72px; height: 72px; top: 24%; right: 10%; --tilt: 14deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
+      <div class="heart-deco floaty slow" style="width: 46px; height: 46px; bottom: 26%; left: 9%; --tilt: -12deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
+      <div class="container hero-inner">
+        <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> {{ hero.badge }}</span>
+        <h1>{{ hero.headlineMain }} <span class="accent">{{ hero.headlineAccent }}</span></h1>
+
+        <div class="hero-stamp-row">
+          <span class="stamp" id="heroStamp">{{ hero.stamp }}</span>
+        </div>
+
+        <p class="hero-sub">
+          {{ hero.subhead }}
+        </p>
+
+        <div class="hero-ctas">
+          <a href="#brands" class="btn btn-primary">{{ hero.ctaBrand }}</a>
+          <a href="#venues" class="btn btn-outline">{{ hero.ctaVenue }}</a>
+        </div>
+
+        <p class="hero-scroll"><a href="#problem">{{ hero.scrollText }}</a></p>
+      </div>
+    </section>

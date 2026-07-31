@@ -1,0 +1,13 @@
+    <section{% if block.anchor %} id="{{ block.anchor }}"{% endif %}>
+      <div class="container">
+        {% if block.heading %}<h2 class="section-title" style="text-align: center;">{{ block.heading }}</h2>{% endif %}
+        <div class="faq-list">
+          {%- for item in block.items %}
+          <div class="faq-item open">
+            <div class="faq-q" style="cursor: default;">{{ item.q }}</div>
+            <div class="faq-a" style="max-height: none;"><div class="faq-a-inner">{{ item.a }}</div></div>
+          </div>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>

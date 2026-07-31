@@ -1,0 +1,42 @@
+    <!-- ============ LOCATIONS ============ -->
+    <section id="locations" aria-labelledby="locations-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">{{ locations.kicker }}</span>
+          <h2 class="section-title" id="locations-title">{{ locations.title | safe }}</h2>
+          <p class="section-sub" style="margin: 0 auto;">
+            {{ locations.subtitle }}
+          </p>
+        </div>
+
+        <div class="loc-grid">
+          <div class="uk-map-wrap reveal">
+            <svg class="uk-map" viewBox="{{ locations.svgViewBox }}" role="img" aria-label="{{ locations.svgAriaLabel }}">
+              <path class="uk-neighbor" d="{{ locations.neighborPath }}"/>
+              <path class="uk-land" d="{{ locations.landPath }}"/>
+              <g id="mapPins" aria-hidden="true"></g>
+            </svg>
+            <div class="map-legend" aria-hidden="true">
+              <span><span class="dot live"></span>Pilot city</span>
+              <span><span class="dot soon"></span>On the roadmap</span>
+            </div>
+          </div>
+
+          <div class="reveal">
+            <div class="city-chips" id="cityChips" role="group" aria-label="Choose a city to see its status"></div>
+            <div class="city-detail" id="cityDetail" aria-live="polite"></div>
+            <div class="loc-types">
+              <p class="loc-types-title">The kinds of places we're targeting first:</p>
+              <div class="chip-row">
+                {%- for pt in locations.placeTypes %}
+                <span class="chip">{{ ic.emojiIcon(pt.emoji) }} {{ pt.label }}</span>
+                {%- endfor %}
+              </div>
+              <p class="loc-cta">
+                <a href="#venues" class="btn btn-outline">{{ locations.ctaButton }}</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>

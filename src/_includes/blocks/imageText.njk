@@ -1,0 +1,20 @@
+    <section{% if block.anchor %} id="{{ block.anchor }}"{% endif %}>
+      <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; align-items: center;">
+        {% if not block.imageRight %}
+        <figure class="polaroid" style="--tilt: -2deg; max-width: 420px;">
+          <img src="{{ block.image }}" alt="{{ block.alt }}" loading="lazy" />
+          {% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endif %}
+        <div>
+          {% if block.heading %}<h2 class="section-title">{{ block.heading }}</h2>{% endif %}
+          <div class="section-sub">{{ block.body | md | safe }}</div>
+        </div>
+        {% if block.imageRight %}
+        <figure class="polaroid" style="--tilt: 2deg; max-width: 420px;">
+          <img src="{{ block.image }}" alt="{{ block.alt }}" loading="lazy" />
+          {% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endif %}
+      </div>
+    </section>

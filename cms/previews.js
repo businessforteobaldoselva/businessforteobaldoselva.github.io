@@ -606,6 +606,55 @@
     })
   );
 
+  // ---------- Homepage layout (running order) ----------
+  CMS.registerPreviewTemplate(
+    "homepage",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var sections = e.getIn(["data", "sections"]);
+        sections = sections && sections.toJS ? sections.toJS() : [];
+        var names = {
+          hero: "🏠 Hero (big opening screen)",
+          marquee: "🎞️ Scrolling venue ticker",
+          problem: "📊 The problem (stats & photos)",
+          model: "🔁 The model (Brands pay. You don't.)",
+          how: "📱 How it works (interactive demo)",
+          brands: "📣 For brands (advertising enquiry)",
+          partners: "🤝 Partner wall",
+          venues: "🏟️ For venues (hosting enquiry)",
+          locations: "🗺️ Locations (UK map)",
+          vision: "🚀 Vision / roadmap",
+          faq: "❓ FAQ",
+          cta: "✉️ Closing banner (get in touch)",
+          textBlock: "📝 Text section (yours)",
+          imageTextBlock: "🖼️ Image + text (yours)",
+          statsBlock: "🔢 Number cards (yours)",
+          bannerBlock: "📣 Big orange banner (yours)",
+          faqBlock: "❓ Questions & answers (yours)",
+        };
+        return h(
+          "div",
+          {},
+          note("The homepage running order, top to bottom. Drag sections in the editor to rearrange the live page; hidden sections stay saved but don't appear."),
+          sections.map(function (s, i) {
+            var hidden = s && s.enabled === false;
+            var label = names[s && s.type] || (s && s.type ? s.type : "Unknown section");
+            return h(
+              "p",
+              {
+                className: "cms-note",
+                key: i,
+                style: hidden ? { opacity: 0.55, textDecoration: "line-through" } : {},
+              },
+              (i + 1) + ". " + label + (hidden ? " — hidden" : "")
+            );
+          })
+        );
+      },
+    })
+  );
+
   // ---------- Site-wide ----------
   CMS.registerPreviewTemplate(
     "site",

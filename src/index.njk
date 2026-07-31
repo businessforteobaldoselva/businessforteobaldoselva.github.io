@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#F3EDFB" />
+  <meta name="theme-color" content="{{ theme.paper2 | safeColor("#F3EDFB") }}" />
   <script>
     /* Netlify Identity emails (invites, password recovery) link to the site
        root with a token in the hash — forward them to the CMS login page. */
@@ -61,7 +61,7 @@
         "inLanguage": "en-GB",
         "datePublished": "2026-06-28",
         "dateModified": "2026-07-13"
-      },
+      }{% if (homepage | sectionEnabled("faq")) and faq.items and faq.items.length %},
       {
         "@type": "FAQPage",
         "@id": "https://coveredaccess.com/#faqpage",
@@ -74,16 +74,28 @@
           }{% if not loop.last %},{% endif %}
           {%- endfor %}
         ]
-      }
+      }{% endif %}
     ]
   }
   </script>
 
   <style>
-{% include "site-styles.css" %}  </style>
+{% include "site-styles.css" %}
+{% include "theme-vars.njk" %}  </style>
   <noscript><style>.reveal { opacity: 1; transform: none; } .faq-a { max-height: none !important; } .faq-a[hidden] { display: block; }</style></noscript>
 </head>
-<body>
+{#- Animation controls (src/_data/motion.json) → body classes, so CSS-only
+    motion (marquee, conveyor, floaty…) obeys the CMS without JavaScript.
+    With default settings no class is emitted and the page is unchanged. -#}
+{%- set motionClasses = "" %}
+{%- if motion.enabled === false %}{% set motionClasses = motionClasses + " motion-off" %}{% endif %}
+{%- if motion.speed == "slower" %}{% set motionClasses = motionClasses + " m-speed-slower" %}{% elif motion.speed == "faster" %}{% set motionClasses = motionClasses + " m-speed-faster" %}{% endif %}
+{%- if motion.reveal == "fade" %}{% set motionClasses = motionClasses + " reveal-fade" %}{% elif motion.reveal == "off" %}{% set motionClasses = motionClasses + " reveal-off" %}{% endif %}
+{%- if motion.floatingHearts === false %}{% set motionClasses = motionClasses + " no-floaty" %}{% endif %}
+{%- if motion.marquee === false %}{% set motionClasses = motionClasses + " no-marquee" %}{% endif %}
+{%- if motion.conveyor === false %}{% set motionClasses = motionClasses + " no-conveyor" %}{% endif %}
+{%- if motion.scrollProgress === false %}{% set motionClasses = motionClasses + " no-progress" %}{% endif %}
+<body{% if motionClasses %} class="{{ motionClasses | trim }}"{% endif %}>
 
   <a class="skip-link" href="#top">Skip to content</a>
 
@@ -99,482 +111,39 @@
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
-        <li><a href="#how">How it works</a></li>
-        <li><a href="#partners">Partners</a></li>
-        <li><a href="#venues">For venues</a></li>
-        <li><a href="#locations">Locations</a></li>
+        {% if homepage | sectionEnabled("how") %}<li><a href="#how">How it works</a></li>{% endif %}
+        {% if homepage | sectionEnabled("partners") %}<li><a href="#partners">Partners</a></li>{% endif %}
+        {% if homepage | sectionEnabled("venues") %}<li><a href="#venues">For venues</a></li>{% endif %}
+        {% if homepage | sectionEnabled("locations") %}<li><a href="#locations">Locations</a></li>{% endif %}
         <li><a href="/about/">About</a></li>
-        <li><a href="#faq">FAQ</a></li>
-        <li><a href="#brands" class="btn btn-primary">Advertise with us</a></li>
+        {% if homepage | sectionEnabled("faq") %}<li><a href="#faq">FAQ</a></li>{% endif %}
+        {% if homepage | sectionEnabled("brands") %}<li><a href="#brands" class="btn btn-primary">Advertise with us</a></li>{% endif %}
       </ul>
     </div>
   </header>
 
   <main id="top">
 
-    <!-- ============ HERO ============ -->
-    <section class="hero" aria-label="Introduction">
-      <div class="heart-deco floaty" style="width: 72px; height: 72px; top: 24%; right: 10%; --tilt: 14deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
-      <div class="heart-deco floaty slow" style="width: 46px; height: 46px; bottom: 26%; left: 9%; --tilt: -12deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
-      <div class="container hero-inner">
-        <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> {{ hero.badge }}</span>
-        <h1>{{ hero.headlineMain }} <span class="accent">{{ hero.headlineAccent }}</span></h1>
-
-        <div class="hero-stamp-row">
-          <span class="stamp" id="heroStamp">{{ hero.stamp }}</span>
-        </div>
-
-        <p class="hero-sub">
-          {{ hero.subhead }}
-        </p>
-
-        <div class="hero-ctas">
-          <a href="#brands" class="btn btn-primary">{{ hero.ctaBrand }}</a>
-          <a href="#venues" class="btn btn-outline">{{ hero.ctaVenue }}</a>
-        </div>
-
-        <p class="hero-scroll"><a href="#problem">{{ hero.scrollText }}</a></p>
-      </div>
-    </section>
-
-    <!-- ============ MARQUEE ============ -->
-    <div class="marquee">
-      <button class="marquee-pause" id="marqueePause" aria-label="Pause scrolling venue list" aria-pressed="false">⏸</button>
-      <div class="marquee-track" aria-hidden="true">
-        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
-        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
-      </div>
-    </div>
-    <p class="visually-hidden">Target venues include universities, train stations, stadiums, festivals, offices, shopping centres, airports, schools and community centres.</p>
-
-    <!-- ============ PROBLEM ============ -->
-    <section id="problem" aria-labelledby="problem-title">
-      <div class="container">
-        <div class="reveal">
-          <span class="kicker">{{ problem.kicker }}</span>
-          <h2 class="section-title" id="problem-title">{{ problem.title | safe }}</h2>
-          <p class="section-sub">
-            {{ problem.subtitle }}
-          </p>
-        </div>
-
-        <div class="stats-grid">
-          {%- for stat in problem.stats %}
-          <div class="stat-card reveal">
-            <div class="stat-num"><span class="count" data-target="{{ stat.number }}">{{ stat.number }}</span>%</div>
-            <p class="stat-label">{{ stat.label }}</p>
-          </div>
-          {%- endfor %}
-        </div>
-
-        <p class="stats-source reveal">Source: <a href="{{ problem.sourceUrl }}" target="_blank" rel="noopener">{{ problem.sourceText }}</a>.</p>
-
-        <div class="photo-strip">
-          {%- for photo in problem.photos %}
-          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt }};">
-            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '-480.webp') }} 480w, {{ photo.src | replace('.jpg', '.webp') }} 1200w" sizes="(max-width: 780px) 92vw, 420px" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
-                 alt="{{ photo.alt }}" /></picture>
-            <figcaption>{{ photo.caption }}</figcaption>
-          </figure>
-          {%- endfor %}
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ MODEL ============ -->
-    <section class="model-band texture-dots" aria-labelledby="model-title">
-      <div class="container">
-        <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ model.kicker }}</span>
-          <h2 class="section-title" id="model-title">{{ model.title }}</h2>
-          <p class="section-sub" style="margin: 0 auto;">
-            {{ model.subtitle }}
-          </p>
-        </div>
-
-        <div class="loop reveal">
-          {%- for step in model.steps %}
-          <div class="loop-step">
-            <div class="loop-emoji" aria-hidden="true">{{ ic.emojiIcon(step.emoji) }}</div>
-            <h3>{{ step.title }}</h3>
-            <p>{{ step.desc }}</p>
-          </div>
-          {%- if not loop.last %}<div class="loop-arrow" aria-hidden="true">→</div>{% endif %}
-          {%- endfor %}
-        </div>
-
-        <div class="conveyor reveal" aria-hidden="true">
-          <div class="belt-track">
-            <span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span>
-          </div>
-        </div>
-
-        <aside class="receipt reveal" aria-label="Example receipt: pads £0.00, tampons £0.00, judgement none — total due £0.00, paid in full by advertisers">
-          <p class="r-brand">COVERED<span class="brand-period">.</span></p>
-          <p class="r-meta">Dispenser Nº 001 — Exeter</p>
-          <div class="r-row"><span>Pads (plastic-free)</span><span>£0.00</span></div>
-          <div class="r-row"><span>Tampons (organic)</span><span>£0.00</span></div>
-          <div class="r-row"><span>Judgement</span><span>None</span></div>
-          <div class="r-row r-total"><span>Total due</span><span>£0.00</span></div>
-          <p class="r-paid">Paid in full by brands that get it</p>
-          <div class="r-code" aria-hidden="true"></div>
-          <p class="r-script">We got you covered. Period.</p>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ============ HOW IT WORKS / DEMO ============ -->
-    <section id="how" aria-labelledby="how-title">
-      <div class="container">
-        <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ how.kicker }}</span>
-          <h2 class="section-title" id="how-title">{{ how.title }}</h2>
-          <p class="section-sub" style="margin: 0 auto;">
-            {{ how.subtitle }}
-          </p>
-        </div>
-
-        <ol class="stepper reveal" id="stepper" aria-label="Demo progress">
-          <li class="step-chip active" data-step="0" aria-current="step"><span class="n" aria-hidden="true">1</span> Scan the QR</li>
-          <li class="step-chip" data-step="1"><span class="n" aria-hidden="true">2</span> Quick check-in</li>
-          <li class="step-chip" data-step="2"><span class="n" aria-hidden="true">3</span> A word from our sponsor</li>
-          <li class="step-chip" data-step="3"><span class="n" aria-hidden="true">4</span> Covered.</li>
-        </ol>
-
-        <div class="demo-card reveal">
-          <!-- Machine -->
-          <div class="machine-stage" id="machineStage">
-            <div class="machine" role="img" aria-label="Illustration of a COVERED wall-mounted dispenser">
-              <span class="led" aria-hidden="true"></span>
-              <div class="m-screen" id="machineScreen">
-                <div class="qr" aria-hidden="true"></div>
-              </div>
-              <div class="m-label">Covered</div>
-              <div class="m-slot" id="machineSlot">
-                <div class="pack" id="pack">4-PACK</div>
-              </div>
-            </div>
-            <span class="stamp machine-stamp" id="machineStamp">Covered.</span>
-          </div>
-
-          <!-- Phone -->
-          <div class="phone">
-            <div class="p-screen" id="phoneScreen" aria-live="polite" tabindex="-1">
-              <h3>Need a pad or tampon?</h3>
-              <p>Scan the QR code on the machine to get started — it's free.</p>
-              <button class="btn btn-primary" id="btnScan">Simulate scan</button>
-            </div>
-          </div>
-        </div>
-
-        <p class="demo-note">
-          {{ how.demoNote }}
-        </p>
-      </div>
-    </section>
-
-
-    <!-- ============ FOR BRANDS ============ -->
-    <section id="brands" class="dark" aria-labelledby="brands-title">
-      <div class="container">
-        <div class="reveal brands-head">
-          <div>
-            <span class="kicker">{{ brands.kicker }}</span>
-            <h2 class="section-title" id="brands-title">{{ brands.title | safe }}</h2>
-            <p class="section-sub">
-              {{ brands.subtitle }}
-            </p>
-          </div>
-          <figure class="polaroid">
-            <picture><source type="image/webp" srcset="{{ brands.headerPhoto.src | replace('.jpg', '-480.webp') }} 480w, {{ brands.headerPhoto.src | replace('.jpg', '.webp') }} 1200w" sizes="250px" /><img src="{{ brands.headerPhoto.src }}" width="{{ brands.headerPhoto.width }}" height="{{ brands.headerPhoto.height }}" loading="lazy"
-                 alt="{{ brands.headerPhoto.alt }}" /></picture>
-            <figcaption>{{ brands.headerPhoto.caption }}</figcaption>
-          </figure>
-        </div>
-
-        <div class="benefit-grid">
-          {%- for b in brands.benefits %}
-          <div class="benefit reveal">
-            <div class="b-icon" aria-hidden="true">{{ ic.emojiIcon(b.icon) }}</div>
-            <h3>{{ b.title }}</h3>
-            <p>{{ b.desc }}</p>
-          </div>
-          {%- endfor %}
-        </div>
-
-        <div class="chip-row reveal">
-          {%- for chip in brands.chips %}
-          <span class="chip">{{ chip | safe }}</span>
-          {%- endfor %}
-        </div>
-
-        <div class="form-card reveal">
-          <h3>{{ brands.formHeading }}</h3>
-          <form id="brandForm" name="brand-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
-            <input type="hidden" name="form-name" value="brand-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
-            <div class="form-grid">
-              <div class="field">
-                <label for="bName">Your name <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="bName" name="name" autocomplete="name" required />
-              </div>
-              <div class="field">
-                <label for="bCompany">Company <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="bCompany" name="company" autocomplete="organization" required />
-              </div>
-              <div class="field">
-                <label for="bEmail">Work email <span class="req" aria-hidden="true">*</span></label>
-                <input type="email" id="bEmail" name="email" autocomplete="email" required />
-              </div>
-              <div class="field">
-                <label for="bBudget">Indicative monthly budget</label>
-                <select id="bBudget" name="budget">
-                  <option value="">Prefer not to say</option>
-                  <option>Under £500</option>
-                  <option>£500 – £2,000</option>
-                  <option>£2,000 – £5,000</option>
-                  <option>£5,000+</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="bTiming">Preferred campaign timing</label>
-                <input type="text" id="bTiming" name="timing" placeholder="e.g. Sept – Dec 2026" />
-              </div>
-              <div class="field full">
-                <label for="bMsg">What are you looking to achieve?</label>
-                <textarea id="bMsg" name="message" placeholder="Campaign goals, timing, locations of interest…"></textarea>
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">{{ brands.formButton }}</button>
-              <span class="form-hint">{{ brands.formHint }}</span>
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ============ PARTNERS ============ -->
-    <section id="partners" aria-labelledby="partners-title">
-      <div class="container">
-        <div class="reveal">
-          <span class="kicker">{{ partners.kicker }}</span>
-          <h2 class="section-title" id="partners-title">{{ partners.title | safe }}</h2>
-          <p class="section-sub">
-            {{ partners.subtitle }}
-          </p>
-        </div>
-
-        <div class="partner-grid">
-          {%- for slot in partners.slots %}
-          {%- if slot.founding %}
-          <div class="p-slot founding reveal">
-            <span class="stamp">Reserved</span>
-            <span class="slot-logo">{{ slot.logoText }}</span>
-            <small>{{ slot.category | safe }}</small>
-          </div>
-          {%- else %}
-          <div class="p-slot reveal"><span class="slot-logo">{{ slot.logoText }}</span><small>{{ slot.category | safe }}</small></div>
-          {%- endif %}
-          {%- endfor %}
-        </div>
-
-        <p class="reveal" style="margin-top: 2rem; text-align: center;">
-          <a href="#brands" class="btn btn-primary">{{ partners.ctaButton }}</a>
-        </p>
-      </div>
-    </section>
-
-    <!-- ============ FOR VENUES ============ -->
-    <section id="venues" aria-labelledby="venues-title">
-      <div class="container">
-        <div class="reveal">
-          <span class="pilot-ribbon">{{ venues.ribbon }}</span>
-          <span class="kicker" style="display:block;">{{ venues.kicker }}</span>
-          <h2 class="section-title" id="venues-title">{{ venues.title | safe }}</h2>
-          <p class="section-sub">
-            {{ venues.subtitle }}
-          </p>
-        </div>
-
-        <div class="cols-2">
-          <div class="list-card reveal">
-            <h3>{{ ic.emojiIcon("🛠️") }} We handle</h3>
-            <ul>
-              {%- for item in venues.weHandle %}
-              <li>{{ item }}</li>
-              {%- endfor %}
-            </ul>
-          </div>
-          <div class="list-card wants reveal">
-            <h3>{{ ic.emojiIcon("🧩") }} You provide</h3>
-            <ul>
-              {%- for item in venues.youProvide %}
-              <li>{{ item }}</li>
-              {%- endfor %}
-            </ul>
-          </div>
-        </div>
-
-        <div class="form-card light-form reveal">
-          <h3>{{ venues.formHeading }}</h3>
-          <form id="venueForm" name="venue-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
-            <input type="hidden" name="form-name" value="venue-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
-            <div class="form-grid">
-              <div class="field">
-                <label for="vName">Your name <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="vName" name="name" autocomplete="name" required />
-              </div>
-              <div class="field">
-                <label for="vVenue">Venue / organisation <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="vVenue" name="venue" autocomplete="organization" required />
-              </div>
-              <div class="field">
-                <label for="vEmail">Email <span class="req" aria-hidden="true">*</span></label>
-                <input type="email" id="vEmail" name="email" autocomplete="email" required />
-              </div>
-              <div class="field">
-                <label for="vType">Venue type</label>
-                <select id="vType" name="type">
-                  <option>University / school</option>
-                  <option>Shopping centre / retail</option>
-                  <option>Stadium / large venue</option>
-                  <option>Transport hub</option>
-                  <option>Office / workplace</option>
-                  <option>Hospitality</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div class="field full">
-                <label for="vMsg">Anything we should know?</label>
-                <textarea id="vMsg" name="message" placeholder="Location, footfall, timelines…"></textarea>
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">{{ venues.formButton }}</button>
-              <span class="form-hint">{{ venues.formHint }}</span>
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ LOCATIONS ============ -->
-    <section id="locations" aria-labelledby="locations-title">
-      <div class="container">
-        <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ locations.kicker }}</span>
-          <h2 class="section-title" id="locations-title">{{ locations.title | safe }}</h2>
-          <p class="section-sub" style="margin: 0 auto;">
-            {{ locations.subtitle }}
-          </p>
-        </div>
-
-        <div class="loc-grid">
-          <div class="uk-map-wrap reveal">
-            <svg class="uk-map" viewBox="{{ locations.svgViewBox }}" role="img" aria-label="{{ locations.svgAriaLabel }}">
-              <path class="uk-neighbor" d="{{ locations.neighborPath }}"/>
-              <path class="uk-land" d="{{ locations.landPath }}"/>
-              <g id="mapPins" aria-hidden="true"></g>
-            </svg>
-            <div class="map-legend" aria-hidden="true">
-              <span><span class="dot live"></span>Pilot city</span>
-              <span><span class="dot soon"></span>On the roadmap</span>
-            </div>
-          </div>
-
-          <div class="reveal">
-            <div class="city-chips" id="cityChips" role="group" aria-label="Choose a city to see its status"></div>
-            <div class="city-detail" id="cityDetail" aria-live="polite"></div>
-            <div class="loc-types">
-              <p class="loc-types-title">The kinds of places we're targeting first:</p>
-              <div class="chip-row">
-                {%- for pt in locations.placeTypes %}
-                <span class="chip">{{ ic.emojiIcon(pt.emoji) }} {{ pt.label }}</span>
-                {%- endfor %}
-              </div>
-              <p class="loc-cta">
-                <a href="#venues" class="btn btn-outline">{{ locations.ctaButton }}</a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ VISION ============ -->
-    <section class="vision-band texture-dots" aria-labelledby="vision-title">
-      <div class="container">
-        <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ vision.kicker }}</span>
-          <h2 class="section-title" id="vision-title">{{ vision.title | safe }}</h2>
-        </div>
-
-        <div class="timeline">
-          {%- for m in vision.milestones %}
-          <div class="milestone reveal">
-            <span class="phase-tag">{{ m.tag }}</span>
-            <h3>{{ m.title }}</h3>
-            <p>{{ m.desc }}</p>
-          </div>
-          {%- endfor %}
-        </div>
-
-        <div class="bip reveal">
-          <h3>{{ vision.bipTitle }}</h3>
-          <p>
-            {{ vision.bipText }}
-          </p>
-          <div class="soon-chips">
-            {%- for chip in vision.soonChips %}
-            <span class="chip">{{ chip }}</span>
-            {%- endfor %}
-          </div>
-          <form name="launch-notify" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="notify-form" id="notifyForm">
-            <input type="hidden" name="form-name" value="launch-notify" />
-            <p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
-            <label class="visually-hidden" for="nEmail">Your email</label>
-            <input id="nEmail" type="email" name="email" required placeholder="you@email.com" autocomplete="email" />
-            <button class="btn btn-primary" type="submit">Tell me when Exeter goes live</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ FAQ ============ -->
-    <section id="faq" aria-labelledby="faq-title">
-      <div class="container">
-        <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ faq.kicker }}</span>
-          <h2 class="section-title" id="faq-title">{{ faq.title }}</h2>
-        </div>
-
-        <div class="faq-list">
-          {%- for item in faq.items %}
-          <div class="faq-item reveal">
-            <button class="faq-q" aria-expanded="false">
-              {{ item.q }}
-              <span class="indicator" aria-hidden="true">+</span>
-            </button>
-            <div class="faq-a"><div class="faq-a-inner">
-              {{ item.a }}
-            </div></div>
-          </div>
-          {%- endfor %}
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ CTA ============ -->
-    <section aria-label="Get in touch">
-      <div class="container">
-        <div class="cta-banner reveal">
-          <h2>{{ site.ctaBannerTitle }}</h2>
-          <p>{{ site.ctaBannerText }}</p>
-          <a class="btn btn-light" href="mailto:{{ site.contactEmail }}?subject=COVERED%20—%20Hello">{{ site.ctaBannerButton }}</a>
-        </div>
-      </div>
-    </section>
+    {%- set builtinSections = ["hero", "marquee", "problem", "model", "how", "brands", "partners", "venues", "locations", "vision", "faq", "cta"] %}
+    {%- for s in homepage.sections %}
+      {%- if s.enabled !== false %}
+        {%- set sectionData = s %}
+        {%- set block = s %}
+        {%- if s.type in builtinSections %}
+{% include "sections/" + s.type + ".njk" %}
+        {%- elif s.type == "textBlock" %}
+{% include "blocks/text.njk" %}
+        {%- elif s.type == "imageTextBlock" %}
+{% include "blocks/imageText.njk" %}
+        {%- elif s.type == "statsBlock" %}
+{% include "blocks/stats.njk" %}
+        {%- elif s.type == "bannerBlock" %}
+{% include "blocks/banner.njk" %}
+        {%- elif s.type == "faqBlock" %}
+{% include "blocks/faq.njk" %}
+        {%- endif %}
+      {%- endif %}
+    {%- endfor %}
 
   </main>
 
@@ -592,10 +161,10 @@
         <nav class="foot-col" aria-label="Footer — explore">
           <p class="foot-head">Explore</p>
           <ul>
-            <li><a href="/#problem">The problem</a></li>
-            <li><a href="/#how">How it works</a></li>
-            <li><a href="/#locations">Locations</a></li>
-            <li><a href="/#faq">FAQ</a></li>
+            {% if homepage | sectionEnabled("problem") %}<li><a href="/#problem">The problem</a></li>{% endif %}
+            {% if homepage | sectionEnabled("how") %}<li><a href="/#how">How it works</a></li>{% endif %}
+            {% if homepage | sectionEnabled("locations") %}<li><a href="/#locations">Locations</a></li>{% endif %}
+            {% if homepage | sectionEnabled("faq") %}<li><a href="/#faq">FAQ</a></li>{% endif %}
             <li><a href="/about/">About</a></li>
             <li><a href="/privacy/">Privacy</a></li>
           </ul>
@@ -603,9 +172,9 @@
         <nav class="foot-col" aria-label="Footer — partner">
           <p class="foot-head">Partner</p>
           <ul>
-            <li><a href="/#brands">Advertise with us</a></li>
-            <li><a href="/#partners">Partner wall</a></li>
-            <li><a href="/#venues">Host a dispenser</a></li>
+            {% if homepage | sectionEnabled("brands") %}<li><a href="/#brands">Advertise with us</a></li>{% endif %}
+            {% if homepage | sectionEnabled("partners") %}<li><a href="/#partners">Partner wall</a></li>{% endif %}
+            {% if homepage | sectionEnabled("venues") %}<li><a href="/#venues">Host a dispenser</a></li>{% endif %}
             <li><a href="mailto:{{ site.contactEmail }}">Contact</a></li>
           </ul>
         </nav>
@@ -618,10 +187,38 @@
     </div>
   </footer>
 
+  <script>window.COVERED_MOTION = {{ motion | dump | replace("<", "\\u003c") | safe }};</script>
+  <script>
+    /* Brand period: colour the final full stop of display lines.
+       The voice writes in short declaratives; the logo ends in an orange dot.
+       Progressive enhancement — with JS off the text is simply unstyled. */
+    (function () {
+      document.querySelectorAll(".section-title, .hero h1, .cta-banner h2").forEach(function (el) {
+        if (el.querySelector(".brand-period")) return;
+        var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+        var lastText = null, node;
+        while ((node = walker.nextNode())) { if (node.textContent.trim()) lastText = node; }
+        if (!lastText) return;
+        if (lastText.textContent.replace(/\s+$/, "").slice(-1) !== ".") return;
+        var idx = lastText.textContent.lastIndexOf(".");
+        var tail = lastText.splitText(idx);
+        tail.textContent = tail.textContent.slice(1);
+        var dot = document.createElement("span");
+        dot.className = "brand-period";
+        dot.textContent = ".";
+        lastText.parentNode.insertBefore(dot, tail);
+      });
+    })();
+  </script>
   <script>
     (function () {
       "use strict";
-      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var M = window.COVERED_MOTION || {};
+      var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      /* The CMS master switch behaves like an OS "reduce motion" request —
+         but the visitor's OS preference always wins, even when the CMS has
+         animations switched ON. */
+      var reduced = prefersReducedMotion || M.enabled === false;
 
       /* ---------- Footer year ---------- */
       document.getElementById("year").textContent = new Date().getFullYear();
@@ -629,30 +226,35 @@
       /* ---------- Scroll progress ---------- */
       var progress = document.getElementById("progress");
       function updateProgress() {
+        if (!progress) { return; }
         var h = document.documentElement;
         var max = h.scrollHeight - h.clientHeight;
         progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
       }
-      window.addEventListener("scroll", updateProgress, { passive: true });
-      window.addEventListener("resize", updateProgress);
-      if ("ResizeObserver" in window) {
-        new ResizeObserver(updateProgress).observe(document.body);
+      if (progress && M.scrollProgress !== false) {
+        window.addEventListener("scroll", updateProgress, { passive: true });
+        window.addEventListener("resize", updateProgress);
+        if ("ResizeObserver" in window) {
+          new ResizeObserver(updateProgress).observe(document.body);
+        }
+        updateProgress();
       }
-      updateProgress();
 
       /* ---------- Mobile nav ---------- */
       var burger = document.querySelector(".burger");
       var navLinks = document.getElementById("navLinks");
-      burger.addEventListener("click", function () {
-        var open = navLinks.classList.toggle("open");
-        burger.setAttribute("aria-expanded", open ? "true" : "false");
-      });
-      navLinks.addEventListener("click", function (e) {
-        if (e.target.tagName === "A") {
-          navLinks.classList.remove("open");
-          burger.setAttribute("aria-expanded", "false");
-        }
-      });
+      if (burger && navLinks) {
+        burger.addEventListener("click", function () {
+          var open = navLinks.classList.toggle("open");
+          burger.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+        navLinks.addEventListener("click", function (e) {
+          if (e.target.tagName === "A") {
+            navLinks.classList.remove("open");
+            burger.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
 
       /* ---------- Reveal on scroll ---------- */
       var revealEls = document.querySelectorAll(".reveal");
@@ -672,7 +274,9 @@
 
       /* ---------- Hero stamp ---------- */
       var heroStamp = document.getElementById("heroStamp");
-      if (!reduced) {
+      /* heroIntro off: skip word-rise/stamp/shake — the stamp and decorations
+         are visible statically because JS never hides them in that case. */
+      if (!reduced && M.heroIntro !== false) {
         /* 1. headline words rise in one by one */
         var heroH1 = document.querySelector(".hero h1");
         var wordIndex = 0;
@@ -691,24 +295,28 @@
           });
           return frag;
         }
-        Array.prototype.slice.call(heroH1.childNodes).forEach(function (node) {
-          if (node.nodeType === 3) {
-            heroH1.replaceChild(splitWords(node), node);
-          } else if (node.nodeType === 1 && node.tagName !== "BR") {
-            Array.prototype.slice.call(node.childNodes).forEach(function (inner) {
-              if (inner.nodeType === 3) { node.replaceChild(splitWords(inner), inner); }
-            });
-          }
-        });
+        if (heroH1) {
+          Array.prototype.slice.call(heroH1.childNodes).forEach(function (node) {
+            if (node.nodeType === 3) {
+              heroH1.replaceChild(splitWords(node), node);
+            } else if (node.nodeType === 1 && node.tagName !== "BR") {
+              Array.prototype.slice.call(node.childNodes).forEach(function (inner) {
+                if (inner.nodeType === 3) { node.replaceChild(splitWords(inner), inner); }
+              });
+            }
+          });
+        }
 
         /* 2. stamp slams after the words, with a tiny page shake */
-        heroStamp.style.opacity = "0";
         var heroInner = document.querySelector(".hero-inner");
-        setTimeout(function () {
-          heroStamp.style.opacity = "";
-          heroStamp.classList.add("stamp-in");
-          setTimeout(function () { heroInner.classList.add("hero-shake"); }, 300);
-        }, 700);
+        if (heroStamp) {
+          heroStamp.style.opacity = "0";
+          setTimeout(function () {
+            heroStamp.style.opacity = "";
+            heroStamp.classList.add("stamp-in");
+            setTimeout(function () { if (heroInner) { heroInner.classList.add("hero-shake"); } }, 300);
+          }, 700);
+        }
 
         /* 3. floating packs drift in last */
         var decos = document.querySelectorAll(".float-deco, .heart-deco");
@@ -723,12 +331,14 @@
 
       /* ---------- Marquee pause ---------- */
       var marqueePause = document.getElementById("marqueePause");
-      var marqueeEl = marqueePause.closest(".marquee");
-      marqueePause.addEventListener("click", function () {
-        var paused = marqueeEl.classList.toggle("paused");
-        marqueePause.setAttribute("aria-pressed", paused ? "true" : "false");
-        marqueePause.textContent = paused ? "▶" : "⏸";
-      });
+      var marqueeEl = marqueePause ? marqueePause.closest(".marquee") : null;
+      if (marqueePause && marqueeEl) {
+        marqueePause.addEventListener("click", function () {
+          var paused = marqueeEl.classList.toggle("paused");
+          marqueePause.setAttribute("aria-pressed", paused ? "true" : "false");
+          marqueePause.textContent = paused ? "▶" : "⏸";
+        });
+      }
 
       /* ---------- Animated counters ---------- */
       function animateCount(el) {
@@ -746,7 +356,10 @@
         requestAnimationFrame(tick);
       }
       var counters = document.querySelectorAll(".count");
-      if ("IntersectionObserver" in window) {
+      if (M.counters === false) {
+        /* counters off in the CMS: show the final numbers immediately */
+        counters.forEach(function (el) { el.textContent = el.getAttribute("data-target"); });
+      } else if ("IntersectionObserver" in window) {
         var co = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {
             if (entry.isIntersecting) {
@@ -760,29 +373,6 @@
         counters.forEach(function (el) { el.textContent = el.getAttribute("data-target"); });
       }
 
-      /* ---------- Brand period: colour the final full stop of display lines ----------
-         The voice writes in short declaratives; the logo ends in an orange dot.
-         This makes every ending full stop the brand's own mark. Progressive
-         enhancement — with JS off the text is simply unstyled. */
-      (function () {
-        var targets = document.querySelectorAll(".section-title, .hero h1, .cta-banner h2");
-        targets.forEach(function (el) {
-          if (el.querySelector(".brand-period")) return;
-          var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
-          var lastText = null, node;
-          while ((node = walker.nextNode())) { if (node.textContent.trim()) lastText = node; }
-          if (!lastText) return;
-          if (lastText.textContent.replace(/\s+$/, "").slice(-1) !== ".") return;
-          var idx = lastText.textContent.lastIndexOf(".");
-          var tail = lastText.splitText(idx);
-          tail.textContent = tail.textContent.slice(1);
-          var dot = document.createElement("span");
-          dot.className = "brand-period";
-          dot.textContent = ".";
-          lastText.parentNode.insertBefore(dot, tail);
-        });
-      })();
-
       /* ---------- Interactive demo ---------- */
       var phoneScreen = document.getElementById("phoneScreen");
       var machineScreen = document.getElementById("machineScreen");
@@ -790,7 +380,14 @@
       var machineStage = document.getElementById("machineStage");
       var pack = document.getElementById("pack");
       var chips = document.querySelectorAll("#stepper .step-chip");
-      var confettiColors = ["#F0820B", "#B9A00F", "#B49CDB", "#472549"];
+      /* Theme-driven confetti (accent, grass, lavender, ink) — each value is
+         validated by safeColor, so only a hex colour can reach this script. */
+      var confettiColors = [
+        {{ theme.accent | safeColor("#F0820B") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.grass | safeColor("#B9A00F") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.lavender | safeColor("#B49CDB") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.ink | safeColor("#472549") | dump | replace("<", "\\u003c") | safe }}
+      ];
 
       function setStep(n) {
         chips.forEach(function (chip) {
@@ -819,7 +416,7 @@
       }
 
       function confettiBurst() {
-        if (reduced) return;
+        if (reduced || M.confetti === false) return;
         for (var i = 0; i < 22; i++) {
           var bit = document.createElement("span");
           bit.className = "confetti-bit";
@@ -903,16 +500,17 @@
         btn.focus({ preventScroll: true });
       }
 
-      renderScan(false);
+      if (phoneScreen && machineScreen && machineStamp && machineStage && pack) { renderScan(false); }
 
       /* ---------- Locations map ---------- */
-      var CITY_DATA = ({{ locations.cities | dump | replace("<", "\\u003c") | safe }} || [])
-        .filter(function (c) { return c && c.id && isFinite(c.x) && isFinite(c.y); });
-
       var pinsG = document.getElementById("mapPins");
       var chipsWrap = document.getElementById("cityChips");
       var cityDetail = document.getElementById("cityDetail");
       var SVGNS = "http://www.w3.org/2000/svg";
+      /* When the locations section is disabled the city list is left empty,
+         so every pin/chip/selection step below becomes a no-op. */
+      var CITY_DATA = (pinsG && chipsWrap && cityDetail ? ({{ locations.cities | dump | replace("<", "\\u003c") | safe }} || []) : [])
+        .filter(function (c) { return c && c.id && isFinite(c.x) && isFinite(c.y); });
 
       function selectCity(id) {
         var c = null;
@@ -974,6 +572,7 @@
       /* pin-drop entrance when the map scrolls into view */
       var ukMap = document.querySelector(".uk-map");
       function mapConfetti() {
+        if (reduced || M.confetti === false) { return; }
         var wrap = document.querySelector(".uk-map-wrap");
         if (!wrap) { return; }
         for (var i = 0; i < 14; i++) {
@@ -987,7 +586,9 @@
           (function (b) { setTimeout(function () { b.remove(); }, 1800); })(bit);
         }
       }
-      if (ukMap && !reduced && "IntersectionObserver" in window) {
+      /* mapPinDrop off: never add pins-prep (which hides pins), so the pins
+         are simply visible from the start. */
+      if (ukMap && !reduced && M.mapPinDrop !== false && "IntersectionObserver" in window) {
         ukMap.classList.add("pins-prep");
         var mapObserver = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {
@@ -1006,6 +607,7 @@
       function closeFaq(item) {
         var btn = item.querySelector(".faq-q");
         var panel = item.querySelector(".faq-a");
+        if (!btn || !panel) { return; }
         item.classList.remove("open");
         btn.setAttribute("aria-expanded", "false");
         panel.style.maxHeight = null;
@@ -1015,6 +617,7 @@
       faqItems.forEach(function (item, idx) {
         var btn = item.querySelector(".faq-q");
         var panel = item.querySelector(".faq-a");
+        if (!btn || !panel) { return; }
         panel.id = "faq-panel-" + (idx + 1);
         btn.setAttribute("aria-controls", panel.id);
         panel.hidden = true;
@@ -1050,6 +653,7 @@
 
       function hookForm(id, subjectPrefix, fieldsFn) {
         var form = document.getElementById(id);
+        if (!form) { return; }
         form.addEventListener("submit", function (e) {
           e.preventDefault();
           if (!form.checkValidity()) {

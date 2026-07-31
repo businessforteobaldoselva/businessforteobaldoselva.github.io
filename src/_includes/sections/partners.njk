@@ -1,0 +1,30 @@
+    <!-- ============ PARTNERS ============ -->
+    <section id="partners" aria-labelledby="partners-title">
+      <div class="container">
+        <div class="reveal">
+          <span class="kicker">{{ partners.kicker }}</span>
+          <h2 class="section-title" id="partners-title">{{ partners.title | safe }}</h2>
+          <p class="section-sub">
+            {{ partners.subtitle }}
+          </p>
+        </div>
+
+        <div class="partner-grid">
+          {%- for slot in partners.slots %}
+          {%- if slot.founding %}
+          <div class="p-slot founding reveal">
+            <span class="stamp">Reserved</span>
+            <span class="slot-logo">{{ slot.logoText }}</span>
+            <small>{{ slot.category | safe }}</small>
+          </div>
+          {%- else %}
+          <div class="p-slot reveal"><span class="slot-logo">{{ slot.logoText }}</span><small>{{ slot.category | safe }}</small></div>
+          {%- endif %}
+          {%- endfor %}
+        </div>
+
+        <p class="reveal" style="margin-top: 2rem; text-align: center;">
+          <a href="#brands" class="btn btn-primary">{{ partners.ctaButton }}</a>
+        </p>
+      </div>
+    </section>

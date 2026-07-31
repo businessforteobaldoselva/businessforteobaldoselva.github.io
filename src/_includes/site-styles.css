@@ -650,8 +650,9 @@
 
     /* ---------- Reveal on scroll ---------- */
     /* Reveal = the dispense: content drops in and settles, same easing as the
-       demo machine's packDrop — the system's own native motion, not a stock fade. */
-    .reveal { opacity: 0; transform: translateY(-18px); transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.3, 1.3, 0.5, 1); }
+       demo machine's packDrop — the system's own native motion, not a stock fade.
+       (Duration is re-scaled by the CMS motion-speed control further down.) */
+    .reveal { opacity: 0; transform: translateY(-18px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
     /* ---------- The brand period — display lines end in the logo's dot ---------- */
@@ -885,7 +886,7 @@
 
     /* logo lockup — official brand asset colours (fixed, exempt from site palette) */
     .logo { color: var(--logo-green); font-family: var(--font-display); font-weight: 600; letter-spacing: 0.12em; font-size: 1.4rem; }
-    .logo .logo-mark { display: inline-flex; width: 26px; height: 26px; }
+    .logo .logo-mark { display: inline-flex; width: 26px; height: 26px; border: 0; border-radius: 0; transform: none; background: none; }
     .logo .logo-mark svg { width: 100%; height: 100%; }
     .logo .logo-dot { color: var(--logo-orange); margin-left: 0.05em; }
     .foot-brand .logo { color: var(--paper-2); }
@@ -952,3 +953,69 @@
       body { background: #fff !important; color: #472549 !important; }
       .section-sub, .hero-sub { color: #5E4260 !important; }
     }
+
+    /* ================= CMS animation controls (src/_data/motion.json) =================
+       The template writes classes onto <body> from the editor's choices, so all
+       CSS-driven motion obeys the CMS with no JavaScript involved. With default
+       settings no class is present and --motion-scale resolves to 1, so every
+       rule below computes to exactly today's values — zero behavioural change.
+       prefers-reduced-motion (above) still wins over everything here: its
+       !important duration overrides beat these non-!important declarations. */
+
+    /* ---- Speed dial: decorative durations scale with --motion-scale ---- */
+    body.m-speed-slower { --motion-scale: 1.6; }
+    body.m-speed-faster { --motion-scale: 0.6; }
+    .marquee-track { animation-duration: calc(36s * var(--motion-scale, 1)); }
+    .belt-track { animation-duration: calc(24s * var(--motion-scale, 1)); }
+    .floaty { animation-duration: calc(7s * var(--motion-scale, 1)); }
+    .floaty.slow { animation-duration: calc(10s * var(--motion-scale, 1)); }
+    .reveal { transition-duration: calc(0.6s * var(--motion-scale, 1)), calc(0.6s * var(--motion-scale, 1)); }
+    .w-rise { animation-duration: calc(0.55s * var(--motion-scale, 1)); }
+    .stamp.stamp-in { animation-duration: calc(0.55s * var(--motion-scale, 1)); }
+    .machine-stamp.show { animation-duration: calc(0.5s * var(--motion-scale, 1)); }
+    .pins-go .map-pin { animation-duration: calc(0.5s * var(--motion-scale, 1)); }
+    .reveal.visible .section-title { animation-duration: calc(0.5s * var(--motion-scale, 1)); }
+    .hero-badge .dot-pulse { animation-duration: calc(2.2s * var(--motion-scale, 1)); }
+    .loop-arrow { animation-duration: calc(1.6s * var(--motion-scale, 1)); }
+    .m-screen .qr { animation-duration: calc(1.6s * var(--motion-scale, 1)); }
+    /* (confettiFall and fillBar stay at fixed speed — their JS cleanup/fallback
+       timers are hardcoded, so re-pacing them would cut the effect short.) */
+
+    /* ---- Reveal style: fade (no rise) or off (always visible) ---- */
+    body.reveal-fade .reveal, body.reveal-fade .reveal.visible { transform: none; }
+    body.reveal-off .reveal { opacity: 1; transform: none; transition: none; }
+    body.reveal-off .reveal .section-title, body.reveal-off .reveal.visible .section-title { animation: none; }
+
+    /* ---- Per-effect switches (CSS-only animations stop without JS) ---- */
+    body.no-floaty .floaty { animation: none; }
+    /* marquee autoplay off: strip stays visible but still; pause button would
+       do nothing, so it is hidden */
+    body.no-marquee .marquee-track { animation-play-state: paused; }
+    body.no-marquee .marquee-pause { display: none; }
+    body.no-conveyor .belt-track { animation: none; }
+    body.no-progress #progress { display: none; }
+
+    /* ---- Master switch: all decorative motion off. Functional transitions
+            (FAQ max-height, button/link hovers, burger) keep working — only
+            the decorative animations are killed, mirroring the reduced-motion
+            block's effect without breaking JS-coupled behaviour. ---- */
+    body.motion-off .floaty,
+    body.motion-off .marquee-track,
+    body.motion-off .belt-track,
+    body.motion-off .hero-badge .dot-pulse,
+    body.motion-off .loop-arrow,
+    body.motion-off .m-screen .qr,
+    body.motion-off .map-pin.live .ring,
+    body.motion-off .stamp.stamp-in,
+    body.motion-off .machine-stamp.show,
+    body.motion-off .hero-shake,
+    body.motion-off .pins-go .map-pin,
+    body.motion-off .confetti-bit,
+    body.motion-off .ad-progress .bar.run,
+    body.motion-off .reveal.visible .section-title { animation: none !important; }
+    /* w-rise spans start hidden and animate in — if any exist, show them flat */
+    body.motion-off .w-rise { animation: none !important; opacity: 1; transform: none; }
+    /* pins are never hidden waiting for a drop that will not come */
+    body.motion-off .pins-prep .map-pin { opacity: 1; }
+    body.motion-off .reveal { opacity: 1; transform: none; transition: none; }
+    body.motion-off .marquee-pause { display: none; }

@@ -1,0 +1,38 @@
+    <!-- ============ VISION ============ -->
+    <section class="vision-band texture-dots" aria-labelledby="vision-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">{{ vision.kicker }}</span>
+          <h2 class="section-title" id="vision-title">{{ vision.title | safe }}</h2>
+        </div>
+
+        <div class="timeline">
+          {%- for m in vision.milestones %}
+          <div class="milestone reveal">
+            <span class="phase-tag">{{ m.tag }}</span>
+            <h3>{{ m.title }}</h3>
+            <p>{{ m.desc }}</p>
+          </div>
+          {%- endfor %}
+        </div>
+
+        <div class="bip reveal">
+          <h3>{{ vision.bipTitle }}</h3>
+          <p>
+            {{ vision.bipText }}
+          </p>
+          <div class="soon-chips">
+            {%- for chip in vision.soonChips %}
+            <span class="chip">{{ chip }}</span>
+            {%- endfor %}
+          </div>
+          <form name="launch-notify" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="notify-form" id="notifyForm">
+            <input type="hidden" name="form-name" value="launch-notify" />
+            <p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+            <label class="visually-hidden" for="nEmail">Your email</label>
+            <input id="nEmail" type="email" name="email" required placeholder="you@email.com" autocomplete="email" />
+            <button class="btn btn-primary" type="submit">Tell me when Exeter goes live</button>
+          </form>
+        </div>
+      </div>
+    </section>

@@ -1,0 +1,29 @@
+/* CMS theme overrides (src/_data/theme.json). Every value passes through the
+   safeColor filter, so only a well-formed hex colour can reach this block —
+   anything malformed falls back to the shipped default. The defaults below
+   mirror :root in site-styles.css exactly, so with an untouched theme.json
+   this block re-states the palette and the rendered site is unchanged.
+   The logo colours (--logo-green/sage/orange) are fixed brand artwork and
+   are deliberately not themeable. */
+:root {
+  --paper: {{ theme.paper | safeColor("#F6F1FB") }};
+  --paper-2: {{ theme.paper2 | safeColor("#F3EDFB") }};
+  --band-grass: {{ theme.bandGrass | safeColor("#F2ECCE") }};
+  --band-lav: {{ theme.bandLav | safeColor("#E7DEF5") }};
+  --band-rosa: {{ theme.bandRosa | safeColor("#FBE7CF") }};
+  --peach: {{ theme.peach | safeColor("#FBD9B3") }};
+  --ink: {{ theme.ink | safeColor("#472549") }};
+  --ink-deep: {{ theme.inkDeep | safeColor("#33193A") }};
+  --ink-soft: {{ theme.inkSoft | safeColor("#5E4260") }};
+  --muted: {{ theme.muted | safeColor("#6E5A72") }};
+  --red: {{ theme.accent | safeColor("#F0820B") }};
+  --red-deep: {{ theme.accentDeep | safeColor("#B85800") }};
+  --red-dark: {{ theme.accentDark | safeColor("#8A4A08") }};
+  --kicker-band: {{ theme.kickerBand | safeColor("#8A4A08") }};
+  --green: {{ theme.grass | safeColor("#B9A00F") }};
+  --green-dark: {{ theme.grassDark | safeColor("#6E5E08") }};
+  --sage: {{ theme.lavender | safeColor("#B49CDB") }};
+  /* hairline + shadow derive from the ink colour (defaults: rgba(71, 37, 73, …)) */
+  --line: {{ theme.ink | safeColor("#472549") | hexToRgba(0.20) }};
+  --shadow: 0 10px 30px {{ theme.ink | safeColor("#472549") | hexToRgba(0.12) }};
+}

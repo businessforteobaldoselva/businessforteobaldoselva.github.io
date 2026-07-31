@@ -1,0 +1,78 @@
+    <!-- ============ FOR BRANDS ============ -->
+    <section id="brands" class="dark" aria-labelledby="brands-title">
+      <div class="container">
+        <div class="reveal brands-head">
+          <div>
+            <span class="kicker">{{ brands.kicker }}</span>
+            <h2 class="section-title" id="brands-title">{{ brands.title | safe }}</h2>
+            <p class="section-sub">
+              {{ brands.subtitle }}
+            </p>
+          </div>
+          <figure class="polaroid">
+            <picture><source type="image/webp" srcset="{{ brands.headerPhoto.src | replace('.jpg', '-480.webp') }} 480w, {{ brands.headerPhoto.src | replace('.jpg', '.webp') }} 1200w" sizes="250px" /><img src="{{ brands.headerPhoto.src }}" width="{{ brands.headerPhoto.width }}" height="{{ brands.headerPhoto.height }}" loading="lazy"
+                 alt="{{ brands.headerPhoto.alt }}" /></picture>
+            <figcaption>{{ brands.headerPhoto.caption }}</figcaption>
+          </figure>
+        </div>
+
+        <div class="benefit-grid">
+          {%- for b in brands.benefits %}
+          <div class="benefit reveal">
+            <div class="b-icon" aria-hidden="true">{{ ic.emojiIcon(b.icon) }}</div>
+            <h3>{{ b.title }}</h3>
+            <p>{{ b.desc }}</p>
+          </div>
+          {%- endfor %}
+        </div>
+
+        <div class="chip-row reveal">
+          {%- for chip in brands.chips %}
+          <span class="chip">{{ chip | safe }}</span>
+          {%- endfor %}
+        </div>
+
+        <div class="form-card reveal">
+          <h3>{{ brands.formHeading }}</h3>
+          <form id="brandForm" name="brand-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+            <input type="hidden" name="form-name" value="brand-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+            <div class="form-grid">
+              <div class="field">
+                <label for="bName">Your name <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="bName" name="name" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="bCompany">Company <span class="req" aria-hidden="true">*</span></label>
+                <input type="text" id="bCompany" name="company" autocomplete="organization" required />
+              </div>
+              <div class="field">
+                <label for="bEmail">Work email <span class="req" aria-hidden="true">*</span></label>
+                <input type="email" id="bEmail" name="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label for="bBudget">Indicative monthly budget</label>
+                <select id="bBudget" name="budget">
+                  <option value="">Prefer not to say</option>
+                  <option>Under £500</option>
+                  <option>£500 – £2,000</option>
+                  <option>£2,000 – £5,000</option>
+                  <option>£5,000+</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="bTiming">Preferred campaign timing</label>
+                <input type="text" id="bTiming" name="timing" placeholder="e.g. Sept – Dec 2026" />
+              </div>
+              <div class="field full">
+                <label for="bMsg">What are you looking to achieve?</label>
+                <textarea id="bMsg" name="message" placeholder="Campaign goals, timing, locations of interest…"></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">{{ brands.formButton }}</button>
+              <span class="form-hint">{{ brands.formHint }}</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>

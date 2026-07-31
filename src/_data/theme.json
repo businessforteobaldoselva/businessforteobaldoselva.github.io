@@ -1,0 +1,19 @@
+{
+  "paper": "#F6F1FB",
+  "paper2": "#F3EDFB",
+  "bandGrass": "#F2ECCE",
+  "bandLav": "#E7DEF5",
+  "bandRosa": "#FBE7CF",
+  "peach": "#FBD9B3",
+  "ink": "#472549",
+  "inkDeep": "#33193A",
+  "inkSoft": "#5E4260",
+  "muted": "#6E5A72",
+  "accent": "#F0820B",
+  "accentDeep": "#B85800",
+  "accentDark": "#8A4A08",
+  "kickerBand": "#8A4A08",
+  "grass": "#B9A00F",
+  "grassDark": "#6E5E08",
+  "lavender": "#B49CDB"
+}

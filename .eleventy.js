@@ -5,6 +5,40 @@ module.exports = function (eleventyConfig) {
   const md = markdownIt({ html: false, linkify: true });
   eleventyConfig.addFilter("md", (value) => (value ? md.render(String(value)) : ""));
 
+  // True when the homepage layout (src/_data/homepage.json) contains an
+  // enabled section of the given type — used to gate nav/footer anchors.
+  eleventyConfig.addFilter("sectionEnabled", (homepage, type) => {
+    const sections = homepage && Array.isArray(homepage.sections) ? homepage.sections : [];
+    return sections.some((s) => s && s.type === type && s.enabled !== false);
+  });
+
+  // Guards CMS-supplied colours (src/_data/theme.json): only a well-formed
+  // hex colour is emitted; anything else — including attempted CSS/JS
+  // injection — falls back to the shipped default.
+  const HEX_COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+  eleventyConfig.addFilter("safeColor", (value, fallback) => {
+    const v = typeof value === "string" ? value.trim() : "";
+    return HEX_COLOR_RE.test(v) ? v : fallback;
+  });
+
+  // hex (#RGB/#RGBA/#RRGGBB/#RRGGBBAA) -> rgba(r, g, b, alpha). Any alpha
+  // channel in the source colour is ignored — the caller supplies alpha.
+  // Invalid input returns the empty string; always chain after safeColor.
+  eleventyConfig.addFilter("hexToRgba", (hex, alpha) => {
+    const v = typeof hex === "string" ? hex.trim() : "";
+    const m = HEX_COLOR_RE.exec(v);
+    if (!m) return "";
+    let h = m[1];
+    if (h.length <= 4) {
+      h = h.split("").map((c) => c + c).join("");
+    }
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    const a = typeof alpha === "number" && isFinite(alpha) ? alpha : 1;
+    return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
+  });
+
   eleventyConfig.addTransform("htmlmin", async function (content) {
     if ((this.page.outputPath || "").endsWith(".html")) {
       try {

@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "speed": "normal",
+  "reveal": "rise",
+  "heroIntro": true,
+  "floatingHearts": true,
+  "marquee": true,
+  "counters": true,
+  "conveyor": true,
+  "mapPinDrop": true,
+  "confetti": true,
+  "scrollProgress": true
+}

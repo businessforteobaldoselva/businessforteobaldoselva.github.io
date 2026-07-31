@@ -1,0 +1,23 @@
+    <!-- ============ FAQ ============ -->
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">{{ faq.kicker }}</span>
+          <h2 class="section-title" id="faq-title">{{ faq.title }}</h2>
+        </div>
+
+        <div class="faq-list">
+          {%- for item in faq.items %}
+          <div class="faq-item reveal">
+            <button class="faq-q" aria-expanded="false">
+              {{ item.q }}
+              <span class="indicator" aria-hidden="true">+</span>
+            </button>
+            <div class="faq-a"><div class="faq-a-inner">
+              {{ item.a }}
+            </div></div>
+          </div>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>

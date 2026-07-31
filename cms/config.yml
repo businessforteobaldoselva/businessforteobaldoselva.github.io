@@ -33,6 +33,332 @@ collections:
           - { label: "Closing banner — text", name: "ctaBannerText", widget: "text" }
           - { label: "Closing banner — button label", name: "ctaBannerButton", widget: "string" }
 
+      - name: "homepage"
+        label: "🧩 Page layout — order, add & hide sections"
+        file: "src/_data/homepage.json"
+        fields:
+          - label: "Homepage sections"
+            name: "sections"
+            label_singular: "section"
+            widget: "list"
+            hint: "This is the running order of the homepage, top to bottom. Drag sections to reorder the page, untick “Show this section” to hide one without deleting it, and use the add button to drop in your own text, image, number, banner or Q&A blocks."
+            types:
+              - label: "🏠 Hero (big opening screen)"
+                name: "hero"
+                widget: "object"
+                summary: "Hero — headline, stamp and buttons"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "🎞️ Scrolling venue ticker"
+                name: "marquee"
+                widget: "object"
+                summary: "Ticker — the moving strip of venue names"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - label: "Ticker words (optional)"
+                    name: "items"
+                    widget: "list"
+                    required: false
+                    field: { label: "Word or phrase", name: "item", widget: "string" }
+                    hint: "Leave this empty to keep the standard venue list (Universities, Train stations, Stadiums…). Add your own words here to replace it."
+              - label: "📊 The problem (stats & photos)"
+                name: "problem"
+                widget: "object"
+                summary: "The problem — statistics and photo strip"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "🔁 The model (Brands pay. You don't.)"
+                name: "model"
+                widget: "object"
+                summary: "The model — how the funding loop works"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "📱 How it works (interactive demo)"
+                name: "how"
+                widget: "object"
+                summary: "How it works — the tap-through machine demo"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "📣 For brands (advertising enquiry)"
+                name: "brands"
+                widget: "object"
+                summary: "For brands — benefits and enquiry form"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "🤝 Partner wall"
+                name: "partners"
+                widget: "object"
+                summary: "Partner wall — the reserved logo slots"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "🏟️ For venues (hosting enquiry)"
+                name: "venues"
+                widget: "object"
+                summary: "For venues — what we handle and the venue form"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "🗺️ Locations (UK map)"
+                name: "locations"
+                widget: "object"
+                summary: "Locations — the UK map and city chips"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "🚀 Vision / roadmap"
+                name: "vision"
+                widget: "object"
+                summary: "Vision — milestones and launch-notify form"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "❓ FAQ"
+                name: "faq"
+                widget: "object"
+                summary: "FAQ — the questions accordion"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "✉️ Closing banner (get in touch)"
+                name: "cta"
+                widget: "object"
+                summary: "Closing banner — the big sign-off with email button"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+              - label: "📝 Text section (add your own)"
+                name: "textBlock"
+                widget: "object"
+                summary: "Your text — {{fields.heading}}"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Small label above heading", name: "kicker", widget: "string", required: false }
+                  - { label: "Heading", name: "heading", widget: "string", required: false }
+                  - { label: "Text", name: "body", widget: "markdown" }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
+              - label: "🖼️ Image + text (add your own)"
+                name: "imageTextBlock"
+                widget: "object"
+                summary: "Your image + text — {{fields.heading}}"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Image", name: "image", widget: "image" }
+                  - { label: "Image description (accessibility)", name: "alt", widget: "string" }
+                  - { label: "Caption under image", name: "caption", widget: "string", required: false }
+                  - { label: "Heading", name: "heading", widget: "string", required: false }
+                  - { label: "Text", name: "body", widget: "markdown" }
+                  - { label: "Image on the right?", name: "imageRight", widget: "boolean", default: false }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
+              - label: "🔢 Number cards (add your own)"
+                name: "statsBlock"
+                widget: "object"
+                summary: "Your number cards — {{fields.heading}}"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Heading", name: "heading", widget: "string", required: false }
+                  - label: "Cards"
+                    name: "items"
+                    widget: "list"
+                    fields:
+                      - { label: "Big number (e.g. 11% or 20+)", name: "number", widget: "string" }
+                      - { label: "Label underneath", name: "label", widget: "string" }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. our-numbers"], hint: "Gives this block its own link — the anchor “our-numbers” lets /#our-numbers scroll straight to it." }
+              - label: "📣 Big orange banner (add your own)"
+                name: "bannerBlock"
+                widget: "object"
+                summary: "Your banner — {{fields.title}}"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Title", name: "title", widget: "string" }
+                  - { label: "Text", name: "text", widget: "text", required: false }
+                  - { label: "Button text", name: "buttonText", widget: "string", required: false }
+                  - { label: "Button link", name: "buttonLink", widget: "string", required: false }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. join-us"], hint: "Gives this block its own link — the anchor “join-us” lets /#join-us scroll straight to it." }
+              - label: "❓ Questions & answers (add your own)"
+                name: "faqBlock"
+                widget: "object"
+                summary: "Your Q&A — {{fields.heading}}"
+                fields:
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Heading", name: "heading", widget: "string", required: false }
+                  - label: "Questions"
+                    name: "items"
+                    widget: "list"
+                    fields:
+                      - { label: "Question", name: "q", widget: "string" }
+                      - { label: "Answer", name: "a", widget: "text" }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. more-questions"], hint: "Gives this block its own link — the anchor “more-questions” lets /#more-questions scroll straight to it." }
+
+      - name: "theme"
+        label: "🎨 Colours & theme"
+        file: "src/_data/theme.json"
+        fields:
+          - label: "Backgrounds — page background"
+            name: "paper"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "The main canvas behind the whole site (light lavender). Note — the COVERED logo colours are part of the logo artwork and cannot be changed here. When changing any colour, keep text/background contrast at least 4.5:1 (webaim.org/resources/contrastchecker). Clearing a colour restores its default."
+          - label: "Backgrounds — cards & inputs tint"
+            name: "paper2"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Slightly deeper tint for alternate panels and form fields. Also colours the browser bar on mobile."
+          - label: "Backgrounds — partner wall band (grass)"
+            name: "bandGrass"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Light grass background behind the partner wall."
+          - label: "Backgrounds — hero band (lavender)"
+            name: "bandLav"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Light lavender background behind the opening screen."
+          - label: "Backgrounds — how-it-works band (warm)"
+            name: "bandRosa"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Light warm background behind the interactive demo."
+          - label: "Backgrounds — hover tint on dark sections"
+            name: "peach"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Light orange used for link/button hovers on dark violet sections."
+          - label: "Body text / dark sections (violet)"
+            name: "ink"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "The main text colour — also fills the dark violet sections, and tints hairlines and card shadows. Keep it dark: it must read clearly on the page background (at least 4.5:1 contrast)."
+          - label: "Footer & deep headings (darker violet)"
+            name: "inkDeep"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Deeper violet for the footer background and heading depth."
+          - label: "Subheadings (softer violet)"
+            name: "inkSoft"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Softer violet used for subheadings."
+          - label: "Secondary text (muted mauve)"
+            name: "muted"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Quieter text such as captions and small print — keep at least 4.5:1 contrast on the page background."
+          - label: "Buttons & accents (orange)"
+            name: "accent"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "The primary accent — CTA button fill, highlights and confetti."
+          - label: "Buttons with white text (deep orange)"
+            name: "accentDeep"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Deeper accent used where white text sits on top — keep it dark enough for the white text to stay readable."
+          - label: "Accent text on light backgrounds (dark orange)"
+            name: "accentDark"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Darkest accent — used for accent-coloured text and focus outlines on light backgrounds (needs strong contrast)."
+          - label: "Small kicker labels (dark orange)"
+            name: "kickerBand"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "The little uppercase labels above section headings."
+          - label: "Decorative dots & ticker band (grass)"
+            name: "grass"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Grass accent — decorative dots, the scrolling ticker band and confetti."
+          - label: "Grass text on light backgrounds (dark grass)"
+            name: "grassDark"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Darker grass used for grass-coloured text on light backgrounds."
+          - label: "Pills & soft fills (lavender)"
+            name: "lavender"
+            widget: "color"
+            allowInput: true
+            required: false
+            hint: "Lavender accent — pills, the model band background and soft highlights."
+
+      - name: "motion"
+        label: "🎬 Animations"
+        file: "src/_data/motion.json"
+        fields:
+          - label: "Animations on/off"
+            name: "enabled"
+            widget: "boolean"
+            default: true
+            hint: "Master switch — turn ALL moving effects on/off. Off means nothing moves: everything simply appears in place, exactly as visitors who ask their device for less motion already see it."
+          - label: "Overall speed"
+            name: "speed"
+            widget: "select"
+            options:
+              - { label: "Slower — calm and gentle", value: "slower" }
+              - { label: "Normal — as designed", value: "normal" }
+              - { label: "Faster — quick and snappy", value: "faster" }
+            default: "normal"
+            hint: "How quickly things move — the scrolling ticker, floating decorations, drop-in effects and so on."
+          - label: "How sections appear when you scroll"
+            name: "reveal"
+            widget: "select"
+            options:
+              - { label: "Rise into place", value: "rise" }
+              - { label: "Fade in", value: "fade" }
+              - { label: "Off — just appear", value: "off" }
+            default: "rise"
+            hint: "The little entrance each section makes as it scrolls into view."
+          - label: "Opening headline entrance"
+            name: "heroIntro"
+            widget: "boolean"
+            default: true
+            hint: "The big headline rising word by word and the stamp slamming down when the page first loads. Off shows them straight away."
+          - label: "Floating decorations"
+            name: "floatingHearts"
+            widget: "boolean"
+            default: true
+            hint: "The hearts and product packs gently bobbing around the opening screen. Off keeps them visible but still."
+          - label: "Scrolling venue ticker"
+            name: "marquee"
+            widget: "boolean"
+            default: true
+            hint: "Whether the strip of venue names glides along by itself. Off keeps the strip on the page but still."
+          - label: "Counting numbers"
+            name: "counters"
+            widget: "boolean"
+            default: true
+            hint: "The statistics counting up from zero as they come into view. Off shows the final numbers immediately."
+          - label: "Production line"
+            name: "conveyor"
+            widget: "boolean"
+            default: true
+            hint: "The conveyor belt of product packs rolling across the roadmap section. Off keeps the packs visible but still."
+          - label: "Map pins dropping in"
+            name: "mapPinDrop"
+            widget: "boolean"
+            default: true
+            hint: "The city pins bouncing onto the UK map when it scrolls into view. Off shows the pins straight away."
+          - label: "Confetti"
+            name: "confetti"
+            widget: "boolean"
+            default: true
+            hint: "The little burst of confetti when the demo dispenses a pack and when the map pins land."
+          - label: "Reading progress bar"
+            name: "scrollProgress"
+            widget: "boolean"
+            default: true
+            hint: "The thin orange line along the very top of the page that fills up as you scroll."
+
       - name: "hero"
         label: "🏠 Hero (top of page)"
         file: "src/_data/hero.json"

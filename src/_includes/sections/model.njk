@@ -1,0 +1,41 @@
+    <!-- ============ MODEL ============ -->
+    <section class="model-band texture-dots" aria-labelledby="model-title">
+      <div class="container">
+        <div class="reveal" style="text-align:center;">
+          <span class="kicker">{{ model.kicker }}</span>
+          <h2 class="section-title" id="model-title">{{ model.title }}</h2>
+          <p class="section-sub" style="margin: 0 auto;">
+            {{ model.subtitle }}
+          </p>
+        </div>
+
+        <div class="loop reveal">
+          {%- for step in model.steps %}
+          <div class="loop-step">
+            <div class="loop-emoji" aria-hidden="true">{{ ic.emojiIcon(step.emoji) }}</div>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.desc }}</p>
+          </div>
+          {%- if not loop.last %}<div class="loop-arrow" aria-hidden="true">→</div>{% endif %}
+          {%- endfor %}
+        </div>
+
+        <div class="conveyor reveal" aria-hidden="true">
+          <div class="belt-track">
+            <span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span>
+          </div>
+        </div>
+
+        <aside class="receipt reveal" aria-label="Example receipt: pads £0.00, tampons £0.00, judgement none — total due £0.00, paid in full by advertisers">
+          <p class="r-brand">COVERED<span class="brand-period">.</span></p>
+          <p class="r-meta">Dispenser Nº 001 — Exeter</p>
+          <div class="r-row"><span>Pads (plastic-free)</span><span>£0.00</span></div>
+          <div class="r-row"><span>Tampons (organic)</span><span>£0.00</span></div>
+          <div class="r-row"><span>Judgement</span><span>None</span></div>
+          <div class="r-row r-total"><span>Total due</span><span>£0.00</span></div>
+          <p class="r-paid">Paid in full by brands that get it</p>
+          <div class="r-code" aria-hidden="true"></div>
+          <p class="r-script">We got you covered. Period.</p>
+        </aside>
+      </div>
+    </section>

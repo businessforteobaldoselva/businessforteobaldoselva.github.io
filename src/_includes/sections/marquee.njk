@@ -1,0 +1,20 @@
+    <!-- ============ MARQUEE ============ -->
+    {%- if sectionData and sectionData.items and sectionData.items.length %}
+    <div class="marquee">
+      <button class="marquee-pause" id="marqueePause" aria-label="Pause scrolling venue list" aria-pressed="false">⏸</button>
+      <div class="marquee-track" aria-hidden="true">
+        {% for item in sectionData.items %}<span>{{ item }}</span>{% endfor %}
+        {% for item in sectionData.items %}<span>{{ item }}</span>{% endfor %}
+      </div>
+    </div>
+    <p class="visually-hidden">Target venues include {% for item in sectionData.items %}{{ item }}{% if loop.revindex == 2 %} and {% elif not loop.last %}, {% endif %}{% endfor %}.</p>
+    {%- else %}
+    <div class="marquee">
+      <button class="marquee-pause" id="marqueePause" aria-label="Pause scrolling venue list" aria-pressed="false">⏸</button>
+      <div class="marquee-track" aria-hidden="true">
+        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
+        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
+      </div>
+    </div>
+    <p class="visually-hidden">Target venues include universities, train stations, stadiums, festivals, offices, shopping centres, airports, schools and community centres.</p>
+    {%- endif %}
