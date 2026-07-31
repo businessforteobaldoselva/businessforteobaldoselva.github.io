@@ -1,4 +1,4 @@
-    <section{% if block.anchor %} id="{{ block.anchor }}"{% endif %}>
+    <section{% if block.anchor | safeAnchor %} id="{{ block.anchor | safeAnchor }}"{% endif %}>
       <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; align-items: center;">
         {% if not block.imageRight %}
         <figure class="polaroid" style="--tilt: -2deg; max-width: 420px;">

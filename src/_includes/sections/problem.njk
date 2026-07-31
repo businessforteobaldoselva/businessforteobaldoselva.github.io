@@ -3,7 +3,7 @@
       <div class="container">
         <div class="reveal">
           <span class="kicker">{{ problem.kicker }}</span>
-          <h2 class="section-title" id="problem-title">{{ problem.title | safe }}</h2>
+          <h2 class="section-title" id="problem-title">{{ problem.title | safeTitle | safe }}</h2>
           <p class="section-sub">
             {{ problem.subtitle }}
           </p>
@@ -18,7 +18,7 @@
           {%- endfor %}
         </div>
 
-        <p class="stats-source reveal">Source: <a href="{{ problem.sourceUrl }}" target="_blank" rel="noopener">{{ problem.sourceText }}</a>.</p>
+        <p class="stats-source reveal">Source: <a href="{{ problem.sourceUrl | safeUrl }}" target="_blank" rel="noopener">{{ problem.sourceText }}</a>.</p>
 
         <div class="photo-strip">
           {%- for photo in problem.photos %}

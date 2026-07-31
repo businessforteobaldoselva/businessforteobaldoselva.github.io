@@ -4,7 +4,7 @@
         <div class="reveal">
           <span class="pilot-ribbon">{{ venues.ribbon }}</span>
           <span class="kicker" style="display:block;">{{ venues.kicker }}</span>
-          <h2 class="section-title" id="venues-title">{{ venues.title | safe }}</h2>
+          <h2 class="section-title" id="venues-title">{{ venues.title | safeTitle | safe }}</h2>
           <p class="section-sub">
             {{ venues.subtitle }}
           </p>

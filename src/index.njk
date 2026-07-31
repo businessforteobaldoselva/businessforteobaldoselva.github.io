@@ -125,12 +125,24 @@
   <main id="top">
 
     {%- set builtinSections = ["hero", "marquee", "problem", "model", "how", "brands", "partners", "venues", "locations", "vision", "faq", "cta"] %}
+    {#- Hiding the hero would leave the page without an h1 — fall back to a
+        visually hidden main heading for search engines and screen readers. -#}
+    {%- if not (homepage | sectionEnabled("hero")) %}
+    <h1 class="visually-hidden">{{ site.pageTitle }}</h1>
+    {%- endif %}
+    {#- Built-in sections are singletons: only the first copy of each type is
+        rendered. A duplicate would emit duplicate DOM ids and dead controls,
+        because the inline JS only wires the first match. -#}
+    {%- set renderedBuiltins = [] %}
     {%- for s in homepage.sections %}
       {%- if s.enabled !== false %}
         {%- set sectionData = s %}
         {%- set block = s %}
         {%- if s.type in builtinSections %}
+          {%- if s.type not in renderedBuiltins %}
+            {%- set _ = renderedBuiltins.push(s.type) %}
 {% include "sections/" + s.type + ".njk" %}
+          {%- endif %}
         {%- elif s.type == "textBlock" %}
 {% include "blocks/text.njk" %}
         {%- elif s.type == "imageTextBlock" %}
@@ -522,10 +534,19 @@
         document.querySelectorAll(".city-chip").forEach(function (ch) {
           ch.setAttribute("aria-pressed", ch.getAttribute("data-city") === id ? "true" : "false");
         });
-        cityDetail.innerHTML =
-          "<h3>" + c.name + " <span class=\"status-tag " + (c.live ? "live" : "soon") + "\">" +
-          (c.live ? "Pilot — recruiting venues" : "On the roadmap") + "</span></h3>" +
-          "<p>" + c.blurb + "</p>";
+        /* Built with DOM APIs (textContent), never innerHTML — name and blurb
+           are free-text CMS fields and must not be parsed as HTML. */
+        var heading = document.createElement("h3");
+        heading.appendChild(document.createTextNode(c.name + " "));
+        var statusTag = document.createElement("span");
+        statusTag.className = "status-tag " + (c.live ? "live" : "soon");
+        statusTag.textContent = c.live ? "Pilot — recruiting venues" : "On the roadmap";
+        heading.appendChild(statusTag);
+        var blurbP = document.createElement("p");
+        blurbP.textContent = c.blurb;
+        cityDetail.textContent = "";
+        cityDetail.appendChild(heading);
+        cityDetail.appendChild(blurbP);
       }
 
       CITY_DATA.forEach(function (c, idx) {
@@ -562,7 +583,14 @@
         chip.className = "city-chip";
         chip.setAttribute("data-city", c.id);
         chip.setAttribute("aria-pressed", "false");
-        chip.innerHTML = c.name + (c.live ? ' <span class="badge-live">● pilot</span>' : "");
+        chip.textContent = c.name;
+        if (c.live) {
+          var liveBadge = document.createElement("span");
+          liveBadge.className = "badge-live";
+          liveBadge.textContent = "● pilot";
+          chip.appendChild(document.createTextNode(" "));
+          chip.appendChild(liveBadge);
+        }
         chip.addEventListener("click", function () { selectCity(c.id); });
         chipsWrap.appendChild(chip);
       });
@@ -603,7 +631,10 @@
       }
 
       /* ---------- FAQ accordion ---------- */
-      var faqItems = document.querySelectorAll(".faq-item");
+      /* Scoped to the built-in #faq section only: editor-added faqBlock
+         sections reuse .faq-item markup but are static, always-open lists —
+         binding them here would hide their answers behind a non-button div. */
+      var faqItems = document.querySelectorAll("#faq .faq-item");
       function closeFaq(item) {
         var btn = item.querySelector(".faq-q");
         var panel = item.querySelector(".faq-a");
@@ -638,12 +669,12 @@
         });
       });
       window.addEventListener("resize", function () {
-        var openPanel = document.querySelector(".faq-item.open .faq-a");
+        var openPanel = document.querySelector("#faq .faq-item.open .faq-a");
         if (openPanel) { openPanel.style.maxHeight = openPanel.scrollHeight + "px"; }
       });
 
       /* ---------- Forms → mailto ---------- */
-      var CONTACT = {{ site.contactEmail | dump | safe }};
+      var CONTACT = {{ site.contactEmail | dump | replace("<", "\\u003c") | safe }};
 
       function buildMailto(subject, lines) {
         return "mailto:" + CONTACT +

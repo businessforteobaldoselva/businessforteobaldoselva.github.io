@@ -4,7 +4,7 @@
         <div class="reveal brands-head">
           <div>
             <span class="kicker">{{ brands.kicker }}</span>
-            <h2 class="section-title" id="brands-title">{{ brands.title | safe }}</h2>
+            <h2 class="section-title" id="brands-title">{{ brands.title | safeTitle | safe }}</h2>
             <p class="section-sub">
               {{ brands.subtitle }}
             </p>
@@ -28,7 +28,7 @@
 
         <div class="chip-row reveal">
           {%- for chip in brands.chips %}
-          <span class="chip">{{ chip | safe }}</span>
+          <span class="chip">{{ chip }}</span>
           {%- endfor %}
         </div>
 

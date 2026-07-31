@@ -10,7 +10,7 @@
     },
     {
       "type": "problem",
-      "enabled": false
+      "enabled": true
     },
     {
       "type": "model",

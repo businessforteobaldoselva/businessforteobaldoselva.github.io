@@ -1,4 +1,4 @@
-    <section{% if block.anchor %} id="{{ block.anchor }}"{% endif %}>
+    <section{% if block.anchor | safeAnchor %} id="{{ block.anchor | safeAnchor }}"{% endif %}>
       <div class="container">
         {% if block.heading %}<h2 class="section-title" style="text-align: center;">{{ block.heading }}</h2>{% endif %}
         <div class="stats-grid">

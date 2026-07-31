@@ -72,7 +72,7 @@
   <script>
     /* Brand period: colour the final full stop of display lines (see index). */
     (function () {
-      document.querySelectorAll(".section-title, .page-hero h1").forEach(function (el) {
+      document.querySelectorAll(".section-title, .hero h1").forEach(function (el) {
         if (el.querySelector(".brand-period")) return;
         var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
         var lastText = null, node;

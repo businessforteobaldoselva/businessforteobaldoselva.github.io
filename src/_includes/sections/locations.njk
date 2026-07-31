@@ -3,7 +3,7 @@
       <div class="container">
         <div class="reveal" style="text-align:center;">
           <span class="kicker">{{ locations.kicker }}</span>
-          <h2 class="section-title" id="locations-title">{{ locations.title | safe }}</h2>
+          <h2 class="section-title" id="locations-title">{{ locations.title | safeTitle | safe }}</h2>
           <p class="section-sub" style="margin: 0 auto;">
             {{ locations.subtitle }}
           </p>
@@ -32,9 +32,11 @@
                 <span class="chip">{{ ic.emojiIcon(pt.emoji) }} {{ pt.label }}</span>
                 {%- endfor %}
               </div>
+              {%- if homepage | sectionEnabled("venues") %}
               <p class="loc-cta">
                 <a href="#venues" class="btn btn-outline">{{ locations.ctaButton }}</a>
               </p>
+              {%- endif %}
             </div>
           </div>
         </div>

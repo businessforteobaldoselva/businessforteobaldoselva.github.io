@@ -3,7 +3,7 @@
       <div class="container">
         <div class="reveal">
           <span class="kicker">{{ partners.kicker }}</span>
-          <h2 class="section-title" id="partners-title">{{ partners.title | safe }}</h2>
+          <h2 class="section-title" id="partners-title">{{ partners.title | safeTitle | safe }}</h2>
           <p class="section-sub">
             {{ partners.subtitle }}
           </p>
@@ -15,16 +15,18 @@
           <div class="p-slot founding reveal">
             <span class="stamp">Reserved</span>
             <span class="slot-logo">{{ slot.logoText }}</span>
-            <small>{{ slot.category | safe }}</small>
+            <small>{{ slot.category }}</small>
           </div>
           {%- else %}
-          <div class="p-slot reveal"><span class="slot-logo">{{ slot.logoText }}</span><small>{{ slot.category | safe }}</small></div>
+          <div class="p-slot reveal"><span class="slot-logo">{{ slot.logoText }}</span><small>{{ slot.category }}</small></div>
           {%- endif %}
           {%- endfor %}
         </div>
 
+        {%- if homepage | sectionEnabled("brands") %}
         <p class="reveal" style="margin-top: 2rem; text-align: center;">
           <a href="#brands" class="btn btn-primary">{{ partners.ctaButton }}</a>
         </p>
+        {%- endif %}
       </div>
     </section>

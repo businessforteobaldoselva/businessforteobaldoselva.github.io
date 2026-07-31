@@ -41,14 +41,14 @@ collections:
             name: "sections"
             label_singular: "section"
             widget: "list"
-            hint: "This is the running order of the homepage, top to bottom. Drag sections to reorder the page, untick “Show this section” to hide one without deleting it, and use the add button to drop in your own text, image, number, banner or Q&A blocks."
+            hint: "This is the running order of the homepage, top to bottom. Drag sections to reorder the page, untick “Show this section” to hide one without deleting it, and use the add button to drop in your own text, image, number, banner or Q&A blocks. Each built-in section (hero, ticker, FAQ…) should appear only once — if one is added twice, only the first copy is shown on the site. Your own blocks can repeat freely."
             types:
               - label: "🏠 Hero (big opening screen)"
                 name: "hero"
                 widget: "object"
                 summary: "Hero — headline, stamp and buttons"
                 fields:
-                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true, hint: "The hero holds the page's main heading. If you hide it, an invisible fallback heading (the site title) is used so search engines and screen readers still find one — but the page will open more abruptly." }
               - label: "🎞️ Scrolling venue ticker"
                 name: "marquee"
                 widget: "object"
@@ -130,7 +130,7 @@ collections:
                   - { label: "Small label above heading", name: "kicker", widget: "string", required: false }
                   - { label: "Heading", name: "heading", widget: "string", required: false }
                   - { label: "Text", name: "body", widget: "markdown" }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
               - label: "🖼️ Image + text (add your own)"
                 name: "imageTextBlock"
                 widget: "object"
@@ -143,7 +143,7 @@ collections:
                   - { label: "Heading", name: "heading", widget: "string", required: false }
                   - { label: "Text", name: "body", widget: "markdown" }
                   - { label: "Image on the right?", name: "imageRight", widget: "boolean", default: false }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
               - label: "🔢 Number cards (add your own)"
                 name: "statsBlock"
                 widget: "object"
@@ -157,7 +157,7 @@ collections:
                     fields:
                       - { label: "Big number (e.g. 11% or 20+)", name: "number", widget: "string" }
                       - { label: "Label underneath", name: "label", widget: "string" }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. our-numbers"], hint: "Gives this block its own link — the anchor “our-numbers” lets /#our-numbers scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-numbers"], hint: "Gives this block its own link — the anchor “our-numbers” lets /#our-numbers scroll straight to it." }
               - label: "📣 Big orange banner (add your own)"
                 name: "bannerBlock"
                 widget: "object"
@@ -168,7 +168,7 @@ collections:
                   - { label: "Text", name: "text", widget: "text", required: false }
                   - { label: "Button text", name: "buttonText", widget: "string", required: false }
                   - { label: "Button link", name: "buttonLink", widget: "string", required: false }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. join-us"], hint: "Gives this block its own link — the anchor “join-us” lets /#join-us scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. join-us"], hint: "Gives this block its own link — the anchor “join-us” lets /#join-us scroll straight to it." }
               - label: "❓ Questions & answers (add your own)"
                 name: "faqBlock"
                 widget: "object"
@@ -182,7 +182,7 @@ collections:
                     fields:
                       - { label: "Question", name: "q", widget: "string" }
                       - { label: "Answer", name: "a", widget: "text" }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only — e.g. more-questions"], hint: "Gives this block its own link — the anchor “more-questions” lets /#more-questions scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. more-questions"], hint: "Gives this block its own link — the anchor “more-questions” lets /#more-questions scroll straight to it." }
 
       - name: "theme"
         label: "🎨 Colours & theme"
@@ -199,7 +199,7 @@ collections:
             widget: "color"
             allowInput: true
             required: false
-            hint: "Slightly deeper tint for alternate panels and form fields. Also colours the browser bar on mobile."
+            hint: "Slightly deeper tint for alternate panels and form fields. Also colours the browser bar on mobile — and the keyboard focus ring on the dark violet sections, the footer and the closing banner, so keep it light (at least 3:1 contrast against the violet)."
           - label: "Backgrounds — partner wall band (grass)"
             name: "bandGrass"
             widget: "color"
@@ -235,7 +235,7 @@ collections:
             widget: "color"
             allowInput: true
             required: false
-            hint: "Deeper violet for the footer background and heading depth."
+            hint: "Deeper violet for the footer background and heading depth. Also the keyboard focus ring on the lavender and grass bands (the model, vision and ticker strips), so keep it dark (at least 3:1 contrast against those bands)."
           - label: "Subheadings (softer violet)"
             name: "inkSoft"
             widget: "color"
@@ -277,7 +277,7 @@ collections:
             widget: "color"
             allowInput: true
             required: false
-            hint: "Grass accent — decorative dots, the scrolling ticker band and confetti."
+            hint: "Grass accent — decorative dots, the scrolling ticker band and confetti. Keyboard focus rings on the ticker band are drawn in the deep violet, so keep this light enough for them to stay visible."
           - label: "Grass text on light backgrounds (dark grass)"
             name: "grassDark"
             widget: "color"
@@ -289,7 +289,7 @@ collections:
             widget: "color"
             allowInput: true
             required: false
-            hint: "Lavender accent — pills, the model band background and soft highlights."
+            hint: "Lavender accent — pills, the model band background and soft highlights. Keyboard focus rings on the model and vision bands are drawn in the deep violet, so keep this light enough for them to stay visible."
 
       - name: "motion"
         label: "🎬 Animations"
@@ -377,7 +377,7 @@ collections:
         file: "src/_data/problem.json"
         fields:
           - { label: "Kicker (small label above heading)", name: "kicker", widget: "string" }
-          - { label: "Heading (HTML allowed, e.g. <br />)", name: "title", widget: "string" }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
           - { label: "Subheading", name: "subtitle", widget: "text" }
           - label: "Statistics"
             name: "stats"
@@ -427,7 +427,7 @@ collections:
         file: "src/_data/brands.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
           - { label: "Subheading", name: "subtitle", widget: "text" }
           - label: "Header photo"
             name: "headerPhoto"
@@ -458,7 +458,7 @@ collections:
         file: "src/_data/partners.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
           - { label: "Subheading", name: "subtitle", widget: "text" }
           - label: "Partner slots"
             name: "slots"
@@ -475,7 +475,7 @@ collections:
         fields:
           - { label: "Pilot ribbon text", name: "ribbon", widget: "string" }
           - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
           - { label: "Subheading", name: "subtitle", widget: "text" }
           - label: "We handle (list)"
             name: "weHandle"
@@ -494,7 +494,7 @@ collections:
         file: "src/_data/locations.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
           - { label: "Subheading", name: "subtitle", widget: "text" }
           - { label: "Map viewBox (do not edit)", name: "svgViewBox", widget: "hidden" }
           - { label: "Map alt text (do not edit)", name: "svgAriaLabel", widget: "hidden" }
@@ -523,7 +523,7 @@ collections:
         file: "src/_data/vision.json"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (HTML allowed)", name: "title", widget: "string" }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
           - label: "Milestones"
             name: "milestones"
             widget: "list"

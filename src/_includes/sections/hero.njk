@@ -14,11 +14,15 @@
           {{ hero.subhead }}
         </p>
 
+        {%- set heroBrandsOn = homepage | sectionEnabled("brands") %}
+        {%- set heroVenuesOn = homepage | sectionEnabled("venues") %}
+        {%- if heroBrandsOn or heroVenuesOn %}
         <div class="hero-ctas">
-          <a href="#brands" class="btn btn-primary">{{ hero.ctaBrand }}</a>
-          <a href="#venues" class="btn btn-outline">{{ hero.ctaVenue }}</a>
+          {% if heroBrandsOn %}<a href="#brands" class="btn btn-primary">{{ hero.ctaBrand }}</a>{% endif %}
+          {% if heroVenuesOn %}<a href="#venues" class="btn btn-outline">{{ hero.ctaVenue }}</a>{% endif %}
         </div>
+        {%- endif %}
 
-        <p class="hero-scroll"><a href="#problem">{{ hero.scrollText }}</a></p>
+        {% if homepage | sectionEnabled("problem") %}<p class="hero-scroll"><a href="#problem">{{ hero.scrollText }}</a></p>{% endif %}
       </div>
     </section>
