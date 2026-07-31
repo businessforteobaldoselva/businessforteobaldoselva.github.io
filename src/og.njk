@@ -1,0 +1,335 @@
+---
+permalink: /og/index.html
+eleventyExcludeFromCollections: true
+---
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>COVERED — Social card editor</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%2394AB8D' d='M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z'/%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A35C'/%3E%3C/svg%3E" />
+  <style>
+    @font-face { font-family: "Open Sauce One"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/open-sauce-one-400.woff2") format("woff2"); }
+    @font-face { font-family: "Open Sauce One"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/open-sauce-one-700.woff2") format("woff2"); }
+    @font-face { font-family: "Motor"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("/fonts/motor-regular.woff2") format("woff2"); }
+
+    :root {
+      --paper: {{ theme.paper | safeColor("#F6F1FB") }};
+      --paper-2: {{ theme.paper2 | safeColor("#F3EDFB") }};
+      --ink: {{ theme.ink | safeColor("#472549") }};
+      --accent: {{ theme.accent | safeColor("#F0820B") }};
+      --accent-deep: {{ theme.accentDeep | safeColor("#B85800") }};
+      --line: rgba(71, 37, 73, 0.2);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Open Sauce One", "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+    .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; padding: 1.5rem; max-width: 1560px; margin: 0 auto; }
+    @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+    h1 { font-size: 1.15rem; margin-bottom: 0.75rem; }
+    h1 .dot { color: var(--accent); }
+    .canvas-wrap { aspect-ratio: 1200 / 630; max-width: 1200px; box-shadow: 0 10px 30px rgba(71,37,73,0.18); border-radius: 8px; overflow: hidden; background: #fff; }
+    #ogCanvas { display: block; width: 100%; height: 100%; }
+    .panel { background: var(--paper-2); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem; align-self: start; position: sticky; top: 1.5rem; }
+    .field { margin-bottom: 0.9rem; }
+    label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+    textarea, input[type="text"], select { width: 100%; font: inherit; font-size: 0.9rem; padding: 0.5rem 0.6rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+    textarea { resize: vertical; min-height: 3.2em; }
+    .check { display: flex; gap: 0.5rem; align-items: center; font-size: 0.85rem; font-weight: 700; }
+    .check input { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+    .btns { display: flex; gap: 0.6rem; margin-top: 1.1rem; }
+    button { font: inherit; font-weight: 700; padding: 0.6rem 1rem; border-radius: 999px; border: 2px solid var(--ink); background: none; color: var(--ink); cursor: pointer; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .hint { font-size: 0.72rem; color: #6E5A72; margin-top: 0.25rem; line-height: 1.45; }
+    .note { font-size: 0.75rem; color: #6E5A72; margin-top: 1rem; line-height: 1.5; }
+    .note code { background: #fff; padding: 0.05em 0.35em; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <h1>COVERED<span class="dot">.</span> social card editor <span style="font-weight:400;color:#6E5A72;">— 1200 × 630 Open Graph image</span></h1>
+      <div class="canvas-wrap"><canvas id="ogCanvas" width="1200" height="630"></canvas></div>
+    </div>
+    <aside class="panel" aria-label="Card controls">
+      <div class="field">
+        <label for="fHeadline">Headline</label>
+        <textarea id="fHeadline"></textarea>
+        <p class="hint">Wrap words in [[double brackets]] to colour them orange, like the site's hero. A trailing full stop is always shown in orange — that's the brand period.</p>
+      </div>
+      <div class="field">
+        <label for="fSub">Subheading</label>
+        <textarea id="fSub"></textarea>
+      </div>
+      <div class="field">
+        <label for="fBrand">Brand name</label>
+        <input type="text" id="fBrand" />
+      </div>
+      <div class="field">
+        <label for="fTheme">Theme</label>
+        <select id="fTheme">
+          <option value="paper">Paper (light)</option>
+          <option value="violet">Violet (dark)</option>
+        </select>
+      </div>
+      <div class="field check"><input type="checkbox" id="fLogo" checked /> <label for="fLogo" style="margin:0;">Show logo</label></div>
+      <div class="field check"><input type="checkbox" id="fStamp" checked /> <label for="fStamp" style="margin:0;">Show stamp</label></div>
+      <div class="field">
+        <label for="fStampText">Stamp text</label>
+        <input type="text" id="fStampText" />
+      </div>
+      <div class="btns">
+        <button class="primary" id="btnExport" type="button">Export PNG</button>
+        <button id="btnReset" type="button">Reset</button>
+      </div>
+      <p class="note">To use the export as the site's share image, save it over <code>images/covered-og.jpg</code> (convert to JPG) or ask Claude to swap it in. Colours follow the palette set in the CMS.</p>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+      var W = 1200, H = 630, PAD = 84; /* safe zone: centre 1080x540 */
+
+      var TOKENS = {
+        paper:      {{ theme.paper | safeColor("#F6F1FB") | dump | safe }},
+        paper2:     {{ theme.paper2 | safeColor("#F3EDFB") | dump | safe }},
+        ink:        {{ theme.ink | safeColor("#472549") | dump | safe }},
+        inkDeep:    {{ theme.inkDeep | safeColor("#33193A") | dump | safe }},
+        muted:      {{ theme.muted | safeColor("#6E5A72") | dump | safe }},
+        accent:     {{ theme.accent | safeColor("#F0820B") | dump | safe }},
+        accentDeep: {{ theme.accentDeep | safeColor("#B85800") | dump | safe }},
+        lavender:   {{ theme.lavender | safeColor("#B49CDB") | dump | safe }}
+      };
+      var HERO_MAIN = {{ hero.headlineMain | dump | replace("<", "\\u003c") | safe }};
+      var HERO_ACCENT = {{ hero.headlineAccent | dump | replace("<", "\\u003c") | safe }};
+      var HERO_SUB = {{ hero.subhead | dump | replace("<", "\\u003c") | safe }};
+      var HERO_STAMP = {{ hero.stamp | dump | replace("<", "\\u003c") | safe }};
+
+      /* default sub: first sentence of the hero lede, keeps the card scannable */
+      var subDefault = (HERO_SUB.split(". ")[0] + ".").replace(/\.\.$/, ".");
+      var DEFAULTS = {
+        headline: HERO_MAIN + " [[" + HERO_ACCENT.replace(/\.$/, "") + "]].",
+        sub: subDefault,
+        brand: "COVERED.",
+        theme: "paper",
+        showLogo: true,
+        showStamp: true,
+        stampText: HERO_STAMP
+      };
+      var state = JSON.parse(JSON.stringify(DEFAULTS));
+
+      var canvas = document.getElementById("ogCanvas");
+      var ctx = canvas.getContext("2d");
+
+      /* the site's leaf-drop logo mark, verbatim from the header (fixed artwork colours) */
+      var svgSrc = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path fill='#94AB8D' d='M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z'/><circle cx='15' cy='15' r='11' fill='#F0A35C'/></svg>";
+      var logo = new Image();
+      logo.src = "data:image/svg+xml;base64," + btoa(svgSrc);
+      logo.onload = function () { render(); };
+
+      function colors() {
+        var dark = state.theme === "violet";
+        return {
+          bg: dark ? TOKENS.ink : TOKENS.paper,
+          text: dark ? TOKENS.paper : TOKENS.ink,
+          sub: dark ? TOKENS.lavender : TOKENS.muted,
+          em: TOKENS.accent,
+          stamp: dark ? TOKENS.paper : TOKENS.ink
+        };
+      }
+
+      /* [[word]] markup -> runs of {text, em}; trailing "." forced em (brand period) */
+      function parseRuns(text) {
+        var runs = [], re = /\[\[(.*?)\]\]/g, last = 0, m;
+        while ((m = re.exec(text)) !== null) {
+          if (m.index > last) runs.push({ t: text.slice(last, m.index), em: false });
+          runs.push({ t: m[1], em: true });
+          last = re.lastIndex;
+        }
+        if (last < text.length) runs.push({ t: text.slice(last), em: false });
+        /* brand period: trailing full stop of the whole headline renders in accent */
+        for (var i = runs.length - 1; i >= 0; i--) {
+          var r = runs[i];
+          if (!r.t) continue;
+          if (/\.\s*$/.test(r.t) && !r.em) {
+            var idx = r.t.lastIndexOf(".");
+            var after = r.t.slice(idx);
+            r.t = r.t.slice(0, idx);
+            runs.splice(i + 1, 0, { t: after, em: true });
+          }
+          break;
+        }
+        return runs;
+      }
+
+      /* wrap runs into lines that fit maxWidth at the given font */
+      function layoutRuns(runs, size, maxWidth) {
+        ctx.font = "700 " + size + "px 'Open Sauce One', Helvetica, Arial, sans-serif";
+        var lines = [[]], lineW = 0;
+        runs.forEach(function (run) {
+          var parts = run.t.split(/(\s+)/);
+          parts.forEach(function (p) {
+            if (!p) return;
+            var w = ctx.measureText(p).width;
+            if (!/^\s+$/.test(p) && lineW + w > maxWidth && lineW > 0) {
+              lines.push([]); lineW = 0;
+              if (/^\s+$/.test(p)) return;
+            }
+            lines[lines.length - 1].push({ t: p, em: run.em });
+            lineW += w;
+          });
+        });
+        return lines;
+      }
+
+      function drawHeadline(x, y, maxWidth) {
+        var c = colors();
+        var runs = parseRuns(state.headline);
+        var size = 76;
+        var lines = layoutRuns(runs, size, maxWidth);
+        while (lines.length > 3 && size > 44) { size -= 4; lines = layoutRuns(runs, size, maxWidth); }
+        ctx.textBaseline = "top";
+        var cy = y;
+        lines.forEach(function (line) {
+          var cx = x;
+          line.forEach(function (seg) {
+            ctx.font = "700 " + size + "px 'Open Sauce One', Helvetica, Arial, sans-serif";
+            ctx.fillStyle = seg.em ? c.em : c.text;
+            ctx.fillText(seg.t, cx, cy);
+            cx += ctx.measureText(seg.t).width;
+          });
+          cy += size * 1.12;
+        });
+        return cy;
+      }
+
+      function drawSub(x, y, maxWidth) {
+        var c = colors();
+        ctx.font = "400 30px 'Open Sauce One', Helvetica, Arial, sans-serif";
+        ctx.fillStyle = c.sub;
+        ctx.textBaseline = "top";
+        var words = state.sub.split(/\s+/), line = "", cy = y;
+        for (var i = 0; i < words.length; i++) {
+          var test = line ? line + " " + words[i] : words[i];
+          if (ctx.measureText(test).width > maxWidth && line) {
+            ctx.fillText(line, x, cy); cy += 42; line = words[i];
+          } else { line = test; }
+        }
+        if (line) ctx.fillText(line, x, cy);
+        return cy + 42;
+      }
+
+      function drawStamp(x, y) {
+        if (!state.showStamp || !state.stampText) return;
+        var c = colors();
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(-5 * Math.PI / 180);
+        ctx.font = "700 34px 'Open Sauce One', Helvetica, Arial, sans-serif";
+        var tw = ctx.measureText(state.stampText).width;
+        var padX = 22, padY = 12, bw = tw + padX * 2, bh = 34 + padY * 2;
+        ctx.strokeStyle = c.stamp; ctx.lineWidth = 4;
+        ctx.globalAlpha = 0.92;
+        if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(0, 0, bw, bh, 12); ctx.stroke(); }
+        else { ctx.strokeRect(0, 0, bw, bh); }
+        ctx.fillStyle = c.stamp;
+        ctx.textBaseline = "middle";
+        ctx.fillText(state.stampText, padX, bh / 2 + 2);
+        ctx.restore();
+      }
+
+      function drawBrand(x, y) {
+        var c = colors();
+        var cx = x;
+        if (state.showLogo && logo.complete && logo.naturalWidth > 0) {
+          var h = 46, w = logo.width * (h / logo.height) || h;
+          ctx.drawImage(logo, cx, y - h / 2, w, h);
+          cx += w + 14;
+        }
+        ctx.textBaseline = "middle";
+        ctx.font = "700 32px 'Open Sauce One', Helvetica, Arial, sans-serif";
+        var name = state.brand;
+        var trailingDot = /\.$/.test(name);
+        if (trailingDot) name = name.slice(0, -1);
+        ctx.fillStyle = c.text;
+        ctx.fillText(name, cx, y + 2);
+        if (trailingDot) {
+          var nw = ctx.measureText(name).width;
+          ctx.fillStyle = TOKENS.accent;
+          ctx.fillText(".", cx + nw, y + 2);
+        }
+      }
+
+      function render() {
+        var c = colors();
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = c.bg;
+        ctx.fillRect(0, 0, W, H);
+        /* soft corner wash, echoes the site's band tints */
+        var grad = ctx.createRadialGradient(W - 120, -60, 60, W - 120, -60, 640);
+        grad.addColorStop(0, state.theme === "violet" ? "rgba(180,156,219,0.25)" : "rgba(180,156,219,0.35)");
+        grad.addColorStop(1, "rgba(180,156,219,0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        var afterHeadline = drawHeadline(PAD, 132, W - PAD * 2);
+        var afterSub = drawSub(PAD, afterHeadline + 18, W - PAD * 2 - 120);
+        drawStamp(W - PAD - 330, Math.max(afterSub + 8, H - 214));
+        drawBrand(PAD, H - 96);
+      }
+
+      /* controls */
+      var els = {
+        headline: document.getElementById("fHeadline"),
+        sub: document.getElementById("fSub"),
+        brand: document.getElementById("fBrand"),
+        theme: document.getElementById("fTheme"),
+        logo: document.getElementById("fLogo"),
+        stamp: document.getElementById("fStamp"),
+        stampText: document.getElementById("fStampText")
+      };
+      function pull() {
+        state.headline = els.headline.value;
+        state.sub = els.sub.value;
+        state.brand = els.brand.value;
+        state.theme = els.theme.value;
+        state.showLogo = els.logo.checked;
+        state.showStamp = els.stamp.checked;
+        state.stampText = els.stampText.value;
+        render();
+      }
+      function push() {
+        els.headline.value = state.headline;
+        els.sub.value = state.sub;
+        els.brand.value = state.brand;
+        els.theme.value = state.theme;
+        els.logo.checked = state.showLogo;
+        els.stamp.checked = state.showStamp;
+        els.stampText.value = state.stampText;
+      }
+      Object.keys(els).forEach(function (k) { els[k].addEventListener("input", pull); els[k].addEventListener("change", pull); });
+
+      document.getElementById("btnExport").addEventListener("click", function () {
+        render();
+        canvas.toBlob(function (blob) {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url; a.download = "covered-og.png";
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        }, "image/png");
+      });
+      document.getElementById("btnReset").addEventListener("click", function () {
+        state = JSON.parse(JSON.stringify(DEFAULTS));
+        push(); render();
+      });
+
+      push();
+      render();
+      if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function () { render(); }); }
+    })();
+  </script>
+</body>
+</html>
