@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="{{ theme.paper2 | safeColor("#F3EDFB") }}" />
+  <meta name="theme-color" content="{{ theme.paper2 | safeColor("#FFEFDA") }}" />
   <script>
     /* Netlify Identity emails (invites, password recovery) link to the site
        root with a token in the hash — forward them to the CMS login page. */
@@ -319,9 +319,11 @@
           });
         }
 
-        /* 2. stamp slams after the words, with a tiny page shake */
+        /* 2. stamp slams after the words, with a tiny page shake.
+           Skipped when the scroll-scrub hero is active — there the stamp
+           drop is driven by the scrub, landing with the dispensed pack. */
         var heroInner = document.querySelector(".hero-inner");
-        if (heroStamp) {
+        if (heroStamp && !document.querySelector(".hero--scrubbing")) {
           heroStamp.style.opacity = "0";
           setTimeout(function () {
             heroStamp.style.opacity = "";
@@ -395,10 +397,10 @@
       /* Theme-driven confetti (accent, grass, lavender, ink) — each value is
          validated by safeColor, so only a hex colour can reach this script. */
       var confettiColors = [
-        {{ theme.accent | safeColor("#F0820B") | dump | replace("<", "\\u003c") | safe }},
-        {{ theme.grass | safeColor("#B9A00F") | dump | replace("<", "\\u003c") | safe }},
-        {{ theme.lavender | safeColor("#B49CDB") | dump | replace("<", "\\u003c") | safe }},
-        {{ theme.ink | safeColor("#472549") | dump | replace("<", "\\u003c") | safe }}
+        {{ theme.accent | safeColor("#FC7130") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.grass | safeColor("#6E8B2E") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.lavender | safeColor("#E2F099") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.ink | safeColor("#2F4D19") | dump | replace("<", "\\u003c") | safe }}
       ];
 
       function setStep(n) {

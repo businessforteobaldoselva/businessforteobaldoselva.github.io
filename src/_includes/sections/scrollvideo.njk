@@ -1,0 +1,195 @@
+{#- ============ SCROLL-SCRUB VIDEO (canvas frame sequence) ============
+    Apple-style scroll-driven "video": a folder of ffmpeg-exported stills is
+    painted onto a <canvas>, and the frame index is locked to scroll position.
+    Pinning is pure CSS `position: sticky` — no GSAP, no Lenis, no scroll
+    hijacking — so it plays nicely with the site's existing scroll-progress
+    bar, scrollspy and IntersectionObserver animations.
+
+    Config comes from an optional `sv` object (page front matter or a
+    homepage.json section), read via data-* attributes so the script stays
+    static and minifiable:
+      sv.dir           folder under /public served root, no trailing slash  (default /frames/desktop)
+      sv.count         exact number of frames ffmpeg exported               (default 145)
+      sv.pad           zero-padding of the frame number (frame_0001 → 4)    (default 4)
+      sv.ext           file extension without the dot                       (default jpg)
+      sv.scrollLength  scrub distance as a multiple of viewport height      (default 3 → 300vh)
+      sv.poster        frame shown initially and for reduced-motion         (default 0)
+      sv.title/sv.sub  optional overlay copy (omit for a bare background)
+    Respects prefers-reduced-motion: no pin, no scrub, just the poster frame.
+-#}
+{%- set svDir = (sv.dir if sv and sv.dir) or "/frames/desktop" %}
+{%- set svCount = (sv.count if sv and sv.count) or 145 %}
+{%- set svPad = (sv.pad if sv and sv.pad) or 4 %}
+{%- set svExt = (sv.ext if sv and sv.ext) or "jpg" %}
+{%- set svScroll = (sv.scrollLength if sv and sv.scrollLength) or 3 %}
+{%- set svPoster = (sv.poster if sv and sv.poster) or 0 %}
+{#- 4-wide zero-pad for the no-JS <noscript> poster (matches the default pad). -#}
+{%- macro pad4(num) -%}
+{%- if num < 10 -%}000{{ num }}{%- elif num < 100 -%}00{{ num }}{%- elif num < 1000 -%}0{{ num }}{%- else -%}{{ num }}{%- endif -%}
+{%- endmacro -%}
+
+<style>
+  .scrollvideo { position: relative; width: 100%; min-height: 100vh; background: var(--paper, #FFF8EC); }
+  .scrollvideo-pin { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; }
+  @supports (height: 100dvh) { .scrollvideo-pin { height: 100dvh; } }
+  .scrollvideo-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+  .scrollvideo-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .scrollvideo-overlay {
+    position: absolute; inset: 0; display: flex; align-items: flex-end;
+    padding: clamp(1.5rem, 5vw, 4rem); pointer-events: none;
+  }
+  .scrollvideo-overlay::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to top, var(--paper, #FFF8EC) 0%, rgba(255, 248, 236, 0) 46%);
+    opacity: .78;
+  }
+  .scrollvideo-overlay .container { position: relative; width: 100%; }
+  .scrollvideo-title {
+    margin: 0; max-width: 16ch;
+    font-family: var(--font-display, "Motor", "Oswald", "Arial Narrow", sans-serif);
+    font-weight: 500; line-height: 1.02; letter-spacing: -0.01em;
+    font-size: clamp(2rem, 6vw, 4.5rem); color: var(--ink, #2F4D19);
+    text-wrap: balance;
+  }
+  .scrollvideo-sub {
+    margin: .6rem 0 0; max-width: 42ch;
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: clamp(1rem, 2.2vw, 1.35rem); color: var(--ink-soft, #3D5A28);
+  }
+</style>
+
+<section class="scrollvideo" data-scrollvideo
+         data-dir="{{ svDir }}" data-count="{{ svCount }}" data-pad="{{ svPad }}"
+         data-ext="{{ svExt }}" data-scroll="{{ svScroll }}" data-poster="{{ svPoster }}"
+         aria-label="{{ (sv.title if sv and sv.title) or 'The COVERED dispenser' }}">
+  <div class="scrollvideo-pin">
+    <canvas class="scrollvideo-canvas" aria-hidden="true"></canvas>
+    <noscript>
+      <img class="scrollvideo-poster" src="{{ svDir }}/frame_{{ pad4(svPoster + 1) }}.{{ svExt }}" alt="" />
+    </noscript>
+    {%- if sv and sv.title %}
+    <div class="scrollvideo-overlay">
+      <div class="container">
+        <h2 class="scrollvideo-title">{{ sv.title | safeTitle | safe }}</h2>
+        {%- if sv.sub %}<p class="scrollvideo-sub">{{ sv.sub }}</p>{% endif %}
+      </div>
+    </div>
+    {%- endif %}
+  </div>
+</section>
+
+<script>
+  (function () {
+    "use strict";
+    var section = document.currentScript.previousElementSibling;
+    while (section && !section.hasAttribute("data-scrollvideo")) {
+      section = section.previousElementSibling;
+    }
+    if (!section) { return; }
+
+    var cfg = {
+      dir: section.getAttribute("data-dir") || "/frames/desktop",
+      count: parseInt(section.getAttribute("data-count"), 10) || 0,
+      pad: parseInt(section.getAttribute("data-pad"), 10) || 4,
+      ext: section.getAttribute("data-ext") || "jpg",
+      scrollLength: parseFloat(section.getAttribute("data-scroll")) || 3,
+      poster: parseInt(section.getAttribute("data-poster"), 10) || 0
+    };
+    if (cfg.count < 1) { return; }
+
+    var pin = section.querySelector(".scrollvideo-pin");
+    var canvas = section.querySelector(".scrollvideo-canvas");
+    var ctx = canvas && canvas.getContext ? canvas.getContext("2d") : null;
+    if (!pin || !canvas || !ctx) { return; }
+
+    function frameUrl(i) {
+      var n = String(i + 1);
+      while (n.length < cfg.pad) { n = "0" + n; }
+      return cfg.dir + "/frame_" + n + "." + cfg.ext;
+    }
+
+    var images = new Array(cfg.count);
+    var current = -1;
+
+    function resize() {
+      var rect = pin.getBoundingClientRect();
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Reassigning canvas.width wipes the bitmap — repaint the current frame
+      // so a resize that doesn't change the frame index doesn't blank it.
+      if (current >= 0) { var keep = current; current = -1; draw(keep); }
+    }
+
+    // Draw one frame, "cover"-fitting it to the canvas (no distortion).
+    function draw(index) {
+      var img = images[index];
+      if (!img || !img.complete || img.naturalWidth === 0) { return; }
+      var rect = pin.getBoundingClientRect();
+      var cw = rect.width, ch = rect.height;
+      var ir = img.naturalWidth / img.naturalHeight;
+      var cr = cw / ch;
+      var dw, dh;
+      if (ir > cr) { dh = ch; dw = ch * ir; } else { dw = cw; dh = cw / ir; }
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+      current = index;
+      section.setAttribute("data-frame", index); // test/observability hook
+    }
+
+    resize();
+
+    // Preload every frame; paint the poster the moment it lands so the
+    // section is never blank.
+    var posterPainted = false;
+    for (var i = 0; i < cfg.count; i++) {
+      (function (idx) {
+        var img = new Image();
+        img.decoding = "async";
+        img.src = frameUrl(idx);
+        img.onload = function () {
+          if (!posterPainted && idx === cfg.poster) { posterPainted = true; draw(cfg.poster); }
+        };
+        images[idx] = img;
+      })(i);
+    }
+    if (images[cfg.poster] && images[cfg.poster].complete) { draw(cfg.poster); posterPainted = true; }
+
+    var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduced) {
+      // No pin, no scrub — collapse the scroll track and show one frame.
+      section.classList.add("scrollvideo--static");
+      section.style.height = "100vh";
+      window.addEventListener("resize", function () {
+        resize(); // repaints current; only need the poster if nothing drawn yet
+        if (current < 0) { draw(cfg.poster); }
+      });
+      return;
+    }
+
+    // Give the section the scroll room it scrubs across: the sticky pin stays
+    // stuck for scrollLength × 100vh, then releases.
+    section.style.height = ((cfg.scrollLength + 1) * 100) + "vh";
+
+    var ticking = false;
+    function onScroll() {
+      if (ticking) { return; }
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        var rect = section.getBoundingClientRect();
+        var scrollable = rect.height - window.innerHeight;
+        var p = scrollable > 0 ? (-rect.top) / scrollable : 0;
+        if (p < 0) { p = 0; } else if (p > 1) { p = 1; }
+        var target = Math.round(p * (cfg.count - 1));
+        if (target !== current) { draw(target); }
+      });
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", function () { resize(); onScroll(); });
+    onScroll();
+  })();
+</script>

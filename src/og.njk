@@ -16,11 +16,11 @@ eleventyExcludeFromCollections: true
     @font-face { font-family: "Motor"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("/fonts/motor-regular.woff2") format("woff2"); }
 
     :root {
-      --paper: {{ theme.paper | safeColor("#F6F1FB") }};
-      --paper-2: {{ theme.paper2 | safeColor("#F3EDFB") }};
-      --ink: {{ theme.ink | safeColor("#472549") }};
-      --accent: {{ theme.accent | safeColor("#F0820B") }};
-      --accent-deep: {{ theme.accentDeep | safeColor("#B85800") }};
+      --paper: {{ theme.paper | safeColor("#FFF8EC") }};
+      --paper-2: {{ theme.paper2 | safeColor("#FFEFDA") }};
+      --ink: {{ theme.ink | safeColor("#2F4D19") }};
+      --accent: {{ theme.accent | safeColor("#FC7130") }};
+      --accent-deep: {{ theme.accentDeep | safeColor("#BB4A12") }};
       --line: rgba(71, 37, 73, 0.2);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,15 +41,15 @@ eleventyExcludeFromCollections: true
     .btns { display: flex; gap: 0.6rem; margin-top: 1.1rem; }
     button { font: inherit; font-weight: 700; padding: 0.6rem 1rem; border-radius: 999px; border: 2px solid var(--ink); background: none; color: var(--ink); cursor: pointer; }
     button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .hint { font-size: 0.72rem; color: #6E5A72; margin-top: 0.25rem; line-height: 1.45; }
-    .note { font-size: 0.75rem; color: #6E5A72; margin-top: 1rem; line-height: 1.5; }
+    .hint { font-size: 0.72rem; color: #566B42; margin-top: 0.25rem; line-height: 1.45; }
+    .note { font-size: 0.75rem; color: #566B42; margin-top: 1rem; line-height: 1.5; }
     .note code { background: #fff; padding: 0.05em 0.35em; border-radius: 4px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div>
-      <h1>COVERED<span class="dot">.</span> social card editor <span style="font-weight:400;color:#6E5A72;">— 1200 × 630 Open Graph image</span></h1>
+      <h1>COVERED<span class="dot">.</span> social card editor <span style="font-weight:400;color:#566B42;">— 1200 × 630 Open Graph image</span></h1>
       <div class="canvas-wrap"><canvas id="ogCanvas" width="1200" height="630"></canvas></div>
     </div>
     <aside class="panel" aria-label="Card controls">
@@ -93,14 +93,14 @@ eleventyExcludeFromCollections: true
       var W = 1200, H = 630, PAD = 84; /* safe zone: centre 1080x540 */
 
       var TOKENS = {
-        paper:      {{ theme.paper | safeColor("#F6F1FB") | dump | safe }},
-        paper2:     {{ theme.paper2 | safeColor("#F3EDFB") | dump | safe }},
-        ink:        {{ theme.ink | safeColor("#472549") | dump | safe }},
-        inkDeep:    {{ theme.inkDeep | safeColor("#33193A") | dump | safe }},
-        muted:      {{ theme.muted | safeColor("#6E5A72") | dump | safe }},
-        accent:     {{ theme.accent | safeColor("#F0820B") | dump | safe }},
-        accentDeep: {{ theme.accentDeep | safeColor("#B85800") | dump | safe }},
-        lavender:   {{ theme.lavender | safeColor("#B49CDB") | dump | safe }}
+        paper:      {{ theme.paper | safeColor("#FFF8EC") | dump | safe }},
+        paper2:     {{ theme.paper2 | safeColor("#FFEFDA") | dump | safe }},
+        ink:        {{ theme.ink | safeColor("#2F4D19") | dump | safe }},
+        inkDeep:    {{ theme.inkDeep | safeColor("#223A13") | dump | safe }},
+        muted:      {{ theme.muted | safeColor("#566B42") | dump | safe }},
+        accent:     {{ theme.accent | safeColor("#FC7130") | dump | safe }},
+        accentDeep: {{ theme.accentDeep | safeColor("#BB4A12") | dump | safe }},
+        lavender:   {{ theme.lavender | safeColor("#E2F099") | dump | safe }}
       };
       var HERO_MAIN = {{ hero.headlineMain | dump | replace("<", "\\u003c") | safe }};
       var HERO_ACCENT = {{ hero.headlineAccent | dump | replace("<", "\\u003c") | safe }};

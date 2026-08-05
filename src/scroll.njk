@@ -1,0 +1,47 @@
+---
+permalink: /scroll/
+eleventyExcludeFromCollections: true
+sv:
+  title: "We got you covered."
+  sub: "Free period products from smart dispensers, paid for by advertising."
+  dir: /frames/desktop
+  count: 145
+  pad: 4
+  ext: jpg
+  scrollLength: 3
+  poster: 0
+---
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Scroll-scrub dispenser — demo</title>
+  <link rel="stylesheet" href="/assets/site.css" />
+  <link rel="preload" href="/fonts/motor-regular.woff2" as="font" type="font/woff2" crossorigin />
+  <style>
+    body { margin: 0; font-family: var(--font-body, system-ui, sans-serif); color: var(--ink, #2F4D19); background: var(--paper, #FFF8EC); }
+    .demo-spacer { min-height: 90vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+    .demo-spacer h1 { font-family: var(--font-display, sans-serif); font-weight: 500; font-size: clamp(1.6rem, 4vw, 2.6rem); max-width: 24ch; margin: 0 0 .5rem; }
+    .demo-spacer p { color: var(--muted, #566B42); max-width: 44ch; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <section class="demo-spacer">
+    <div>
+      <h1>Scroll down to scrub the dispenser</h1>
+      <p>A 145-frame canvas sequence pinned to the viewport. Scroll down to play it forward, scroll back up to reverse — locked to scroll position, no video element.</p>
+    </div>
+  </section>
+
+  {% include "sections/scrollvideo.njk" %}
+
+  <section class="demo-spacer">
+    <div>
+      <h1>Section released</h1>
+      <p>Once the sequence finishes, the pin releases and the page scrolls on as normal.</p>
+    </div>
+  </section>
+</body>
+</html>

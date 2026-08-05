@@ -114,6 +114,10 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("llms.txt");
   eleventyConfig.addPassthroughCopy(".well-known");
   eleventyConfig.addPassthroughCopy("feed.xml");
+  // Scroll-scrub hero frame sequences (ffmpeg-exported stills painted onto a
+  // <canvas>). Root-level like images/, so they serve at /frames/… on both
+  // GitHub Pages (root) and Netlify (_site).
+  eleventyConfig.addPassthroughCopy("frames");
 
   return {
     dir: {

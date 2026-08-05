@@ -6,24 +6,24 @@
    The logo colours (--logo-green/sage/orange) are fixed brand artwork and
    are deliberately not themeable. */
 :root {
-  --paper: {{ theme.paper | safeColor("#F6F1FB") }};
-  --paper-2: {{ theme.paper2 | safeColor("#F3EDFB") }};
-  --band-grass: {{ theme.bandGrass | safeColor("#F2ECCE") }};
-  --band-lav: {{ theme.bandLav | safeColor("#E7DEF5") }};
-  --band-rosa: {{ theme.bandRosa | safeColor("#FBE7CF") }};
+  --paper: {{ theme.paper | safeColor("#FFF8EC") }};
+  --paper-2: {{ theme.paper2 | safeColor("#FFEFDA") }};
+  --band-grass: {{ theme.bandGrass | safeColor("#EEF4CC") }};
+  --band-lav: {{ theme.bandLav | safeColor("#FFECD3") }};
+  --band-rosa: {{ theme.bandRosa | safeColor("#FBE3C6") }};
   --peach: {{ theme.peach | safeColor("#FBD9B3") }};
-  --ink: {{ theme.ink | safeColor("#472549") }};
-  --ink-deep: {{ theme.inkDeep | safeColor("#33193A") }};
-  --ink-soft: {{ theme.inkSoft | safeColor("#5E4260") }};
-  --muted: {{ theme.muted | safeColor("#6E5A72") }};
-  --red: {{ theme.accent | safeColor("#F0820B") }};
-  --red-deep: {{ theme.accentDeep | safeColor("#B85800") }};
-  --red-dark: {{ theme.accentDark | safeColor("#8A4A08") }};
-  --kicker-band: {{ theme.kickerBand | safeColor("#8A4A08") }};
-  --green: {{ theme.grass | safeColor("#B9A00F") }};
-  --green-dark: {{ theme.grassDark | safeColor("#6E5E08") }};
-  --sage: {{ theme.lavender | safeColor("#B49CDB") }};
-  /* hairline + shadow derive from the ink colour (defaults: rgba(71, 37, 73, …)) */
-  --line: {{ theme.ink | safeColor("#472549") | hexToRgba(0.20) }};
-  --shadow: 0 10px 30px {{ theme.ink | safeColor("#472549") | hexToRgba(0.12) }};
+  --ink: {{ theme.ink | safeColor("#2F4D19") }};
+  --ink-deep: {{ theme.inkDeep | safeColor("#223A13") }};
+  --ink-soft: {{ theme.inkSoft | safeColor("#3D5A28") }};
+  --muted: {{ theme.muted | safeColor("#566B42") }};
+  --red: {{ theme.accent | safeColor("#FC7130") }};
+  --red-deep: {{ theme.accentDeep | safeColor("#BB4A12") }};
+  --red-dark: {{ theme.accentDark | safeColor("#9C3E0C") }};
+  --kicker-band: {{ theme.kickerBand | safeColor("#9C3E0C") }};
+  --green: {{ theme.grass | safeColor("#6E8B2E") }};
+  --green-dark: {{ theme.grassDark | safeColor("#4C6720") }};
+  --sage: {{ theme.lavender | safeColor("#E2F099") }};
+  /* hairline + shadow derive from the ink colour (defaults: rgba(47, 77, 25, …)) */
+  --line: {{ theme.ink | safeColor("#2F4D19") | hexToRgba(0.20) }};
+  --shadow: 0 10px 30px {{ theme.ink | safeColor("#2F4D19") | hexToRgba(0.12) }};
 }

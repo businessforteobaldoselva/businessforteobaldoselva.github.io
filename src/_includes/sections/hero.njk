@@ -1,28 +1,213 @@
-    <!-- ============ HERO ============ -->
-    <section class="hero" aria-label="Introduction">
-      <div class="heart-deco floaty" style="width: 72px; height: 72px; top: 24%; right: 10%; --tilt: 14deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
-      <div class="heart-deco floaty slow" style="width: 46px; height: 46px; bottom: 26%; left: 9%; --tilt: -12deg;" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21C6 16 3 12.4 3 9.2 3 6.4 5.1 4.4 7.7 4.4c1.8 0 3.3 1 4.3 2.5 1-1.5 2.5-2.5 4.3-2.5 2.6 0 4.7 2 4.7 4.8 0 3.2-3 6.8-9 11.8z"/></svg></div>
-      <div class="container hero-inner">
-        <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> {{ hero.badge }}</span>
-        <h1>{{ hero.headlineMain }} <span class="accent">{{ hero.headlineAccent }}</span></h1>
+    <!-- ============ HERO (scroll-scrub video background) ============ -->
+    {#- Apple-style scroll-driven hero: the dispenser frame sequence is the
+        full-bleed BACKGROUND of the section. CSS sticky pins the viewport
+        while the visitor scrolls through data-scroll × 100vh of track; the
+        scroll position picks the frame painted onto the canvas, so scrolling
+        down plays the dispense and scrolling up reverses it. Copy overlays
+        on the left. Reduced-motion / no-JS get frame 1 as a static still.
 
-        <div class="hero-stamp-row">
-          <span class="stamp" id="heroStamp">{{ hero.stamp }}</span>
+        Tuning:
+          data-scroll  pin length as a multiple of viewport height (3 → 300vh)
+          data-shift   image translated right by this fraction of the viewport
+                       width, so the (centred) dispenser sits right of the copy;
+                       the exposed left strip is filled with the footage's own
+                       wall-gradient edge column — seamless under the scrim
+          data-focal   horizontal focal point of the cover-crop on narrow
+                       screens (0.55 keeps the whole machine in the crop)
+          data-smooth  scrub easing per frame tick (0–1; higher = snappier) -#}
+    <section class="hero" aria-label="Introduction" data-hero-scrub
+             data-dir="/frames/desktop" data-count="145" data-pad="4" data-ext="jpg"
+             data-scroll="1" data-shift="0.18" data-focal="0.55" data-smooth="0.11"
+             data-stamp="0.78">
+      <div class="hero-pin">
+        <canvas class="hero-bg" aria-hidden="true"></canvas>
+        <noscript><img class="hero-bg hero-bg-poster" src="/frames/desktop/frame_0001.jpg" alt="" /></noscript>
+        <div class="hero-scrim" aria-hidden="true"></div>
+
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> {{ hero.badge }}</span>
+            <h1>{{ hero.headlineMain }} <span class="accent">{{ hero.headlineAccent }}</span></h1>
+
+            <div class="hero-stamp-row">
+              <span class="stamp" id="heroStamp">{{ hero.stamp }}</span>
+            </div>
+
+            <p class="hero-sub">
+              {{ hero.subhead }}
+            </p>
+
+            {%- set heroBrandsOn = homepage | sectionEnabled("brands") %}
+            {%- set heroVenuesOn = homepage | sectionEnabled("venues") %}
+            {%- if heroBrandsOn or heroVenuesOn %}
+            <div class="hero-ctas">
+              {% if heroBrandsOn %}<a href="#brands" class="btn btn-primary">{{ hero.ctaBrand }}</a>{% endif %}
+              {% if heroVenuesOn %}<a href="#venues" class="btn btn-outline">{{ hero.ctaVenue }}</a>{% endif %}
+            </div>
+            {%- endif %}
+
+            {% if homepage | sectionEnabled("problem") %}<p class="hero-scroll"><a href="#problem">{{ hero.scrollText }}</a></p>{% endif %}
+          </div>
         </div>
-
-        <p class="hero-sub">
-          {{ hero.subhead }}
-        </p>
-
-        {%- set heroBrandsOn = homepage | sectionEnabled("brands") %}
-        {%- set heroVenuesOn = homepage | sectionEnabled("venues") %}
-        {%- if heroBrandsOn or heroVenuesOn %}
-        <div class="hero-ctas">
-          {% if heroBrandsOn %}<a href="#brands" class="btn btn-primary">{{ hero.ctaBrand }}</a>{% endif %}
-          {% if heroVenuesOn %}<a href="#venues" class="btn btn-outline">{{ hero.ctaVenue }}</a>{% endif %}
-        </div>
-        {%- endif %}
-
-        {% if homepage | sectionEnabled("problem") %}<p class="hero-scroll"><a href="#problem">{{ hero.scrollText }}</a></p>{% endif %}
       </div>
+
+      <script>
+        (function () {
+          "use strict";
+          var section = document.querySelector("[data-hero-scrub]");
+          if (!section) { return; }
+          var pin = section.querySelector(".hero-pin");
+          var canvas = section.querySelector(".hero-bg");
+          var ctx = canvas && canvas.getContext ? canvas.getContext("2d") : null;
+          if (!pin || !ctx) { return; }
+
+          var dir = section.getAttribute("data-dir");
+          var count = parseInt(section.getAttribute("data-count"), 10);
+          var pad = parseInt(section.getAttribute("data-pad"), 10) || 4;
+          var ext = section.getAttribute("data-ext") || "jpg";
+          var scrollLen = parseFloat(section.getAttribute("data-scroll")) || 3;
+          var shift = parseFloat(section.getAttribute("data-shift"));
+          if (!(shift >= 0 && shift <= 0.5)) { shift = 0; }
+          var focal = parseFloat(section.getAttribute("data-focal"));
+          if (!(focal >= 0 && focal <= 1)) { focal = 0.5; }
+          var smooth = parseFloat(section.getAttribute("data-smooth"));
+          if (!(smooth > 0 && smooth <= 1)) { smooth = 0.11; }
+          // Scrub progress (0–1) at which the pack lands → stamp slams in.
+          var stampAt = parseFloat(section.getAttribute("data-stamp"));
+          if (!(stampAt > 0 && stampAt < 1)) { stampAt = 0.78; }
+          if (!dir || !(count > 0)) { return; }
+
+          function frameUrl(i) {
+            var n = String(i + 1);
+            while (n.length < pad) { n = "0" + n; }
+            return dir + "/frame_" + n + "." + ext;
+          }
+
+          var images = new Array(count);
+          var current = -1;   // integer frame currently painted
+          var pos = 0;        // eased float frame position
+          var target = 0;     // scroll-derived target frame
+
+          function draw(index) {
+            // Fall back to the nearest earlier loaded frame while the
+            // sequence is still downloading, so scrubbing never blanks.
+            var i = index;
+            while (i > 0 && !(images[i] && images[i].complete && images[i].naturalWidth > 0)) { i--; }
+            var img = images[i];
+            if (!img || !img.complete || img.naturalWidth === 0) { return; }
+            var rect = pin.getBoundingClientRect();
+            var cw = rect.width, ch = rect.height;
+            if (cw < 1 || ch < 1) { return; }
+            var ir = img.naturalWidth / img.naturalHeight;
+            var cr = cw / ch;
+            var dw, dh;
+            if (ir > cr) { dh = ch; dw = ch * ir; } else { dw = cw; dh = cw / ir; }
+            // Cover-fit anchored at the focal point, then panned right so the
+            // dispenser clears the copy. dx > 0 exposes a strip on the left.
+            var dx = (cw - dw) * focal + shift * cw;
+            if (dx < cw - dw) { dx = cw - dw; }
+            var dy = (ch - dh) / 2;
+            ctx.clearRect(0, 0, cw, ch);
+            if (dx > 0) {
+              // Fill the exposed strip by stretching the footage's leftmost
+              // column — the studio wall gradient, so the seam is invisible
+              // (and it sits under the cream scrim anyway).
+              ctx.drawImage(img, 0, 0, 1, img.naturalHeight, 0, dy, Math.ceil(dx), dh);
+            }
+            ctx.drawImage(img, dx, dy, dw, dh);
+            current = i;
+            section.setAttribute("data-frame", i);
+          }
+
+          function resize() {
+            var rect = pin.getBoundingClientRect();
+            var dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.round(rect.width * dpr);
+            canvas.height = Math.round(rect.height * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            // Reassigning canvas.width resets ALL context state — restore the
+            // scaling quality, then repaint (the bitmap was wiped too).
+            if ("imageSmoothingQuality" in ctx) { ctx.imageSmoothingQuality = "high"; }
+            if (current >= 0) { var keep = current; current = -1; draw(keep); }
+          }
+
+          resize();
+
+          for (var i = 0; i < count; i++) {
+            (function (idx) {
+              var img = new Image();
+              img.decoding = "async";
+              img.src = frameUrl(idx);
+              img.onload = function () {
+                if (current < 0 && idx === 0) { draw(0); }
+              };
+              images[idx] = img;
+            })(i);
+          }
+
+          var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (reduced) {
+            // No pin track, no scrub — a single static viewport with frame 1.
+            window.addEventListener("resize", function () { resize(); if (current < 0) { draw(0); } });
+            return;
+          }
+
+          // Scroll track: the sticky pin holds for scrollLen × 100vh.
+          section.classList.add("hero--scrubbing");
+          section.style.height = ((scrollLen + 1) * 100) + "vh";
+
+          function readTarget() {
+            var rect = section.getBoundingClientRect();
+            var scrollable = rect.height - window.innerHeight;
+            var p = scrollable > 0 ? (-rect.top) / scrollable : 0;
+            if (p < 0) { p = 0; } else if (p > 1) { p = 1; }
+            target = p * (count - 1);
+          }
+
+          // Scrub-driven stamp: slams in as the pack lands in the tray,
+          // retracts if the visitor scrolls back before the drop.
+          var stampEl = document.getElementById("heroStamp");
+          var heroInner = section.querySelector(".hero-inner");
+          var stampOn = false;
+          function setStamp(on) {
+            if (!stampEl || on === stampOn) { return; }
+            stampOn = on;
+            if (on) {
+              stampEl.classList.add("stamp-in");
+              if (heroInner) {
+                heroInner.classList.add("hero-shake");
+                setTimeout(function () { heroInner.classList.remove("hero-shake"); }, 450);
+              }
+            } else {
+              stampEl.classList.remove("stamp-in");
+            }
+          }
+
+          // Eased scrub: each tick the painted position closes a fraction of
+          // the gap to the scroll target (GSAP scrub-style catch-up), so
+          // wheel-step scrolling reads as motion, not discrete jumps.
+          var animating = false;
+          function tick() {
+            var diff = target - pos;
+            if (Math.abs(diff) < 0.35) {
+              pos = target;
+              animating = false;
+            } else {
+              pos += diff * smooth;
+              requestAnimationFrame(tick);
+            }
+            var frame = Math.round(pos);
+            if (frame !== current) { draw(frame); }
+            setStamp(pos >= stampAt * (count - 1));
+          }
+          function kick() {
+            readTarget();
+            if (!animating) { animating = true; requestAnimationFrame(tick); }
+          }
+
+          window.addEventListener("scroll", kick, { passive: true });
+          window.addEventListener("resize", function () { resize(); kick(); });
+          kick();
+        })();
+      </script>
     </section>
