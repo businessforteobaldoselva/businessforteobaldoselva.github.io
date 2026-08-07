@@ -2,5 +2,39 @@
   "kicker": "How it works",
   "title": "Scan. Check in. Watch. Covered.",
   "subtitle": "Try it yourself — tap through the full experience we're building, right here.",
-  "demoNote": "During the Exeter pilot it's even simpler — take what you need, no scan required. Longer term, a gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more."
+  "demoNote": "During the Exeter pilot it's even simpler — take what you need, no scan required. Longer term, a gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more.",
+  "story": [
+    {
+      "img": "images/story-1-spot",
+      "w": 764,
+      "h": 896,
+      "title": "Spot it.",
+      "caption": "Machines live where you already are.",
+      "alt": "A COVERED dispenser wall-mounted in a warm tiled bathroom"
+    },
+    {
+      "img": "images/story-2-scan",
+      "w": 764,
+      "h": 896,
+      "title": "Scan and join.",
+      "caption": "A few taps. You're in.",
+      "alt": "A hand scanning the QR code on the dispenser's screen with a phone"
+    },
+    {
+      "img": "images/story-3-get",
+      "w": 764,
+      "h": 896,
+      "title": "Take what you need.",
+      "caption": "Dispensed. Free, obviously.",
+      "alt": "Close-up of a wrapped pack with an orange band sitting in the dispenser tray"
+    },
+    {
+      "img": "images/story-4-perks",
+      "w": 764,
+      "h": 896,
+      "title": "Perks incoming.",
+      "caption": "Brand treats land in your inbox.",
+      "alt": "A woman relaxing on a sofa, smiling at her phone"
+    }
+  ]
 }

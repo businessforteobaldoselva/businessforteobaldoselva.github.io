@@ -10,8 +10,14 @@
             </p>
           </div>
           <figure class="polaroid">
+            {%- if brands.headerPhoto.video %}
+            <video class="polaroid-video" src="/{{ brands.headerPhoto.video }}" poster="/{{ brands.headerPhoto.poster }}"
+                   muted playsinline loop preload="metadata" data-autoplay
+                   aria-label="{{ brands.headerPhoto.alt }}"></video>
+            {%- else %}
             <picture><source type="image/webp" srcset="{{ brands.headerPhoto.src | replace('.jpg', '-480.webp') }} 480w, {{ brands.headerPhoto.src | replace('.jpg', '.webp') }} 1200w" sizes="250px" /><img src="{{ brands.headerPhoto.src }}" width="{{ brands.headerPhoto.width }}" height="{{ brands.headerPhoto.height }}" loading="lazy"
                  alt="{{ brands.headerPhoto.alt }}" /></picture>
+            {%- endif %}
             <figcaption>{{ brands.headerPhoto.caption }}</figcaption>
           </figure>
         </div>

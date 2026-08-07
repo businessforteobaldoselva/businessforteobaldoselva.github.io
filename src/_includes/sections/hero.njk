@@ -17,6 +17,7 @@
           data-smooth  scrub easing per frame tick (0–1; higher = snappier) -#}
     <section class="hero" aria-label="Introduction" data-hero-scrub
              data-dir="/frames/desktop" data-count="145" data-pad="4" data-ext="jpg"
+             data-mdir="/frames/mobile" data-mcount="121"
              data-scroll="1" data-shift="0.18" data-focal="0.55" data-smooth="0.11"
              data-stamp="0.78">
       <div class="hero-pin">
@@ -75,6 +76,13 @@
           // Scrub progress (0–1) at which the pack lands → stamp slams in.
           var stampAt = parseFloat(section.getAttribute("data-stamp"));
           if (!(stampAt > 0 && stampAt < 1)) { stampAt = 0.78; }
+          // Portrait frame set for phones: chosen once at load. Portrait
+          // footage is composed for the viewport, so no pan/focal trickery.
+          var mdir = section.getAttribute("data-mdir");
+          var mcount = parseInt(section.getAttribute("data-mcount"), 10);
+          if (mdir && mcount > 0 && window.innerWidth > 0 && window.innerWidth < 768) {
+            dir = mdir; count = mcount; shift = 0; focal = 0.5;
+          }
           if (!dir || !(count > 0)) { return; }
 
           function frameUrl(i) {

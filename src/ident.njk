@@ -1,0 +1,203 @@
+---
+permalink: /ident/
+eleventyExcludeFromCollections: true
+---
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>covered. — logo ident (code version, review demo)</title>
+  <link rel="stylesheet" href="/assets/site.css" />
+  <style>
+    body {
+      margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2rem;
+      background: var(--paper, #FFF8EC);
+      font-family: var(--font-body, "Open Sauce One", Helvetica, sans-serif);
+    }
+
+    /* ---- The card: 16:9, peach field, faint grid-paper ---- */
+    .ident-card {
+      position: relative; width: min(92vw, 960px); aspect-ratio: 16 / 9;
+      background: #FFECD3;
+      background-image:
+        linear-gradient(rgba(47, 77, 25, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47, 77, 25, 0.05) 1px, transparent 1px);
+      background-size: 26px 26px;
+      border-radius: 18px; overflow: hidden;
+      box-shadow: 0 14px 40px rgba(47, 77, 25, 0.14);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ---- Wordmark ---- */
+    .ident-word {
+      display: flex; align-items: baseline;
+      font-size: clamp(3rem, 11vw, 7.2rem);
+      color: #2F4D19; letter-spacing: 0.015em;
+      line-height: 1; user-select: none;
+    }
+    .ident-word .l {
+      font-weight: 400;
+      transform-origin: 50% 85%;
+    }
+    /* bold snap + elastic pulse, per letter */
+    .ident-word .l.bold {
+      font-weight: 700;
+      animation: letterPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+    }
+    @keyframes letterPop {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.09, 0.94); }
+      100% { transform: scale(1); }
+    }
+
+    /* ---- The period slot: tampon lands here ---- */
+    .ident-period {
+      position: relative; display: inline-block;
+      width: 0.6em; height: 1em; margin-left: 0.06em;
+    }
+    .tampon {
+      position: absolute; left: 50%; bottom: 0.02em;
+      width: 0.34em; height: 0.78em;
+      transform: translate(-50%, -160vh);
+      transform-origin: 50% 100%;
+      will-change: transform;
+    }
+    .tampon svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .ident.play .tampon {
+      animation: tamponDrop 0.9s cubic-bezier(0.34, 1.28, 0.5, 1) 1.75s both;
+    }
+    @keyframes tamponDrop {
+      0%   { transform: translate(-50%, -160vh); }
+      58%  { transform: translate(-50%, 0) scale(1, 1); }
+      70%  { transform: translate(-50%, 0) scale(1.18, 0.78); }   /* squash */
+      84%  { transform: translate(-50%, -0.10em) scale(0.96, 1.05); } /* small bounce */
+      100% { transform: translate(-50%, 0) scale(1, 1); }
+    }
+    /* string flick after landing */
+    .tampon .string { transform-origin: 50% 0%; }
+    .ident.play .tampon .string {
+      animation: stringSettle 1.1s cubic-bezier(0.34, 1.4, 0.5, 1) 2.25s both;
+    }
+    @keyframes stringSettle {
+      0% { transform: rotate(26deg); }
+      45% { transform: rotate(-10deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* ---- Confetti on impact ---- */
+    .fleck {
+      position: absolute; width: 9px; height: 9px; border-radius: 2px;
+      opacity: 0; pointer-events: none;
+    }
+    .ident.play .fleck {
+      animation: fleckPop 1.15s ease-out 2.28s both;
+    }
+    @keyframes fleckPop {
+      0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+      12% { opacity: 1; }
+      100% { opacity: 0; transform: translate(var(--fx), var(--fy)) rotate(var(--fr)); }
+    }
+
+    /* ---- Review chrome (not part of the ident) ---- */
+    .demo-bar { display: flex; gap: 1rem; align-items: center; }
+    .demo-bar button {
+      font: inherit; font-weight: 600; cursor: pointer;
+      background: #FC7130; color: #fff; border: 0; border-radius: 999px;
+      padding: 0.7rem 1.6rem;
+    }
+    .demo-bar button:hover { background: #e0601f; }
+    .demo-note { color: #566B42; font-size: 0.9rem; max-width: 52ch; text-align: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ident-word .l.bold, .ident.play .tampon,
+      .ident.play .tampon .string, .ident.play .fleck { animation: none !important; }
+      .ident.play .tampon { transform: translate(-50%, 0); }
+      .ident.play .fleck { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ident-card">
+    <div class="ident" id="ident">
+      <div class="ident-word" aria-label="covered.">
+        <span class="l" data-i="0">c</span><span class="l" data-i="1">o</span><span class="l" data-i="2">v</span><span class="l" data-i="3">e</span><span class="l thin">r</span><span class="l thin">e</span><span class="l thin">d</span><span class="ident-period" id="periodSlot">
+          <span class="tampon" aria-hidden="true">
+            <svg viewBox="0 0 34 92" xmlns="http://www.w3.org/2000/svg">
+              <!-- string: braided, warm orange, curling from the base -->
+              <g class="string">
+                <path d="M17 74 C 17 84, 26 84, 27 90 C 28 96, 20 99, 22 104"
+                      fill="none" stroke="#FC7130" stroke-width="3"
+                      stroke-linecap="round" stroke-dasharray="4.5 2.2" />
+              </g>
+              <!-- cotton body: soft white cylinder, rounded ends -->
+              <rect x="2" y="2" width="30" height="74" rx="15"
+                    fill="#FFFFFF" stroke="rgba(47,77,25,0.14)" stroke-width="1.5" />
+              <!-- gentle shading so it reads as soft cotton, not a pill -->
+              <rect x="5" y="5" width="10" height="68" rx="5" fill="rgba(255,236,211,0.7)" />
+              <path d="M2 17 a15 15 0 0 1 30 0" fill="rgba(47,77,25,0.05)" />
+            </svg>
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-bar">
+    <button id="replay" type="button">Replay</button>
+    <p class="demo-note">Code version of the logo ident — real brand fonts (Open Sauce One), exact palette, plays live at any size. Compare with the Kling / Gemini generations.</p>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+      var ident = document.getElementById("ident");
+      var letters = Array.prototype.slice.call(document.querySelectorAll('.ident-word .l[data-i]'));
+      var card = document.querySelector(".ident-card");
+      var periodSlot = document.getElementById("periodSlot");
+      var timers = [];
+
+      // 4 confetti flecks in brand orange + light olive, burst from the period
+      function spawnConfetti() {
+        var colors = ["#FC7130", "#E2F099", "#FC7130", "#E2F099"];
+        var slotRect = periodSlot.getBoundingClientRect();
+        var cardRect = card.getBoundingClientRect();
+        for (var i = 0; i < 4; i++) {
+          var f = document.createElement("span");
+          f.className = "fleck";
+          f.style.background = colors[i];
+          f.style.left = (slotRect.left - cardRect.left + slotRect.width / 2) + "px";
+          f.style.top = (slotRect.top - cardRect.top + slotRect.height * 0.7) + "px";
+          f.style.setProperty("--fx", ((i - 1.5) * 46) + "px");
+          f.style.setProperty("--fy", (26 + (i % 2) * 34) + "px");
+          f.style.setProperty("--fr", ((i - 1.5) * 140) + "deg");
+          card.appendChild(f);
+          timers.push(setTimeout(function (el) { el.remove(); }.bind(null, f), 4000));
+        }
+      }
+
+      function play() {
+        timers.forEach(clearTimeout); timers = [];
+        Array.prototype.forEach.call(card.querySelectorAll(".fleck"), function (f) { f.remove(); });
+        ident.classList.remove("play");
+        letters.forEach(function (l) { l.classList.remove("bold"); });
+        // force reflow so re-adding classes restarts every animation
+        void ident.offsetWidth;
+        ident.classList.add("play");
+        // letters bold up one by one: c o v e
+        letters.forEach(function (l, i) {
+          timers.push(setTimeout(function () { l.classList.add("bold"); }, 400 + i * 340));
+        });
+        // confetti flecks are DOM-spawned just before the impact keyframes fire
+        timers.push(setTimeout(spawnConfetti, 2200));
+      }
+
+      document.getElementById("replay").addEventListener("click", play);
+      play();
+    })();
+  </script>
+</body>
+</html>

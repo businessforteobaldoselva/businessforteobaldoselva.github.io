@@ -12,8 +12,12 @@
         <div class="loc-grid">
           <div class="uk-map-wrap reveal">
             <svg class="uk-map" viewBox="{{ locations.svgViewBox }}" role="img" aria-label="{{ locations.svgAriaLabel }}">
+              {%- if locations.mapImage %}
+              <image href="/{{ locations.mapImage }}" x="0" y="0" width="765" height="1024" />
+              {%- else %}
               <path class="uk-neighbor" d="{{ locations.neighborPath }}"/>
               <path class="uk-land" d="{{ locations.landPath }}"/>
+              {%- endif %}
               <g id="mapPins" aria-hidden="true"></g>
             </svg>
             <div class="map-legend" aria-hidden="true">

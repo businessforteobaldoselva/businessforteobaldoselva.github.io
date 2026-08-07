@@ -9,6 +9,17 @@
           </p>
         </div>
 
+        {%- if how.story and how.story.length %}
+        <div class="story-strip reveal" role="list" aria-label="How COVERED works, in four moments">
+          {%- for s in how.story %}
+          <figure class="story-card" role="listitem">
+            <picture><source type="image/webp" srcset="/{{ s.img }}-480.webp 480w, /{{ s.img }}.webp 1200w" sizes="(max-width: 780px) 46vw, 270px" /><img src="/{{ s.img }}.jpg" width="{{ s.w }}" height="{{ s.h }}" loading="lazy" alt="{{ s.alt }}" /></picture>
+            <figcaption><strong>{{ s.title }}</strong><span>{{ s.caption }}</span></figcaption>
+          </figure>
+          {%- endfor %}
+        </div>
+        {%- endif %}
+
         <ol class="stepper reveal" id="stepper" aria-label="Demo progress">
           <li class="step-chip active" data-step="0" aria-current="step"><span class="n" aria-hidden="true">1</span> Scan the QR</li>
           <li class="step-chip" data-step="1"><span class="n" aria-hidden="true">2</span> Quick check-in</li>

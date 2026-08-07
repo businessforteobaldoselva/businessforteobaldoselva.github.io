@@ -29,6 +29,18 @@
           </div>
         </div>
 
+        {%- if venues.photos and venues.photos.length %}
+        <div class="photo-strip">
+          {%- for photo in venues.photos %}
+          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt }};">
+            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '-480.webp') }} 480w, {{ photo.src | replace('.jpg', '.webp') }} 1200w" sizes="(max-width: 780px) 92vw, 420px" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
+                 alt="{{ photo.alt }}" /></picture>
+            <figcaption>{{ photo.caption }}</figcaption>
+          </figure>
+          {%- endfor %}
+        </div>
+        {%- endif %}
+
         <div class="form-card light-form reveal">
           <h3>{{ venues.formHeading }}</h3>
           <form id="venueForm" name="venue-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>

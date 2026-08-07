@@ -19,12 +19,12 @@
       --logo-orange: #F0A35C;
       --white: #FFFFFF;
       --ink: #2F4D19;          /* FOREST GREEN — body text + dark-section backgrounds */
-      --ink-deep: #223A13;     /* deeper forest — footer, heading depth */
+      --ink-deep: #1C3110;     /* deeper forest — footer, heading depth */
       --ink-soft: #3D5A28;     /* softer forest — subheads */
       --muted: #566B42;        /* muted olive — secondary text */
       --red: #FC7130;          /* WARM ORANGE — primary accent / CTA fill */
       --red-deep: #BB4A12;     /* deep orange — text on light + buttons (white text) */
-      --red-dark: #9C3E0C;     /* dark orange — accessible text on light */
+      --red-dark: #963A0B;     /* dark orange — accessible text on light */
       --green: #6E8B2E;        /* OLIVE — decorative dots / states on dark */
       --green-dark: #4C6720;   /* dark olive — olive text on light */
       --sage: #E2F099;         /* LIGHT OLIVE — pills, soft fills */
@@ -35,7 +35,7 @@
       --band-lav: #FFECD3;     /* peach beige band (brand swatch) */
       --band-rosa: #FBE3C6;    /* warm peach band */
       --peach: #FBD9B3;        /* light peach */
-      --kicker-band: #9C3E0C;  /* dark orange — kicker text */
+      --kicker-band: #963A0B;  /* dark orange — kicker text */
       --font-display: "Motor", "Oswald", "Arial Narrow", Arial, sans-serif;
       --font-head: "Open Sauce One", "Helvetica Neue", Helvetica, Arial, sans-serif;
       --font-body: "Open Sauce One", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -584,7 +584,7 @@
     .skip-link:focus { left: 0; }
 
     :focus-visible {
-      outline: 2.5px solid var(--red-dark, #9C3E0C);
+      outline: 2.5px solid var(--red-dark, #963A0B);
       outline-offset: 2px;
       border-radius: 4px;
     }
@@ -718,10 +718,57 @@
     .reveal { opacity: 0; transform: translateY(-18px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
+    /* ---------- Manifesto — words light up as you scroll through them ---------- */
+    .manifesto {
+      font-family: var(--font-head); font-weight: 600;
+      font-size: clamp(1.5rem, 3.1vw, 2.4rem); line-height: 1.45;
+      letter-spacing: -0.01em; max-width: 30ch;
+      margin: 4rem 0 1.5rem; color: var(--ink);
+    }
+    .manifesto .man-w { opacity: 0.18; transition: opacity 0.35s ease, color 0.35s ease; }
+    .manifesto .man-w.lit { opacity: 1; }
+    .manifesto .man-w.man-key.lit { color: var(--red-deep); }
+    .motion-off .manifesto .man-w, .no-js .manifesto .man-w { opacity: 1; }
+
+    /* ---------- Model concept film (pack in the tray) ---------- */
+    .model-video { display: block; width: 100%; height: auto; }
+    .polaroid-video { display: block; width: 100%; height: auto; }
+
+    /* ---------- Story strip — how it works in four moments ---------- */
+    .story-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: clamp(0.9rem, 2vw, 1.6rem); margin: 3rem 0 3.5rem;
+    }
+    .story-card {
+      background: var(--white); border: 1.5px solid var(--line);
+      border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+    }
+    .story-card img { display: block; width: 100%; height: auto; }
+    .story-card figcaption { padding: 0.85rem 1rem 1.05rem; }
+    .story-card figcaption strong {
+      display: block; font-family: var(--font-display); font-weight: 500;
+      font-size: 1.05rem; letter-spacing: 0.02em; margin-bottom: 0.15rem;
+    }
+    .story-card figcaption span { font-size: 0.82rem; color: var(--ink-soft); line-height: 1.45; }
+    @media (max-width: 780px) {
+      .story-strip { grid-template-columns: 1fr 1fr; }
+    }
+
     /* ---------- The brand period — display lines end in the logo's dot ---------- */
     .brand-period { color: var(--red-deep); }
     .dark .brand-period, .cta-banner .brand-period { color: var(--red); }
     .model-band .brand-period, .vision-band .brand-period { color: var(--ink-deep); }
+
+    /* ---------- Brand ident video (above the CTA banner) ---------- */
+    .ident-video {
+      max-width: 760px; margin: 0 auto 3rem; cursor: pointer;
+    }
+    .ident-video video {
+      display: block; width: 100%; height: auto;
+      border-radius: var(--radius); border: 1.5px solid var(--line);
+      box-shadow: var(--shadow);
+      background: #FFECD3;
+    }
 
     /* ---------- Model visual: dispenser collage left, receipt right ---------- */
     .model-visual {

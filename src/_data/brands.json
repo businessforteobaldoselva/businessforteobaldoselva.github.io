@@ -6,8 +6,10 @@
     "src": "images/tampon-coral.jpg",
     "width": 900,
     "height": 1350,
-    "alt": "A tampon styled on coral fabric — every free COVERED pack is funded by a brand's advertising",
-    "caption": "Your brand, at the moment it matters."
+    "alt": "The COVERED dispenser's screen rotating softly between advertising layouts — every free pack is funded by a brand's advertising",
+    "caption": "Your brand, at the moment it matters.",
+    "video": "images/ad-loop.mp4",
+    "poster": "images/ad-loop-poster.jpg"
   },
   "benefits": [
     {

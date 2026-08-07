@@ -1,6 +1,41 @@
     <!-- ============ CTA ============ -->
     <section aria-label="Get in touch">
       <div class="container">
+        {#- Brand ident: the "covered." sting (Kling generation, local trial).
+            Plays once when it scrolls into view; click/tap replays. -#}
+        <div class="ident-video reveal">
+          <video id="identVideo"
+                 src="/videos/covered-ident.mp4"
+                 poster="/videos/covered-ident-poster.jpg"
+                 muted playsinline preload="metadata"
+                 width="1280" height="764"
+                 aria-label="COVERED brand animation: the word 'covered' turns bold letter by letter and a tampon drops in as the full stop"></video>
+        </div>
+        <script>
+          (function () {
+            "use strict";
+            var v = document.getElementById("identVideo");
+            if (!v) { return; }
+            var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (!reduced && "IntersectionObserver" in window) {
+              var seen = false;
+              var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (en) {
+                  if (en.isIntersecting && !seen) {
+                    seen = true;
+                    v.play().catch(function () {});
+                    io.unobserve(v);
+                  }
+                });
+              }, { threshold: 0.6 });
+              io.observe(v);
+            }
+            v.addEventListener("click", function () {
+              v.currentTime = 0;
+              v.play().catch(function () {});
+            });
+          })();
+        </script>
         <div class="cta-banner reveal">
           <h2>{{ site.ctaBannerTitle }}</h2>
           <p>{{ site.ctaBannerText }}</p>

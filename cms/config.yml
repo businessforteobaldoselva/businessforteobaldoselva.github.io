@@ -379,6 +379,7 @@ collections:
           - { label: "Kicker (small label above heading)", name: "kicker", widget: "string" }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
           - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Manifesto (lights up word by word as visitors scroll; wrap a word in *stars* to turn it orange)", name: "manifesto", widget: "text", required: false }
           - label: "Statistics"
             name: "stats"
             widget: "list"
@@ -421,6 +422,18 @@ collections:
           - { label: "Heading", name: "title", widget: "string" }
           - { label: "Subheading", name: "subtitle", widget: "text" }
           - { label: "Note below the demo", name: "demoNote", widget: "text" }
+          - label: "Story strip (four photo moments above the demo)"
+            name: "story"
+            widget: "list"
+            required: false
+            hint: "Leave empty to hide the strip. Titles ending in a full stop get the orange brand period automatically."
+            fields:
+              - { label: "Image path (without extension)", name: "img", widget: "hidden" }
+              - { label: "Image width", name: "w", widget: "hidden" }
+              - { label: "Image height", name: "h", widget: "hidden" }
+              - { label: "Title (e.g. Spot it.)", name: "title", widget: "string" }
+              - { label: "Caption", name: "caption", widget: "string" }
+              - { label: "Alt text (describes the image for screen readers)", name: "alt", widget: "string" }
 
       - name: "brands"
         label: "📣 For Brands section"

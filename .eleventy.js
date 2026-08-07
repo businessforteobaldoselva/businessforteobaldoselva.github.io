@@ -118,6 +118,7 @@ module.exports = function (eleventyConfig) {
   // <canvas>). Root-level like images/, so they serve at /frames/… on both
   // GitHub Pages (root) and Netlify (_site).
   eleventyConfig.addPassthroughCopy("frames");
+  eleventyConfig.addPassthroughCopy("videos");
 
   return {
     dir: {

@@ -9,6 +9,10 @@
           </p>
         </div>
 
+        {%- if problem.manifesto %}
+        <p class="manifesto" id="manifesto">{{ problem.manifesto }}</p>
+        {%- endif %}
+
         <div class="stats-grid">
           {%- for stat in problem.stats %}
           <div class="stat-card reveal">

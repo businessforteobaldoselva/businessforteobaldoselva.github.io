@@ -18,5 +18,23 @@
   ],
   "formHeading": "Register your interest",
   "formButton": "Talk to us about hosting",
-  "formHint": "Goes straight to the team — we usually reply within a couple of days. See our privacy note for how we handle it."
+  "formHint": "Goes straight to the team — we usually reply within a couple of days. See our privacy note for how we handle it.",
+  "photos": [
+    {
+      "src": "images/venue-pub.jpg",
+      "width": 1024,
+      "height": 638,
+      "alt": "A COVERED dispenser mounted on dark wood panelling in a British pub corridor",
+      "caption": "At home in the local.",
+      "tilt": "-2deg"
+    },
+    {
+      "src": "images/venue-gym.jpg",
+      "width": 890,
+      "height": 764,
+      "alt": "A COVERED dispenser in a modern gym changing area beside lockers",
+      "caption": "Right by the lockers.",
+      "tilt": "1.5deg"
+    }
+  ]
 }
