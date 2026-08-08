@@ -29,12 +29,20 @@
       "tilt": "-2deg"
     },
     {
+      "src": "images/venue-station.jpg",
+      "width": 1024,
+      "height": 638,
+      "alt": "A COVERED dispenser in a busy railway station concourse, departures board glowing behind blurred commuters",
+      "caption": "There for the rush hour.",
+      "tilt": "1.2deg"
+    },
+    {
       "src": "images/venue-gym.jpg",
       "width": 890,
       "height": 764,
       "alt": "A COVERED dispenser in a modern gym changing area beside lockers",
       "caption": "Right by the lockers.",
-      "tilt": "1.5deg"
+      "tilt": "-1.5deg"
     }
   ]
 }

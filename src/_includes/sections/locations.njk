@@ -12,6 +12,21 @@
         <div class="loc-grid">
           <div class="uk-map-wrap reveal">
             <svg class="uk-map" viewBox="{{ locations.svgViewBox }}" role="img" aria-label="{{ locations.svgAriaLabel }}">
+              <defs>
+                <radialGradient id="pinLive" cx="0.35" cy="0.3" r="0.9">
+                  <stop offset="0%" stop-color="#FF9A63"/>
+                  <stop offset="55%" stop-color="#FC7130"/>
+                  <stop offset="100%" stop-color="#B44A10"/>
+                </radialGradient>
+                <radialGradient id="pinSoon" cx="0.35" cy="0.3" r="0.9">
+                  <stop offset="0%" stop-color="#FFFFFF"/>
+                  <stop offset="70%" stop-color="#FFF3E2"/>
+                  <stop offset="100%" stop-color="#E4CBA4"/>
+                </radialGradient>
+                <filter id="pinShadow" x="-40%" y="-40%" width="180%" height="180%">
+                  <feDropShadow dx="0" dy="1.4" stdDeviation="1.6" flood-color="#1C3110" flood-opacity="0.35"/>
+                </filter>
+              </defs>
               {%- if locations.mapImage %}
               <image href="/{{ locations.mapImage }}" x="0" y="0" width="765" height="1024" />
               {%- else %}

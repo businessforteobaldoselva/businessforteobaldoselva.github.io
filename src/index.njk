@@ -493,11 +493,13 @@
 
       function confettiBurst() {
         if (reduced || M.confetti === false) return;
+        // A rain of tiny wrapped packs — the product itself, celebrating.
+        var bands = [confettiColors[0], "#E999A5", confettiColors[1]];
         for (var i = 0; i < 22; i++) {
           var bit = document.createElement("span");
-          bit.className = "confetti-bit";
+          bit.className = "confetti-bit confetti-pack";
           bit.style.left = (30 + Math.random() * 40) + "%";
-          bit.style.background = confettiColors[i % confettiColors.length];
+          bit.style.setProperty("--confetti-band", bands[i % bands.length]);
           bit.style.animationDelay = (Math.random() * 0.25) + "s";
           machineStage.appendChild(bit);
           (function (b) {
@@ -619,24 +621,46 @@
         g.setAttribute("data-city", c.id);
         // drop order: roadmap cities first, Exeter lands last
         g.style.setProperty("--pin-delay", (c.live ? CITY_DATA.length * 0.12 + 0.25 : idx * 0.12) + "s");
+        var scale = c.live ? 1.35 : 1;
+        // Ground shadow — sells the "standing pin" read.
+        var shadow = document.createElementNS(SVGNS, "ellipse");
+        shadow.setAttribute("class", "pin-ground");
+        shadow.setAttribute("cx", c.x);
+        shadow.setAttribute("cy", c.y + 1.5);
+        shadow.setAttribute("rx", 8 * scale);
+        shadow.setAttribute("ry", 2.8 * scale);
+        g.appendChild(shadow);
         if (c.live) {
-          var ring = document.createElementNS(SVGNS, "circle");
+          var ring = document.createElementNS(SVGNS, "ellipse");
           ring.setAttribute("class", "ring");
           ring.setAttribute("cx", c.x);
           ring.setAttribute("cy", c.y);
-          ring.setAttribute("r", 11);
+          ring.setAttribute("rx", 10);
+          ring.setAttribute("ry", 4);
           g.appendChild(ring);
         }
-        var core = document.createElementNS(SVGNS, "circle");
-        core.setAttribute("class", "core");
-        core.setAttribute("cx", c.x);
-        core.setAttribute("cy", c.y);
-        core.setAttribute("r", c.live ? 11 : 9);
-        g.appendChild(core);
+        // Classic teardrop marker, tip anchored at (x, y).
+        var body = document.createElementNS(SVGNS, "path");
+        body.setAttribute("class", "pin-body");
+        body.setAttribute("d",
+          "M" + c.x + "," + c.y +
+          " c" + (-7.5 * scale) + "," + (-11 * scale) + " " + (-11 * scale) + "," + (-15 * scale) + " " + (-11 * scale) + "," + (-21 * scale) +
+          " a" + (11 * scale) + "," + (11 * scale) + " 0 1 1 " + (22 * scale) + ",0" +
+          " c0," + (6 * scale) + " " + (-3.5 * scale) + "," + (10 * scale) + " " + (-11 * scale) + "," + (21 * scale) + " Z");
+        body.setAttribute("fill", c.live ? "url(#pinLive)" : "url(#pinSoon)");
+        body.setAttribute("filter", "url(#pinShadow)");
+        g.appendChild(body);
+        // Glossy dot in the pin head.
+        var dot = document.createElementNS(SVGNS, "circle");
+        dot.setAttribute("class", "pin-dot" + (c.live ? " live" : ""));
+        dot.setAttribute("cx", c.x);
+        dot.setAttribute("cy", c.y - 21 * scale);
+        dot.setAttribute("r", 4.5 * scale);
+        g.appendChild(dot);
         var hit = document.createElementNS(SVGNS, "circle");
         hit.setAttribute("cx", c.x);
-        hit.setAttribute("cy", c.y);
-        hit.setAttribute("r", 26);
+        hit.setAttribute("cy", c.y - 14 * scale);
+        hit.setAttribute("r", 24 * scale);
         hit.setAttribute("fill", "transparent");
         g.appendChild(hit);
         g.addEventListener("click", function () { selectCity(c.id); });

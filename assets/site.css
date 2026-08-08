@@ -477,6 +477,16 @@
       pointer-events: none; z-index: 4;
       animation: confettiFall 1.3s ease-in forwards;
     }
+    /* Mini-pack confetti: tiny wrapped packs with a coloured band. */
+    .confetti-pack {
+      width: 15px; height: 10px; border-radius: 2.5px;
+      background: #FFF3E2; border: 0.5px solid rgba(28, 49, 16, 0.28);
+      overflow: hidden;
+    }
+    .confetti-pack::after {
+      content: ""; position: absolute; left: 5px; top: 0; width: 4.5px; height: 100%;
+      background: var(--confetti-band, var(--red));
+    }
     @keyframes confettiFall {
       0% { opacity: 1; transform: translateY(0) rotate(0); }
       100% { opacity: 0; transform: translateY(190px) rotate(320deg); }
@@ -718,12 +728,28 @@
     .reveal { opacity: 0; transform: translateY(-18px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
-    /* ---------- Manifesto — words light up as you scroll through them ---------- */
+    /* ---------- Manifesto — words light up as you scroll through them.
+                  "Poster" treatment: display type + the pack macro beside it. ---------- */
+    .manifesto-duo {
+      display: grid; grid-template-columns: 1.35fr 1fr;
+      gap: clamp(1.5rem, 4vw, 3rem); align-items: center;
+      margin: 1.75rem 0 1.25rem;
+    }
     .manifesto {
-      font-family: var(--font-head); font-weight: 600;
-      font-size: clamp(1.5rem, 3.1vw, 2.4rem); line-height: 1.45;
-      letter-spacing: -0.01em; max-width: 30ch;
-      margin: 4rem 0 1.5rem; color: var(--ink);
+      font-family: var(--font-display); font-weight: 400;
+      text-transform: uppercase;
+      font-size: clamp(1.65rem, 3.4vw, 2.9rem); line-height: 1.18;
+      letter-spacing: 0.015em; max-width: 24ch;
+      margin: 0; color: var(--ink);
+    }
+    .manifesto-photo { margin: 0; transform: rotate(1.5deg); }
+    .manifesto-photo img {
+      display: block; width: 100%; max-width: 360px; height: auto; margin-left: auto;
+      border-radius: var(--radius); box-shadow: 0 14px 30px rgba(28, 49, 16, 0.18);
+    }
+    @media (max-width: 800px) {
+      .manifesto-duo { grid-template-columns: 1fr; }
+      .manifesto-photo img { max-width: 300px; margin: 0 auto; }
     }
     .manifesto .man-w { opacity: 0.18; transition: opacity 0.35s ease, color 0.35s ease; }
     .manifesto .man-w.lit { opacity: 1; }
@@ -830,12 +856,20 @@
     .uk-land { fill: var(--sage); stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
     .uk-neighbor { fill: var(--paper-2); stroke: rgba(34, 58, 19, 0.28); stroke-width: 1; stroke-linejoin: round; }
     .map-pin { cursor: pointer; }
-    .map-pin circle.core { fill: #fff; stroke: var(--ink); stroke-width: 2; transition: stroke-width 0.15s ease; }
-    .map-pin.live circle.core { fill: var(--red-deep); stroke: var(--red-deep); }
-    .map-pin.selected circle.core { stroke-width: 4; }
+    .map-pin .pin-ground { fill: rgba(28, 49, 16, 0.22); }
+    .map-pin .pin-body { stroke: rgba(28, 49, 16, 0.35); stroke-width: 0.75; transition: transform 0.15s ease; }
+    .map-pin .pin-dot { fill: #fff; opacity: 0.92; }
+    .map-pin .pin-dot.live { fill: #FFE9D8; }
+    .map-pin.selected .pin-body, .map-pin.selected .pin-dot { transform-box: view-box; transform-origin: center; }
+    .map-pin.selected { filter: brightness(1.08) saturate(1.15); }
+    .map-pin:hover .pin-body { stroke-width: 1.5; }
     .map-pin .ring { fill: none; stroke: var(--red-deep); stroke-width: 2; opacity: 0; }
     .map-pin.live .ring { animation: ringPulse 2.2s ease-out infinite; }
-    @keyframes ringPulse { 0% { r: 7; opacity: 0.7; } 70% { r: 17; opacity: 0; } 100% { r: 17; opacity: 0; } }
+    @keyframes ringPulse {
+      0% { rx: 10; ry: 4; opacity: 0.75; }
+      70% { rx: 26; ry: 10; opacity: 0; }
+      100% { rx: 26; ry: 10; opacity: 0; }
+    }
     .map-legend { display: flex; gap: 1.2rem; margin-top: 0.9rem; font-size: 0.8rem; color: var(--muted); justify-content: center; flex-wrap: wrap; }
     .map-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }
     .map-legend .dot.live { background: var(--red-deep); }

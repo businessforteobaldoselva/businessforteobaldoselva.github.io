@@ -10,7 +10,12 @@
         </div>
 
         {%- if problem.manifesto %}
-        <p class="manifesto" id="manifesto">{{ problem.manifesto }}</p>
+        <div class="manifesto-duo reveal">
+          <p class="manifesto" id="manifesto">{{ problem.manifesto }}</p>
+          <figure class="manifesto-photo" aria-hidden="false">
+            <picture><source type="image/webp" srcset="/images/story-3-get-480.webp 480w, /images/story-3-get.webp 1200w" sizes="(max-width: 800px) 60vw, 340px" /><img src="/images/story-3-get.jpg" width="764" height="896" loading="lazy" alt="A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall" /></picture>
+          </figure>
+        </div>
         {%- endif %}
 
         <div class="stats-grid">
