@@ -731,15 +731,15 @@
     /* ---------- Manifesto — words light up as you scroll through them.
                   "Poster" treatment: display type + the pack macro beside it. ---------- */
     .manifesto-duo {
-      display: grid; grid-template-columns: 1.35fr 1fr;
-      gap: clamp(1.5rem, 4vw, 3rem); align-items: center;
+      display: grid; grid-template-columns: 1.8fr 1fr;
+      gap: clamp(1.25rem, 2.5vw, 2rem); align-items: center;
       margin: 1.75rem 0 1.25rem;
     }
     .manifesto {
       font-family: var(--font-display); font-weight: 400;
       text-transform: uppercase;
-      font-size: clamp(1.65rem, 3.4vw, 2.9rem); line-height: 1.18;
-      letter-spacing: 0.015em; max-width: 24ch;
+      font-size: clamp(1.5rem, 2.9vw, 2.5rem); line-height: 1.22;
+      letter-spacing: 0.015em; max-width: 36ch;
       margin: 0; color: var(--ink);
     }
     .manifesto-photo { margin: 0; transform: rotate(1.5deg); }
