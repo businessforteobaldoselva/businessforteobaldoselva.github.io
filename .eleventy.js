@@ -2,6 +2,7 @@ const markdownIt = require("markdown-it");
 const htmlmin = require("html-minifier-terser");
 const fs = require("fs");
 const path = require("path");
+const { reservedIds } = require("./lib/reserved-ids");
 
 module.exports = function (eleventyConfig) {
   const md = markdownIt({ html: false, linkify: true });
@@ -51,24 +52,15 @@ module.exports = function (eleventyConfig) {
   // Custom-block anchors: re-applies the CMS slug pattern server-side and
   // rejects ids the site already uses (sections, form fields, JS hooks) so an
   // editor-chosen anchor can never shadow a built-in id or break the JS.
-  const RESERVED_IDS = new Set([
-    "top", "progress", "navlinks", "year", "pack", "stepper",
-    "problem", "model", "how", "brands", "partners", "venues", "locations",
-    "vision", "faq", "cta",
-    "problem-title", "model-title", "how-title", "brands-title",
-    "partners-title", "venues-title", "locations-title", "vision-title",
-    "faq-title",
-    "marqueepause", "herostamp", "phonescreen", "machinescreen",
-    "machineslot", "machinestamp", "machinestage", "mappins", "citychips",
-    "citydetail", "brandform", "venueform", "notifyform", "adbar",
-    "btnscan", "btnverify", "btnreset",
-    "bname", "bcompany", "bemail", "bbudget", "btiming", "bmsg",
-    "vname", "vvenue", "vemail", "vtype", "vmsg", "nemail",
-  ]);
+  // The list of built-in ids is read from the templates, scripts and
+  // stylesheet by lib/reserved-ids.js (not typed by hand); the CMS "Link
+  // anchor" patterns are checked against the same list with
+  // `node lib/reserved-ids.js --check`.
+  const reserved = reservedIds(__dirname);
   eleventyConfig.addFilter("safeAnchor", (value) => {
     const v = typeof value === "string" ? value.trim() : "";
     if (!/^[a-z0-9-]+$/.test(v)) return "";
-    if (RESERVED_IDS.has(v) || v.startsWith("faq-panel-")) return "";
+    if (reserved.has(v)) return "";
     return v;
   });
 
