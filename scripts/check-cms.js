@@ -85,7 +85,12 @@ function main() {
           report.add(S, at + ": pattern must be [regular expression, message for the editor]");
         } else {
           try {
-            new RegExp(f.pattern[0]);
+            const re = new RegExp(f.pattern[0]);
+            // Decap tests an image/file widget's pattern against the file NAME only (last path segment),
+            // so a pattern that needs a folder prefix rejects every value and blocks Publish.
+            if ((w === "image" || w === "file") && !["jpg", "png", "webp", "gif", "avif", "svg", "mp4", "webm", "m4v"].some((x) => re.test("some-file_1." + x))) {
+              report.add(S, at + ": an image/file pattern must match a bare file name like some-file.jpg (Decap checks the name only, not the folder)", f.pattern[0].slice(0, 60));
+            }
           } catch (e) {
             report.add(S, at + ": pattern is not a valid regular expression", e.message);
           }
@@ -221,7 +226,7 @@ function main() {
     }
     if (typeof v === "string" && Array.isArray(f.pattern) && v !== "") {
       try {
-        if (!new RegExp(f.pattern[0]).test(v)) report.add(C, where + ": the stored value breaks its own CMS pattern", JSON.stringify(clip(v, 60)) + " vs " + f.pattern[0].slice(0, 60) + " (" + f.pattern[1] + ")");
+        if (!new RegExp(f.pattern[0]).test(w === "image" || w === "file" ? v.split("/").pop() : v)) report.add(C, where + ": the stored value breaks its own CMS pattern", JSON.stringify(clip(v, 60)) + " vs " + f.pattern[0].slice(0, 60) + " (" + f.pattern[1] + ")");
       } catch (e) {
         /* reported above */
       }

@@ -13,7 +13,7 @@
           <figure class="polaroid">
             {%- set video = brands.headerPhoto.video | siteMediaPath %}
             {%- if video %}
-            <video class="polaroid-video" src="{{ video }}" poster="{{ brands.headerPhoto.poster | siteMediaPath }}"
+            <video class="polaroid-video" src="{{ video }}"{% if brands.headerPhoto.poster | siteMediaPath %} poster="{{ brands.headerPhoto.poster | siteMediaPath }}"{% endif %}
                    muted playsinline loop preload="metadata" data-autoplay
                    aria-label="{{ brands.headerPhoto.alt }}"></video>
             {%- else %}

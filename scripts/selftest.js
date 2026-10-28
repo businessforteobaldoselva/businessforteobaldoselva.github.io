@@ -311,6 +311,20 @@ const scenarios = [
     },
   },
   {
+    name: "an unescaped image alt text (| safe on an alt attribute)",
+    mutate: (ws) => edit(ws, "src/_includes/sections/problem.njk", replaceOnce('alt="{{ problem.manifestoPhoto.alt }}"', 'alt="{{ problem.manifestoPhoto.alt | safe }}"')),
+    run(ws) {
+      expectRun("check-hostile sees the attribute breakout in the alt", runGuard("hostile", ws.dir), { code: 1, has: ["CHECK-HOSTILE FAILED"] });
+    },
+  },
+  {
+    name: "an image field whose pattern needs a folder (Decap only checks the file name)",
+    mutate: (ws) => edit(ws, "cms/config.yml", (t) => t.replace("pattern: [\"^[A-Za-z0-9._-]+", "pattern: [\"^/?images/[A-Za-z0-9._/-]+")),
+    run(ws) {
+      expectRun("check-cms refuses the folder-based pattern", runGuard("cms", ws.dir), { code: 1, has: ["must match a bare file name"] });
+    },
+  },
+  {
     name: "a page script that writes data into innerHTML",
     mutate: (ws) => edit(ws, "src/_includes/scripts/map.njk", (t) => t + "\n      if (typeof pinsG !== \"undefined\" && pinsG) { pinsG.innerHTML = MAP_COPY.statusLive; }\n"),
     run(ws) {

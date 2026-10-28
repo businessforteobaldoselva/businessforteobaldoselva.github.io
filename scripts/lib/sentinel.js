@@ -261,7 +261,8 @@ function mapStrings(v, fn, key) {
 
 // Apply a plan to a workspace (writes the edited data files; copies sample images / videos under
 // the token names for image fields). Returns { mediaFiles }.
-// opts.payload(edit) -> string: put that into every planned field instead of the token (no files copied)
+// opts.payload(edit) -> string: put that into every planned TEXT field instead of the token. Media fields keep a valid
+//   sample file (otherwise the <img> is dropped and its alt text would never be attacked)
 // opts.all(string, keyName) -> string: afterwards rewrite EVERY other string of the data as well
 // opts.variant: integer, see below (switches and dropdowns)
 function applyPlan(ws, plan, sources, opts) {
@@ -303,7 +304,7 @@ function applyPlan(ws, plan, sources, opts) {
     let edits = bySrc.get(src.file);
     const isHomepage = src.kind === "data" && src.name === "homepage";
     if (!edits && !isHomepage && !(o.all && src.kind !== "njk")) continue;
-    if (o.payload && edits) edits = edits.map((e) => (e.synth || e.flip ? e : Object.assign({}, e, { kind: "text", value: o.payload(e) })));
+    if (o.payload && edits) edits = edits.map((e) => (e.synth || e.flip || e.kind === "media" ? e : Object.assign({}, e, { kind: "text", value: o.payload(e) })));
     // variant 0 = switches on, dropdowns as shipped; variant k = switches on/off alternately, dropdowns at their k-th choice
     if (edits && o.variant) {
       edits = edits.map((e) => {
@@ -313,7 +314,7 @@ function applyPlan(ws, plan, sources, opts) {
       });
     }
     let data = mutateData(src, edits, resolveMedia);
-    if (o.all) data = mapStrings(data, o.all);
+    if (o.all) data = mapStrings(data, (s, k) => (MEDIA_RE.test(s) ? s : o.all(s, k)));
     if (src.kind === "data") ws.writeJson(src.file, data);
     else ws.write(src.file, joinFrontMatter(data, src.body));
   }
