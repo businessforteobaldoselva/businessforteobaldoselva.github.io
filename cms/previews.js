@@ -174,6 +174,17 @@
     createClass({
       render: function () {
         var e = this.props.entry;
+        var story = list(e, "story");
+        // Demo text: older entries have no "demo" block yet, so fall back to the original wording.
+        function d(path, fb) {
+          return g(e, ["demo"].concat(path), fb);
+        }
+        var chips = [
+          d(["scan", "chip"], "Scan the QR"),
+          d(["checkIn", "chip"], "Quick check-in"),
+          d(["sponsor", "chip"], "A word from our sponsor"),
+          d(["done", "chip"], "Covered."),
+        ];
         return h(
           "section",
           {},
@@ -181,10 +192,25 @@
             "div",
             { className: "container" },
             sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
+            story.length
+              ? h(
+                  "div",
+                  { className: "story-strip", role: "list", "aria-label": g(e, ["storyLabel"], "How COVERED works, in four moments") },
+                  story.map(function (s, i) {
+                    var src = s.src || (s.img ? s.img + ".jpg" : "");
+                    return h(
+                      "figure",
+                      { className: "story-card", role: "listitem", key: i },
+                      src ? h("img", { src: imgSrc(src), alt: s.alt || "" }) : null,
+                      h("figcaption", {}, h("strong", {}, s.title), h("span", {}, s.caption))
+                    );
+                  })
+                )
+              : null,
             h(
               "ol",
-              { className: "stepper" },
-              ["Scan the QR", "Quick check-in", "A word from our sponsor", "Covered."].map(function (label, i) {
+              { className: "stepper", "aria-label": d(["stepperLabel"], "Demo progress") },
+              chips.map(function (label, i) {
                 return h(
                   "li",
                   { className: "step-chip" + (i === 0 ? " active" : ""), key: i },
@@ -193,7 +219,34 @@
                 );
               })
             ),
-            note("The interactive machine demo itself is code — it isn't edited here and stays exactly as it is."),
+            h(
+              "div",
+              { className: "demo-card" },
+              h(
+                "div",
+                { className: "machine-stage" },
+                h(
+                  "div",
+                  { className: "machine", role: "img", "aria-label": d(["machine", "ariaLabel"], "Illustration of a COVERED wall-mounted dispenser") },
+                  h("span", { className: "led" }),
+                  h("div", { className: "m-screen" }, h("div", { className: "qr" })),
+                  h("div", { className: "m-label" }, d(["machine", "label"], "Covered")),
+                  h("div", { className: "m-slot" }, h("div", { className: "pack" }, d(["machine", "packText"], "4-PACK")))
+                )
+              ),
+              h(
+                "div",
+                { className: "phone" },
+                h(
+                  "div",
+                  { className: "p-screen" },
+                  h("h3", {}, d(["scan", "title"], "Need a pad or tampon?")),
+                  h("p", {}, d(["scan", "text"], "Scan the QR code on the machine to get started — it's free.")),
+                  h("button", { className: "btn btn-primary" }, d(["scan", "button"], "Simulate scan"))
+                )
+              )
+            ),
+            note("This shows the first screen of the demo. The other three screens (check-in, sponsor, done) appear when you click through the live demo on the site — their text is edited in “Interactive demo text” on the left."),
             h("p", { className: "demo-note" }, g(e, ["demoNote"]))
           )
         );
