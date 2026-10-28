@@ -12,30 +12,38 @@
         {%- if problem.manifesto %}
         <div class="manifesto-duo reveal">
           <p class="manifesto" id="manifesto">{{ problem.manifesto }}</p>
+          {%- set mim = problem.manifestoPhoto.src | imageInfo %}
+          {%- if mim.src %}
           <figure class="manifesto-photo" aria-hidden="false">
-            <picture><source type="image/webp" srcset="/images/story-3-get-480.webp 480w, /images/story-3-get.webp 1200w" sizes="(max-width: 800px) 60vw, 340px" /><img src="/images/story-3-get.jpg" width="764" height="896" loading="lazy" alt="A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall" /></picture>
+            <picture>{% if mim.webp %}<source type="image/webp" srcset="{% if mim.webp480 %}{{ mim.webp480 }} 480w, {% endif %}{{ mim.webp }} 1200w" sizes="(max-width: 800px) 60vw, 340px" />{% endif %}<img src="{{ mim.src }}"{% if mim.width and mim.height %} width="{{ mim.width }}" height="{{ mim.height }}"{% endif %} loading="lazy" alt="{{ problem.manifestoPhoto.alt }}" /></picture>
           </figure>
+          {%- endif %}
         </div>
         {%- endif %}
 
         <div class="stats-grid">
           {%- for stat in problem.stats %}
           <div class="stat-card reveal">
-            <div class="stat-num"><span class="count" data-target="{{ stat.number }}">{{ stat.number }}</span>%</div>
+            <div class="stat-num"><span class="count" data-target="{{ stat.number }}">{{ stat.number }}</span>{{ stat.suffix }}</div>
             <p class="stat-label">{{ stat.label }}</p>
           </div>
           {%- endfor %}
         </div>
 
-        <p class="stats-source reveal">Source: <a href="{{ problem.sourceUrl | safeUrl }}" target="_blank" rel="noopener">{{ problem.sourceText }}</a>.</p>
+        {%- if problem.sourceText %}
+        <p class="stats-source reveal">{% if problem.sourceLabel %}{{ problem.sourceLabel }} {% endif %}<a href="{{ problem.sourceUrl | safeUrl }}" target="_blank" rel="noopener">{{ problem.sourceText }}</a>.</p>
+        {%- endif %}
 
         <div class="photo-strip">
           {%- for photo in problem.photos %}
-          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt }};">
-            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '-480.webp') }} 480w, {{ photo.src | replace('.jpg', '.webp') }} 1200w" sizes="(max-width: 780px) 92vw, 420px" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
+          {%- set im = photo.src | imageInfo %}
+          {%- if im.src %}
+          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt | storyTilt }}deg;">
+            <picture>{% if im.webp %}<source type="image/webp" srcset="{% if im.webp480 %}{{ im.webp480 }} 480w, {% endif %}{{ im.webp }} 1200w" sizes="(max-width: 780px) 92vw, 420px" />{% endif %}<img src="{{ im.src }}"{% if im.width and im.height %} width="{{ im.width }}" height="{{ im.height }}"{% endif %} loading="lazy"
                  alt="{{ photo.alt }}" /></picture>
             <figcaption>{{ photo.caption }}</figcaption>
           </figure>
+          {%- endif %}
           {%- endfor %}
         </div>
       </div>
