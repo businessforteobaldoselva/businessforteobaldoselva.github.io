@@ -55,12 +55,16 @@ collections:
                 summary: "Ticker — the moving strip of venue names"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
-                  - label: "Ticker words (optional)"
+                  - label: "Ticker words"
                     name: "items"
                     widget: "list"
                     required: false
                     field: { label: "Word or phrase", name: "item", widget: "string" }
-                    hint: "Leave this empty to keep the standard venue list (Universities, Train stations, Stadiums…). Add your own words here to replace it."
+                    hint: "The words that scroll across the moving strip under the hero (Universities, Train stations, Stadiums…), in this order. If you empty the list the strip disappears — to hide it deliberately, untick “Show this section” instead."
+                  - { label: "Pause button — screen-reader label", name: "pauseLabel", widget: "string", hint: "Not visible on the page. Read aloud by screen readers for the small pause (⏸) button at the left end of the ticker." }
+                  - { label: "Hidden sentence — start", name: "screenReaderIntro", widget: "string", required: false, hint: "Not visible on the page. The ticker is hidden from screen readers, so they read one sentence instead: this start, then your ticker words in lowercase, then the ending. Example: “Target venues include universities, train stations and schools.”" }
+                  - { label: "Hidden sentence — word before the last item", name: "screenReaderJoiner", widget: "string", required: false, hint: "Usually “and”. Placed between the second-to-last and last ticker word in the hidden sentence." }
+                  - { label: "Hidden sentence — ending", name: "screenReaderEnd", widget: "string", required: false, hint: "Usually a full stop. Added after the last ticker word in the hidden sentence." }
               - label: "📊 The problem (stats & photos)"
                 name: "problem"
                 widget: "object"
@@ -120,7 +124,10 @@ collections:
                 widget: "object"
                 summary: "Closing banner — the big sign-off with email button"
                 fields:
-                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true, hint: "The banner’s heading, text and button label are edited under “Site-wide (title, contact, CTA)”; the fields below are the small extras." }
+                  - { label: "Section name — screen-reader label", name: "ariaLabel", widget: "string", hint: "Not visible on the page. Read aloud by screen readers when they reach the closing section (brand animation + banner)." }
+                  - { label: "Brand animation — description (accessibility)", name: "videoLabel", widget: "text", hint: "Not visible on the page. Describes the “covered.” animation above the banner for screen-reader users and anyone who can’t see the video." }
+                  - { label: "Email subject line", name: "emailSubject", widget: "string", required: false, hint: "The subject that is pre-filled when someone clicks the banner button and their email app opens. The address itself is the contact email under “Site-wide”. Leave empty for no pre-filled subject." }
               - label: "📝 Text section (add your own)"
                 name: "textBlock"
                 widget: "object"
@@ -363,14 +370,15 @@ collections:
         label: "🏠 Hero (top of page)"
         file: "src/_data/hero.json"
         fields:
-          - { label: "Badge text", name: "badge", widget: "string" }
-          - { label: "Headline — main part", name: "headlineMain", widget: "string" }
-          - { label: "Headline — accent part (red)", name: "headlineAccent", widget: "string" }
-          - { label: "Stamp text", name: "stamp", widget: "string" }
-          - { label: "Subheading", name: "subhead", widget: "text" }
-          - { label: "Button — brand CTA", name: "ctaBrand", widget: "string" }
-          - { label: "Button — venue CTA", name: "ctaVenue", widget: "string" }
-          - { label: "Scroll-down link text", name: "scrollText", widget: "string" }
+          - { label: "Badge text", name: "badge", widget: "string", hint: "The small pill with the pulsing dot above the headline." }
+          - { label: "Headline — main part", name: "headlineMain", widget: "string", hint: "The big page heading. It runs straight on into the accent part below, on the same line." }
+          - { label: "Headline — accent part (red)", name: "headlineAccent", widget: "string", hint: "The coloured second half of the big page heading." }
+          - { label: "Stamp text", name: "stamp", widget: "string", hint: "The ink-stamp that slams down under the headline as the dispenser animation finishes." }
+          - { label: "Subheading", name: "subhead", widget: "text", hint: "The paragraph under the stamp." }
+          - { label: "Button — brand CTA", name: "ctaBrand", widget: "string", hint: "Solid button that jumps to the “For brands” section. Only shown while that section is switched on." }
+          - { label: "Button — venue CTA", name: "ctaVenue", widget: "string", hint: "Outlined button that jumps to the “For venues” section. Only shown while that section is switched on." }
+          - { label: "Scroll-down link text", name: "scrollText", widget: "string", hint: "Small link under the buttons that jumps to the “problem” section. Only shown while that section is switched on." }
+          - { label: "Section name — screen-reader label", name: "sectionLabel", widget: "string", hint: "Not visible on the page. Read aloud by screen readers when they reach the hero (the opening screen)." }
 
       - name: "problem"
         label: "📊 The Problem section"
@@ -555,14 +563,18 @@ collections:
         label: "❓ FAQ"
         file: "src/_data/faq.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading", name: "title", widget: "string" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the FAQ heading." }
+          - { label: "Heading", name: "title", widget: "string", hint: "The big heading above the list of questions." }
           - label: "Questions"
             name: "items"
+            label_singular: "question"
             widget: "list"
+            summary: "{{fields.q}}"
+            collapsed: true
+            hint: "The expandable questions, top to bottom. The same questions and answers are also given to Google as an FAQ."
             fields:
-              - { label: "Question", name: "q", widget: "string" }
-              - { label: "Answer", name: "a", widget: "text" }
+              - { label: "Question", name: "q", widget: "string", hint: "The line visitors click to open the answer." }
+              - { label: "Answer", name: "a", widget: "text", hint: "Shown when the question is opened. Plain text only." }
 
   # ---------------------------------------------------------------
   # Editor-created pages: assembled from configurable blocks.
