@@ -1,4 +1,5 @@
       /* ---------- Launch-notify mini form ---------- */
+      var NOTIFY_COPY = {{ { success: vision.notify.success, subject: vision.notify.mailtoSubject } | dump | replace("<", "\\u003c") | safe }};
       var notifyForm = document.getElementById("notifyForm");
       if (notifyForm) {
         notifyForm.addEventListener("submit", function (e) {
@@ -13,10 +14,10 @@
             var ok = document.createElement("p");
             ok.className = "form-success";
             ok.setAttribute("role", "status");
-            ok.textContent = "You're on the list — we'll email you the moment Exeter goes live.";
+            ok.textContent = NOTIFY_COPY.success;
             notifyForm.replaceWith(ok);
           }).catch(function () {
-            window.location.href = "mailto:" + CONTACT + "?subject=" + encodeURIComponent("Tell me when Exeter goes live");
+            window.location.href = "mailto:" + CONTACT + "?subject=" + encodeURIComponent(NOTIFY_COPY.subject);
           });
         });
       }

@@ -1,0 +1,58 @@
+{#- Data-driven enquiry forms (brand + venue). The form definition lives in
+    src/_data/brands.json / venues.json under "form"; filters in
+    lib/eleventy/forms.js clean it (input type whitelist, unique ids/names).
+    Netlify Forms reads these inputs from the built HTML, so rendering them
+    from data at build time is all it needs. -#}
+
+{#- Netlify spam trap: positioned off-screen and aria-hidden, never seen or
+    heard by visitors. -#}
+{%- macro honeypot() -%}
+<p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+{%- endmacro -%}
+
+{%- macro control(f) -%}
+{%- if f.type == "textarea" -%}
+<textarea id="{{ f.id }}" name="{{ f.name }}"{% if f.autocomplete %} autocomplete="{{ f.autocomplete }}"{% endif %}{% if f.placeholder %} placeholder="{{ f.placeholder }}"{% endif %}{% if f.hintId %} aria-describedby="{{ f.hintId }}"{% endif %}{% if f.required %} required{% endif %}></textarea>
+{%- elif f.type == "select" -%}
+<select id="{{ f.id }}" name="{{ f.name }}"{% if f.autocomplete %} autocomplete="{{ f.autocomplete }}"{% endif %}{% if f.hintId %} aria-describedby="{{ f.hintId }}"{% endif %}{% if f.required %} required{% endif %}>
+                  {%- if f.emptyOption %}
+                  <option value="">{{ f.emptyOption }}</option>
+                  {%- endif %}
+                  {%- for o in f.options %}
+                  <option>{{ o }}</option>
+                  {%- endfor %}
+                </select>
+{%- else -%}
+<input type="{{ f.type }}" id="{{ f.id }}" name="{{ f.name }}"{% if f.autocomplete %} autocomplete="{{ f.autocomplete }}"{% endif %}{% if f.placeholder %} placeholder="{{ f.placeholder }}"{% endif %}{% if f.hintId %} aria-describedby="{{ f.hintId }}"{% endif %}{% if f.required %} required{% endif %} />
+{%- endif -%}
+{%- endmacro -%}
+
+{#- One labelled field. The "*" is the required-field marker glyph. -#}
+{%- macro field(f) -%}
+<div class="field{% if f.full %} full{% endif %}">
+                <label for="{{ f.id }}">{{ f.label }}{% if f.required %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+                {{ control(f) }}
+                {%- if f.hint %}
+                <span class="form-hint" id="{{ f.hintId }}">{{ f.hint }}</span>
+                {%- endif %}
+              </div>
+{%- endmacro -%}
+
+{#- The whole enquiry <form>. formId / formName are code (JS + Netlify hooks),
+    `form` is the data object, idPrefix scopes ids derived for added fields. -#}
+{%- macro enquiryForm(formId, formName, form, idPrefix) -%}
+<form id="{{ formId }}" name="{{ formName }}" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+            <input type="hidden" name="form-name" value="{{ formName }}" />{{ honeypot() }}
+            <div class="form-grid">
+              {%- for f in form | formFields(idPrefix) %}
+              {{ field(f) }}
+              {%- endfor %}
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">{{ form.button }}</button>
+              {%- if form.hint %}
+              <span class="form-hint">{{ form.hint }}</span>
+              {%- endif %}
+            </div>
+          </form>
+{%- endmacro -%}

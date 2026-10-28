@@ -53,6 +53,72 @@
     );
   }
 
+  // ---------- enquiry-form helpers (For Brands + For Venues) ----------
+  var OLD_BRAND_FIELDS = [
+    { label: "Your name", type: "text", required: true },
+    { label: "Company", type: "text", required: true },
+    { label: "Work email", type: "email", required: true },
+    { label: "Indicative monthly budget", type: "select", emptyOption: "Prefer not to say", options: ["Under £500", "£500 – £2,000", "£2,000 – £5,000", "£5,000+"] },
+    { label: "Preferred campaign timing", type: "text", placeholder: "e.g. Sept – Dec 2026" },
+    { label: "What are you looking to achieve?", type: "textarea", placeholder: "Campaign goals, timing, locations of interest…" },
+  ];
+  var OLD_VENUE_FIELDS = [
+    { label: "Your name", type: "text", required: true },
+    { label: "Venue / organisation", type: "text", required: true },
+    { label: "Email", type: "email", required: true },
+    { label: "Venue type", type: "select", options: ["University / school", "Shopping centre / retail", "Stadium / large venue", "Transport hub", "Office / workplace", "Hospitality", "Other"] },
+    { label: "Anything we should know?", type: "textarea", placeholder: "Location, footfall, timelines…" },
+  ];
+  var OLD_FORM_HINT = "Goes straight to the team — we usually reply within a couple of days. See our privacy note for how we handle it.";
+  function formText(e, key, oldKey, fb) {
+    return g(e, ["form", key], oldKey ? g(e, [oldKey], fb) : fb);
+  }
+  function formFieldList(e, fallback) {
+    var v = e.getIn(["data", "form", "fields"]);
+    return v && v.toJS ? v.toJS() : fallback;
+  }
+  function previewField(f, i) {
+    var type = f.type || "text";
+    var control;
+    if (type === "textarea") {
+      control = h("textarea", { placeholder: f.placeholder || "", readOnly: true });
+    } else if (type === "select") {
+      control = h(
+        "select",
+        {},
+        f.emptyOption ? h("option", { key: "empty" }, f.emptyOption) : null,
+        (f.options || []).map(function (o, j) { return h("option", { key: j }, o); })
+      );
+    } else {
+      control = h("input", { type: type, placeholder: f.placeholder || "", readOnly: true });
+    }
+    var full = f.width === "full" || (!f.width && type === "textarea");
+    return h(
+      "div",
+      { className: "field" + (full ? " full" : ""), key: i },
+      h("label", {}, f.label || "", f.required ? h("span", { className: "req" }, " *") : null),
+      control,
+      f.hint ? h("span", { className: "form-hint" }, f.hint) : null
+    );
+  }
+  function enquiryFormPreview(e, oldFields, defHeading, defButton, light) {
+    var fields = formFieldList(e, oldFields);
+    var hint = formText(e, "hint", "formHint", OLD_FORM_HINT);
+    return h(
+      "div",
+      { className: "form-card" + (light ? " light-form" : "") },
+      h("h3", {}, formText(e, "heading", "formHeading", defHeading)),
+      h("div", { className: "form-grid" }, fields.map(previewField)),
+      h(
+        "div",
+        { className: "form-actions" },
+        h("span", { className: "btn btn-primary" }, formText(e, "button", "formButton", defButton)),
+        hint ? h("span", { className: "form-hint" }, hint) : null
+      ),
+      note("After a successful send the visitor sees: " + formText(e, "success", null, "Sent — thank you! We'll get back to you within a couple of days."))
+    );
+  }
+
   // ---------- Hero ----------
   CMS.registerPreviewTemplate(
     "hero",
@@ -252,17 +318,7 @@
                 return raw("span", { className: "chip", key: i }, c);
               })
             ),
-            h(
-              "div",
-              { className: "form-card" },
-              h("h3", {}, g(e, ["formHeading"])),
-              h(
-                "div",
-                { className: "form-actions" },
-                h("span", { className: "btn btn-primary" }, g(e, ["formButton"])),
-                h("span", { className: "form-hint" }, g(e, ["formHint"]))
-              )
-            )
+            enquiryFormPreview(e, OLD_BRAND_FIELDS, "Get the media kit", "Request media kit", false)
           )
         );
       },
@@ -308,11 +364,23 @@
   );
 
   // ---------- Venues ----------
+  // A list card is { icon, title, items }; entries saved before the cards were
+  // editable stored just the list of items.
+  function venueCard(e, key, oldIcon, oldTitle) {
+    var v = e.getIn(["data", key]);
+    v = v && v.toJS ? v.toJS() : v;
+    if (Array.isArray(v)) { return { icon: oldIcon, title: oldTitle, items: v }; }
+    v = v || {};
+    return { icon: v.icon || oldIcon, title: v.title || oldTitle, items: v.items || [] };
+  }
   CMS.registerPreviewTemplate(
     "venues",
     createClass({
       render: function () {
         var e = this.props.entry;
+        var handle = venueCard(e, "weHandle", "🛠️", "We handle");
+        var provide = venueCard(e, "youProvide", "🧩", "You provide");
+        var photos = list(e, "photos");
         return h(
           "section",
           {},
@@ -329,27 +397,31 @@
               h(
                 "div",
                 { className: "list-card" },
-                h("h3", {}, "🛠️ We handle"),
-                h("ul", {}, list(e, "weHandle").map(function (item, i) { return h("li", { key: i }, item); }))
+                h("h3", {}, handle.icon + " " + handle.title),
+                h("ul", {}, handle.items.map(function (item, i) { return h("li", { key: i }, item); }))
               ),
               h(
                 "div",
                 { className: "list-card wants" },
-                h("h3", {}, "🧩 You provide"),
-                h("ul", {}, list(e, "youProvide").map(function (item, i) { return h("li", { key: i }, item); }))
+                h("h3", {}, provide.icon + " " + provide.title),
+                h("ul", {}, provide.items.map(function (item, i) { return h("li", { key: i }, item); }))
               )
             ),
-            h(
-              "div",
-              { className: "form-card light-form" },
-              h("h3", {}, g(e, ["formHeading"])),
-              h(
-                "div",
-                { className: "form-actions" },
-                h("span", { className: "btn btn-primary" }, g(e, ["formButton"])),
-                h("span", { className: "form-hint" }, g(e, ["formHint"]))
-              )
-            )
+            photos.length
+              ? h(
+                  "div",
+                  { className: "photo-strip" },
+                  photos.map(function (ph, i) {
+                    return h(
+                      "figure",
+                      { className: "polaroid", key: i, style: { "--tilt": (parseFloat(ph.tilt) || 0) + "deg" } },
+                      h("img", { src: imgSrc(ph.src), alt: ph.alt || "" }),
+                      h("figcaption", {}, ph.caption || "")
+                    );
+                  })
+                )
+              : null,
+            enquiryFormPreview(e, OLD_VENUE_FIELDS, "Register your interest", "Talk to us about hosting", true)
           )
         );
       },
@@ -493,6 +565,12 @@
                 chips.map(function (c, i) {
                   return h("span", { className: "chip", key: i }, c);
                 })
+              ),
+              h(
+                "div",
+                { className: "notify-form" },
+                h("input", { type: "email", readOnly: true, placeholder: g(e, ["notify", "placeholder"], "you@email.com"), "aria-label": g(e, ["notify", "label"], "Your email") }),
+                h("span", { className: "btn btn-primary" }, g(e, ["notify", "button"], "Tell me when Exeter goes live"))
               )
             )
           )

@@ -1,3 +1,4 @@
+{% import "forms/enquiry-form.njk" as ef %}
     <!-- ============ FOR VENUES ============ -->
     <section id="venues" aria-labelledby="venues-title">
       <div class="container">
@@ -12,17 +13,17 @@
 
         <div class="cols-2">
           <div class="list-card reveal">
-            <h3>{{ ic.emojiIcon("🛠️") }} We handle</h3>
+            <h3>{{ ic.emojiIcon(venues.weHandle.icon) }} {{ venues.weHandle.title }}</h3>
             <ul>
-              {%- for item in venues.weHandle %}
+              {%- for item in venues.weHandle.items %}
               <li>{{ item }}</li>
               {%- endfor %}
             </ul>
           </div>
           <div class="list-card wants reveal">
-            <h3>{{ ic.emojiIcon("🧩") }} You provide</h3>
+            <h3>{{ ic.emojiIcon(venues.youProvide.icon) }} {{ venues.youProvide.title }}</h3>
             <ul>
-              {%- for item in venues.youProvide %}
+              {%- for item in venues.youProvide.items %}
               <li>{{ item }}</li>
               {%- endfor %}
             </ul>
@@ -32,54 +33,21 @@
         {%- if venues.photos and venues.photos.length %}
         <div class="photo-strip">
           {%- for photo in venues.photos %}
-          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt }};">
-            <picture><source type="image/webp" srcset="{{ photo.src | replace('.jpg', '-480.webp') }} 480w, {{ photo.src | replace('.jpg', '.webp') }} 1200w" sizes="(max-width: 780px) 92vw, 420px" /><img src="{{ photo.src }}" width="{{ photo.width }}" height="{{ photo.height }}" loading="lazy"
+          {%- set im = photo.src | imageInfo %}
+          {%- if im.src %}
+          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt | safeTilt }};">
+            <picture>{% if im.webp %}<source type="image/webp" srcset="{% if im.webp480 %}{{ im.webp480 }} 480w, {% endif %}{{ im.webp }} 1200w" sizes="(max-width: 780px) 92vw, 420px" />{% endif %}<img src="{{ im.src }}" width="{{ im.width }}" height="{{ im.height }}" loading="lazy"
                  alt="{{ photo.alt }}" /></picture>
             <figcaption>{{ photo.caption }}</figcaption>
           </figure>
+          {%- endif %}
           {%- endfor %}
         </div>
         {%- endif %}
 
         <div class="form-card light-form reveal">
-          <h3>{{ venues.formHeading }}</h3>
-          <form id="venueForm" name="venue-enquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
-            <input type="hidden" name="form-name" value="venue-enquiry" /><p class="hp-field" aria-hidden="true"><label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
-            <div class="form-grid">
-              <div class="field">
-                <label for="vName">Your name <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="vName" name="name" autocomplete="name" required />
-              </div>
-              <div class="field">
-                <label for="vVenue">Venue / organisation <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="vVenue" name="venue" autocomplete="organization" required />
-              </div>
-              <div class="field">
-                <label for="vEmail">Email <span class="req" aria-hidden="true">*</span></label>
-                <input type="email" id="vEmail" name="email" autocomplete="email" required />
-              </div>
-              <div class="field">
-                <label for="vType">Venue type</label>
-                <select id="vType" name="type">
-                  <option>University / school</option>
-                  <option>Shopping centre / retail</option>
-                  <option>Stadium / large venue</option>
-                  <option>Transport hub</option>
-                  <option>Office / workplace</option>
-                  <option>Hospitality</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div class="field full">
-                <label for="vMsg">Anything we should know?</label>
-                <textarea id="vMsg" name="message" placeholder="Location, footfall, timelines…"></textarea>
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">{{ venues.formButton }}</button>
-              <span class="form-hint">{{ venues.formHint }}</span>
-            </div>
-          </form>
+          <h3>{{ venues.form.heading }}</h3>
+          {{ ef.enquiryForm("venueForm", "venue-enquiry", venues.form, "vf") }}
         </div>
       </div>
     </section>
