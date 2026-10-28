@@ -17,9 +17,9 @@
       "reason": "Page front-matter key that picks the Eleventy layout (page.njk). The CMS 'pages' collection sets it as a hidden field with a fixed default: editors choose sections, never a layout file."
     },
     {
-      "path": "locations.citiesHidden",
-      "checks": ["cms"],
-      "reason": "Parked data: a city (Belfast) kept out of the map until Northern Ireland launches. No template or script reads the key (grep src lib), so there is nothing for an editor to change yet. Delete this entry together with the key, or give it a CMS field when the city goes live."
+      "path": "locations.citiesHidden[].*",
+      "checks": ["wiring"],
+      "reason": "Parked data on purpose: a city (Belfast) kept out of the map until Northern Ireland launches. No template or script reads the key (grep src lib). The CMS field is labelled 'Parked cities - not shown on the map yet' and its hint says nothing in it appears on the website, so an editor is told it changes nothing; they copy an entry into Cities to publish it. Delete this entry if the key is ever rendered or removed."
     },
     {
       "path": "*.permalink",

@@ -21,10 +21,29 @@ const { loadSources, pathString } = require("./lib/data");
 const { loadConfig, contentCollections } = require("./lib/cmsconfig");
 const { loadPreviews, render, flatten, variants, mapLeaves } = require("./lib/previews");
 const { makePlan, mutateData, groupBySource } = require("./lib/sentinel");
+const { parseDocument } = require("htmlparser2");
 
 const BAD_TEXT = /\b(undefined|NaN|Infinity)\b|\[object Object\]/;
 const PAYLOAD = '<img src=x onerror=alert(1)></p><script>alert(2)</script>';
 const JS_URL = "javascript:alert(1)";
+
+// True when an HTML string held by a dangerouslySetInnerHTML sink would create a live element other
+// than <br> (the one thing the site's safeTitle filter lets through) or a live on* handler. Escaped
+// text such as "&lt;img onerror=...&gt;" is only text and is fine, so this parses instead of matching text.
+function liveHazard(html) {
+  let bad = false;
+  const walk = (nodes) => {
+    for (const n of nodes || []) {
+      if (n.type === "tag" || n.type === "script" || n.type === "style") {
+        if (n.name !== "br") bad = true;
+        if (Object.keys(n.attribs || {}).some((a) => /^on/i.test(a))) bad = true;
+        walk(n.children);
+      }
+    }
+  };
+  walk(parseDocument(String(html)).children);
+  return bad;
+}
 
 function whereOf(e) {
   return (e.stack || String(e)).split("\n").filter((l) => /previews\.js/.test(l)).slice(0, 1).join("").trim().replace(/^at /, "");
@@ -119,7 +138,7 @@ function main() {
       if (tree) {
         const flat = flatten(tree);
         for (const h of flat.html) {
-          if (!/<img|<script|onerror=/i.test(h.html)) continue;
+          if (!liveHazard(h.html)) continue;
           const key = name + "|" + h.tag + "|" + h.cls;
           const k = known.find((x) => x.kind === "live-html" && x.template === name && x.tag === h.tag && (x.class || "") === h.cls);
           if (k) {

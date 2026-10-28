@@ -19,12 +19,6 @@
       "reason": "The scroll-scrub hero plays 145 stills exported from the brand film (src/_includes/sections/hero.njk and scroll.njk point at /frames/desktop and /frames/mobile). They are a generated asset sequence, not a photo an editor picks; a developer re-exports them if the film changes."
     },
     {
-      "id": "brand-ident-film",
-      "prefix": "/videos/covered-ident",
-      "kinds": ["media"],
-      "reason": "The animated COVERED wordmark film in the closing banner (video and poster still). Same status as the inline SVG logo, which the SPEC exempts: a fixed brand asset, replaced by a developer when the identity changes. Its spoken description is the editable homepage cta videoLabel."
-    },
-    {
       "id": "css-bullet-glyph",
       "text": "●",
       "kinds": ["css"],

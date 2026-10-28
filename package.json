@@ -6,13 +6,14 @@
     "build": "eleventy",
     "serve": "eleventy --serve",
     "cms-local": "decap-server",
+    "check:ids": "node lib/reserved-ids.js --check",
     "check:cms": "node scripts/check-cms.js",
     "check:previews": "node scripts/check-previews.js",
     "check:copy": "node scripts/check-copy.js",
     "check:wiring": "node scripts/check-wiring.js",
     "check:hostile": "node scripts/check-hostile.js",
     "check:selftest": "node scripts/selftest.js",
-    "check": "npm run build && npm run check:cms && npm run check:previews && npm run check:copy && npm run check:wiring && npm run check:hostile"
+    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:copy && npm run check:wiring && npm run check:hostile"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0",

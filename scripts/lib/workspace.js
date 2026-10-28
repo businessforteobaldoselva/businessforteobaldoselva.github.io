@@ -75,4 +75,4 @@ class Workspace {
   }
 }
 
-module.exports = { Workspace };
+module.exports = { Workspace, eleventyBin };

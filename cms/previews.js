@@ -210,7 +210,7 @@
                 return h(
                   "div",
                   { className: "stat-card", key: i },
-                  h("div", { className: "stat-num" }, h("span", {}, String(s.number)), s.suffix === undefined || s.suffix === null ? "" : s.suffix),
+                  h("div", { className: "stat-num" }, h("span", {}, s.number === undefined || s.number === null ? "" : String(s.number)), s.suffix === undefined || s.suffix === null ? "" : s.suffix),
                   h("p", { className: "stat-label" }, s.label)
                 );
               })
@@ -686,7 +686,7 @@
                     "div",
                     { className: "chip-row" },
                     types.map(function (t, i) {
-                      return h("span", { className: "chip", key: i }, t.emoji + " " + t.label);
+                      return h("span", { className: "chip", key: i }, [t.emoji, t.label].filter(function (x) { return x !== undefined && x !== null && x !== ""; }).join(" "));
                     })
                   ),
                   h("p", { className: "loc-cta" }, h("span", { className: "btn btn-outline" }, g(e, ["ctaButton"])))

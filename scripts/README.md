@@ -9,7 +9,8 @@ problem and exits `1` on any violation (`2` for a usage error such as a missing 
 
 | command | what it proves | time |
 | --- | --- | --- |
-| `npm run check` | builds the site, then runs the five guards below, fast ones first | ~40 s |
+| `npm run check` | runs the id guard and the five guards below, fast ones first | ~45 s |
+| `npm run check:ids` | the built-in page ids that editor anchors must not reuse are read from the templates, and every CMS anchor pattern lists them all (`lib/reserved-ids.js --check`) | <1 s |
 | `npm run check:cms` | `cms/config.yml` is well formed and **covers every key** of the content | <1 s |
 | `npm run check:previews` | the live previews survive empty / broken / hostile entries | <1 s |
 | `npm run check:copy` | **every visible word, picture and outward link on the built site is traceable to editable data** | <1 s |
@@ -17,8 +18,9 @@ problem and exits `1` on any violation (`2` for a usage error such as a missing 
 | `npm run check:hostile` | hostile text typed into any field cannot break out of where it is printed | ~20 s |
 | `npm run check:selftest` | breaks a throwaway copy of the site in ~20 ways and requires the right guard to fail | ~2.5 min |
 
-`check:copy` reads `_site` (run `npm run build` first; `--site <dir>` reads another build,
-`--root <dir>` takes the data from another checkout). The others build their own throwaway copies in
+`check:copy` builds the checkout into a fresh temp folder (so leftovers in `_site` cannot add pages that
+are not in the source) and deletes it afterwards; `--site <dir>` reads an existing build instead and
+`--root <dir>` takes the data from another checkout. The others build their own throwaway copies in
 the OS temp folder and delete them; the real checkout is never modified.
 
 ## check-copy
@@ -126,7 +128,8 @@ above.
 Renders each preview in `cms/previews.js` the way Decap does (a tiny `h` and an Immutable-like
 `entry`) with the real data and ~40 broken variants (empty entry, empty strings, nulls, emptied lists,
 huge strings, random keys and items removed, every key missing in turn): no exception, no `undefined`
-text. Markup typed into any field must not reach the preview as live HTML (`dangerouslySetInnerHTML`)
+text. Markup typed into any field must not reach the preview as live HTML (the output of every
+`dangerouslySetInnerHTML` is parsed: only `<br>` may stay live, escaped text such as `&lt;img&gt;` is fine)
 and a `javascript:` value must not reach a link. Problems that existed when the guard was added are
 listed with a reason in `scripts/previews-known-issues.json`; new ones fail, and a listed one that has
 been fixed should be removed (strict mode). It also reports (information only) how many editable

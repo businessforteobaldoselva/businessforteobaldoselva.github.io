@@ -326,7 +326,7 @@ const scenarios = [
   },
   {
     name: "a preview that prints typed text as live HTML",
-    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('h("p", { className: "hero-sub" }, g(e, ["subhead"]))', 'raw("p", { className: "hero-sub" }, g(e, ["subhead"]))')),
+    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('h("p", { className: "hero-sub" }, g(e, ["subhead"]))', 'h("p", { className: "hero-sub", dangerouslySetInnerHTML: { __html: g(e, ["subhead"]) } })')),
     run(ws) {
       expectRun("check-previews reports the new sink", runGuard("previews", ws.dir), { code: 1, has: ["Hostile markup reaches the preview", "preview 'hero'"] });
     },

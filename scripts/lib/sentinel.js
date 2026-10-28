@@ -80,6 +80,8 @@ function planFor(plan, src, p, field, orig, extra) {
     } catch (e) {
       /* reported by check-cms */
     }
+    // a field whose pattern asks for an e-mail address (site.contactEmail) takes a token shaped like one
+    if (re && !re.test(sv.value) && re.test(sv.value + "@example.com")) sv.value += "@example.com";
     if (re && !re.test(sv.value)) {
       plan.counter -= 1;
       plan.skipped.push({ src: src.file, schema, reason: "CMS pattern rejects a free token (" + field.pattern[0].slice(0, 40) + ")" });
