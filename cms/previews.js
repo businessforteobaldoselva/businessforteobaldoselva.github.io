@@ -6,18 +6,17 @@
   "use strict";
 
   // The site stylesheet (built by Eleventy from the same CSS the page inlines)
-  CMS.registerPreviewStyle("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap");
   CMS.registerPreviewStyle("/assets/site.css");
   // Preview-only overrides: no scroll-reveal hiding, no animations, breathing room
   CMS.registerPreviewStyle(
     [
-      "body { background: #1D2452; margin: 0; color: #EAF3FA; }",
+      "body { background: var(--paper); margin: 0; color: var(--ink); }",
       "*, *::before, *::after { animation: none !important; transition: none !important; }",
       ".reveal { opacity: 1 !important; transform: none !important; }",
       ".w-rise { opacity: 1 !important; transform: none !important; }",
       "section { padding: 3rem 0 !important; }",
       ".faq-a { max-height: none !important; }",
-      ".cms-note { font-family: Inter, sans-serif; font-size: 12px; color: #56618A; background: #D9E7F4; border: 1px dashed #b9c5da; border-radius: 8px; padding: 8px 12px; margin: 12px auto; width: min(1120px, 92%); }",
+      ".cms-note { font-family: var(--font-body); font-size: 12px; color: var(--muted); background: var(--paper-2); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; margin: 12px auto; width: min(1120px, 92%); }",
     ].join("\n"),
     { raw: true }
   );
@@ -31,9 +30,25 @@
     var v = entry.getIn(["data", key]);
     return v && v.toJS ? v.toJS() : [];
   }
-  function raw(tag, props, htmlString) {
+  // Mirrors the site's `safeTitle` filter (.eleventy.js): everything an editor
+  // typed is HTML-escaped, then only line breaks (<br>, <br/>, <br />) are turned
+  // back into real ones. Nothing else typed into a heading can become markup.
+  function safeTitleHtml(value) {
+    var s = value === undefined || value === null ? "" : String(value);
+    return s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/&lt;br\s*\/?\s*&gt;/gi, "<br />");
+  }
+  // The ONLY place a preview writes HTML. The string always comes from
+  // safeTitleHtml(), so it can hold nothing but escaped text and <br /> — never
+  // pass anything else here (this admin page shares its origin with the Git
+  // Gateway login, so a script injected into a preview could steal it).
+  function titleEl(tag, props, value) {
     props = props || {};
-    props.dangerouslySetInnerHTML = { __html: htmlString };
+    props.dangerouslySetInnerHTML = { __html: safeTitleHtml(value) };
     return h(tag, props);
   }
   function imgSrc(src) {
@@ -43,12 +58,14 @@
   function note(text) {
     return h("p", { className: "cms-note" }, "ℹ️ " + text);
   }
-  function sectionHead(kicker, titleHtml, subtitle, center) {
+  // `breaks` is true for the headings the site renders with safeTitle (line
+  // breaks allowed) and false for plain-text headings (model, how, FAQ).
+  function sectionHead(kicker, title, subtitle, center, breaks) {
     return h(
       "div",
       { style: center ? { textAlign: "center" } : {} },
       h("span", { className: "kicker" }, kicker),
-      raw("h2", { className: "section-title" }, titleHtml),
+      breaks ? titleEl("h2", { className: "section-title" }, title) : h("h2", { className: "section-title" }, String(title)),
       subtitle ? h("p", { className: "section-sub", style: center ? { margin: "0 auto" } : {} }, subtitle) : null
     );
   }
@@ -78,7 +95,11 @@
     return v && v.toJS ? v.toJS() : fallback;
   }
   function previewField(f, i) {
-    var type = f.type || "text";
+    var type = ["text", "email", "tel", "textarea", "select"].indexOf(f.type) >= 0 ? f.type : "text";
+    var choices = (f.options || []).filter(function (o) { return String(o || "").trim(); });
+    // The live form leaves out a question without a label, and a dropdown that has no choices.
+    if (!String(f.label || "").trim()) return null;
+    if (type === "select" && !choices.length && !String(f.emptyOption || "").trim()) return null;
     var control;
     if (type === "textarea") {
       control = h("textarea", { placeholder: f.placeholder || "", readOnly: true });
@@ -87,7 +108,7 @@
         "select",
         {},
         f.emptyOption ? h("option", { key: "empty" }, f.emptyOption) : null,
-        (f.options || []).map(function (o, j) { return h("option", { key: j }, o); })
+        choices.map(function (o, j) { return h("option", { key: j }, o); })
       );
     } else {
       control = h("input", { type: type, placeholder: f.placeholder || "", readOnly: true });
@@ -153,8 +174,8 @@
   );
 
   // ---------- Problem ----------
-  // Older entries may lack the newer fields (manifesto photo, % unit, source label),
-  // so each one falls back to the text that used to be written into the page.
+  // Every value is read the way the live site reads it: a missing value shows
+  // nothing (no invented defaults), so the preview matches what will be published.
   CMS.registerPreviewTemplate(
     "problem",
     createClass({
@@ -163,13 +184,9 @@
         var stats = list(e, "stats");
         var photos = list(e, "photos");
         var manifesto = g(e, ["manifesto"]);
-        var mSrc = g(e, ["manifestoPhoto", "src"], "/images/story-3-get.jpg");
-        var mAlt = g(
-          e,
-          ["manifestoPhoto", "alt"],
-          "A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall"
-        );
-        var sourceLabel = g(e, ["sourceLabel"], "Source:");
+        var mSrc = g(e, ["manifestoPhoto", "src"]);
+        var mAlt = g(e, ["manifestoPhoto", "alt"]);
+        var sourceLabel = g(e, ["sourceLabel"]);
         var sourceText = g(e, ["sourceText"]);
         return h(
           "section",
@@ -177,7 +194,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"])),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), false, true),
             manifesto
               ? h(
                   "div",
@@ -193,7 +210,7 @@
                 return h(
                   "div",
                   { className: "stat-card", key: i },
-                  h("div", { className: "stat-num" }, h("span", {}, String(s.number)), s.suffix === undefined || s.suffix === null ? "%" : s.suffix),
+                  h("div", { className: "stat-num" }, h("span", {}, String(s.number)), s.suffix === undefined || s.suffix === null ? "" : s.suffix),
                   h("p", { className: "stat-label" }, s.label)
                 );
               })
@@ -222,17 +239,20 @@
   );
 
   // ---------- Model ----------
+  // Mirrors model.njk: a missing value shows nothing (no invented defaults), the
+  // film only shows when it has a video file, and the receipt shows whichever of
+  // its parts are filled in (all empty = no receipt).
   CMS.registerPreviewTemplate(
     "model",
     createClass({
       render: function () {
         var e = this.props.entry;
         var steps = list(e, "steps");
-        var arrow = g(e, ["loopArrow"], "→");
+        var arrow = g(e, ["loopArrow"]);
         var beltNode = e.getIn(["data", "belt", "words"]);
-        var beltWords = beltNode && beltNode.toJS ? beltNode.toJS() : ["4-PACK", "FREE", "4-PACK", "COVERED"];
-        var repeats = parseInt(g(e, ["belt", "repeats"], 4), 10);
-        if (isNaN(repeats) || repeats < 1) repeats = 1;
+        var beltWords = beltNode && beltNode.toJS ? beltNode.toJS() : [];
+        var repeats = Math.floor(Number(g(e, ["belt", "repeats"], "")));
+        if (!isFinite(repeats) || repeats < 1) repeats = 1;
         if (repeats > 12) repeats = 12;
         var packs = [];
         for (var r = 0; r < repeats; r++) {
@@ -240,22 +260,14 @@
             packs.push(h("span", { className: "belt-pack", key: r + "-" + i }, w));
           });
         }
-        var poster = g(e, ["video", "poster"], "/images/pack-in-tray-poster.jpg");
-        var videoSrc = g(e, ["video", "src"], "/images/pack-in-tray.mp4");
-        var videoLabel = g(
-          e,
-          ["video", "label"],
-          "Concept film: the camera glides toward a COVERED dispenser and a wrapped pack waiting in its tray"
-        );
-        var rowsNode = e.getIn(["data", "receipt", "rows"]);
-        var rows =
-          rowsNode && rowsNode.toJS
-            ? rowsNode.toJS()
-            : [
-                { label: "Pads (plastic-free)", value: "£0.00" },
-                { label: "Tampons (organic)", value: "£0.00" },
-                { label: "Judgement", value: "None" },
-              ];
+        var poster = g(e, ["video", "poster"]);
+        var videoSrc = g(e, ["video", "src"]);
+        var videoLabel = g(e, ["video", "label"]);
+        var rcNode = e.getIn(["data", "receipt"]);
+        var rc = rcNode && rcNode.toJS ? rcNode.toJS() : {};
+        var rcRows = Array.isArray(rc.rows) ? rc.rows : [];
+        var rcTotal = rc.total || {};
+        var showReceipt = rc.brand || rc.meta || rcRows.length || rcTotal.label || rcTotal.value || rc.paid || rc.script;
         var kids = [];
         steps.forEach(function (s, i) {
           kids.push(
@@ -277,7 +289,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true, false),
             h("div", { className: "loop" }, kids),
             packs.length ? h("div", { className: "conveyor" }, h("div", { className: "belt-track" }, packs)) : null,
             h(
@@ -290,24 +302,23 @@
                     h("video", { className: "model-video", poster: imgSrc(poster), "aria-label": videoLabel, muted: true, controls: true, preload: "none" })
                   )
                 : null,
-              h(
-                "aside",
-                { className: "receipt" },
-                h("p", { className: "r-brand" }, g(e, ["receipt", "brand"], "COVERED"), h("span", { className: "brand-period" }, ".")),
-                h("p", { className: "r-meta" }, g(e, ["receipt", "meta"], "Dispenser Nº 001 — Exeter")),
-                rows.map(function (row, i) {
-                  return h("div", { className: "r-row", key: "r" + i }, h("span", {}, row.label), h("span", {}, row.value));
-                }),
-                h(
-                  "div",
-                  { className: "r-row r-total" },
-                  h("span", {}, g(e, ["receipt", "total", "label"], "Total due")),
-                  h("span", {}, g(e, ["receipt", "total", "value"], "£0.00"))
-                ),
-                h("p", { className: "r-paid" }, g(e, ["receipt", "paid"], "Paid in full by brands that get it")),
-                h("div", { className: "r-code" }),
-                h("p", { className: "r-script" }, g(e, ["receipt", "script"], "We got you covered. Period."))
-              )
+              showReceipt
+                ? h(
+                    "aside",
+                    { className: "receipt" },
+                    rc.brand ? h("p", { className: "r-brand" }, rc.brand, h("span", { className: "brand-period" }, ".")) : null,
+                    rc.meta ? h("p", { className: "r-meta" }, rc.meta) : null,
+                    rcRows.map(function (row, i) {
+                      return h("div", { className: "r-row", key: "r" + i }, h("span", {}, row.label), h("span", {}, row.value));
+                    }),
+                    rcTotal.label || rcTotal.value
+                      ? h("div", { className: "r-row r-total" }, h("span", {}, rcTotal.label), h("span", {}, rcTotal.value))
+                      : null,
+                    rc.paid ? h("p", { className: "r-paid" }, rc.paid) : null,
+                    h("div", { className: "r-code" }),
+                    rc.script ? h("p", { className: "r-script" }, rc.script) : null
+                  )
+                : null
             )
           )
         );
@@ -338,7 +349,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true, false),
             story.length
               ? h(
                   "div",
@@ -422,7 +433,7 @@
                 "div",
                 {},
                 h("span", { className: "kicker" }, g(e, ["kicker"])),
-                raw("h2", { className: "section-title" }, g(e, ["title"])),
+                titleEl("h2", { className: "section-title" }, g(e, ["title"])),
                 h("p", { className: "section-sub" }, g(e, ["subtitle"]))
               ),
               h(
@@ -449,7 +460,7 @@
               "div",
               { className: "chip-row" },
               chips.map(function (c, i) {
-                return raw("span", { className: "chip", key: i }, c);
+                return h("span", { className: "chip", key: i }, c);
               })
             ),
             enquiryFormPreview(e, OLD_BRAND_FIELDS, "Get the media kit", "Request media kit", false)
@@ -472,7 +483,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"])),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), false, true),
             h(
               "div",
               { className: "partner-grid" },
@@ -482,7 +493,7 @@
                   { className: "p-slot" + (s.founding ? " founding" : ""), key: i },
                   s.founding && g(e, ["reservedStamp"], "Reserved") ? h("span", { className: "stamp", style: { fontSize: "0.95rem", padding: "0.3em 0.7em" } }, g(e, ["reservedStamp"], "Reserved")) : null,
                   h("span", { className: "slot-logo" }, s.logoText),
-                  raw("small", {}, s.category || "")
+                  h("small", {}, s.category || "")
                 );
               })
             ),
@@ -523,7 +534,7 @@
             { className: "container" },
             h("span", { className: "pilot-ribbon" }, g(e, ["ribbon"])),
             h("span", { className: "kicker", style: { display: "block" } }, g(e, ["kicker"])),
-            raw("h2", { className: "section-title" }, g(e, ["title"])),
+            titleEl("h2", { className: "section-title" }, g(e, ["title"])),
             h("p", { className: "section-sub" }, g(e, ["subtitle"])),
             h(
               "div",
@@ -563,6 +574,30 @@
   );
 
   // ---------- Locations (map) ----------
+  // The preview shows one city's description at a time, so list what every other
+  // city says when a visitor picks it, and name the parked cities (kept off the map).
+  function cityNotes(e, cities, shown) {
+    var others = cities.filter(function (c) { return c !== shown; });
+    var parked = list(e, "citiesHidden");
+    return h(
+      "div",
+      {},
+      others.length
+        ? h(
+            "details",
+            { className: "cms-note" },
+            h("summary", {}, "ℹ️ What visitors see when they pick each other city"),
+            others.map(function (c, i) {
+              var tag = c.live ? g(e, ["labels", "statusLive"]) : g(e, ["labels", "statusSoon"]);
+              return h("p", { key: i }, (c.name || "") + " — " + tag + " — " + (c.blurb || ""));
+            })
+          )
+        : null,
+      parked.length
+        ? note("Parked cities (kept off the map for now): " + parked.map(function (c) { return c.name || ""; }).join(", "))
+        : null
+    );
+  }
   CMS.registerPreviewTemplate(
     "locations",
     createClass({
@@ -580,7 +615,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true, true),
             h(
               "div",
               { className: "loc-grid" },
@@ -602,8 +637,8 @@
                         cx: c.x,
                         cy: c.y,
                         r: c.live ? 7 : 5.5,
-                        fill: c.live ? "#C94D00" : "#fff",
-                        stroke: c.live ? "#C94D00" : "#1D2452",
+                        // live pin = the "button colour"; roadmap pin = white with a dark outline (as the legend)
+                        style: { fill: c.live ? "var(--red-deep)" : "#fff", stroke: c.live ? "var(--red-deep)" : "var(--ink)" },
                         strokeWidth: 2,
                       });
                     })
@@ -657,7 +692,8 @@
                   h("p", { className: "loc-cta" }, h("span", { className: "btn btn-outline" }, g(e, ["ctaButton"])))
                 )
               )
-            )
+            ),
+            cityNotes(e, cities, live)
           )
         );
       },
@@ -678,7 +714,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true, true),
             h(
               "div",
               { className: "timeline" },
@@ -707,10 +743,11 @@
               h(
                 "div",
                 { className: "notify-form" },
-                h("input", { type: "email", readOnly: true, placeholder: g(e, ["notify", "placeholder"], "you@email.com"), "aria-label": g(e, ["notify", "label"], "Your email") }),
-                h("span", { className: "btn btn-primary" }, g(e, ["notify", "button"], "Tell me when Exeter goes live"))
+                h("input", { type: "email", readOnly: true, placeholder: g(e, ["notify", "placeholder"]), "aria-label": g(e, ["notify", "label"]) }),
+                h("span", { className: "btn btn-primary" }, g(e, ["notify", "button"]))
               )
-            )
+            ),
+            note("After a successful sign-up the visitor sees: " + g(e, ["notify", "success"]))
           )
         );
       },
@@ -730,7 +767,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true, false),
             h(
               "div",
               { className: "faq-list" },
@@ -823,6 +860,49 @@
   );
 
   // ---------- Homepage layout (running order) ----------
+  // Two homepage sections keep their text in the layout entry itself (the ticker
+  // words and the closing banner's extras), so show it under their row.
+  function tickerSentence(s) {
+    var words = (s.items || []).map(function (w) { return String(w).toLowerCase(); });
+    var out = s.screenReaderIntro ? s.screenReaderIntro + " " : "";
+    words.forEach(function (w, i) {
+      out += w;
+      if (i === words.length - 2) out += " " + (s.screenReaderJoiner || "") + " ";
+      else if (i < words.length - 1) out += ", ";
+    });
+    return out + (s.screenReaderEnd || "");
+  }
+  function sectionExtras(s) {
+    if (!s) return null;
+    if (s.type === "marquee") {
+      var words = Array.isArray(s.items) ? s.items : [];
+      if (!words.length) return note("No ticker words — the ticker is not shown on the site.");
+      return h(
+        "div",
+        {},
+        h(
+          "div",
+          { className: "marquee" },
+          h("div", { className: "marquee-track" }, words.map(function (w, j) { return h("span", { key: j }, w); }))
+        ),
+        note("Hidden sentence for screen readers: “" + tickerSentence(s) + "”"),
+        note("Pause button label for screen readers: “" + (s.pauseLabel || "") + "”")
+      );
+    }
+    if (s.type === "cta") {
+      var v = s.video || {};
+      return h(
+        "div",
+        {},
+        note("The banner’s heading, text and button label are edited under “Site-wide”."),
+        note("Brand animation: " + (v.src ? v.src : "none — the animation is hidden") + (v.src && v.poster ? " (cover picture " + v.poster + ")" : "")),
+        note("Animation description for screen readers: “" + (s.videoLabel || "") + "”"),
+        note("Section name for screen readers: “" + (s.ariaLabel || "") + "”"),
+        note("Email subject when the banner button is clicked: “" + (s.emailSubject || "") + "”")
+      );
+    }
+    return null;
+  }
   CMS.registerPreviewTemplate(
     "homepage",
     createClass({
@@ -846,7 +926,7 @@
           textBlock: "📝 Text section (yours)",
           imageTextBlock: "🖼️ Image + text (yours)",
           statsBlock: "🔢 Number cards (yours)",
-          bannerBlock: "📣 Big orange banner (yours)",
+          bannerBlock: "📣 Big call-to-action banner (yours)",
           faqBlock: "❓ Questions & answers (yours)",
         };
         return h(
@@ -857,13 +937,17 @@
             var hidden = s && s.enabled === false;
             var label = names[s && s.type] || (s && s.type ? s.type : "Unknown section");
             return h(
-              "p",
-              {
-                className: "cms-note",
-                key: i,
-                style: hidden ? { opacity: 0.55, textDecoration: "line-through" } : {},
-              },
-              (i + 1) + ". " + label + (hidden ? " — hidden" : "")
+              "div",
+              { key: i },
+              h(
+                "p",
+                {
+                  className: "cms-note",
+                  style: hidden ? { opacity: 0.55, textDecoration: "line-through" } : {},
+                },
+                (i + 1) + ". " + label + (hidden ? " — hidden" : "")
+              ),
+              hidden ? null : sectionExtras(s)
             );
           })
         );
@@ -883,9 +967,9 @@
           note("Browser-tab title: " + g(e, ["pageTitle"])),
           note("Search-engine description: " + g(e, ["metaDescription"])),
           note("Social-share description: " + g(e, ["ogDescription"])),
-          note("Contact email (all forms + footer): " + g(e, ["contactEmail"])),
+          note("Contact email (every “Email us” link, the closing-banner button and the forms’ fallback e-mail): " + g(e, ["contactEmail"])),
           note("Browser-tab title on other pages: " + g(e, ["subpageTitle"], "{title} — COVERED")),
-          note("Social share picture: " + g(e, ["shareImage"], "/images/covered-og.jpg")),
+          note("Social share picture: " + g(e, ["shareImage"], "none")),
           note("Updates feed name: " + g(e, ["feedTitle"], "COVERED updates")),
           note("Search-engine tagline: " + g(e, ["schemaSlogan"])),
           note("Search-engine description: " + g(e, ["schemaDescription"])),
