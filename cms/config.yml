@@ -806,17 +806,22 @@ collections:
         label: "🤝 Partners wall"
         file: "src/_data/partners.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Partners section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Partners section. Type <br /> where you want a new line." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the Partners heading." }
+          - { label: "“Reserved” stamp text", name: "reservedStamp", widget: "string", required: false, hint: "The small stamp on top of any slot marked as the founding-partner slot below. Leave empty for no stamp." }
           - label: "Partner slots"
             name: "slots"
             widget: "list"
+            label_singular: "slot"
+            summary: "{{fields.logoText}} · {{fields.category}}"
+            collapsed: true
+            hint: "The boxes on the partner wall, in order. Swap in a brand’s name as partners sign up."
             fields:
-              - { label: "Founding-partner slot?", name: "founding", widget: "boolean", default: false }
-              - { label: "Logo text / brand name", name: "logoText", widget: "string" }
-              - { label: "Category label", name: "category", widget: "string" }
-          - { label: "Button label", name: "ctaButton", widget: "string" }
+              - { label: "Founding-partner slot?", name: "founding", widget: "boolean", default: false, hint: "Switch on to give the slot the highlighted look with the “Reserved” stamp." }
+              - { label: "Logo text / brand name", name: "logoText", widget: "string", hint: "Large text in the middle of the slot, e.g. “Your logo here” or a brand name." }
+              - { label: "Category label", name: "category", widget: "string", hint: "Small line under the logo text, e.g. “Beauty & personal care”." }
+          - { label: "Button label", name: "ctaButton", widget: "string", hint: "Button under the wall. It jumps to the “Advertise with us” form and only appears while that section is switched on." }
 
       - name: "venues"
         label: "🏟️ For Venues section"
@@ -923,30 +928,51 @@ collections:
         label: "🗺️ Locations / UK map"
         file: "src/_data/locations.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
-          - { label: "Map viewBox (do not edit)", name: "svgViewBox", widget: "hidden" }
-          - { label: "Map alt text (do not edit)", name: "svgAriaLabel", widget: "hidden" }
-          - { label: "Map geometry — neighbours (do not edit)", name: "neighborPath", widget: "hidden" }
-          - { label: "Map geometry — UK (do not edit)", name: "landPath", widget: "hidden" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Locations section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Locations section. Type <br /> where you want a new line." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the Locations heading." }
+          - { label: "Map picture", name: "mapImage", widget: "image", required: false, choose_url: false, hint: "The UK map behind the pins. Leave it empty to show the plain built-in outline instead. If you pick a different picture, also set “Map size” below to that picture’s width and height and move each city’s pin to match." }
+          - { label: "Map size (width and height)", name: "svgViewBox", widget: "string", pattern: ["^0 0 [0-9]+(\\.[0-9]+)? [0-9]+(\\.[0-9]+)?$", "Must look like 0 0 765 1024 — start with 0 0, then the map picture’s width and height"], hint: "The grid the city pins are placed on. Always “0 0” followed by the map picture’s width and height, e.g. 0 0 765 1024 for the current map." }
+          - { label: "Map description (for screen readers)", name: "svgAriaLabel", widget: "text", hint: "Read aloud by screen readers in place of the map picture. Not shown on screen." }
+          - { label: "Plain outline — neighbouring countries (advanced)", name: "neighborPath", widget: "text", required: false, pattern: ["^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\\-\\s]*$", "Only map path data is allowed here (letters like M, L, Z and numbers)"], hint: "Advanced: drawing data for the simple outline that is shown only when no map picture is set or the picture cannot be found. Leave as it is unless you know SVG path data." }
+          - { label: "Plain outline — United Kingdom (advanced)", name: "landPath", widget: "text", required: false, pattern: ["^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\\-\\s]*$", "Only map path data is allowed here (letters like M, L, Z and numbers)"], hint: "Advanced: drawing data for the UK shape of the simple outline (see above). Leave as it is unless you know SVG path data." }
           - label: "Cities"
             name: "cities"
             widget: "list"
+            label_singular: "city"
+            summary: "{{fields.name}}"
+            collapsed: true
+            hint: "One pin on the map and one button above the description box for each city, in the order they drop onto the map."
             fields:
-              - { label: "ID (do not edit)", name: "id", widget: "hidden" }
-              - { label: "City name", name: "name", widget: "string" }
-              - { label: "Map X position (do not edit)", name: "x", widget: "hidden" }
-              - { label: "Map Y position (do not edit)", name: "y", widget: "hidden" }
-              - { label: "Is this the live pilot city?", name: "live", widget: "boolean", default: false }
-              - { label: "Description shown when selected", name: "blurb", widget: "text" }
+              - { label: "ID", name: "id", widget: "string", pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, e.g. bristol"], hint: "A short tag the page uses to link the pin to its button — lowercase letters, numbers and dashes, different for every city (e.g. bristol). Never shown to visitors." }
+              - { label: "City name", name: "name", widget: "string", hint: "Shown on the city’s button and as the heading of the description box." }
+              - { label: "Map X position", name: "x", widget: "number", value_type: "float", min: 0, max: 2000, step: 1, hint: "How far across the map the pin’s tip sits, measured from the left edge in map units. On the current map (765 wide) use 0 for the far left to 765 for the far right." }
+              - { label: "Map Y position", name: "y", widget: "number", value_type: "float", min: 0, max: 2000, step: 1, hint: "How far down the map the pin’s tip sits, measured from the top edge in map units. On the current map (1024 tall) use 0 for the top to 1024 for the bottom." }
+              - { label: "Is this the live pilot city?", name: "live", widget: "boolean", default: false, hint: "Live cities get a bigger pulsing pin, a “pilot” badge on their button and the “Pilot — recruiting venues” tag. The map opens on the first live city." }
+              - { label: "Description shown when selected", name: "blurb", widget: "text", hint: "The sentence or two that appears in the description box when someone picks this city." }
           - label: "Venue types targeted"
             name: "placeTypes"
             widget: "list"
+            label_singular: "venue type"
+            summary: "{{fields.emoji}} {{fields.label}}"
+            hint: "The pills under the city description, e.g. Universities."
             fields:
-              - { label: "Emoji", name: "emoji", widget: "string" }
-              - { label: "Label", name: "label", widget: "string" }
-          - { label: "Button label", name: "ctaButton", widget: "string" }
+              - { label: "Emoji", name: "emoji", widget: "string", hint: "One emoji shown before the label. Known ones (🎓 🛍️ 🏟️ 🚆 ☕ 📍) are swapped for the site’s own icon." }
+              - { label: "Label", name: "label", widget: "string", hint: "The pill’s text, e.g. Universities." }
+          - { label: "Venue types heading", name: "placeTypesTitle", widget: "string", hint: "Line above the venue-type pills." }
+          - { label: "Button label", name: "ctaButton", widget: "string", hint: "Button at the bottom of the section. It jumps to the “For Venues” form and only appears while that section is switched on." }
+          - label: "Map wording"
+            name: "labels"
+            widget: "object"
+            collapsed: true
+            hint: "Small pieces of text on and around the map."
+            fields:
+              - { label: "Legend — live pin", name: "legendLive", widget: "string", hint: "Caption under the map next to the orange dot." }
+              - { label: "Legend — roadmap pin", name: "legendSoon", widget: "string", hint: "Caption under the map next to the white dot." }
+              - { label: "Tag for a live city", name: "statusLive", widget: "string", hint: "Small tag beside the city name in the description box when the selected city is live." }
+              - { label: "Tag for a roadmap city", name: "statusSoon", widget: "string", hint: "Small tag beside the city name in the description box when the selected city is not live." }
+              - { label: "Badge on a live city’s button", name: "liveBadge", widget: "string", required: false, hint: "Tiny badge after the name on the live city’s button, e.g. “● pilot”. Leave empty for no badge." }
+              - { label: "City buttons description (screen readers)", name: "cityPickerAriaLabel", widget: "string", hint: "Read aloud by screen readers for the row of city buttons. Not shown on screen." }
 
       - name: "vision"
         label: "🚀 Vision / roadmap"
