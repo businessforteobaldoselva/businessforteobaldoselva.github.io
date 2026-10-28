@@ -1,0 +1,49 @@
+{#- The footer, shared by the homepage (index.njk) and every other page (page.njk).
+    Homepage (chromeHome set): brand, tagline, the editable link columns and the
+    bottom line (copyright, last-updated date, sign-off). Other pages: a single slim
+    line with the copyright and a few links. All text lives in src/_data/footer.json.
+    "{year}" in the copyright line becomes the live year on the homepage (filled in
+    by the page script) and is left out on the other pages, which have no year. -#}
+{%- if chromeHome -%}
+{%- set logoHref = "#top" -%}
+{%- set linkPrefix = "/#" -%}
+{%- set cp = footer.copyright or "" -%}
+{%- set yearAt = cp.indexOf("{year}") -%}
+<footer>
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          {% include "chrome/logo.njk" %}
+          <p>{{ footer.tagline }}</p>
+        </div>
+        {%- for col in footer.columns %}
+        <nav class="foot-col" aria-label="{{ col.ariaLabel or col.heading }}">
+          <p class="foot-head">{{ col.heading }}</p>
+          <ul>
+            {%- for item in col.links %}
+            {% include "chrome/link-item.njk" %}
+            {%- endfor %}
+          </ul>
+        </nav>
+        {%- endfor %}
+      </div>
+      <div class="foot-bottom">
+        <span>{% if yearAt >= 0 %}{{ cp.slice(0, yearAt) }}<span id="year"></span>{{ cp.slice(yearAt + 6) | replace("{year}", "") }}{% else %}{{ cp }}{% endif %}</span>
+        {% if footer.lastUpdated %}<span>{{ footer.updatedLabel }} {{ footer.lastUpdated }}</span>{% endif %}
+        {% if footer.signOff %}<span class="script" style="font-size: 1.15rem;">{{ footer.signOff }}</span>{% endif %} {% if footer.signOffEmoji %}<span aria-hidden="true">{{ footer.signOffEmoji }}</span>{% endif %}
+      </div>
+    </div>
+  </footer>
+{%- else -%}
+{%- set linkPrefix = "/#" -%}
+{%- set linkBare = true -%}
+{%- set linkStyle = "color: inherit;" -%}
+<footer>
+    <div class="container">
+      <div class="foot-bottom" style="margin-top: 0; padding-top: 0; border-top: none;">
+        <span>{{ (footer.copyright or "") | replace("{year} ", "") | replace("{year}", "") }}</span>
+        <span>{% for item in footer.compactLinks %}{% if not loop.first %} · {% endif %}{% include "chrome/link-item.njk" %}{% endfor %}</span>
+      </div>
+    </div>
+  </footer>
+{%- endif -%}

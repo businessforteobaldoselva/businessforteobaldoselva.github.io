@@ -668,7 +668,12 @@
           note("Search-engine description: " + g(e, ["metaDescription"])),
           note("Social-share description: " + g(e, ["ogDescription"])),
           note("Contact email (all forms + footer): " + g(e, ["contactEmail"])),
-          note("Footer: \"" + g(e, ["footerTagline"]) + "\" · Last updated: " + g(e, ["lastUpdated"])),
+          note("Browser-tab title on other pages: " + g(e, ["subpageTitle"], "{title} — COVERED")),
+          note("Social share picture: " + g(e, ["shareImage"], "/images/covered-og.jpg")),
+          note("Updates feed name: " + g(e, ["feedTitle"], "COVERED updates")),
+          note("Search-engine tagline: " + g(e, ["schemaSlogan"])),
+          note("Search-engine description: " + g(e, ["schemaDescription"])),
+          note("Search-engine location: " + g(e, ["schemaPlace"])),
           h(
             "section",
             {},
@@ -684,6 +689,139 @@
               )
             )
           )
+        );
+      },
+    })
+  );
+
+  // ---------- Navigation menu + footer (shared page chrome) ----------
+  function chromeLogo() {
+    return h(
+      "a",
+      { className: "logo", href: "#" },
+      h(
+        "span",
+        { className: "logo-mark" },
+        h(
+          "svg",
+          { viewBox: "0 0 48 48" },
+          h("path", { fill: "#94AB8D", d: "M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z" }),
+          h("circle", { cx: 15, cy: 15, r: 11, fill: "#F0A35C" })
+        )
+      ),
+      "COVERED",
+      h("span", { className: "logo-dot" }, ".")
+    );
+  }
+  function chromeLinks(items, extraProps) {
+    return (items || []).map(function (it, i) {
+      var props = { href: "#" };
+      if (it && it.button) props.className = "btn btn-primary";
+      if (extraProps) for (var k in extraProps) props[k] = extraProps[k];
+      return h("li", { key: i }, h("a", props, (it && it.label) || ""));
+    });
+  }
+
+  CMS.registerPreviewTemplate(
+    "nav",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        return h(
+          "div",
+          {},
+          h(
+            "header",
+            { style: { position: "static" } },
+            h(
+              "div",
+              { className: "container nav" },
+              chromeLogo(),
+              h(
+                "ul",
+                {
+                  className: "nav-links",
+                  style: { display: "flex", position: "static", maxHeight: "none", flexWrap: "wrap", boxShadow: "none", background: "transparent", padding: 0 },
+                },
+                chromeLinks(list(e, "items"))
+              )
+            )
+          ),
+          note("Skip link (hidden until someone presses Tab): \"" + g(e, ["skipLink"], "Skip to content") + "\""),
+          note("Logo label for screen readers: \"" + g(e, ["homeLabel"], "COVERED home") + "\""),
+          note("Mobile menu button label for screen readers: \"" + g(e, ["menuLabel"], "Toggle menu") + "\""),
+          note("Button on About, Privacy and other pages: \"" + g(e, ["backLabel"], "Back to main site") + "\""),
+          note("Links to sections that are switched off in “Page layout” are left out automatically on the live site.")
+        );
+      },
+    })
+  );
+
+  CMS.registerPreviewTemplate(
+    "footer",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var year = String(new Date().getFullYear());
+        var copyright = String(g(e, ["copyright"], "© {year} COVERED. All rights reserved."));
+        var updated = g(e, ["lastUpdated"], "");
+        var signOff = g(e, ["signOff"], "");
+        var emoji = g(e, ["signOffEmoji"], "");
+        var columns = list(e, "columns");
+        var compact = list(e, "compactLinks");
+        var compactKids = [];
+        compact.forEach(function (it, i) {
+          if (i > 0) compactKids.push(" · ");
+          compactKids.push(h("a", { href: "#", key: i, style: { color: "inherit" } }, (it && it.label) || ""));
+        });
+        return h(
+          "div",
+          {},
+          h(
+            "footer",
+            {},
+            h(
+              "div",
+              { className: "container" },
+              h(
+                "div",
+                { className: "foot-grid" },
+                h("div", { className: "foot-brand" }, chromeLogo(), h("p", {}, g(e, ["tagline"]))),
+                columns.map(function (col, i) {
+                  return h(
+                    "nav",
+                    { className: "foot-col", key: i },
+                    h("p", { className: "foot-head" }, (col && col.heading) || ""),
+                    h("ul", {}, chromeLinks(col && col.links))
+                  );
+                })
+              ),
+              h(
+                "div",
+                { className: "foot-bottom" },
+                h("span", {}, copyright.replace("{year}", year)),
+                updated ? h("span", {}, g(e, ["updatedLabel"], "Last updated:") + " " + updated) : null,
+                signOff ? h("span", { className: "script", style: { fontSize: "1.15rem" } }, signOff) : null,
+                emoji ? h("span", { "aria-hidden": "true" }, emoji) : null
+              )
+            )
+          ),
+          note("Below: the slim footer shown on About, Privacy and other pages."),
+          h(
+            "footer",
+            {},
+            h(
+              "div",
+              { className: "container" },
+              h(
+                "div",
+                { className: "foot-bottom", style: { marginTop: 0, paddingTop: 0, borderTop: "none" } },
+                h("span", {}, copyright.replace("{year} ", "").replace("{year}", "")),
+                h("span", {}, compactKids)
+              )
+            )
+          ),
+          note("Links to sections that are switched off in “Page layout” are left out automatically on the live site.")
         );
       },
     })

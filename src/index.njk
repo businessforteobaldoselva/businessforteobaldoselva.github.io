@@ -1,4 +1,4 @@
-{% import "icons.njk" as ic %}<!DOCTYPE html>
+{% import "icons.njk" as ic %}{% set chromeHome = true %}{% set shareImg = site.shareImage | imageInfo %}{% set shareSrc = (shareImg.src if shareImg.src.charAt(0) == "/" else "/" + shareImg.src) if shareImg.src else "" %}<!DOCTYPE html>
 <html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
@@ -23,12 +23,12 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://coveredaccess.com/" />
   <meta property="og:site_name" content="COVERED" />
-  <meta property="og:image" content="https://coveredaccess.com/images/covered-og.jpg" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  {% if shareSrc %}<meta property="og:image" content="https://coveredaccess.com{{ shareSrc }}" />
+  {% if shareImg.width and shareImg.height %}<meta property="og:image:width" content="{{ shareImg.width }}" />
+  <meta property="og:image:height" content="{{ shareImg.height }}" />{% endif %}{% endif %}
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="canonical" href="https://coveredaccess.com/" />
-  <link rel="alternate" type="application/atom+xml" title="COVERED updates" href="/feed.xml" />
+  <link rel="alternate" type="application/atom+xml" title="{{ site.feedTitle }}" href="/feed.xml" />
 
   <!-- Favicon: stamp-style C -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%2394AB8D' d='M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z'/%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A35C'/%3E%3C/svg%3E" />
@@ -45,18 +45,18 @@
         "@id": "https://coveredaccess.com/#org",
         "name": "COVERED",
         "url": "https://coveredaccess.com/",
-        "email": "{{ site.contactEmail }}",
-        "slogan": "Free Period Products, Paid for by Advertising. We got you covered.",
-        "description": "COVERED is a UK social enterprise that installs smart wall-mounted dispensers giving out free, plastic-free period products, funded entirely by brands advertising on the dispensers' 32-inch digital screens.",
-        "foundingLocation": { "@type": "Place", "name": "Exeter, United Kingdom" },
-        "areaServed": "GB",
-        "logo": "https://coveredaccess.com/images/covered-og.jpg"
+        "email": {{ site.contactEmail | dump | replace("<", "\\u003c") | safe }},
+        "slogan": {{ site.schemaSlogan | dump | replace("<", "\\u003c") | safe }},
+        "description": {{ site.schemaDescription | dump | replace("<", "\\u003c") | safe }},
+        "foundingLocation": { "@type": "Place", "name": {{ site.schemaPlace | dump | replace("<", "\\u003c") | safe }} },
+        "areaServed": "GB"{% if shareSrc %},
+        "logo": "https://coveredaccess.com{{ shareSrc }}"{% endif %}
       },
       {
         "@type": "WebSite",
         "@id": "https://coveredaccess.com/#website",
         "url": "https://coveredaccess.com/",
-        "name": "{{ site.pageTitle }}",
+        "name": {{ site.pageTitle | dump | replace("<", "\\u003c") | safe }},
         "publisher": { "@id": "https://coveredaccess.com/#org" },
         "inLanguage": "en-GB",
         "datePublished": "2026-06-28",
@@ -97,30 +97,11 @@
 {%- if motion.scrollProgress === false %}{% set motionClasses = motionClasses + " no-progress" %}{% endif %}
 <body{% if motionClasses %} class="{{ motionClasses | trim }}"{% endif %}>
 
-  <a class="skip-link" href="#top">Skip to content</a>
+  {% include "chrome/skip-link.njk" %}
 
   <div id="progress" role="presentation"></div>
 
-  <header>
-    <div class="container nav">
-      <a href="#top" class="logo" aria-label="COVERED home">
-        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#94AB8D" d="M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z"/><circle cx="15" cy="15" r="11" fill="#F0A35C"/></svg></span>
-        COVERED<span class="logo-dot">.</span>
-      </a>
-      <button class="burger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
-        <span></span><span></span><span></span>
-      </button>
-      <ul class="nav-links" id="navLinks">
-        {% if homepage | sectionEnabled("how") %}<li><a href="#how">How it works</a></li>{% endif %}
-        {% if homepage | sectionEnabled("partners") %}<li><a href="#partners">Partners</a></li>{% endif %}
-        {% if homepage | sectionEnabled("venues") %}<li><a href="#venues">For venues</a></li>{% endif %}
-        {% if homepage | sectionEnabled("locations") %}<li><a href="#locations">Locations</a></li>{% endif %}
-        <li><a href="/about/">About</a></li>
-        {% if homepage | sectionEnabled("faq") %}<li><a href="#faq">FAQ</a></li>{% endif %}
-        {% if homepage | sectionEnabled("brands") %}<li><a href="#brands" class="btn btn-primary">Advertise with us</a></li>{% endif %}
-      </ul>
-    </div>
-  </header>
+  {% include "chrome/nav.njk" %}
 
   <main id="top">
 
@@ -160,44 +141,7 @@
   </main>
 
   <!-- ============ FOOTER ============ -->
-  <footer>
-    <div class="container">
-      <div class="foot-grid">
-        <div class="foot-brand">
-          <a href="#top" class="logo" aria-label="COVERED home">
-            <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#94AB8D" d="M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z"/><circle cx="15" cy="15" r="11" fill="#F0A35C"/></svg></span>
-            COVERED<span class="logo-dot">.</span>
-          </a>
-          <p>{{ site.footerTagline }}</p>
-        </div>
-        <nav class="foot-col" aria-label="Footer — explore">
-          <p class="foot-head">Explore</p>
-          <ul>
-            {% if homepage | sectionEnabled("problem") %}<li><a href="/#problem">The problem</a></li>{% endif %}
-            {% if homepage | sectionEnabled("how") %}<li><a href="/#how">How it works</a></li>{% endif %}
-            {% if homepage | sectionEnabled("locations") %}<li><a href="/#locations">Locations</a></li>{% endif %}
-            {% if homepage | sectionEnabled("faq") %}<li><a href="/#faq">FAQ</a></li>{% endif %}
-            <li><a href="/about/">About</a></li>
-            <li><a href="/privacy/">Privacy</a></li>
-          </ul>
-        </nav>
-        <nav class="foot-col" aria-label="Footer — partner">
-          <p class="foot-head">Partner</p>
-          <ul>
-            {% if homepage | sectionEnabled("brands") %}<li><a href="/#brands">Advertise with us</a></li>{% endif %}
-            {% if homepage | sectionEnabled("partners") %}<li><a href="/#partners">Partner wall</a></li>{% endif %}
-            {% if homepage | sectionEnabled("venues") %}<li><a href="/#venues">Host a dispenser</a></li>{% endif %}
-            <li><a href="mailto:{{ site.contactEmail }}">Contact</a></li>
-          </ul>
-        </nav>
-      </div>
-      <div class="foot-bottom">
-        <span>© <span id="year"></span> COVERED. All rights reserved.</span>
-        <span>Last updated: {{ site.lastUpdated }}</span>
-        <span class="script" style="font-size: 1.15rem;">Built in the open, from Exeter</span> <span aria-hidden="true">💛</span>
-      </div>
-    </div>
-  </footer>
+  {% include "chrome/footer.njk" %}
 
   <script>window.COVERED_MOTION = {{ motion | dump | replace("<", "\\u003c") | safe }};</script>
   <script>
