@@ -1,0 +1,53 @@
+{
+  "_comment": "Data paths the structure (check-cms) and wiring (check-wiring) guards deliberately skip. Every entry needs a reason; an entry that skips nothing is an error. Path syntax: <data file or page name>.<key>[].<key>  ('[]' any list item, '*' any one key, '**' everything below). Adding a field here is NOT a way to avoid giving the CMS a field for copy - it is only for values an editor must not (or cannot meaningfully) change, or that a template reads only in some situations.",
+  "entries": [
+    {
+      "path": "*.form.fields[].id",
+      "checks": ["cms"],
+      "reason": "Deliberately hidden in the CMS: the legacy enquiry fields keep their original element ids (bName, vEmail ...) because the page scripts and Netlify submissions rely on them. Fields an editor adds get an id derived from the label by lib/eleventy/forms.js."
+    },
+    {
+      "path": "*.form.fields[].name",
+      "checks": ["cms"],
+      "reason": "Deliberately hidden in the CMS: the legacy enquiry fields keep their original submission names (name, email ...) so past and future Netlify form entries line up. Fields an editor adds get a name derived from the label by lib/eleventy/forms.js."
+    },
+    {
+      "path": "*.layout",
+      "checks": ["cms"],
+      "reason": "Page front-matter key that picks the Eleventy layout (page.njk). The CMS 'pages' collection sets it as a hidden field with a fixed default: editors choose sections, never a layout file."
+    },
+    {
+      "path": "locations.citiesHidden",
+      "checks": ["cms"],
+      "reason": "Parked data: a city (Belfast) kept out of the map until Northern Ireland launches. No template or script reads the key (grep src lib), so there is nothing for an editor to change yet. Delete this entry together with the key, or give it a CMS field when the city goes live."
+    },
+    {
+      "path": "*.permalink",
+      "checks": ["wiring"],
+      "reason": "Front-matter key Eleventy itself uses to place a page. Replacing it with a token in the sentinel build would move the pages the other checks look for; it is exercised by every build (the page exists at its permalink)."
+    },
+    {
+      "path": "brands.headerPhoto.src",
+      "checks": ["wiring"],
+      "reason": "The 'Photo' is the fallback shown only while no video is set: src/_includes/sections/brands.njk renders the video first. With the shipped video in place a change to it is correctly invisible."
+    },
+    {
+      "path": "*.form.fields[].emptyOption",
+      "checks": ["wiring"],
+      "injectedOnly": true,
+      "reason": "Only dropdown fields use a 'first choice' (lib/eleventy/forms.js drops it for other field types). The probe injected into a text field is expected to vanish; real dropdown values in the data are still tested."
+    },
+    {
+      "path": "*.form.fields[].placeholder",
+      "checks": ["wiring"],
+      "injectedOnly": true,
+      "reason": "Dropdown fields have no placeholder (lib/eleventy/forms.js drops it for them). The probe injected into a dropdown is expected to vanish; real placeholders in the data are still tested."
+    },
+    {
+      "path": "*.form.fields[].options[]",
+      "checks": ["wiring"],
+      "injectedOnly": true,
+      "reason": "Only dropdown fields have choices (lib/eleventy/forms.js drops them for other field types). The probe injected into a text field is expected to vanish; real choices in the data are still tested."
+    }
+  ]
+}

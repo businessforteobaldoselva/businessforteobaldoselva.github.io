@@ -1,0 +1,48 @@
+name: Site checks
+
+# Builds the site and runs the regression guards in scripts/ (see scripts/README.md).
+# Read-only: no secrets, no deploys, no privileged pull-request trigger. Netlify deploys on its own.
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Build and guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Actions are pinned to full commit SHAs (the comment names the release the SHA belongs to).
+      # SHAs verified against the GitHub API on 2026-10-28: tag -> commit, published releases.
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Build, then: CMS structure and coverage, previews, copy trace, sentinel wiring, hostile input.
+      - name: Build the site and run the guards
+        run: npm run check
+        env:
+          # Pull requests (developer changes) also fail on allow-list / ignore entries that match nothing any more;
+          # plain pushes (editors saving in the CMS) only note them, so switching a feature off never fails a build.
+          GUARD_STRICT_STALE: ${{ github.event_name == 'pull_request' && '1' || '' }}
+
+      # Breaks a throwaway copy of the site in ~20 ways and requires the guards to notice each one.
+      - name: Prove the guards still catch regressions
+        run: npm run check:selftest

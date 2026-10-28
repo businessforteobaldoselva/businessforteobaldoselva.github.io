@@ -1,0 +1,91 @@
+{
+  "_comment": "Problems check-previews finds in cms/previews.js that already existed when the guard was added. New ones fail; an entry whose problem has been fixed must be removed (it fails as unused). kind live-html: text typed into the CMS reaches the preview as live HTML. kind undefined-text: a half-filled entry makes the preview print the word undefined.",
+  "entries": [
+    {
+      "template": "problem",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "model",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "how",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "brands",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "brands",
+      "kind": "live-html",
+      "tag": "span",
+      "class": "chip",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "partners",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "partners",
+      "kind": "live-html",
+      "tag": "small",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "venues",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "locations",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "vision",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "faq",
+      "kind": "live-html",
+      "tag": "h2",
+      "class": "section-title",
+      "reason": "The preview writes this text with the raw() helper (dangerouslySetInnerHTML) so that <br /> line breaks show; anything else typed here is rendered as live HTML inside the CMS page, which holds the editor's Netlify login. Fix: escape the text and restore only <br> (the logic of the site's safeTitle filter). cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "problem",
+      "kind": "undefined-text",
+      "reason": "Adding a new list item in the CMS creates an empty item and this preview joins its missing fields, so the half-empty item shows the word \"undefined\" until it is filled in. Cosmetic and preview-only; fix with g(entry, path, fallback) style fallbacks. cms/previews.js is scheduled for removal in Phase 4."
+    },
+    {
+      "template": "locations",
+      "kind": "undefined-text",
+      "reason": "Adding a new list item in the CMS creates an empty item and this preview joins its missing fields, so the half-empty item shows the word \"undefined\" until it is filled in. Cosmetic and preview-only; fix with g(entry, path, fallback) style fallbacks. cms/previews.js is scheduled for removal in Phase 4."
+    }
+  ]
+}
