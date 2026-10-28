@@ -290,7 +290,7 @@
                 return h(
                   "div",
                   { className: "p-slot" + (s.founding ? " founding" : ""), key: i },
-                  s.founding ? h("span", { className: "stamp", style: { fontSize: "0.95rem", padding: "0.3em 0.7em" } }, "Reserved") : null,
+                  s.founding && g(e, ["reservedStamp"], "Reserved") ? h("span", { className: "stamp", style: { fontSize: "0.95rem", padding: "0.3em 0.7em" } }, g(e, ["reservedStamp"], "Reserved")) : null,
                   h("span", { className: "slot-logo" }, s.logoText),
                   raw("small", {}, s.category || "")
                 );
@@ -365,6 +365,9 @@
         var cities = list(e, "cities");
         var types = list(e, "placeTypes");
         var live = cities.filter(function (c) { return c.live; })[0] || cities[0] || {};
+        var mapImage = g(e, ["mapImage"]);
+        var viewBox = g(e, ["svgViewBox"], "0 0 765 1024");
+        var box = String(viewBox).split(" ");
         return h(
           "section",
           {},
@@ -380,9 +383,10 @@
                 { className: "uk-map-wrap" },
                 h(
                   "svg",
-                  { className: "uk-map", viewBox: g(e, ["svgViewBox"], "0 0 475 624") },
-                  h("path", { className: "uk-neighbor", d: g(e, ["neighborPath"]) }),
-                  h("path", { className: "uk-land", d: g(e, ["landPath"]) }),
+                  { className: "uk-map", viewBox: viewBox },
+                  mapImage ? h("image", { href: imgSrc(mapImage), x: 0, y: 0, width: box[2], height: box[3] }) : null,
+                  mapImage ? null : h("path", { className: "uk-neighbor", d: g(e, ["neighborPath"]) }),
+                  mapImage ? null : h("path", { className: "uk-land", d: g(e, ["landPath"]) }),
                   h(
                     "g",
                     {},
@@ -402,8 +406,8 @@
                 h(
                   "div",
                   { className: "map-legend" },
-                  h("span", {}, h("span", { className: "dot live" }), "Pilot city"),
-                  h("span", {}, h("span", { className: "dot soon" }), "On the roadmap")
+                  h("span", {}, h("span", { className: "dot live" }), g(e, ["labels", "legendLive"], "Pilot city")),
+                  h("span", {}, h("span", { className: "dot soon" }), g(e, ["labels", "legendSoon"], "On the roadmap"))
                 )
               ),
               h(
@@ -411,13 +415,13 @@
                 {},
                 h(
                   "div",
-                  { className: "city-chips" },
+                  { className: "city-chips", role: "group", "aria-label": g(e, ["labels", "cityPickerAriaLabel"], "Choose a city to see its status") },
                   cities.map(function (c, i) {
                     return h(
                       "button",
                       { className: "city-chip", key: i, "aria-pressed": c.live ? "true" : "false" },
                       c.name,
-                      c.live ? h("span", { className: "badge-live" }, " ● pilot") : null
+                      c.live && g(e, ["labels", "liveBadge"], "● pilot") ? h("span", { className: "badge-live" }, " " + g(e, ["labels", "liveBadge"], "● pilot")) : null
                     );
                   })
                 ),
@@ -429,14 +433,14 @@
                     {},
                     live.name || "",
                     " ",
-                    h("span", { className: "status-tag " + (live.live ? "live" : "soon") }, live.live ? "Pilot — recruiting venues" : "On the roadmap")
+                    h("span", { className: "status-tag " + (live.live ? "live" : "soon") }, live.live ? g(e, ["labels", "statusLive"], "Pilot — recruiting venues") : g(e, ["labels", "statusSoon"], "On the roadmap"))
                   ),
                   h("p", {}, live.blurb || "")
                 ),
                 h(
                   "div",
                   { className: "loc-types" },
-                  h("p", { className: "loc-types-title" }, "The kinds of places we're targeting first:"),
+                  h("p", { className: "loc-types-title" }, g(e, ["placeTypesTitle"], "The kinds of places we're targeting first:")),
                   h(
                     "div",
                     { className: "chip-row" },
