@@ -17,6 +17,12 @@
       sv.title/sv.sub  optional overlay copy (omit for a bare background)
       sv.label         screen-reader name of the section (default: sv.title; none if both are omitted)
     Respects prefers-reduced-motion: no pin, no scrub, just the poster frame.
+
+    The frame folder, count, padding and extension are code/front matter on
+    purpose (this section is used by the trial page src/scroll.njk, not by the
+    homepage): they describe an ffmpeg export that must match the files on
+    disk exactly, so they are not CMS data. Its only copy (sv.title, sv.sub,
+    sv.label) comes from the page's front matter.
 -#}
 {%- set svDir = (sv.dir if sv and sv.dir) or "/frames/desktop" %}
 {%- set svCount = (sv.count if sv and sv.count) or 145 %}

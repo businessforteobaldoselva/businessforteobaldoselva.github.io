@@ -39,17 +39,31 @@
           </figure>
           {%- endif %}
 
-          {%- if model.receipt %}
-          <aside class="receipt" aria-label="{{ model.receipt.ariaLabel }}">
-            <p class="r-brand">{{ model.receipt.brand }}<span class="brand-period">.</span></p>
-            <p class="r-meta">{{ model.receipt.meta }}</p>
-            {%- for row in model.receipt.rows %}
+          {#- Every part of the receipt is optional: it shows the parts that are
+              filled in, and with all of them empty it is not rendered at all. -#}
+          {%- set rc = model.receipt or {} %}
+          {%- set rcRows = rc.rows or [] %}
+          {%- if rc.brand or rc.meta or rcRows.length or rc.total.label or rc.total.value or rc.paid or rc.script %}
+          <aside class="receipt"{% if rc.ariaLabel %} aria-label="{{ rc.ariaLabel }}"{% endif %}>
+            {%- if rc.brand %}
+            <p class="r-brand">{{ rc.brand }}<span class="brand-period">.</span></p>
+            {%- endif %}
+            {%- if rc.meta %}
+            <p class="r-meta">{{ rc.meta }}</p>
+            {%- endif %}
+            {%- for row in rcRows %}
             <div class="r-row"><span>{{ row.label }}</span><span>{{ row.value }}</span></div>
             {%- endfor %}
-            <div class="r-row r-total"><span>{{ model.receipt.total.label }}</span><span>{{ model.receipt.total.value }}</span></div>
-            <p class="r-paid">{{ model.receipt.paid }}</p>
+            {%- if rc.total.label or rc.total.value %}
+            <div class="r-row r-total"><span>{{ rc.total.label }}</span><span>{{ rc.total.value }}</span></div>
+            {%- endif %}
+            {%- if rc.paid %}
+            <p class="r-paid">{{ rc.paid }}</p>
+            {%- endif %}
             <div class="r-code" aria-hidden="true"></div>
-            <p class="r-script">{{ model.receipt.script }}</p>
+            {%- if rc.script %}
+            <p class="r-script">{{ rc.script }}</p>
+            {%- endif %}
           </aside>
           {%- endif %}
         </div>

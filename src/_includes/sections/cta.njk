@@ -2,13 +2,19 @@
     <section{% if sectionData.ariaLabel %} aria-label="{{ sectionData.ariaLabel }}"{% endif %}>
       <div class="container">
         {#- Brand ident: the "covered." sting (Kling generation, local trial).
-            Plays once when it scrolls into view; click/tap replays. -#}
+            Plays once when it scrolls into view; click/tap replays.
+            The video file and its cover picture come from the cta entry in
+            homepage.json (sectionData.video); the picture also supplies the
+            width/height. No video, no ident block. -#}
+        {%- set identSrc = sectionData.video.src | storyVideo %}
+        {%- if identSrc %}
+        {%- set identPoster = sectionData.video.poster | imageInfo -%}
         <div class="ident-video reveal">
           <video id="identVideo"
-                 src="/videos/covered-ident.mp4"
-                 poster="/videos/covered-ident-poster.jpg"
+                 src="{{ identSrc }}"
+                 {% if identPoster.src %}poster="{{ identPoster.src }}"{% endif %}
                  muted playsinline preload="metadata"
-                 width="1280" height="764"
+                 {% if identPoster.width and identPoster.height %}width="{{ identPoster.width }}" height="{{ identPoster.height }}"{% endif %}
                  {% if sectionData.videoLabel %}aria-label="{{ sectionData.videoLabel }}"{% endif %}></video>
         </div>
         <script>
@@ -36,6 +42,7 @@
             });
           })();
         </script>
+        {%- endif %}
         <div class="cta-banner reveal">
           <h2>{{ site.ctaBannerTitle }}</h2>
           <p>{{ site.ctaBannerText }}</p>

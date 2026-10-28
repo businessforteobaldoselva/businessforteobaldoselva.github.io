@@ -14,7 +14,14 @@
                        wall-gradient edge column — seamless under the scrim
           data-focal   horizontal focal point of the cover-crop on narrow
                        screens (0.55 keeps the whole machine in the crop)
-          data-smooth  scrub easing per frame tick (0–1; higher = snappier) -#}
+          data-smooth  scrub easing per frame tick (0–1; higher = snappier)
+
+        Frame sequences stay in code on purpose (they are the only media paths
+        in this file): the scroll-scrub folders /frames/desktop and
+        /frames/mobile, their frame counts, the zero padding and the no-JS still
+        are an ffmpeg export that must match the files on disk exactly. An
+        editor cannot upload a frame sequence, and a wrong count or folder would
+        break the animation. All copy in this section comes from hero.json. -#}
     <section class="hero"{% if hero.sectionLabel %} aria-label="{{ hero.sectionLabel }}"{% endif %} data-hero-scrub
              data-dir="/frames/desktop" data-count="145" data-pad="4" data-ext="jpg"
              data-mdir="/frames/mobile" data-mcount="121"

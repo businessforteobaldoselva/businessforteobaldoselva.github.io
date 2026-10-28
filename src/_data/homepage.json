@@ -64,7 +64,11 @@
       "enabled": true,
       "ariaLabel": "Get in touch",
       "videoLabel": "COVERED brand animation: the word 'covered' turns bold letter by letter and a tampon drops in as the full stop",
-      "emailSubject": "COVERED — Hello"
+      "emailSubject": "COVERED — Hello",
+      "video": {
+        "src": "/videos/covered-ident.mp4",
+        "poster": "/videos/covered-ident-poster.jpg"
+      }
     }
   ]
 }
