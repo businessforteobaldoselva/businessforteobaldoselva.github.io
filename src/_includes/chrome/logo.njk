@@ -1,0 +1,8 @@
+{#- The COVERED logo link, used in the top bar and the homepage footer.
+    Needs logoHref ("#top" on the homepage, "/" on other pages); the
+    screen-reader label comes from src/_data/nav.json. The leaf-drop artwork
+    and the wordmark are fixed brand assets, not editable copy. -#}
+<a href="{{ logoHref }}" class="logo" aria-label="{{ nav.homeLabel }}">
+  <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#94AB8D" d="M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z"/><circle cx="15" cy="15" r="11" fill="#F0A35C"/></svg></span>
+  COVERED<span class="logo-dot">.</span>
+</a>

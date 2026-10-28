@@ -27,11 +27,150 @@ collections:
           - { label: "Meta description (search engines)", name: "metaDescription", widget: "text" }
           - { label: "Social share description", name: "ogDescription", widget: "text" }
           - { label: "Contact email", name: "contactEmail", widget: "string" }
-          - { label: "Footer tagline", name: "footerTagline", widget: "string" }
-          - { label: "Last updated date (shown in footer)", name: "lastUpdated", widget: "string" }
+          - { label: "Browser-tab title on other pages (About, Privacy…)", name: "subpageTitle", widget: "string", hint: "The title shown in the browser tab and in social shares for every page except the homepage. Write {title} where the page's own title should go, e.g. {title} — COVERED." }
+          - { label: "Social share picture", name: "shareImage", widget: "image", hint: "The picture that appears when the site is shared on WhatsApp, LinkedIn and similar apps, and the logo picture search engines use. Best size is 1200 × 630 pixels." }
+          - { label: "Updates feed name", name: "feedTitle", widget: "string", hint: "The name news-reader apps show for the site's updates feed. Not visible on the pages themselves." }
+          - { label: "Search-engine tagline", name: "schemaSlogan", widget: "string", hint: "A one-line slogan for COVERED that search engines and AI assistants read. Not visible on the pages themselves." }
+          - { label: "Search-engine description of COVERED", name: "schemaDescription", widget: "text", hint: "A short factual description of what COVERED is, read by search engines and AI assistants. Not visible on the pages themselves." }
+          - { label: "Search-engine location", name: "schemaPlace", widget: "string", hint: "Where COVERED was founded, e.g. Exeter, United Kingdom. Read by search engines and AI assistants; not visible on the pages themselves." }
           - { label: "Closing banner — heading", name: "ctaBannerTitle", widget: "string" }
           - { label: "Closing banner — text", name: "ctaBannerText", widget: "text" }
           - { label: "Closing banner — button label", name: "ctaBannerButton", widget: "string" }
+
+      - name: "nav"
+        label: "🧭 Navigation menu (top bar)"
+        file: "src/_data/nav.json"
+        fields:
+          - { label: "Skip link text", name: "skipLink", widget: "string", hint: "A hidden link that appears when someone presses Tab on any page. It lets keyboard and screen-reader users jump straight past the menu to the content." }
+          - { label: "Logo link — screen-reader label", name: "homeLabel", widget: "string", hint: "Read aloud by screen readers for the COVERED logo in the top bar and footer. Not visible on the page." }
+          - { label: "Mobile menu button — screen-reader label", name: "menuLabel", widget: "string", hint: "Read aloud for the three-line menu button on phones. Not visible on the page." }
+          - { label: "“Back” button text (About, Privacy and other pages)", name: "backLabel", widget: "string", hint: "The button at the right of the top bar on every page except the homepage. It links back to the homepage." }
+          - label: "Menu links"
+            name: "items"
+            widget: "list"
+            label_singular: "menu link"
+            collapsed: false
+            min: 1
+            max: 8
+            summary: "{{fields.label}}"
+            hint: "The links in the top bar of the homepage, left to right (on phones they appear in the menu that opens from the three-line button). Drag to reorder, add or delete links. Keep it to 8 or fewer so the bar fits. A link to a homepage section disappears by itself while that section is hidden in “Page layout”."
+            types:
+              - label: "⚓ Jump to a homepage section"
+                name: "section"
+                widget: "object"
+                summary: "{{fields.label}} — jumps to a section"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "The words shown in the top bar." }
+                  - label: "Which section"
+                    name: "section"
+                    widget: "select"
+                    options:
+                      - { label: "The problem", value: "problem" }
+                      - { label: "How it works", value: "how" }
+                      - { label: "For brands", value: "brands" }
+                      - { label: "Partner wall", value: "partners" }
+                      - { label: "For venues", value: "venues" }
+                      - { label: "Locations", value: "locations" }
+                      - { label: "FAQ", value: "faq" }
+                  - { label: "Show as a highlighted button", name: "button", widget: "boolean", default: false, required: false, hint: "Turns the link into the orange button, like “Advertise with us”." }
+              - label: "🔗 Link to a page or website"
+                name: "link"
+                widget: "object"
+                summary: "{{fields.label}} — {{fields.url}}"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "The words shown in the top bar." }
+                  - { label: "Address", name: "url", widget: "string", hint: "A page on this site such as /about/, a section of the homepage such as /#faq, or a full address starting with https://. Anything else is ignored for safety." }
+                  - { label: "Show as a highlighted button", name: "button", widget: "boolean", default: false, required: false, hint: "Turns the link into the orange button." }
+              - label: "✉️ Email us"
+                name: "email"
+                widget: "object"
+                summary: "{{fields.label}} — emails the contact address"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
+                  - { label: "Show as a highlighted button", name: "button", widget: "boolean", default: false, required: false }
+
+      - name: "footer"
+        label: "🦶 Footer (bottom of every page)"
+        file: "src/_data/footer.json"
+        fields:
+          - { label: "Tagline under the logo", name: "tagline", widget: "string", hint: "The short sentence under the COVERED logo in the footer of the homepage." }
+          - label: "Link columns"
+            name: "columns"
+            widget: "list"
+            label_singular: "column"
+            collapsed: true
+            max: 4
+            summary: "{{fields.heading}}"
+            hint: "The columns of links in the footer of the homepage (currently “Explore” and “Partner”). Drag to reorder, add or delete columns."
+            fields:
+              - { label: "Column heading", name: "heading", widget: "string", hint: "The small capitals heading above the links." }
+              - { label: "Screen-reader label", name: "ariaLabel", widget: "string", required: false, hint: "Read aloud by screen readers to describe this group of links, e.g. “Footer — explore”. Not visible. If left empty the column heading is used." }
+              - label: "Links"
+                name: "links"
+                widget: "list"
+                label_singular: "link"
+                collapsed: false
+                max: 12
+                summary: "{{fields.label}}"
+                hint: "A link to a homepage section disappears by itself while that section is hidden in “Page layout”."
+                types:
+                  - label: "⚓ Jump to a homepage section"
+                    name: "section"
+                    widget: "object"
+                    summary: "{{fields.label}} — jumps to a section"
+                    fields:
+                      - { label: "Link text", name: "label", widget: "string" }
+                      - label: "Which section"
+                        name: "section"
+                        widget: "select"
+                        options:
+                          - { label: "The problem", value: "problem" }
+                          - { label: "How it works", value: "how" }
+                          - { label: "For brands", value: "brands" }
+                          - { label: "Partner wall", value: "partners" }
+                          - { label: "For venues", value: "venues" }
+                          - { label: "Locations", value: "locations" }
+                          - { label: "FAQ", value: "faq" }
+                  - label: "🔗 Link to a page or website"
+                    name: "link"
+                    widget: "object"
+                    summary: "{{fields.label}} — {{fields.url}}"
+                    fields:
+                      - { label: "Link text", name: "label", widget: "string" }
+                      - { label: "Address", name: "url", widget: "string", hint: "A page on this site such as /privacy/, a section of the homepage such as /#faq, or a full address starting with https://. Anything else is ignored for safety." }
+                  - label: "✉️ Email us"
+                    name: "email"
+                    widget: "object"
+                    summary: "{{fields.label}} — emails the contact address"
+                    fields:
+                      - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
+          - { label: "Copyright line", name: "copyright", widget: "string", hint: "Bottom-left of the footer. Write {year} where the current year should appear — it updates itself every January. (Pages other than the homepage show the line without the year.)" }
+          - { label: "“Last updated” label", name: "updatedLabel", widget: "string", hint: "The words before the date in the footer, e.g. “Last updated:”." }
+          - { label: "Last updated date", name: "lastUpdated", widget: "string", required: false, hint: "Shown after the label in the footer of the homepage. Leave empty to hide the whole “Last updated” line." }
+          - { label: "Sign-off message", name: "signOff", widget: "string", required: false, hint: "The handwritten-style message at the bottom of the homepage footer." }
+          - { label: "Sign-off emoji", name: "signOffEmoji", widget: "string", required: false, hint: "A single emoji shown after the sign-off message. Decorative only." }
+          - label: "Short footer links (About, Privacy and other pages)"
+            name: "compactLinks"
+            widget: "list"
+            label_singular: "link"
+            collapsed: true
+            max: 6
+            summary: "{{fields.label}}"
+            hint: "Every page except the homepage has a slim footer: the copyright line plus these links, separated by dots."
+            types:
+              - label: "🔗 Link to a page or website"
+                name: "link"
+                widget: "object"
+                summary: "{{fields.label}} — {{fields.url}}"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string" }
+                  - { label: "Address", name: "url", widget: "string", hint: "A page on this site such as /privacy/, or a full address starting with https://. Anything else is ignored for safety." }
+              - label: "✉️ Email us"
+                name: "email"
+                widget: "object"
+                summary: "{{fields.label}} — emails the contact address"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
 
       - name: "homepage"
         label: "🧩 Page layout — order, add & hide sections"
@@ -594,6 +733,7 @@ collections:
               - { label: "Subtitle", name: "sub", widget: "text", required: false }
               - { label: "Button text", name: "ctaText", widget: "string", required: false }
               - { label: "Button link", name: "ctaLink", widget: "string", required: false, hint: "e.g. /#brands or /about/" }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "📝 Text section"
             name: "text"
             widget: "object"
@@ -601,6 +741,7 @@ collections:
               - { label: "Small label above heading", name: "kicker", widget: "string", required: false }
               - { label: "Heading", name: "heading", widget: "string", required: false }
               - { label: "Text", name: "body", widget: "markdown" }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "🖼️ Image + text"
             name: "imageText"
             widget: "object"
@@ -611,6 +752,7 @@ collections:
               - { label: "Heading", name: "heading", widget: "string", required: false }
               - { label: "Text", name: "body", widget: "markdown" }
               - { label: "Image on the right?", name: "imageRight", widget: "boolean", default: false }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "🔢 Number cards"
             name: "stats"
             widget: "object"
@@ -622,6 +764,7 @@ collections:
                 fields:
                   - { label: "Big number (e.g. 11% or 20+)", name: "number", widget: "string" }
                   - { label: "Label underneath", name: "label", widget: "string" }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "📣 Big orange banner"
             name: "banner"
             widget: "object"
@@ -630,6 +773,7 @@ collections:
               - { label: "Text", name: "text", widget: "text", required: false }
               - { label: "Button text", name: "buttonText", widget: "string", required: false }
               - { label: "Button link", name: "buttonLink", widget: "string", required: false }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "❓ Questions & answers"
             name: "faq"
             widget: "object"
@@ -641,6 +785,7 @@ collections:
                 fields:
                   - { label: "Question", name: "q", widget: "string" }
                   - { label: "Answer", name: "a", widget: "text" }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
 
   # ---------------------------------------------------------------
   # Direct channel to Claude: publishing an entry commits it to the

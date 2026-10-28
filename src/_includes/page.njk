@@ -1,19 +1,19 @@
-<!DOCTYPE html>
+{% set pageTitle = (site.subpageTitle or "{title}") | replace("{title}", title or "") %}{% set shareImg = site.shareImage | imageInfo %}{% set shareSrc = (shareImg.src if shareImg.src.charAt(0) == "/" else "/" + shareImg.src) if shareImg.src else "" %}<!DOCTYPE html>
 <html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{ title }} — COVERED</title>
+  <title>{{ pageTitle }}</title>
   {% if description %}<meta name="description" content="{{ description }}" />{% endif %}
-  <meta property="og:title" content="{{ title }} — COVERED" />
+  <meta property="og:title" content="{{ pageTitle }}" />
   {% if description %}<meta property="og:description" content="{{ description }}" />{% endif %}
-  <meta property="og:image" content="https://coveredaccess.com/images/covered-og.jpg" />
+  {% if shareSrc %}<meta property="og:image" content="https://coveredaccess.com{{ shareSrc }}" />{% endif %}
   <link rel="canonical" href="https://coveredaccess.com{{ page.url }}" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://coveredaccess.com{{ page.url }}" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="theme-color" content="{{ theme.paper2 | safeColor("#FFEFDA") }}" />
-  <link rel="alternate" type="application/atom+xml" title="COVERED updates" href="/feed.xml" />
+  <link rel="alternate" type="application/atom+xml" title="{{ site.feedTitle }}" href="/feed.xml" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%2394AB8D' d='M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z'/%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A35C'/%3E%3C/svg%3E" />
   <link rel="preload" href="/fonts/motor-regular.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/open-sauce-one-400.woff2" as="font" type="font/woff2" crossorigin />
@@ -21,19 +21,9 @@
 </head>
 <body>
 
-  <a class="skip-link" href="#top">Skip to content</a>
+  {% include "chrome/skip-link.njk" %}
 
-  <header>
-    <div class="container nav">
-      <a href="/" class="logo" aria-label="COVERED home">
-        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#94AB8D" d="M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z"/><circle cx="15" cy="15" r="11" fill="#F0A35C"/></svg></span>
-        COVERED<span class="logo-dot">.</span>
-      </a>
-      <ul class="nav-links nav-links--static">
-        <li><a href="/" class="btn btn-primary">Back to main site</a></li>
-      </ul>
-    </div>
-  </header>
+  {% include "chrome/nav.njk" %}
 
   <main id="top">
     {%- for block in sections %}
@@ -60,14 +50,7 @@
     {%- endfor %}
   </main>
 
-  <footer>
-    <div class="container">
-      <div class="foot-bottom" style="margin-top: 0; padding-top: 0; border-top: none;">
-        <span>© COVERED. All rights reserved.</span>
-        <span><a href="/privacy/" style="color: inherit;">Privacy</a> · <a href="/about/" style="color: inherit;">About</a> · <a href="/" style="color: inherit;">coveredaccess.com</a></span>
-      </div>
-    </div>
-  </footer>
+  {% include "chrome/footer.njk" %}
 
   <script>
     /* Brand period: colour the final full stop of display lines (see index). */
