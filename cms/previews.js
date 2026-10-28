@@ -87,6 +87,8 @@
   );
 
   // ---------- Problem ----------
+  // Older entries may lack the newer fields (manifesto photo, % unit, source label),
+  // so each one falls back to the text that used to be written into the page.
   CMS.registerPreviewTemplate(
     "problem",
     createClass({
@@ -94,6 +96,15 @@
         var e = this.props.entry;
         var stats = list(e, "stats");
         var photos = list(e, "photos");
+        var manifesto = g(e, ["manifesto"]);
+        var mSrc = g(e, ["manifestoPhoto", "src"], "/images/story-3-get.jpg");
+        var mAlt = g(
+          e,
+          ["manifestoPhoto", "alt"],
+          "A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall"
+        );
+        var sourceLabel = g(e, ["sourceLabel"], "Source:");
+        var sourceText = g(e, ["sourceText"]);
         return h(
           "section",
           {},
@@ -101,6 +112,14 @@
             "div",
             { className: "container" },
             sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"])),
+            manifesto
+              ? h(
+                  "div",
+                  { className: "manifesto-duo" },
+                  h("p", { className: "manifesto" }, String(manifesto).replace(/\*/g, "")),
+                  mSrc ? h("figure", { className: "manifesto-photo" }, h("img", { src: imgSrc(mSrc), alt: mAlt })) : null
+                )
+              : null,
             h(
               "div",
               { className: "stats-grid" },
@@ -108,19 +127,23 @@
                 return h(
                   "div",
                   { className: "stat-card", key: i },
-                  h("div", { className: "stat-num" }, h("span", {}, String(s.number)), "%"),
+                  h("div", { className: "stat-num" }, h("span", {}, String(s.number)), s.suffix === undefined || s.suffix === null ? "%" : s.suffix),
                   h("p", { className: "stat-label" }, s.label)
                 );
               })
             ),
-            h("p", { className: "stats-source" }, "Source: ", h("a", {}, g(e, ["sourceText"])), "."),
+            sourceText ? h("p", { className: "stats-source" }, sourceLabel ? sourceLabel + " " : "", h("a", {}, sourceText), ".") : null,
             h(
               "div",
               { className: "photo-strip" },
               photos.map(function (p, i) {
+                if (!p.src) return null;
+                var tilt = parseFloat(p.tilt);
+                if (isNaN(tilt)) tilt = 0;
+                tilt = Math.max(-10, Math.min(10, tilt));
                 return h(
                   "figure",
-                  { className: "polaroid", key: i, style: { "--tilt": p.tilt || "-2deg" } },
+                  { className: "polaroid", key: i, style: { "--tilt": tilt + "deg" } },
                   h("img", { src: imgSrc(p.src), alt: p.alt || "" }),
                   h("figcaption", {}, p.caption)
                 );
@@ -139,6 +162,34 @@
       render: function () {
         var e = this.props.entry;
         var steps = list(e, "steps");
+        var arrow = g(e, ["loopArrow"], "→");
+        var beltNode = e.getIn(["data", "belt", "words"]);
+        var beltWords = beltNode && beltNode.toJS ? beltNode.toJS() : ["4-PACK", "FREE", "4-PACK", "COVERED"];
+        var repeats = parseInt(g(e, ["belt", "repeats"], 4), 10);
+        if (isNaN(repeats) || repeats < 1) repeats = 1;
+        if (repeats > 12) repeats = 12;
+        var packs = [];
+        for (var r = 0; r < repeats; r++) {
+          beltWords.forEach(function (w, i) {
+            packs.push(h("span", { className: "belt-pack", key: r + "-" + i }, w));
+          });
+        }
+        var poster = g(e, ["video", "poster"], "/images/pack-in-tray-poster.jpg");
+        var videoSrc = g(e, ["video", "src"], "/images/pack-in-tray.mp4");
+        var videoLabel = g(
+          e,
+          ["video", "label"],
+          "Concept film: the camera glides toward a COVERED dispenser and a wrapped pack waiting in its tray"
+        );
+        var rowsNode = e.getIn(["data", "receipt", "rows"]);
+        var rows =
+          rowsNode && rowsNode.toJS
+            ? rowsNode.toJS()
+            : [
+                { label: "Pads (plastic-free)", value: "£0.00" },
+                { label: "Tampons (organic)", value: "£0.00" },
+                { label: "Judgement", value: "None" },
+              ];
         var kids = [];
         steps.forEach(function (s, i) {
           kids.push(
@@ -151,7 +202,7 @@
             )
           );
           if (i < steps.length - 1) {
-            kids.push(h("div", { className: "loop-arrow", key: "a" + i }, "→"));
+            kids.push(h("div", { className: "loop-arrow", key: "a" + i }, arrow));
           }
         });
         return h(
@@ -161,7 +212,37 @@
             "div",
             { className: "container" },
             sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
-            h("div", { className: "loop" }, kids)
+            h("div", { className: "loop" }, kids),
+            packs.length ? h("div", { className: "conveyor" }, h("div", { className: "belt-track" }, packs)) : null,
+            h(
+              "div",
+              { className: "model-visual" },
+              videoSrc
+                ? h(
+                    "figure",
+                    { className: "model-photo" },
+                    h("video", { className: "model-video", poster: imgSrc(poster), "aria-label": videoLabel, muted: true, controls: true, preload: "none" })
+                  )
+                : null,
+              h(
+                "aside",
+                { className: "receipt" },
+                h("p", { className: "r-brand" }, g(e, ["receipt", "brand"], "COVERED"), h("span", { className: "brand-period" }, ".")),
+                h("p", { className: "r-meta" }, g(e, ["receipt", "meta"], "Dispenser Nº 001 — Exeter")),
+                rows.map(function (row, i) {
+                  return h("div", { className: "r-row", key: "r" + i }, h("span", {}, row.label), h("span", {}, row.value));
+                }),
+                h(
+                  "div",
+                  { className: "r-row r-total" },
+                  h("span", {}, g(e, ["receipt", "total", "label"], "Total due")),
+                  h("span", {}, g(e, ["receipt", "total", "value"], "£0.00"))
+                ),
+                h("p", { className: "r-paid" }, g(e, ["receipt", "paid"], "Paid in full by brands that get it")),
+                h("div", { className: "r-code" }),
+                h("p", { className: "r-script" }, g(e, ["receipt", "script"], "We got you covered. Period."))
+              )
+            )
           )
         );
       },
