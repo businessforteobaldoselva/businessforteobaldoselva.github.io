@@ -15,7 +15,7 @@
           data-focal   horizontal focal point of the cover-crop on narrow
                        screens (0.55 keeps the whole machine in the crop)
           data-smooth  scrub easing per frame tick (0–1; higher = snappier) -#}
-    <section class="hero" aria-label="Introduction" data-hero-scrub
+    <section class="hero"{% if hero.sectionLabel %} aria-label="{{ hero.sectionLabel }}"{% endif %} data-hero-scrub
              data-dir="/frames/desktop" data-count="145" data-pad="4" data-ext="jpg"
              data-mdir="/frames/mobile" data-mcount="121"
              data-scroll="1" data-shift="0.18" data-focal="0.55" data-smooth="0.11"
