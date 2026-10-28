@@ -1,5 +1,7 @@
 const markdownIt = require("markdown-it");
 const htmlmin = require("html-minifier-terser");
+const fs = require("fs");
+const path = require("path");
 
 module.exports = function (eleventyConfig) {
   const md = markdownIt({ html: false, linkify: true });
@@ -119,6 +121,17 @@ module.exports = function (eleventyConfig) {
   // GitHub Pages (root) and Netlify (_site).
   eleventyConfig.addPassthroughCopy("frames");
   eleventyConfig.addPassthroughCopy("videos");
+
+  // Local plugins: every file in lib/eleventy/ is loaded as an Eleventy plugin
+  // (module.exports = function (eleventyConfig) { ... }), so a feature can add
+  // its own filters without touching this file.
+  const pluginDir = path.join(__dirname, "lib", "eleventy");
+  if (fs.existsSync(pluginDir)) {
+    fs.readdirSync(pluginDir)
+      .filter((f) => f.endsWith(".js"))
+      .sort()
+      .forEach((f) => eleventyConfig.addPlugin(require(path.join(pluginDir, f))));
+  }
 
   return {
     dir: {

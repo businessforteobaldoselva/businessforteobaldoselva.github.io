@@ -1,0 +1,20 @@
+      /* ---------- Scrollspy ---------- */
+      var spyLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]:not(.btn)'));
+      if ("IntersectionObserver" in window && spyLinks.length) {
+        var spyMap = {};
+        spyLinks.forEach(function (a) { spyMap[a.getAttribute("href").slice(1)] = a; });
+        var spy = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting && spyMap[en.target.id]) {
+              spyLinks.forEach(function (a) { a.classList.remove("active"); a.removeAttribute("aria-current"); });
+              spyMap[en.target.id].classList.add("active");
+              spyMap[en.target.id].setAttribute("aria-current", "true");
+            }
+          });
+        }, { rootMargin: "-40% 0px -55% 0px" });
+        Object.keys(spyMap).forEach(function (id) {
+          var sec = document.getElementById(id);
+          if (sec) { spy.observe(sec); }
+        });
+      }
+

@@ -1,0 +1,131 @@
+      /* ---------- Interactive demo ---------- */
+      var phoneScreen = document.getElementById("phoneScreen");
+      var machineScreen = document.getElementById("machineScreen");
+      var machineStamp = document.getElementById("machineStamp");
+      var machineStage = document.getElementById("machineStage");
+      var pack = document.getElementById("pack");
+      var chips = document.querySelectorAll("#stepper .step-chip");
+      /* Theme-driven confetti (accent, grass, lavender, ink) — each value is
+         validated by safeColor, so only a hex colour can reach this script. */
+      var confettiColors = [
+        {{ theme.accent | safeColor("#FC7130") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.grass | safeColor("#6E8B2E") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.lavender | safeColor("#E2F099") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.ink | safeColor("#2F4D19") | dump | replace("<", "\\u003c") | safe }}
+      ];
+
+      function setStep(n) {
+        chips.forEach(function (chip) {
+          var s = parseInt(chip.getAttribute("data-step"), 10);
+          var active = s === n;
+          var done = s < n;
+          chip.classList.toggle("active", active);
+          chip.classList.toggle("done", done);
+          if (active) { chip.setAttribute("aria-current", "step"); } else { chip.removeAttribute("aria-current"); }
+          var marker = chip.querySelector(".sr-state");
+          if (!marker) {
+            marker = document.createElement("span");
+            marker.className = "visually-hidden sr-state";
+            chip.appendChild(marker);
+          }
+          marker.textContent = done ? " (completed)" : "";
+        });
+      }
+
+      function machineShowQR() {
+        machineScreen.innerHTML = '<div class="qr" aria-hidden="true"></div>';
+      }
+      function machineShowAd() {
+        machineScreen.innerHTML =
+          '<div class="ad-live"><small>Sponsored</small><strong>Your brand, here 👋</strong></div>';
+      }
+
+      function confettiBurst() {
+        if (reduced || M.confetti === false) return;
+        // A rain of tiny wrapped packs — the product itself, celebrating.
+        var bands = [confettiColors[0], "#E999A5", confettiColors[1]];
+        for (var i = 0; i < 22; i++) {
+          var bit = document.createElement("span");
+          bit.className = "confetti-bit confetti-pack";
+          bit.style.left = (30 + Math.random() * 40) + "%";
+          bit.style.setProperty("--confetti-band", bands[i % bands.length]);
+          bit.style.animationDelay = (Math.random() * 0.25) + "s";
+          machineStage.appendChild(bit);
+          (function (b) {
+            setTimeout(function () { b.remove(); }, 1800);
+          })(bit);
+        }
+      }
+
+      function renderScan(fromReset) {
+        setStep(0);
+        machineShowQR();
+        machineStamp.classList.remove("show");
+        pack.classList.remove("drop");
+        phoneScreen.innerHTML =
+          '<h3>Need a pad or tampon?</h3>' +
+          '<p>Scan the QR code on the machine to get started — it\'s free.</p>' +
+          '<button class="btn btn-primary" id="btnScan">Simulate scan</button>';
+        var btn = document.getElementById("btnScan");
+        btn.addEventListener("click", renderVerify);
+        if (fromReset === true) { btn.focus(); }
+      }
+
+      function renderVerify() {
+        setStep(1);
+        phoneScreen.innerHTML =
+          '<h3>Quick check-in</h3>' +
+          '<p>A phone number or email keeps things fair — never spam.</p>' +
+          '<input class="p-input" type="text" value="you@example.com" readonly tabindex="-1" aria-label="Example email address" />' +
+          '<button class="btn btn-primary" id="btnVerify">Check in →</button>';
+        var btn = document.getElementById("btnVerify");
+        btn.addEventListener("click", renderAd);
+        btn.focus();
+      }
+
+      function renderAd() {
+        setStep(2);
+        machineShowAd();
+        phoneScreen.innerHTML =
+          '<h3>A word from our sponsor</h3>' +
+          '<div class="ad-box"><small>Sponsored</small><strong>Your brand, here 👋</strong></div>' +
+          '<div class="ad-progress" aria-hidden="true"><div class="bar" id="adBar"></div></div>' +
+          '<p>This short moment pays for the product. Nice one, sponsors.</p>';
+        phoneScreen.focus({ preventScroll: true });
+        var bar = document.getElementById("adBar");
+        var advanced = false;
+        function advance() {
+          if (advanced) { return; }
+          advanced = true;
+          renderDone();
+        }
+        if (reduced) {
+          bar.style.width = "100%";
+          setTimeout(advance, 500);
+        } else {
+          // force reflow so the animation always restarts cleanly
+          void bar.offsetWidth;
+          bar.classList.add("run");
+          bar.addEventListener("animationend", advance, { once: true });
+          // fallback: browsers throttle animations in background tabs
+          setTimeout(advance, 3400);
+        }
+      }
+
+      function renderDone() {
+        setStep(3);
+        pack.classList.add("drop");
+        machineStamp.classList.add("show");
+        confettiBurst();
+        phoneScreen.innerHTML =
+          '<span class="stamp p-stamp">Covered.</span>' +
+          '<h3>You\'re all set</h3>' +
+          '<p>Grab your pack from the tray below. That\'s it — no cost, no card, no catch.</p>' +
+          '<button class="btn btn-outline" id="btnReset">Run the demo again</button>';
+        var btn = document.getElementById("btnReset");
+        btn.addEventListener("click", function () { renderScan(true); });
+        btn.focus({ preventScroll: true });
+      }
+
+      if (phoneScreen && machineScreen && machineStamp && machineStage && pack) { renderScan(false); }
+

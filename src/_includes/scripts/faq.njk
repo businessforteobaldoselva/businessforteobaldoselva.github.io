@@ -1,0 +1,43 @@
+      /* ---------- FAQ accordion ---------- */
+      /* Scoped to the built-in #faq section only: editor-added faqBlock
+         sections reuse .faq-item markup but are static, always-open lists —
+         binding them here would hide their answers behind a non-button div. */
+      var faqItems = document.querySelectorAll("#faq .faq-item");
+      function closeFaq(item) {
+        var btn = item.querySelector(".faq-q");
+        var panel = item.querySelector(".faq-a");
+        if (!btn || !panel) { return; }
+        item.classList.remove("open");
+        btn.setAttribute("aria-expanded", "false");
+        panel.style.maxHeight = null;
+        clearTimeout(panel._hideTimer);
+        panel._hideTimer = setTimeout(function () { panel.hidden = true; }, 320);
+      }
+      faqItems.forEach(function (item, idx) {
+        var btn = item.querySelector(".faq-q");
+        var panel = item.querySelector(".faq-a");
+        if (!btn || !panel) { return; }
+        panel.id = "faq-panel-" + (idx + 1);
+        btn.setAttribute("aria-controls", panel.id);
+        panel.hidden = true;
+        btn.addEventListener("click", function () {
+          var isOpen = item.classList.contains("open");
+          faqItems.forEach(function (other) {
+            if (other.classList.contains("open")) { closeFaq(other); }
+          });
+          if (!isOpen) {
+            clearTimeout(panel._hideTimer);
+            panel.hidden = false;
+            void panel.offsetHeight;
+            item.classList.add("open");
+            btn.setAttribute("aria-expanded", "true");
+            panel.style.maxHeight = panel.scrollHeight + "px";
+          }
+          setTimeout(updateProgress, 350);
+        });
+      });
+      window.addEventListener("resize", function () {
+        var openPanel = document.querySelector("#faq .faq-item.open .faq-a");
+        if (openPanel) { openPanel.style.maxHeight = openPanel.scrollHeight + "px"; }
+      });
+

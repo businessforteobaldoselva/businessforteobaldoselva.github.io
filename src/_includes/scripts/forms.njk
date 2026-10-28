@@ -1,0 +1,82 @@
+      /* ---------- Forms → mailto ---------- */
+      var CONTACT = {{ site.contactEmail | dump | replace("<", "\\u003c") | safe }};
+
+      function buildMailto(subject, lines) {
+        return "mailto:" + CONTACT +
+          "?subject=" + encodeURIComponent(subject) +
+          "&body=" + encodeURIComponent(lines.join("\n"));
+      }
+
+      function hookForm(id, subjectPrefix, fieldsFn) {
+        var form = document.getElementById(id);
+        if (!form) { return; }
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          var data = new FormData(form);
+          var get = function (k) { return (data.get(k) || "").toString().trim(); };
+          var btn = form.querySelector('button[type="submit"]');
+          var label = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = "Sending…";
+          fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(data).toString(),
+          })
+            .then(function (r) {
+              if (!r.ok) { throw new Error("HTTP " + r.status); }
+              var note = document.createElement("p");
+              note.className = "form-success";
+              note.setAttribute("role", "status");
+              note.textContent = "Sent — thank you! We'll get back to you within a couple of days.";
+              form.replaceWith(note);
+            })
+            .catch(function () {
+              btn.disabled = false;
+              btn.textContent = label;
+              window.location.href = buildMailto(subjectPrefix, fieldsFn(get));
+            });
+        });
+      }
+
+      hookForm("brandForm", "COVERED — Advertising enquiry", function (get) {
+        return [
+          "Hi COVERED team,",
+          "",
+          "Please could you send over the media kit? We're interested in advertising on your dispensers.",
+          "",
+          "Name: " + get("name"),
+          "Company: " + get("company"),
+          "Email: " + get("email"),
+          "Indicative monthly budget: " + (get("budget") || "Not specified"),
+          "Preferred campaign timing: " + (get("timing") || "Not specified"),
+          "",
+          "Goals:",
+          get("message") || "-",
+          "",
+          "Thanks!"
+        ];
+      });
+
+      hookForm("venueForm", "COVERED — Venue hosting enquiry", function (get) {
+        return [
+          "Hi COVERED team,",
+          "",
+          "We're interested in hosting a dispenser.",
+          "",
+          "Name: " + get("name"),
+          "Venue: " + get("venue"),
+          "Email: " + get("email"),
+          "Venue type: " + get("type"),
+          "",
+          "Notes:",
+          get("message") || "-",
+          "",
+          "Thanks!"
+        ];
+      });
+

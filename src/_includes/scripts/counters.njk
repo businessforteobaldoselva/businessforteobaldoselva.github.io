@@ -1,0 +1,33 @@
+      /* ---------- Animated counters ---------- */
+      function animateCount(el) {
+        var target = parseInt(el.getAttribute("data-target"), 10);
+        if (reduced) { el.textContent = target; return; }
+        var start = null;
+        var dur = 1300;
+        function tick(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / dur, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(eased * target);
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+      var counters = document.querySelectorAll(".count");
+      if (M.counters === false) {
+        /* counters off in the CMS: show the final numbers immediately */
+        counters.forEach(function (el) { el.textContent = el.getAttribute("data-target"); });
+      } else if ("IntersectionObserver" in window) {
+        var co = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              animateCount(entry.target);
+              co.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.6 });
+        counters.forEach(function (el) { co.observe(el); });
+      } else {
+        counters.forEach(function (el) { el.textContent = el.getAttribute("data-target"); });
+      }
+
