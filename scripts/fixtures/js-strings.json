@@ -1,0 +1,86 @@
+{
+  "_comment": "Cases for the inline-script string detector (scripts/lib/jsscan.js). 'flag' texts must be reported as human-readable copy, 'ignore' texts must not. Sentences deliberately contain { } ; = < > and backticks: the detector judges what a string says, never which characters it contains.",
+  "cases": [
+    {
+      "name": "sentence with braces, semicolon, equals and angle brackets",
+      "code": "el.textContent = \"Done; {all} good = true > 0 or not\";",
+      "flag": ["Done; {all} good = true > 0 or not"]
+    },
+    {
+      "name": "template literal with backticks and an expression",
+      "code": "el.textContent = `Thanks, ${name}! We will be in touch.`;",
+      "flag": ["Thanks,", "! We will be in touch."]
+    },
+    {
+      "name": "HTML held in a string: text and readable attributes",
+      "code": "box.innerHTML = '<p class=\"a\">Hello there <b>friend</b></p><button aria-label=\"Close menu\" title=\"Close\">x</button>';",
+      "flag": ["Hello there", "friend", "Close menu", "Close", "x"],
+      "ignore": ["a"]
+    },
+    {
+      "name": "concatenated message",
+      "code": "msg = \"Hello \" + name + \", welcome back!\";",
+      "flag": ["Hello", ", welcome back!"]
+    },
+    {
+      "name": "joiner word between items",
+      "code": "label = items.join(\" and \");",
+      "flag": ["and"]
+    },
+    {
+      "name": "ternary message",
+      "code": "el.textContent = ok ? \"All sent, thank you!\" : \"Something went wrong.\";",
+      "flag": ["All sent, thank you!", "Something went wrong."]
+    },
+    {
+      "name": "ellipsis and accents",
+      "code": "a.textContent = \"Sending…\"; b.textContent = \"Café ☕\";",
+      "flag": ["Sending…", "Café ☕"]
+    },
+    {
+      "name": "lone symbol",
+      "code": "btn.textContent = \"▶\";",
+      "flag": ["▶"]
+    },
+    {
+      "name": "escaped quotes and unicode escapes",
+      "code": "el.textContent = \"She said \\\"hi\\\" \\u2014 bye now\";",
+      "flag": ["She said \"hi\" — bye now"]
+    },
+    {
+      "name": "second argument of setAttribute is copy, the first is not",
+      "code": "el.setAttribute(\"aria-label\", \"Open the menu\");",
+      "flag": ["Open the menu"],
+      "ignore": ["aria-label"]
+    },
+    {
+      "name": "object values: copy is flagged, API vocabulary is not",
+      "code": "var COPY = { title: \"Hello there friend\", method: \"POST\", type: \"button\", mode: \"cors\" };",
+      "flag": ["Hello there friend"],
+      "ignore": ["POST", "button", "cors", "title"]
+    },
+    {
+      "name": "selectors, classes, events, media queries, css values and directives are code",
+      "code": "\"use strict\"; document.querySelector(\".hero h1\"); el.classList.add(\"is-open\", \"btn btn-primary\"); window.matchMedia(\"(prefers-reduced-motion: reduce)\"); el.addEventListener(\"click\", f); el.style.transition = \"opacity 1s ease\"; el.className = \"visually-hidden sr-state\"; if (typeof x === \"undefined\") {} if (node.tagName === \"BR\") {} if (\"IntersectionObserver\" in window) {}",
+      "flag": [],
+      "ignore": ["use strict", ".hero h1", "is-open", "btn btn-primary", "(prefers-reduced-motion: reduce)", "click", "opacity 1s ease", "visually-hidden sr-state", "undefined", "BR", "IntersectionObserver"]
+    },
+    {
+      "name": "network and developer-facing strings are not site copy",
+      "code": "fetch(\"/\", { method: \"POST\", headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" } }); throw new Error(\"HTTP \" + r.status); console.log(\"debug message here\"); new URL(\"/path\", base);",
+      "flag": [],
+      "ignore": ["POST", "Content-Type", "application/x-www-form-urlencoded", "HTTP", "debug message here", "/path"]
+    },
+    {
+      "name": "urls, numbers, colours, dates, file names",
+      "code": "a = \"https://example.com/x\"; b = \"12px\"; c = \"#ffcc00\"; d = \"2026-06-28\"; e = \"hero-poster.jpg\"; f = \"en-GB\"; g = \"mailto:\"; var re = /a b c/;",
+      "flag": [],
+      "ignore": ["https://example.com/x", "12px", "#ffcc00", "2026-06-28", "hero-poster.jpg", "en-GB", "mailto:"]
+    },
+    {
+      "name": "code that looks like a sentence is still reported (move it or allow-list it with a reason)",
+      "code": "el.textContent = \"if (a < b && c > d) { go(); } else { stop = 1; }\";",
+      "flag": ["if (a < b && c > d) { go(); } else { stop = 1; }"]
+    }
+  ]
+}

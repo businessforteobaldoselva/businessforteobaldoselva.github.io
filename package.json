@@ -5,12 +5,23 @@
   "scripts": {
     "build": "eleventy",
     "serve": "eleventy --serve",
-    "cms-local": "decap-server"
+    "cms-local": "decap-server",
+    "check:cms": "node scripts/check-cms.js",
+    "check:previews": "node scripts/check-previews.js",
+    "check:copy": "node scripts/check-copy.js",
+    "check:wiring": "node scripts/check-wiring.js",
+    "check:hostile": "node scripts/check-hostile.js",
+    "check:selftest": "node scripts/selftest.js",
+    "check": "npm run build && npm run check:cms && npm run check:previews && npm run check:copy && npm run check:wiring && npm run check:hostile"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0",
+    "acorn": "8.17.0",
     "decap-server": "^3.0.0",
     "html-minifier-terser": "^7.2.0",
-    "image-size": "^1.2.1"
+    "htmlparser2": "7.2.0",
+    "image-size": "^1.2.1",
+    "js-yaml": "4.3.0",
+    "markdown-it": "14.3.0"
   }
 }

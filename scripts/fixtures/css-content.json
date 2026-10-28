@@ -1,0 +1,13 @@
+{
+  "_comment": "Cases for the stylesheet text extractor (scripts/lib/css.js): the words a stylesheet prints with content: on ::before / ::after.",
+  "cases": [
+    { "name": "plain string", "css": ".a::before { content: \"COVERED.\"; color: red; }", "expect": ["COVERED."] },
+    { "name": "hex escape", "css": ".b::after { content: \"\\2192\"; margin-left: 1px }", "expect": ["→"] },
+    { "name": "empty string and attr() carry no words", "css": ".c::before { content: \"\"; } .d::after { content: attr(data-label); }", "expect": [] },
+    { "name": "strings next to attr()", "css": ".e::after { content: attr(data-x) \" — new\" }", "expect": [" — new"] },
+    { "name": "single quotes with an escaped quote", "css": ".f::before { CONTENT : 'it\\'s here' }", "expect": ["it's here"] },
+    { "name": "comments are ignored", "css": "/* content: \"hidden comment\" */ .g { color: blue }", "expect": [] },
+    { "name": "inside a media query", "css": "@media (min-width: 600px) { .h::before { content: \"Wide screens only\"; } }", "expect": ["Wide screens only"] },
+    { "name": "other properties containing the word content are not text", "css": ".i { justify-content: center; align-content: flex-start; will-change: contents; }", "expect": [] }
+  ]
+}
