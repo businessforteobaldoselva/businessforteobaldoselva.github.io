@@ -718,32 +718,89 @@ collections:
         label: "📣 For Brands section"
         file: "src/_data/brands.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the For Brands section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the For Brands section. Type <br /> where you want a line break." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the heading." }
           - label: "Header photo"
             name: "headerPhoto"
             widget: "object"
+            hint: "The polaroid card to the right of the heading."
             fields:
-              - { label: "Image path", name: "src", widget: "hidden" }
-              - { label: "Width", name: "width", widget: "hidden" }
-              - { label: "Height", name: "height", widget: "hidden" }
-              - { label: "Alt text (accessibility)", name: "alt", widget: "text" }
-              - { label: "Caption", name: "caption", widget: "string" }
+              - { label: "Photo", name: "src", widget: "image", hint: "The photo on the card. It is shown when there is no video below." }
+              - { label: "Looping video (optional)", name: "video", widget: "file", required: false, hint: "A short silent clip that plays on the card instead of the photo. Leave empty to show the photo." }
+              - { label: "Video cover picture", name: "poster", widget: "image", required: false, hint: "The still picture shown before the video plays. Only used with a video." }
+              - { label: "Alt text (accessibility)", name: "alt", widget: "text", hint: "Read aloud by screen readers; describe what the photo or video shows." }
+              - { label: "Caption", name: "caption", widget: "string", hint: "The handwritten caption under the card." }
           - label: "Benefits"
             name: "benefits"
+            label_singular: "benefit"
             widget: "list"
+            summary: "{{fields.icon}} {{fields.title}}"
+            hint: "The grid of benefit cards. Drag to reorder."
             fields:
-              - { label: "Icon (emoji)", name: "icon", widget: "string" }
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Description", name: "desc", widget: "text" }
+              - { label: "Icon (emoji)", name: "icon", widget: "string", hint: "A single emoji shown at the top of the card." }
+              - { label: "Title", name: "title", widget: "string", hint: "The bold benefit name." }
+              - { label: "Description", name: "desc", widget: "text", hint: "The sentence under the title." }
           - label: "Chips"
             name: "chips"
+            label_singular: "chip"
             widget: "list"
+            hint: "The row of small pills under the benefit cards."
             field: { label: "Chip text", name: "chip", widget: "string" }
-          - { label: "Form heading", name: "formHeading", widget: "string" }
-          - { label: "Form button label", name: "formButton", widget: "string" }
-          - { label: "Form hint text", name: "formHint", widget: "string" }
+          - label: "Enquiry form"
+            name: "form"
+            widget: "object"
+            hint: "The advertiser enquiry form at the bottom of the For Brands section. Every submission is stored by Netlify Forms and e-mailed to the team."
+            fields:
+              - { label: "Form heading", name: "heading", widget: "string", hint: "The heading above the form card." }
+              - label: "Form fields"
+                name: "fields"
+                label_singular: "field"
+                widget: "list"
+                collapsed: true
+                min: 1
+                max: 15
+                summary: "{{fields.label}} ({{fields.type}})"
+                hint: "The questions visitors fill in, in the order shown. Drag to reorder, add new ones with the + button, or delete ones you do not need. Keep at least one Email box so the team can reply."
+                fields:
+                  - { label: "Internal field id (do not edit)", name: "id", widget: "hidden", required: false }
+                  - { label: "Internal field name (do not edit)", name: "name", widget: "hidden", required: false }
+                  - { label: "Label", name: "label", widget: "string", hint: "The question shown above the box, e.g. Your name." }
+                  - { label: "Answer type", name: "type", widget: "select", default: "text", options: [{ label: "Short text", value: "text" }, { label: "Email address", value: "email" }, { label: "Phone number", value: "tel" }, { label: "Long text (several lines)", value: "textarea" }, { label: "Dropdown list", value: "select" }], hint: "What kind of box this is. Email boxes check the address; dropdowns need choices below." }
+                  - { label: "Required?", name: "required", widget: "boolean", default: false, hint: "When on, the form cannot be sent without an answer and the label shows a star." }
+                  - { label: "Box width", name: "width", widget: "select", required: false, options: [{ label: "Half width (two boxes per row)", value: "half" }, { label: "Full width", value: "full" }], hint: "Leave empty for automatic: long-text boxes are full width, everything else half width." }
+                  - { label: "Placeholder", name: "placeholder", widget: "string", required: false, hint: "Grey example text shown inside an empty box, e.g. you@company.com. Not used for dropdowns." }
+                  - { label: "Helper text under the box", name: "hint", widget: "string", required: false, hint: "Optional small print shown under this box. Leave empty for none." }
+                  - { label: "Browser autofill hint", name: "autocomplete", widget: "string", required: false, pattern: ["^[a-z0-9 -]*$", "Lowercase letters, numbers, spaces and dashes only, e.g. name, email, organization, tel."], hint: "Lets browsers fill the box automatically, e.g. name, email, organization, tel. Leave empty for none." }
+                  - { label: "Dropdown: first choice meaning no answer", name: "emptyOption", widget: "string", required: false, hint: "Dropdowns only: an optional first choice that sends nothing, e.g. Prefer not to say. Leave empty for none." }
+                  - label: "Dropdown choices"
+                    name: "options"
+                    label_singular: "choice"
+                    widget: "list"
+                    required: false
+                    hint: "Dropdowns only: the choices visitors can pick from, in order."
+                    field: { label: "Choice", name: "choice", widget: "string" }
+                  - label: "In the fallback e-mail"
+                    name: "mail"
+                    widget: "object"
+                    required: false
+                    hint: "Used only when sending fails and the visitor's own e-mail app opens instead. Leave both empty to use the label above and an empty answer."
+                    fields:
+                      - { label: "Label in the e-mail", name: "label", widget: "string", required: false, hint: "How this answer is named in the e-mail body. Leave empty to use the label above." }
+                      - { label: "Text if left empty", name: "ifEmpty", widget: "string", required: false, hint: "Written in the e-mail when the visitor skipped this box, e.g. Not specified." }
+              - { label: "Submit button label", name: "button", widget: "string", hint: "The text on the button that sends the form." }
+              - { label: "Text next to the button", name: "hint", widget: "string", required: false, hint: "The small reassurance line beside the button. Leave empty for none." }
+              - { label: "Button text while sending", name: "sending", widget: "string", hint: "Shown on the button for a moment after it is pressed, e.g. Sending…" }
+              - { label: "Success message", name: "success", widget: "text", hint: "Replaces the form once it has been sent successfully." }
+              - label: "Fallback e-mail (opens if sending fails)"
+                name: "mailto"
+                widget: "object"
+                hint: "If the form cannot be sent, the visitor's own e-mail app opens with a ready-written message to the team. Each box above is added to it as a Label: answer line."
+                fields:
+                  - { label: "E-mail subject", name: "subject", widget: "string", hint: "The subject line of the fallback e-mail." }
+                  - { label: "Greeting", name: "greeting", widget: "string", required: false, hint: "First line of the e-mail, e.g. Hi COVERED team," }
+                  - { label: "Opening sentence", name: "intro", widget: "text", required: false, hint: "The sentence before the answers. Leave empty for none." }
+                  - { label: "Sign-off", name: "signoff", widget: "string", required: false, hint: "Last line of the e-mail, e.g. Thanks!" }
 
       - name: "partners"
         label: "🤝 Partners wall"
@@ -765,21 +822,102 @@ collections:
         label: "🏟️ For Venues section"
         file: "src/_data/venues.json"
         fields:
-          - { label: "Pilot ribbon text", name: "ribbon", widget: "string" }
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
-          - label: "We handle (list)"
+          - { label: "Pilot ribbon text", name: "ribbon", widget: "string", hint: "The ribbon above the heading of the For Venues section." }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the For Venues section. Type <br /> where you want a line break." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the heading." }
+          - label: "Left card: what we handle"
             name: "weHandle"
-            widget: "list"
-            field: { label: "Item", name: "item", widget: "string" }
-          - label: "You provide (list)"
+            widget: "object"
+            hint: "The first of the two list cards."
+            fields:
+              - { label: "Icon (emoji)", name: "icon", widget: "string", hint: "A single emoji shown before the card title." }
+              - { label: "Card title", name: "title", widget: "string", hint: "The heading of the card, e.g. We handle." }
+              - label: "List items"
+                name: "items"
+                label_singular: "item"
+                widget: "list"
+                hint: "One bullet per item. Drag to reorder."
+                field: { label: "Item", name: "item", widget: "string" }
+          - label: "Right card: what the venue provides"
             name: "youProvide"
+            widget: "object"
+            hint: "The second of the two list cards."
+            fields:
+              - { label: "Icon (emoji)", name: "icon", widget: "string", hint: "A single emoji shown before the card title." }
+              - { label: "Card title", name: "title", widget: "string", hint: "The heading of the card, e.g. You provide." }
+              - label: "List items"
+                name: "items"
+                label_singular: "item"
+                widget: "list"
+                hint: "One bullet per item. Drag to reorder."
+                field: { label: "Item", name: "item", widget: "string" }
+          - label: "Photos"
+            name: "photos"
+            label_singular: "photo"
             widget: "list"
-            field: { label: "Item", name: "item", widget: "string" }
-          - { label: "Form heading", name: "formHeading", widget: "string" }
-          - { label: "Form button label", name: "formButton", widget: "string" }
-          - { label: "Form hint text", name: "formHint", widget: "string" }
+            required: false
+            summary: "{{fields.caption}}"
+            hint: "The strip of tilted venue photos above the form. Leave empty to hide the strip. Drag to reorder."
+            fields:
+              - { label: "Photo", name: "src", widget: "image", hint: "Pick or upload the photo for this card." }
+              - { label: "Rotation (degrees)", name: "tilt", widget: "number", value_type: "float", min: -10, max: 10, step: 0.1, default: 0, hint: "How far the card is tilted, from -10 to 10 degrees. Negative leans left, positive leans right." }
+              - { label: "Alt text (accessibility)", name: "alt", widget: "text", hint: "Read aloud by screen readers; describe what the photo shows." }
+              - { label: "Caption", name: "caption", widget: "string", hint: "The handwritten caption under the photo." }
+          - label: "Enquiry form"
+            name: "form"
+            widget: "object"
+            hint: "The venue enquiry form at the bottom of the For Venues section. Every submission is stored by Netlify Forms and e-mailed to the team."
+            fields:
+              - { label: "Form heading", name: "heading", widget: "string", hint: "The heading above the form card." }
+              - label: "Form fields"
+                name: "fields"
+                label_singular: "field"
+                widget: "list"
+                collapsed: true
+                min: 1
+                max: 15
+                summary: "{{fields.label}} ({{fields.type}})"
+                hint: "The questions visitors fill in, in the order shown. Drag to reorder, add new ones with the + button, or delete ones you do not need. Keep at least one Email box so the team can reply."
+                fields:
+                  - { label: "Internal field id (do not edit)", name: "id", widget: "hidden", required: false }
+                  - { label: "Internal field name (do not edit)", name: "name", widget: "hidden", required: false }
+                  - { label: "Label", name: "label", widget: "string", hint: "The question shown above the box, e.g. Your name." }
+                  - { label: "Answer type", name: "type", widget: "select", default: "text", options: [{ label: "Short text", value: "text" }, { label: "Email address", value: "email" }, { label: "Phone number", value: "tel" }, { label: "Long text (several lines)", value: "textarea" }, { label: "Dropdown list", value: "select" }], hint: "What kind of box this is. Email boxes check the address; dropdowns need choices below." }
+                  - { label: "Required?", name: "required", widget: "boolean", default: false, hint: "When on, the form cannot be sent without an answer and the label shows a star." }
+                  - { label: "Box width", name: "width", widget: "select", required: false, options: [{ label: "Half width (two boxes per row)", value: "half" }, { label: "Full width", value: "full" }], hint: "Leave empty for automatic: long-text boxes are full width, everything else half width." }
+                  - { label: "Placeholder", name: "placeholder", widget: "string", required: false, hint: "Grey example text shown inside an empty box, e.g. you@company.com. Not used for dropdowns." }
+                  - { label: "Helper text under the box", name: "hint", widget: "string", required: false, hint: "Optional small print shown under this box. Leave empty for none." }
+                  - { label: "Browser autofill hint", name: "autocomplete", widget: "string", required: false, pattern: ["^[a-z0-9 -]*$", "Lowercase letters, numbers, spaces and dashes only, e.g. name, email, organization, tel."], hint: "Lets browsers fill the box automatically, e.g. name, email, organization, tel. Leave empty for none." }
+                  - { label: "Dropdown: first choice meaning no answer", name: "emptyOption", widget: "string", required: false, hint: "Dropdowns only: an optional first choice that sends nothing, e.g. Prefer not to say. Leave empty for none." }
+                  - label: "Dropdown choices"
+                    name: "options"
+                    label_singular: "choice"
+                    widget: "list"
+                    required: false
+                    hint: "Dropdowns only: the choices visitors can pick from, in order."
+                    field: { label: "Choice", name: "choice", widget: "string" }
+                  - label: "In the fallback e-mail"
+                    name: "mail"
+                    widget: "object"
+                    required: false
+                    hint: "Used only when sending fails and the visitor's own e-mail app opens instead. Leave both empty to use the label above and an empty answer."
+                    fields:
+                      - { label: "Label in the e-mail", name: "label", widget: "string", required: false, hint: "How this answer is named in the e-mail body. Leave empty to use the label above." }
+                      - { label: "Text if left empty", name: "ifEmpty", widget: "string", required: false, hint: "Written in the e-mail when the visitor skipped this box, e.g. Not specified." }
+              - { label: "Submit button label", name: "button", widget: "string", hint: "The text on the button that sends the form." }
+              - { label: "Text next to the button", name: "hint", widget: "string", required: false, hint: "The small reassurance line beside the button. Leave empty for none." }
+              - { label: "Button text while sending", name: "sending", widget: "string", hint: "Shown on the button for a moment after it is pressed, e.g. Sending…" }
+              - { label: "Success message", name: "success", widget: "text", hint: "Replaces the form once it has been sent successfully." }
+              - label: "Fallback e-mail (opens if sending fails)"
+                name: "mailto"
+                widget: "object"
+                hint: "If the form cannot be sent, the visitor's own e-mail app opens with a ready-written message to the team. Each box above is added to it as a Label: answer line."
+                fields:
+                  - { label: "E-mail subject", name: "subject", widget: "string", hint: "The subject line of the fallback e-mail." }
+                  - { label: "Greeting", name: "greeting", widget: "string", required: false, hint: "First line of the e-mail, e.g. Hi COVERED team," }
+                  - { label: "Opening sentence", name: "intro", widget: "text", required: false, hint: "The sentence before the answers. Leave empty for none." }
+                  - { label: "Sign-off", name: "signoff", widget: "string", required: false, hint: "Last line of the e-mail, e.g. Thanks!" }
 
       - name: "locations"
         label: "🗺️ Locations / UK map"
@@ -814,21 +952,36 @@ collections:
         label: "🚀 Vision / roadmap"
         file: "src/_data/vision.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the vision section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the vision section. Type <br /> where you want a line break." }
           - label: "Milestones"
             name: "milestones"
+            label_singular: "milestone"
             widget: "list"
+            summary: "{{fields.tag}} — {{fields.title}}"
+            hint: "The roadmap cards. Drag to reorder."
             fields:
-              - { label: "Phase tag", name: "tag", widget: "string" }
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Description", name: "desc", widget: "text" }
-          - { label: "'Build in public' heading", name: "bipTitle", widget: "string" }
-          - { label: "'Build in public' text", name: "bipText", widget: "text" }
+              - { label: "Phase tag", name: "tag", widget: "string", hint: "The small tag on top of the card, e.g. Phase 2." }
+              - { label: "Title", name: "title", widget: "string", hint: "The bold milestone name." }
+              - { label: "Description", name: "desc", widget: "text", hint: "The sentence under the title." }
+          - { label: "'Build in public' heading", name: "bipTitle", widget: "string", hint: "The heading of the build-in-public box (an emoji at the start is fine)." }
+          - { label: "'Build in public' text", name: "bipText", widget: "text", hint: "The paragraph inside the build-in-public box." }
           - label: "Social channel chips"
             name: "soonChips"
+            label_singular: "chip"
             widget: "list"
+            hint: "The small pills for social channels that are coming soon."
             field: { label: "Chip text", name: "chip", widget: "string" }
+          - label: "Launch-notify sign-up"
+            name: "notify"
+            widget: "object"
+            hint: "The one-box e-mail sign-up inside the build-in-public box. Netlify Forms stores the addresses."
+            fields:
+              - { label: "E-mail box label (screen readers)", name: "label", widget: "string", hint: "Not shown on screen; read aloud by screen readers for the e-mail box." }
+              - { label: "E-mail box placeholder", name: "placeholder", widget: "string", hint: "Grey example text inside the empty box, e.g. you@email.com." }
+              - { label: "Button label", name: "button", widget: "string", hint: "The text on the sign-up button." }
+              - { label: "Success message", name: "success", widget: "text", hint: "Replaces the sign-up box once the address has been sent." }
+              - { label: "Fallback e-mail subject", name: "mailtoSubject", widget: "string", hint: "If sending fails, the visitor's own e-mail app opens with this subject line." }
 
       - name: "faq"
         label: "❓ FAQ"

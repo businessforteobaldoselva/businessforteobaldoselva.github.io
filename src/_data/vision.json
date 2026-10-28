@@ -8,5 +8,12 @@
   ],
   "bipTitle": "🎥 We're building this in public",
   "bipText": "Every step of the journey — the wins, the rejections, the spreadsheets — documented openly. Social channels are launching alongside the pilot.",
-  "soonChips": ["TikTok — soon", "YouTube — soon", "LinkedIn — soon"]
+  "soonChips": ["TikTok — soon", "YouTube — soon", "LinkedIn — soon"],
+  "notify": {
+    "label": "Your email",
+    "placeholder": "you@email.com",
+    "button": "Tell me when Exeter goes live",
+    "success": "You're on the list — we'll email you the moment Exeter goes live.",
+    "mailtoSubject": "Tell me when Exeter goes live"
+  }
 }
