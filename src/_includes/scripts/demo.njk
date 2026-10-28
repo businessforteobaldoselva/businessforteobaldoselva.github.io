@@ -1,4 +1,7 @@
       /* ---------- Interactive demo ---------- */
+      /* All the words on the demo's phone and machine screens come from
+         src/_data/how.json (how.demo), editable in the CMS. */
+      var DEMO_COPY = {{ (how.demo or {}) | dump | replace("<", "\\u003c") | safe }};
       var phoneScreen = document.getElementById("phoneScreen");
       var machineScreen = document.getElementById("machineScreen");
       var machineStamp = document.getElementById("machineStamp");
@@ -14,6 +17,21 @@
         {{ theme.ink | safeColor("#2F4D19") | dump | replace("<", "\\u003c") | safe }}
       ];
 
+      /* Builds one element. Copy only ever goes in through setAttribute /
+         textContent, so editor text can never become markup. */
+      function demoEl(tag, attrs, text) {
+        var node = document.createElement(tag);
+        Object.keys(attrs || {}).forEach(function (name) {
+          node.setAttribute(name, attrs[name] == null ? "" : attrs[name]);
+        });
+        if (text) { node.textContent = text; }
+        return node;
+      }
+      function demoFill(host, nodes) {
+        host.textContent = "";
+        nodes.forEach(function (node) { host.appendChild(node); });
+      }
+
       function setStep(n) {
         chips.forEach(function (chip) {
           var s = parseInt(chip.getAttribute("data-step"), 10);
@@ -28,7 +46,7 @@
             marker.className = "visually-hidden sr-state";
             chip.appendChild(marker);
           }
-          marker.textContent = done ? " (completed)" : "";
+          marker.textContent = done && DEMO_COPY.completedWord ? " (" + DEMO_COPY.completedWord + ")" : "";
         });
       }
 
@@ -36,8 +54,11 @@
         machineScreen.innerHTML = '<div class="qr" aria-hidden="true"></div>';
       }
       function machineShowAd() {
-        machineScreen.innerHTML =
-          '<div class="ad-live"><small>Sponsored</small><strong>Your brand, here 👋</strong></div>';
+        var ad = DEMO_COPY.sponsor || {};
+        var live = demoEl("div", { "class": "ad-live" });
+        live.appendChild(demoEl("small", {}, ad.adTag));
+        live.appendChild(demoEl("strong", {}, ad.adText));
+        demoFill(machineScreen, [live]);
       }
 
       function confettiBurst() {
@@ -58,39 +79,50 @@
       }
 
       function renderScan(fromReset) {
+        var c = DEMO_COPY.scan || {};
         setStep(0);
         machineShowQR();
         machineStamp.classList.remove("show");
         pack.classList.remove("drop");
-        phoneScreen.innerHTML =
-          '<h3>Need a pad or tampon?</h3>' +
-          '<p>Scan the QR code on the machine to get started — it\'s free.</p>' +
-          '<button class="btn btn-primary" id="btnScan">Simulate scan</button>';
+        demoFill(phoneScreen, [
+          demoEl("h3", {}, c.title),
+          demoEl("p", {}, c.text),
+          demoEl("button", { "class": "btn btn-primary", "id": "btnScan" }, c.button)
+        ]);
         var btn = document.getElementById("btnScan");
         btn.addEventListener("click", renderVerify);
         if (fromReset === true) { btn.focus(); }
       }
 
       function renderVerify() {
+        var c = DEMO_COPY.checkIn || {};
         setStep(1);
-        phoneScreen.innerHTML =
-          '<h3>Quick check-in</h3>' +
-          '<p>A phone number or email keeps things fair — never spam.</p>' +
-          '<input class="p-input" type="text" value="you@example.com" readonly tabindex="-1" aria-label="Example email address" />' +
-          '<button class="btn btn-primary" id="btnVerify">Check in →</button>';
+        demoFill(phoneScreen, [
+          demoEl("h3", {}, c.title),
+          demoEl("p", {}, c.text),
+          demoEl("input", { "class": "p-input", "type": "text", "value": c.exampleEmail, "readonly": "", "tabindex": "-1", "aria-label": c.exampleEmailLabel }),
+          demoEl("button", { "class": "btn btn-primary", "id": "btnVerify" }, c.button)
+        ]);
         var btn = document.getElementById("btnVerify");
         btn.addEventListener("click", renderAd);
         btn.focus();
       }
 
       function renderAd() {
+        var c = DEMO_COPY.sponsor || {};
+        var adBox = demoEl("div", { "class": "ad-box" });
+        adBox.appendChild(demoEl("small", {}, c.adTag));
+        adBox.appendChild(demoEl("strong", {}, c.adText));
+        var adProgress = demoEl("div", { "class": "ad-progress", "aria-hidden": "true" });
+        adProgress.appendChild(demoEl("div", { "class": "bar", "id": "adBar" }));
         setStep(2);
         machineShowAd();
-        phoneScreen.innerHTML =
-          '<h3>A word from our sponsor</h3>' +
-          '<div class="ad-box"><small>Sponsored</small><strong>Your brand, here 👋</strong></div>' +
-          '<div class="ad-progress" aria-hidden="true"><div class="bar" id="adBar"></div></div>' +
-          '<p>This short moment pays for the product. Nice one, sponsors.</p>';
+        demoFill(phoneScreen, [
+          demoEl("h3", {}, c.title),
+          adBox,
+          adProgress,
+          demoEl("p", {}, c.text)
+        ]);
         phoneScreen.focus({ preventScroll: true });
         var bar = document.getElementById("adBar");
         var advanced = false;
@@ -113,15 +145,17 @@
       }
 
       function renderDone() {
+        var c = DEMO_COPY.done || {};
         setStep(3);
         pack.classList.add("drop");
         machineStamp.classList.add("show");
         confettiBurst();
-        phoneScreen.innerHTML =
-          '<span class="stamp p-stamp">Covered.</span>' +
-          '<h3>You\'re all set</h3>' +
-          '<p>Grab your pack from the tray below. That\'s it — no cost, no card, no catch.</p>' +
-          '<button class="btn btn-outline" id="btnReset">Run the demo again</button>';
+        demoFill(phoneScreen, [
+          demoEl("span", { "class": "stamp p-stamp" }, c.stamp),
+          demoEl("h3", {}, c.title),
+          demoEl("p", {}, c.text),
+          demoEl("button", { "class": "btn btn-outline", "id": "btnReset" }, c.button)
+        ]);
         var btn = document.getElementById("btnReset");
         btn.addEventListener("click", function () { renderScan(true); });
         btn.focus({ preventScroll: true });

@@ -10,45 +10,48 @@
         </div>
 
         {%- if how.story and how.story.length %}
-        <div class="story-strip reveal" role="list" aria-label="How COVERED works, in four moments">
+        <div class="story-strip reveal" role="list" aria-label="{{ how.storyLabel }}">
           {%- for s in how.story %}
+          {%- set im = s.src | imageInfo %}
           <figure class="story-card" role="listitem">
-            <picture><source type="image/webp" srcset="/{{ s.img }}-480.webp 480w, /{{ s.img }}.webp 1200w" sizes="(max-width: 780px) 46vw, 270px" /><img src="/{{ s.img }}.jpg" width="{{ s.w }}" height="{{ s.h }}" loading="lazy" alt="{{ s.alt }}" /></picture>
+            {%- if im.src %}
+            <picture>{% if im.webp %}<source type="image/webp" srcset="{% if im.webp480 %}{{ im.webp480 }} 480w, {% endif %}{{ im.webp }} 1200w" sizes="(max-width: 780px) 46vw, 270px" />{% endif %}<img src="{{ im.src }}" width="{{ im.width }}" height="{{ im.height }}" loading="lazy" alt="{{ s.alt }}" /></picture>
+            {%- endif %}
             <figcaption><strong>{{ s.title }}</strong><span>{{ s.caption }}</span></figcaption>
           </figure>
           {%- endfor %}
         </div>
         {%- endif %}
 
-        <ol class="stepper reveal" id="stepper" aria-label="Demo progress">
-          <li class="step-chip active" data-step="0" aria-current="step"><span class="n" aria-hidden="true">1</span> Scan the QR</li>
-          <li class="step-chip" data-step="1"><span class="n" aria-hidden="true">2</span> Quick check-in</li>
-          <li class="step-chip" data-step="2"><span class="n" aria-hidden="true">3</span> A word from our sponsor</li>
-          <li class="step-chip" data-step="3"><span class="n" aria-hidden="true">4</span> Covered.</li>
+        <ol class="stepper reveal" id="stepper" aria-label="{{ how.demo.stepperLabel }}">
+          <li class="step-chip active" data-step="0" aria-current="step"><span class="n" aria-hidden="true">1</span> {{ how.demo.scan.chip }}</li>
+          <li class="step-chip" data-step="1"><span class="n" aria-hidden="true">2</span> {{ how.demo.checkIn.chip }}</li>
+          <li class="step-chip" data-step="2"><span class="n" aria-hidden="true">3</span> {{ how.demo.sponsor.chip }}</li>
+          <li class="step-chip" data-step="3"><span class="n" aria-hidden="true">4</span> {{ how.demo.done.chip }}</li>
         </ol>
 
         <div class="demo-card reveal">
           <!-- Machine -->
           <div class="machine-stage" id="machineStage">
-            <div class="machine" role="img" aria-label="Illustration of a COVERED wall-mounted dispenser">
+            <div class="machine" role="img" aria-label="{{ how.demo.machine.ariaLabel }}">
               <span class="led" aria-hidden="true"></span>
               <div class="m-screen" id="machineScreen">
                 <div class="qr" aria-hidden="true"></div>
               </div>
-              <div class="m-label">Covered</div>
+              <div class="m-label">{{ how.demo.machine.label }}</div>
               <div class="m-slot" id="machineSlot">
-                <div class="pack" id="pack">4-PACK</div>
+                <div class="pack" id="pack">{{ how.demo.machine.packText }}</div>
               </div>
             </div>
-            <span class="stamp machine-stamp" id="machineStamp">Covered.</span>
+            <span class="stamp machine-stamp" id="machineStamp">{{ how.demo.machine.stamp }}</span>
           </div>
 
           <!-- Phone -->
           <div class="phone">
             <div class="p-screen" id="phoneScreen" aria-live="polite" tabindex="-1">
-              <h3>Need a pad or tampon?</h3>
-              <p>Scan the QR code on the machine to get started — it's free.</p>
-              <button class="btn btn-primary" id="btnScan">Simulate scan</button>
+              <h3>{{ how.demo.scan.title }}</h3>
+              <p>{{ how.demo.scan.text }}</p>
+              <button class="btn btn-primary" id="btnScan">{{ how.demo.scan.button }}</button>
             </div>
           </div>
         </div>

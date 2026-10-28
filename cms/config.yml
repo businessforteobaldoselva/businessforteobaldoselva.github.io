@@ -633,22 +633,86 @@ collections:
         label: "📱 How It Works (demo section text)"
         file: "src/_data/how.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
-          - { label: "Note below the demo", name: "demoNote", widget: "text" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the “How it works” section." }
+          - { label: "Heading", name: "title", widget: "string", hint: "The big heading of the “How it works” section. It also names the section for screen readers." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The sentence under the heading, above the four photo cards." }
+          - { label: "Note below the demo", name: "demoNote", widget: "text", hint: "The small print under the interactive demo (the Exeter pilot / fair-use note)." }
+          - { label: "Photo strip label (for screen readers)", name: "storyLabel", widget: "string", hint: "Read aloud by screen readers when they reach the four photo cards. It is not shown on screen." }
           - label: "Story strip (four photo moments above the demo)"
             name: "story"
             widget: "list"
             required: false
-            hint: "Leave empty to hide the strip. Titles ending in a full stop get the orange brand period automatically."
+            label_singular: "photo moment"
+            summary: "{{fields.title}}"
+            collapsed: true
+            hint: "The row of photo cards above the demo. Leave empty to hide the strip. Titles ending in a full stop get the orange brand period automatically."
             fields:
-              - { label: "Image path (without extension)", name: "img", widget: "hidden" }
-              - { label: "Image width", name: "w", widget: "hidden" }
-              - { label: "Image height", name: "h", widget: "hidden" }
-              - { label: "Title (e.g. Spot it.)", name: "title", widget: "string" }
-              - { label: "Caption", name: "caption", widget: "string" }
-              - { label: "Alt text (describes the image for screen readers)", name: "alt", widget: "string" }
+              - { label: "Photo", name: "src", widget: "image", hint: "The picture at the top of this card. Portrait photos work best (the originals are about 764 × 896). Choose one from the library or upload a new one." }
+              - { label: "Title (e.g. Spot it.)", name: "title", widget: "string", hint: "The bold line under the photo." }
+              - { label: "Caption", name: "caption", widget: "string", hint: "The smaller line under the title." }
+              - { label: "Alt text (describes the image for screen readers)", name: "alt", widget: "string", hint: "Describe what the photo shows for people who cannot see it. Not shown on screen." }
+          - label: "Interactive demo text"
+            name: "demo"
+            widget: "object"
+            collapsed: true
+            hint: "All the words inside the clickable demo (the progress steps, the wall machine and the phone). The demo always has these four steps, in this order. The page keeps working exactly the same whatever you type here."
+            fields:
+              - { label: "Progress bar label (for screen readers)", name: "stepperLabel", widget: "string", hint: "Read aloud as the name of the four-step progress bar above the machine. Not shown on screen." }
+              - { label: "Screen-reader word for finished steps", name: "completedWord", widget: "string", hint: "Read aloud after a step label once that step is done, e.g. “Scan the QR (completed)”. Type just the word, without brackets. Not shown on screen." }
+              - label: "The wall machine"
+                name: "machine"
+                widget: "object"
+                collapsed: true
+                hint: "The drawing of the dispenser on the left of the demo."
+                fields:
+                  - { label: "Description (for screen readers)", name: "ariaLabel", widget: "string", hint: "What the machine illustration shows, for people who cannot see it. Not shown on screen." }
+                  - { label: "Name on the machine", name: "label", widget: "string", hint: "The small brand name printed on the machine body, under its screen." }
+                  - { label: "Text on the pack", name: "packText", widget: "string", hint: "The words on the pack that drops into the tray, e.g. 4-PACK." }
+                  - { label: "Stamp on the machine", name: "stamp", widget: "string", hint: "The round stamp that pops up on the machine when the pack is dispensed." }
+              - label: "Step 1 — Scan the QR"
+                name: "scan"
+                widget: "object"
+                collapsed: true
+                hint: "The first step. This is also the screen the phone shows before anyone clicks anything."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 1 in the progress bar above the demo." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the heading on the phone screen." }
+                  - { label: "Button", name: "button", widget: "string", hint: "The button on the phone screen that starts the demo." }
+              - label: "Step 2 — Quick check-in"
+                name: "checkIn"
+                widget: "object"
+                collapsed: true
+                hint: "The second step: the phone asks for a quick check-in."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 2 in the progress bar above the demo." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the heading on the phone screen." }
+                  - { label: "Example email shown in the box", name: "exampleEmail", widget: "string", hint: "The pretend email address shown in the (read-only) box on the phone." }
+                  - { label: "Email box description (for screen readers)", name: "exampleEmailLabel", widget: "string", hint: "Read aloud as the name of that box. Not shown on screen." }
+                  - { label: "Button", name: "button", widget: "string", hint: "The button on the phone screen that moves on to the sponsor step." }
+              - label: "Step 3 — A word from our sponsor"
+                name: "sponsor"
+                widget: "object"
+                collapsed: true
+                hint: "The third step: the pretend advert. The small “Sponsored” tag and the advert text are shown on both the phone and the machine's screen."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 3 in the progress bar above the demo." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Advert tag", name: "adTag", widget: "string", hint: "The small label above the pretend advert, e.g. Sponsored. Shown on the phone and on the machine's screen." }
+                  - { label: "Advert text", name: "adText", widget: "string", hint: "The pretend advert itself, e.g. “Your brand, here 👋”. Shown on the phone and on the machine's screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the advert on the phone screen." }
+              - label: "Step 4 — Covered."
+                name: "done"
+                widget: "object"
+                collapsed: true
+                hint: "The last step: the pack is dispensed."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 4 in the progress bar above the demo." }
+                  - { label: "Stamp on the phone", name: "stamp", widget: "string", hint: "The round stamp at the top of the phone screen." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the heading on the phone screen." }
+                  - { label: "Button", name: "button", widget: "string", hint: "The button that restarts the demo from step 1." }
 
       - name: "brands"
         label: "📣 For Brands section"
