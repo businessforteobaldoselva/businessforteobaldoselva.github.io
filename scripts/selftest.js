@@ -833,6 +833,24 @@ const scenarios = [
   },
 ];
 
+// ------------------------------------------------------------------ Studio scenarios (phase 4)
+// Each Studio unit adds its own scenarios as a NEW file studio/guards/selftest-<unit>.js:
+//   module.exports = (h) => [ { name, mutate(ws), build: true|false, run(ws, siteDir) }, ... ]
+// h = { edit, replaceOnce, editYaml, expectRun, mark, Workspace, runScript(absScript, root, args, env) }.
+// Append-only by directory: nobody edits this block after the scaffold (see studio/DESIGN.md section 15).
+{
+  const studioGuards = path.join(REPO_ROOT, "studio", "guards");
+  const runScript = (script, root, args, env) => {
+    const r = spawnSync(process.execPath, [script, "--root", root].concat(args || []), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: Object.assign({}, process.env, env || {}) });
+    return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
+  };
+  if (fs.existsSync(studioGuards)) {
+    for (const f of fs.readdirSync(studioGuards).filter((n) => /^selftest-.*\.js$/.test(n)).sort()) {
+      scenarios.push(...require(path.join(studioGuards, f))({ edit, replaceOnce, editYaml, expectRun, mark, Workspace, runScript }));
+    }
+  }
+}
+
 // ------------------------------------------------------------------ allow-list hygiene (uses the control build)
 function allowListScenarios(ws, site) {
   const tmp = mkTmp("covered-allow-");
