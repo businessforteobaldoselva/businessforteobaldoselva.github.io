@@ -29,6 +29,7 @@ const GUARDS = {
   wiring: "check-wiring.js",
   hostile: "check-hostile.js",
   tokens: "check-tokens.js",
+  a11y: "check-a11y.js",
 };
 
 let passed = 0;
@@ -41,12 +42,12 @@ const mark = (ok, label, detail) => {
   } else {
     failed += 1;
     failures.push(label);
-    console.log("  FAIL  " + label + (detail ? "\n" + String(detail).split("\n").slice(0, 25).map((l) => "          " + l).join("\n") : ""));
+    console.log("  FAIL  " + label + (detail ? "\n" + String(detail).split("\n").slice(0, Number(process.env.SELFTEST_TAIL) || 25).map((l) => "          " + l).join("\n") : ""));
   }
 };
 
 function runGuard(guard, root, args) {
-  const r = spawnSync(process.execPath, [path.join(SCRIPTS_DIR, GUARDS[guard]), "--root", root].concat(args || []), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: Object.assign({}, process.env, { GUARD_STRICT_STALE: "" }) });
+  const r = spawnSync(process.execPath, [path.join(SCRIPTS_DIR, GUARDS[guard]), "--root", root].concat(args || []), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: Object.assign({}, process.env, { GUARD_STRICT_STALE: "", GITHUB_ACTIONS: "", GITHUB_STEP_SUMMARY: "" }) });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
 }
 
@@ -56,7 +57,7 @@ function expectRun(label, res, expect) {
   if (res.code !== expect.code) problems.push("exit code " + res.code + ", expected " + expect.code);
   for (const s of expect.has || []) if (!res.out.includes(s)) problems.push("output does not mention: " + s);
   for (const s of expect.hasNot || []) if (res.out.includes(s)) problems.push("output unexpectedly mentions: " + s);
-  mark(problems.length === 0, label, problems.length ? problems.join("\n") + "\n--- output ---\n" + res.out.split("\n").slice(-30).join("\n") : "");
+  mark(problems.length === 0, label, problems.length ? problems.join("\n") + "\n--- output ---\n" + res.out.split("\n").slice(-(Number(process.env.SELFTEST_TAIL) || 30)).join("\n") : "");
 }
 
 // ------------------------------------------------------------------ helpers to break a copy
@@ -97,6 +98,8 @@ const scenarios = [
       expectRun("wiring passes (sentinel build and its switch / dropdown variants)", runGuard("wiring", ws.dir), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir), { code: 0 });
       expectRun("tokens passes (hostile, lowest and highest token values built)", runGuard("tokens", ws.dir), { code: 0 });
+      expectRun("a11y passes (the recorded known issues are listed, nothing new)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["CHECK-A11Y OK", "known issues recorded"] });
+      expectRun("a11y: the CMS contrast table also covers the copy with every optional field and block switched on", runGuard("a11y", ws.dir, ["--site", site, "--maximal"]), { code: 0 });
     },
   },
   {
@@ -144,7 +147,7 @@ const scenarios = [
           '    kicker: "About"',
           '    heading: "Hello"',
           "    body: |-",
-          "      Para one with a [link](/about/).",
+          "      Para one with a link to [our team page](/about/).",
           "",
           "      - bullet one",
           "      - bullet two",
@@ -159,6 +162,7 @@ const scenarios = [
       expectRun("previews pass", runGuard("previews", ws.dir), { code: 0 });
       expectRun("copy passes (new words are traceable, derived sentences still match)", runGuard("copy", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
       expectRun("wiring passes (every new field reaches the page)", runGuard("wiring", ws.dir, FAST), { code: 0 });
+      expectRun("a11y passes (the new page, form field and menu link are accessible too)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
     },
   },
   {
@@ -177,6 +181,121 @@ const scenarios = [
       expectRun("copy passes; allow-list entries for the missing features are only noted", runGuard("copy", ws.dir, ["--site", site]), { code: 0, has: ["note:"] });
       expectRun("wiring passes (sections that are off are switched on for the test)", runGuard("wiring", ws.dir, FAST), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir, ["--quick"]), { code: 0 });
+      expectRun("a11y passes (nothing is measured for what is switched off)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "accessibility: a safe re-theme (white page, black text) stays green",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/theme.json", (j) => {
+        j.paper = "#FFFFFF";
+        j.ink = "#000000";
+        j.inkDeep = "#000000";
+        j.inkSoft = "#222222";
+        j.muted = "#444444";
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("a11y passes after the editor picks a stricter palette", runGuard("a11y", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "accessibility: hostile palettes typed into the colour boxes are flagged, naming the colour roles and the ratio",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/theme.json", (j) => {
+        for (const k of Object.keys(j)) j[k] = "#FFFFFF";
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("all-white palette: errors name the roles and the 1.00:1 ratio", runGuard("a11y", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["[contrast]", "1.00:1", "needs 4.5:1", "“Main text & dark sections” [ink]", "“Page background” [paper]", "CHECK-A11Y FAILED"],
+      });
+      const palettes = [
+        ["near-identical text and page background", { ink: "#FEF8EC", inkSoft: "#FEF8EC", inkDeep: "#FEF8EC" }, ["“Main text & dark sections” [ink]", "“Page background” [paper]"]],
+        ["quiet text barely darker than the page", { muted: "#F5EBDD" }, ["“Quiet text” [muted]", "“Page background” [paper]"]],
+        ["white button text on a white button colour", { accentDeep: "#FFFFFF" }, ["“Button colour” [accentDeep]", "fixed #FFFFFF"]],
+      ];
+      for (const [label, over, mentions] of palettes) {
+        ws.writeJson("src/_data/theme.json", Object.assign(JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "src/_data/theme.json"), "utf8")), over));
+        const b = ws.build("pal");
+        if (!b.ok) {
+          mark(false, label + ": the copy still builds", b.log.split("\n").slice(-8).join("\n"));
+          continue;
+        }
+        expectRun(label + ": flagged with the roles", runGuard("a11y", ws.dir, ["--site", b.out]), { code: 1, has: ["[contrast]", ":1, needs"].concat(mentions) });
+      }
+    },
+  },
+  {
+    name: "accessibility: missing alt text, a skipped heading and an empty link each fail the gate",
+    mutate: (ws) => {
+      editJson(ws, "src/_data/venues.json", (j) => (j.photos[0].alt = ""));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
+      edit(ws, FAQ_TEMPLATE, (t) => t + '\n<a class="guard-test" href="/empty-link-test/"></a>\n');
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-a11y names all three, each with the page and element", runGuard("a11y", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["[image-alt]", "[heading-order]", "is followed by <h6>", "[link-name]", "a link with no accessible name", "/empty-link-test/", "CHECK-A11Y FAILED"],
+      });
+      // the same page with the alt attribute removed altogether
+      editJson(ws, "src/_data/venues.json", (j) => (j.photos[0].alt = "A COVERED dispenser on a pub wall"));
+      edit(ws, "src/_includes/sections/venues.njk", replaceOnce('alt="{{ photo.alt }}" /></picture>', "/></picture>"));
+      const b = ws.build("noalt");
+      if (!b.ok) return mark(false, "the copy without alt attributes builds", b.log.split("\n").slice(-8).join("\n"));
+      expectRun("an <img> with no alt attribute at all fails too", runGuard("a11y", ws.dir, ["--site", b.out]), { code: 1, has: ["image has no alt attribute"] });
+    },
+  },
+  {
+    name: "accessibility: unreadable markup (several h1, unlabelled field, positive tabindex, duplicate id, aria-hidden link)",
+    mutate: (ws) => {
+      edit(ws, FAQ_TEMPLATE, (t) => t + '\n<h1 id="dup-id">Second main heading</h1><div id="dup-id" tabindex="4">x</div><div aria-hidden="true"><a href="/x/">reachable</a></div><input type="text" name="guardtest" placeholder="Name">\n');
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("each defect is reported by rule", runGuard("a11y", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["[heading-h1]", "[duplicate-id]", "[tabindex]", "[aria-hidden]", "[form-label]"],
+      });
+    },
+  },
+  {
+    name: "accessibility: a new colour pairing in the stylesheet that the CMS contrast table does not know fails the pair-table check",
+    mutate: (ws) => edit(ws, "src/_includes/site-styles.css", (t) => t + "\n    .stats-source { color: var(--green-dark); }\n"),
+    build: true,
+    run(ws, site) {
+      expectRun("the table in cms/contrast.js is reported out of date", runGuard("a11y", ws.dir, ["--site", site]), { code: 1, has: ["[pair-table]", "--write-pairs"] });
+      expectRun("--write-pairs regenerates it and the check passes again", runGuard("a11y", ws.dir, ["--site", site, "--write-pairs"]), { code: 0, has: ["wrote"] });
+      expectRun("and a second run is green", runGuard("a11y", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "accessibility: the pull-request output (annotations and job summary) is written without trusting editor text",
+    mutate: (ws) => {
+      editJson(ws, "src/_data/theme.json", (j) => (j.ink = "#FFF8EC"));
+      editJson(ws, "src/_data/faq.json", (j) => (j.title = "Q\n::error file=evil.txt::INJECTED"));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
+    },
+    build: true,
+    run(ws, site) {
+      const summary = path.join(ws.dir, "summary.md");
+      fs.writeFileSync(summary, "");
+      const r = spawnSync(process.execPath, [path.join(SCRIPTS_DIR, "check-a11y.js"), "--root", ws.dir, "--site", site, "--github"], { encoding: "utf8", env: Object.assign({}, process.env, { GITHUB_STEP_SUMMARY: summary, GITHUB_ACTIONS: "true" }) });
+      const out = (r.stdout || "") + (r.stderr || "");
+      const md = fs.readFileSync(summary, "utf8");
+      const problems = [];
+      if (r.status !== 1) problems.push("exit code " + r.status + ", expected 1");
+      if (!/^::error file=src\/_data\/theme\.json,title=contrast::/m.test(out)) problems.push("no ::error annotation pointing at src/_data/theme.json");
+      if (!out.includes("INJECTED")) problems.push("the editor text never reached the report, so this test proves nothing");
+      if (/^::error file=evil\.txt/m.test(out)) problems.push("text typed by an editor became a workflow command");
+      if (/^::(set-output|stop-commands|add-mask|set-env)/m.test(out)) problems.push("a workflow command from editor text");
+      if (!md.includes("## Accessibility gate: FAILED") || !md.includes("| Errors |")) problems.push("job summary has no result table");
+      if (/\n::/.test(md)) problems.push("summary contains a line starting with ::");
+      mark(problems.length === 0, "--github writes ::error annotations and a job-summary table, and editor text cannot inject a command", problems.join("\n") + "\n" + out.split("\n").slice(-12).join("\n"));
     },
   },
   {
@@ -507,6 +626,7 @@ function allowListScenarios(ws, site) {
 // ------------------------------------------------------------------ unit checks
 function unitChecks(root) {
   console.log("\n== Detector checks");
+  mark(require("./lib/a11y-unit").run() === 0, "accessibility gate: contrast maths, CSS cascade, contrast finder and structure rules (scripts/lib/a11y-unit.js)");
   const fx = JSON.parse(fs.readFileSync(path.join(SCRIPTS_DIR, "fixtures", "js-strings.json"), "utf8"));
   for (const c of fx.cases) {
     const r = scanScript(c.code);

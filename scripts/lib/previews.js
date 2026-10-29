@@ -6,6 +6,7 @@
 
 const fs = require("fs");
 const vm = require("vm");
+const path = require("path");
 
 function makeH() {
   return function h(tag, props, ...kids) {
@@ -75,7 +76,14 @@ function loadPreviews(file) {
     registerEventListener() {},
   };
   const sandbox = { CMS, createClass: (s) => s, h: makeH(), console, window: {} };
-  vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file, timeout: 5000 });
+  vm.createContext(sandbox);
+  // cms/index.html loads contrast.js (a plain script that defines window.CoveredContrast) before previews.js
+  const contrast = path.join(path.dirname(file), "contrast.js");
+  if (fs.existsSync(contrast)) {
+    vm.runInContext(fs.readFileSync(contrast, "utf8"), sandbox, { filename: contrast, timeout: 5000 });
+    sandbox.window.CoveredContrast = sandbox.CoveredContrast;
+  }
+  vm.runInContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file, timeout: 5000 });
   return { templates, styles };
 }
 

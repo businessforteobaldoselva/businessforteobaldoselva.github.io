@@ -356,7 +356,7 @@ collections:
             widget: "color"
             allowInput: true
             required: false
-            hint: "The main background of the whole site. It is also the colour of text on dark areas (the footer, dark sections and outlined buttons). Note — the COVERED logo colours are part of the logo artwork and cannot be changed here. When changing any colour, keep text/background contrast at least 4.5:1 (webaim.org/resources/contrastchecker). Clearing a colour restores its default."
+            hint: "The main background of the whole site. It is also the colour of text on dark areas (the footer, dark sections and outlined buttons). Note — the COVERED logo colours are part of the logo artwork and cannot be changed here. When changing any colour, keep text/background contrast at least 4.5:1 (webaim.org/resources/contrastchecker). The preview beside this form re-checks every pairing of these colours as you type and lists any that are too low, with the ratio. Clearing a colour restores its default."
           - label: "Small panels & tags"
             name: "paper2"
             widget: "color"
