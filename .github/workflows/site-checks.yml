@@ -33,6 +33,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        id: install
         run: npm ci
 
       # Build, then: CMS structure and coverage, previews, copy trace, sentinel wiring, hostile input.
@@ -41,6 +42,17 @@ jobs:
         env:
           # Pull requests (developer changes) also fail on allow-list / ignore entries that match nothing any more;
           # plain pushes (editors saving in the CMS) only note them, so switching a feature off never fails a build.
+          GUARD_STRICT_STALE: ${{ github.event_name == 'pull_request' && '1' || '' }}
+
+      # The accessibility result for the pull request. `npm run check` above already fails on accessibility errors
+      # (it ends with check:a11y); this step runs the same gate again, even when an earlier guard failed, so the
+      # result always shows up: as a table in the job summary and as ::error / ::warning annotations on the files
+      # to change. It only writes to $GITHUB_STEP_SUMMARY and prints workflow commands: no comments, no tokens,
+      # no write permission.
+      - name: Accessibility result (job summary and annotations)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: node scripts/check-a11y.js --github
+        env:
           GUARD_STRICT_STALE: ${{ github.event_name == 'pull_request' && '1' || '' }}
 
       # Breaks a throwaway copy of the site in ~20 ways and requires the guards to notice each one.
