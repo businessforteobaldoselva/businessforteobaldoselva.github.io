@@ -15,11 +15,13 @@
     "check:hostile": "node scripts/check-hostile.js",
     "check:a11y": "node scripts/check-a11y.js",
     "check:seo": "node scripts/check-seo.js",
+    "check:images": "node scripts/check-images.js",
     "check:selftest": "node scripts/selftest.js",
-    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:tokens && npm run check:copy && npm run check:wiring && npm run check:hostile && npm run check:a11y && npm run check:seo"
+    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:tokens && npm run check:copy && npm run check:wiring && npm run check:hostile && npm run check:a11y && npm run check:seo && npm run check:images"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0",
+    "@11ty/eleventy-img": "6.0.4",
     "acorn": "8.17.0",
     "decap-server": "^3.0.0",
     "html-minifier-terser": "^7.2.0",

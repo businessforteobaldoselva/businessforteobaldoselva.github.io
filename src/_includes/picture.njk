@@ -1,0 +1,19 @@
+{#- picture(im, alt, decorative, sizes, eager)
+    Renders one content picture from `im` (the result of `| imageInfo`): AVIF + WebP + original-format
+    sources with a responsive srcset when the build made them, otherwise the plain original file.
+      alt         the editor's description (autoescaped). Printed as alt="" when `decorative` is ticked.
+      decorative  the CMS "Decorative picture" switch: true -> empty alt, so screen readers skip it.
+      sizes       how wide the picture is drawn at each screen width, e.g. "(max-width: 780px) 92vw, 420px".
+      eager       true only for the single picture that is the first thing visitors see (the LCP image):
+                  loaded straight away with high priority. Everything else is lazy.
+    Always writes width and height (the picture's own pixel size) so the page does not jump while loading. -#}
+{% macro picture(im, alt, decorative, sizes, eager) -%}
+{%- if im and im.src -%}
+{%- set altText = "" if decorative else alt -%}
+{%- if im.fallback -%}
+<picture>{% if im.avif %}<source type="image/avif" srcset="{{ im.avif }}" sizes="{{ sizes }}" />{% endif %}{% if im.webp %}<source type="image/webp" srcset="{{ im.webp }}" sizes="{{ sizes }}" />{% endif %}<img src="{{ im.fallbackSrc }}" srcset="{{ im.fallback }}" sizes="{{ sizes }}"{% if im.width and im.height %} width="{{ im.width }}" height="{{ im.height }}"{% endif %} alt="{{ altText }}" {% if eager %}loading="eager" fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async" /></picture>
+{%- else -%}
+<img src="{{ im.src }}"{% if im.width and im.height %} width="{{ im.width }}" height="{{ im.height }}"{% endif %} alt="{{ altText }}" {% if eager %}loading="eager" fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async" />
+{%- endif -%}
+{%- endif -%}
+{%- endmacro %}

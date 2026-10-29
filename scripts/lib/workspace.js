@@ -10,7 +10,7 @@ const { spawnSync } = require("child_process");
 const { mkTmp, linkDir, removeTree, readText } = require("./util");
 
 const OMIT = new Set(["frames"]);
-const SKIP = new Set([".git", "_site", ".claude", "scripts", ".github", "node_modules", ".gitignore", ".nojekyll", "package-lock.json"]);
+const SKIP = new Set([".git", ".cache", "_site", ".claude", "scripts", ".github", "node_modules", ".gitignore", ".nojekyll", "package-lock.json"]);
 
 function eleventyBin(root) {
   const pkg = path.join(root, "node_modules", "@11ty", "eleventy", "package.json");
@@ -66,6 +66,8 @@ class Workspace {
       cwd: this.dir,
       encoding: "utf8",
       maxBuffer: 64 * 1024 * 1024,
+      // one small WebP + original per picture: the guards rebuild the site dozens of times (check-images builds the full set)
+      env: Object.assign({}, process.env, { COVERED_IMG_FAST: "1" }),
     });
     return { ok: r.status === 0 && fs.existsSync(out), out, ms: Date.now() - t0, log: (r.stdout || "") + (r.stderr || "") };
   }

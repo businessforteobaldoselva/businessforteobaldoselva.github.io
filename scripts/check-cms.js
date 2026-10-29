@@ -198,6 +198,59 @@ function main() {
     for (const e of contentCollections(cfg)) if (e.kind === "file" && !previewNames.includes(e.name)) warnings.push("no preview registered for " + e.name);
   } else report.add("Previews", "cms/previews.js is missing");
 
+  // ------------------------------------------------------------------ picture descriptions
+  // Every picture field needs a description (alt) next to it and a "Decorative picture" switch, so the
+  // site can print alt="" only for pictures an editor marked decorative. Pictures that are not shown as
+  // pictures (share image, video cover frame, map backdrop) are listed with a reason in
+  // scripts/alt-exemptions.json. (Decap cannot make a field required only when a switch is off, so the
+  // description is not "required" in the form; the value rule below and check-images refuse the empty case.)
+  const A = "Picture descriptions";
+  const altFile = path.join(SCRIPTS_DIR, "alt-exemptions.json");
+  const altIgnore = new IgnoreList(exists(altFile) ? readJson(altFile) : {});
+  altIgnore.problems.forEach((p) => report.add("alt-exemptions.json", p));
+  const altOk = (siblings) => {
+    const alt = siblings.find((x) => x && x.name === "alt");
+    const dec = siblings.find((x) => x && x.name === "decorative");
+    return !!alt && ["string", "text"].includes(widgetOf(alt)) && !!dec && widgetOf(dec) === "boolean";
+  };
+  const walkAlt = (fields, base, name) => {
+    for (const f of fields || []) {
+      if (!f || !f.name) continue;
+      const w = widgetOf(f);
+      const p = base ? base + "." + f.name : f.name;
+      if (w === "image" && !altIgnore.match(name, p, "alt") && !altOk(fields)) {
+        report.add(A, name + " > " + p + ": a picture field without a description", 'Add a sibling text field named "alt" and a boolean named "decorative" (label "Decorative picture (no description needed)"), or list it in scripts/alt-exemptions.json with a reason.');
+      }
+      if (w === "object") walkAlt(f.fields, p, name);
+      if (w === "list") {
+        if (f.fields) walkAlt(f.fields, p + "[]", name);
+        if (f.field) walkAlt([f.field], p + "[]", name);
+        for (const t of f.types || []) walkAlt(t.fields, p + "[]", name);
+      }
+    }
+  };
+  for (const e of contentCollections(cfg)) walkAlt(e.fields, "", e.kind === "file" ? path.posix.basename(e.file).replace(/\.[^.]+$/, "") : e.name);
+  const altValues = (obj, fields, p, src) => {
+    for (const f of fields || []) {
+      const w = widgetOf(f);
+      const v = obj[f.name];
+      if (v === undefined || v === null) continue;
+      const here = p.concat(f.name);
+      if (w === "image" && typeof v === "string" && v.trim() && !altIgnore.match(src.name, schemaPath(here), "alt")) {
+        const described = typeof obj.alt === "string" && obj.alt.trim() !== "";
+        if (obj.decorative !== true && !described) report.add(A, src.file + " > " + pathString(here) + ": this picture has no description", 'Fill in its description, or tick "Decorative picture (no description needed)" if it only decorates the page.');
+      }
+      if (w === "object" && isObj(v)) altValues(v, f.fields, here, src);
+      else if (w === "list" && Array.isArray(v)) {
+        v.forEach((it, i) => {
+          const sub = listItemFields(f, it);
+          if (sub && sub.fields && isObj(it)) altValues(it, sub.fields, here.concat(i), src);
+          else if (sub && sub.single && isObj(it) && sub.single.fields) altValues(it, sub.single.fields, here.concat(i), src);
+        });
+      }
+    }
+  };
+
   // ------------------------------------------------------------------ coverage
   const C = "CMS coverage";
   const { sources, problems } = loadSources(root);
@@ -283,6 +336,7 @@ function main() {
       }
     };
     missing(src.data, entry.fields, []);
+    altValues(src.data, entry.fields, [], src);
     // a page's markdown body has no CMS field: not editable
     if (src.kind === "page" && src.body && src.body.trim() && !entry.fields.some((f) => f.name === "body")) {
       const m = ignore.match(src.name, "body", "cms");
@@ -297,6 +351,7 @@ function main() {
   const notes = [];
   if (dev.length) notes.push("  developer-owned front matter (not CMS-editable; scanned by check-copy, tokenised by check-wiring): " + dev.map((s) => s.file).join(", "));
 
+  for (const e of altIgnore.unused("alt")) report.add("alt-exemptions.json", "entry '" + e.path + "' exempts no picture field", "Remove it, or fix the path. Unused entries would silently excuse the same field in future.");
   const unusedIgnores = ignore.unused("cms");
   if (strictStale(args)) {
     for (const e of unusedIgnores) report.add("wiring-ignore.json", "entry '" + e.path + "' skipped nothing in the CMS check", "Remove it, or fix the path. Unused entries would silently excuse the same field in future.");

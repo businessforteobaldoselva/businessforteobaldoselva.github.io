@@ -20,6 +20,7 @@ sections:
   - type: imageText
     image: "/images/pads-beige.jpg"
     alt: "Plastic-free pads — the products COVERED dispenses free of charge"
+    decorative: false
     caption: "Plastic-free. Biodegradable. Free."
     heading: "What we hand out"
     body: "High-quality, plastic-free and biodegradable pads and tampons, in convenient 4-packs. Good for you, better for the planet — and always free to the person who needs them."
