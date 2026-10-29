@@ -452,3 +452,13 @@ scripts/
 Throwaway copies (`lib/workspace.js`) copy everything except `node_modules` (linked) and `frames/`
 (21 MB of stills only referenced by URL) into the OS temp folder, build with the repo's Eleventy, and
 are deleted afterwards (links are removed first, so nothing real can be deleted).
+
+## Studio guards (phase 4)
+
+`npm run check` ends with `npm run check:studio` (`scripts/check-studio.js`), which runs every `studio/guards/check-*.js` and every `studio/tests/**/*.test.js`. `npm run check:selftest` also loads `studio/guards/selftest-*.js`, each of which breaks one thing in a throwaway copy and requires the matching guard to fail. Details live next to the code in `studio/README.md`; the contract is `studio/DESIGN.md`.
+
+| Guard | Unit | What it proves |
+|---|---|---|
+| `check-history.js` | D | The History, Help, tour and palette overlay files obey the overlay rules (no `innerHTML`, `eval`, `createElement`, string timers, network calls or foreign hosts; `localStorage` only inside try/catch; only the tags and properties `h()` allows), `ext.css` is inert, the restore service never calls a Git write method and goes through `drafts.createFromOps`, `invertDiff` restores mutated copies of every real `src/_data/*.json` with an `expect` on each replace and remove, `docs/STUDIO-RUNBOOK.md` names every environment variable of the design and the GitHub App permissions, `studio/THREAT-MODEL.md` has its sections, and the manifest keeps the four `ext/` files in contract order |
+
+`studio/tests/ext/browser.test.js` drives a real Chrome with the keyboard only (History, Restore, tour, palette, Help, 375 px). It needs `puppeteer-core` and a Chrome or Edge binary, which are not dependencies of the repository, so it skips itself when they are missing.
