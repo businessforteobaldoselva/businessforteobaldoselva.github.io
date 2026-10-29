@@ -1,16 +1,17 @@
-{% set pageTitle = (site.subpageTitle or "{title}") | replace("{title}", title or "") %}{% set shareImg = site.shareImage | imageInfo %}{% set shareSrc = (shareImg.src if shareImg.src.charAt(0) == "/" else "/" + shareImg.src) if shareImg.src else "" %}<!DOCTYPE html>
+{% set pageTitle = seoTitle if seoTitle else (site.subpageTitle or "{title}") | replace("{title}", title or "") %}{% set ownImg = shareImage | imageInfo %}{% set shareImg = ownImg if ownImg.src else (site.shareImage | imageInfo) %}{% set shareAlt = shareImageAlt if ownImg.src else site.shareImageAlt %}{% set canon = canonicalUrl | seoCanonical("https://coveredaccess.com" + page.url) %}{% set shareSrc = (shareImg.src if shareImg.src.charAt(0) == "/" else "/" + shareImg.src) if shareImg.src else "" %}<!DOCTYPE html>
 <html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ pageTitle }}</title>
   {% if description %}<meta name="description" content="{{ description }}" />{% endif %}
-  <meta property="og:title" content="{{ pageTitle }}" />
-  {% if description %}<meta property="og:description" content="{{ description }}" />{% endif %}
-  {% if shareSrc %}<meta property="og:image" content="https://coveredaccess.com{{ shareSrc }}" />{% endif %}
-  <link rel="canonical" href="https://coveredaccess.com{{ page.url }}" />
+  {% if hideFromSearch === true %}<meta name="robots" content="noindex, follow" />{% endif %}
+  <meta property="og:title" content="{{ socialTitle or pageTitle }}" />
+  {% if socialDescription or description %}<meta property="og:description" content="{{ socialDescription or description }}" />{% endif %}
+  {% if shareSrc %}<meta property="og:image" content="https://coveredaccess.com{{ shareSrc }}" />{% if ownImg.src and shareImg.width and shareImg.height %}<meta property="og:image:width" content="{{ shareImg.width }}" /><meta property="og:image:height" content="{{ shareImg.height }}" />{% endif %}{% if shareAlt %}<meta property="og:image:alt" content="{{ shareAlt }}" /><meta name="twitter:image:alt" content="{{ shareAlt }}" />{% endif %}{% endif %}
+  <link rel="canonical" href="{{ canon }}" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://coveredaccess.com{{ page.url }}" />
+  <meta property="og:url" content="{{ canon }}" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="theme-color" content="{{ theme.paper2 | safeColor("#FFEFDA") }}" />
   <link rel="alternate" type="application/atom+xml" title="{{ site.feedTitle }}" href="/feed.xml" />
