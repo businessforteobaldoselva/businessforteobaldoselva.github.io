@@ -1,0 +1,517 @@
+{
+ "schemaVersion": 1,
+ "build": {
+  "sha": null,
+  "branch": null,
+  "builtAt": "2026-01-01T00:00:00.000Z",
+  "prNumber": null
+ },
+ "schemaSha256": "bb3858ac5fdc750d8d317e7d75caa4128fd3d0998b1f25b9a0ccbcb5ee8d67df",
+ "files": {
+  "homepage": {
+   "path": "src/_data/homepage.json",
+   "data": {
+    "sections": [
+     {
+      "type": "hero",
+      "enabled": true
+     },
+     {
+      "type": "marquee",
+      "enabled": true,
+      "items": [
+       "Universities",
+       "Train stations",
+       "Stadiums",
+       "Festivals",
+       "Offices",
+       "Shopping centres",
+       "Airports",
+       "Schools",
+       "Community centres"
+      ],
+      "pauseLabel": "Pause scrolling venue list",
+      "screenReaderIntro": "Target venues include",
+      "screenReaderJoiner": "and",
+      "screenReaderEnd": "."
+     },
+     {
+      "type": "problem",
+      "enabled": true
+     },
+     {
+      "type": "model",
+      "enabled": true
+     },
+     {
+      "type": "how",
+      "enabled": true
+     },
+     {
+      "type": "brands",
+      "enabled": true
+     },
+     {
+      "type": "partners",
+      "enabled": true
+     },
+     {
+      "type": "venues",
+      "enabled": true
+     },
+     {
+      "type": "locations",
+      "enabled": true
+     },
+     {
+      "type": "vision",
+      "enabled": true
+     },
+     {
+      "type": "faq",
+      "enabled": true
+     },
+     {
+      "type": "cta",
+      "enabled": true,
+      "ariaLabel": "Get in touch",
+      "videoLabel": "COVERED brand animation: the word 'covered' turns bold letter by letter and a tampon drops in as the full stop",
+      "emailSubject": "COVERED — Hello",
+      "video": {
+       "src": "/videos/covered-ident.mp4",
+       "poster": "/videos/covered-ident-poster.jpg"
+      }
+     }
+    ]
+   }
+  },
+  "hero": {
+   "path": "src/_data/hero.json",
+   "data": {
+    "badge": "Pilot launching in Exeter, UK",
+    "headlineMain": "Free period products,",
+    "headlineAccent": "covered by ads — not women.",
+    "stamp": "We got you covered.",
+    "subhead": "Smart dispensers stocked with free, plastic-free period products, in the places people actually need them. No cost. No card. No catch. Brands fund it; everyone benefits.",
+    "ctaBrand": "I'm a brand - Advertise",
+    "ctaVenue": "I'm a venue - Host a unit",
+    "scrollText": "↓ Why this matters",
+    "sectionLabel": "Introduction"
+   }
+  },
+  "how": {
+   "path": "src/_data/how.json",
+   "data": {
+    "kicker": "How it works",
+    "title": "Scan. Check in. Watch. Covered.",
+    "subtitle": "Try it yourself — tap through the full experience we're building, right here.",
+    "demoNote": "During the Exeter pilot it's even simpler — take what you need, no scan required. Longer term, a gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more.",
+    "storyLabel": "How COVERED works, in four moments",
+    "story": [
+     {
+      "src": "/images/story-1-spot.jpg",
+      "title": "Spot it.",
+      "caption": "Machines live where you already are.",
+      "alt": "A COVERED dispenser wall-mounted in a warm tiled bathroom",
+      "decorative": false
+     },
+     {
+      "src": "/images/story-2-scan.jpg",
+      "title": "Scan and join.",
+      "caption": "A few taps. You're in.",
+      "alt": "A hand scanning the QR code on the dispenser's screen with a phone",
+      "decorative": false
+     },
+     {
+      "src": "/images/story-3-get.jpg",
+      "title": "Take what you need.",
+      "caption": "Dispensed. Free, obviously.",
+      "alt": "Close-up of a wrapped pack with an orange band sitting in the dispenser tray",
+      "decorative": false
+     },
+     {
+      "src": "/images/story-4-perks.jpg",
+      "title": "Perks incoming.",
+      "caption": "Brand treats land in your inbox.",
+      "alt": "A woman relaxing on a sofa, smiling at her phone",
+      "decorative": false
+     }
+    ],
+    "demo": {
+     "stepperLabel": "Demo progress",
+     "completedWord": "completed",
+     "machine": {
+      "ariaLabel": "Illustration of a COVERED wall-mounted dispenser",
+      "label": "Covered",
+      "packText": "4-PACK",
+      "stamp": "Covered."
+     },
+     "scan": {
+      "chip": "Scan the QR",
+      "title": "Need a pad or tampon?",
+      "text": "Scan the QR code on the machine to get started — it's free.",
+      "button": "Simulate scan"
+     },
+     "checkIn": {
+      "chip": "Quick check-in",
+      "title": "Quick check-in",
+      "text": "A phone number or email keeps things fair — never spam.",
+      "exampleEmail": "you@example.com",
+      "exampleEmailLabel": "Example email address",
+      "button": "Check in →"
+     },
+     "sponsor": {
+      "chip": "A word from our sponsor",
+      "title": "A word from our sponsor",
+      "adTag": "Sponsored",
+      "adText": "Your brand, here 👋",
+      "text": "This short moment pays for the product. Nice one, sponsors."
+     },
+     "done": {
+      "chip": "Covered.",
+      "stamp": "Covered.",
+      "title": "You're all set",
+      "text": "Grab your pack from the tray below. That's it — no cost, no card, no catch.",
+      "button": "Run the demo again"
+     }
+    }
+   }
+  },
+  "nav": {
+   "path": "src/_data/nav.json",
+   "data": {
+    "skipLink": "Skip to content",
+    "homeLabel": "COVERED home",
+    "menuLabel": "Toggle menu",
+    "backLabel": "Back to main site",
+    "items": [
+     {
+      "type": "section",
+      "label": "How it works",
+      "section": "how"
+     },
+     {
+      "type": "section",
+      "label": "Partners",
+      "section": "partners"
+     },
+     {
+      "type": "section",
+      "label": "For venues",
+      "section": "venues"
+     },
+     {
+      "type": "section",
+      "label": "Locations",
+      "section": "locations"
+     },
+     {
+      "type": "link",
+      "label": "About",
+      "url": "/about/"
+     },
+     {
+      "type": "section",
+      "label": "FAQ",
+      "section": "faq"
+     },
+     {
+      "type": "section",
+      "label": "Advertise with us",
+      "section": "brands",
+      "button": true
+     }
+    ]
+   }
+  },
+  "footer": {
+   "path": "src/_data/footer.json",
+   "data": {
+    "tagline": "Free period products, paid for by advertising. We got you covered.",
+    "columns": [
+     {
+      "heading": "Explore",
+      "ariaLabel": "Footer — explore",
+      "links": [
+       {
+        "type": "section",
+        "label": "The problem",
+        "section": "problem"
+       },
+       {
+        "type": "section",
+        "label": "How it works",
+        "section": "how"
+       },
+       {
+        "type": "section",
+        "label": "Locations",
+        "section": "locations"
+       },
+       {
+        "type": "section",
+        "label": "FAQ",
+        "section": "faq"
+       },
+       {
+        "type": "link",
+        "label": "About",
+        "url": "/about/"
+       },
+       {
+        "type": "link",
+        "label": "Privacy",
+        "url": "/privacy/"
+       }
+      ]
+     },
+     {
+      "heading": "Partner",
+      "ariaLabel": "Footer — partner",
+      "links": [
+       {
+        "type": "section",
+        "label": "Advertise with us",
+        "section": "brands"
+       },
+       {
+        "type": "section",
+        "label": "Partner wall",
+        "section": "partners"
+       },
+       {
+        "type": "section",
+        "label": "Host a dispenser",
+        "section": "venues"
+       },
+       {
+        "type": "email",
+        "label": "Contact"
+       }
+      ]
+     }
+    ],
+    "copyright": "© {year} COVERED. All rights reserved.",
+    "updatedLabel": "Last updated:",
+    "lastUpdated": "6 July 2026",
+    "signOff": "Built in the open, from Exeter",
+    "signOffEmoji": "💛",
+    "compactLinks": [
+     {
+      "type": "link",
+      "label": "Privacy",
+      "url": "/privacy/"
+     },
+     {
+      "type": "link",
+      "label": "About",
+      "url": "/about/"
+     },
+     {
+      "type": "link",
+      "label": "coveredaccess.com",
+      "url": "/"
+     }
+    ]
+   }
+  },
+  "site": {
+   "path": "src/_data/site.json",
+   "data": {
+    "pageTitle": "COVERED — Free Period Products, Paid for by Advertising",
+    "metaDescription": "COVERED puts smart dispensers full of free, plastic-free period products in the places people actually need them — funded entirely by advertising. We got you covered.",
+    "ogDescription": "Smart dispensers. Free period products. Funded by brands, not users. We got you covered.",
+    "contactEmail": "ameliaireland18@gmail.com",
+    "subpageTitle": "{title} — COVERED",
+    "feedTitle": "COVERED updates",
+    "shareImage": "/images/covered-og.jpg",
+    "schemaSlogan": "Free Period Products, Paid for by Advertising. We got you covered.",
+    "schemaDescription": "COVERED is a UK social enterprise that installs smart wall-mounted dispensers giving out free, plastic-free period products, funded entirely by brands advertising on the dispensers' 32-inch digital screens.",
+    "schemaPlace": "Exeter, United Kingdom",
+    "ctaBannerTitle": "Let's get everyone covered.",
+    "ctaBannerText": "Advertise with purpose, host a dispenser, or just say hello — we'd love to hear from you.",
+    "ctaBannerButton": "✉️ Say hello"
+   }
+  },
+  "theme": {
+   "path": "src/_data/theme.json",
+   "data": {
+    "paper": "#FFF8EC",
+    "paper2": "#FFEFDA",
+    "bandGrass": "#EEF4CC",
+    "bandLav": "#FFECD3",
+    "bandRosa": "#FBE3C6",
+    "peach": "#FBD9B3",
+    "ink": "#2F4D19",
+    "inkDeep": "#1C3110",
+    "inkSoft": "#3D5A28",
+    "muted": "#566B42",
+    "accent": "#FC7130",
+    "accentDeep": "#BB4A12",
+    "accentDark": "#963A0B",
+    "kickerBand": "#963A0B",
+    "grass": "#6E8B2E",
+    "grassDark": "#4C6720",
+    "lavender": "#E2F099"
+   }
+  },
+  "faq": {
+   "path": "src/_data/faq.json",
+   "data": {
+    "kicker": "Questions",
+    "title": "Fair enough — ask away.",
+    "items": [
+     {
+      "q": "What is COVERED?",
+      "a": "COVERED is a UK social enterprise that installs smart dispensers giving out free, plastic-free period products. The service is funded entirely by brands advertising on the dispensers' 32-inch screens — users pay nothing, venues host for free, and advertisers fund the products. The first pilot launches in Exeter."
+     },
+     {
+      "q": "Is it really free? What's the catch?",
+      "a": "Really free — no coins, no cards, no subscriptions. Advertisers pay for the ad space on our screens and packaging, and that revenue covers the products, the machines and the restocking. The only \"catch\" is a short sponsor message while the machine dispenses."
+     },
+     {
+      "q": "What products do the machines dispense?",
+      "a": "High-quality, plastic-free and biodegradable pads and tampons, dispensed in convenient 4-packs. Good for you, better for the planet."
+     },
+     {
+      "q": "Who can use the dispensers?",
+      "a": "Anyone who needs period products — students, commuters, visitors, anyone caught off guard. A gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more if you need it."
+     },
+     {
+      "q": "What happens with my data?",
+      "a": "We're building to UK GDPR and PECR standards from day one — privacy by design. Marketing consent is always a separate, un-ticked opt-in, and you keep full control of your data, including the right to erasure. Our initial pilot collects no personal data at all."
+     },
+     {
+      "q": "What kind of ads will be shown?",
+      "a": "Brand-safe only. Think beauty, wellness, fashion, food and student services — never adult, gambling, political or otherwise sensitive content. Venues approve the environment their visitors experience."
+     },
+     {
+      "q": "I'd love to help — what can I do?",
+      "a": "If you run a venue, host a unit. If you work with a brand, tell your marketing team about us. And if you just like the idea — follow the journey when our channels launch, and spread the word."
+     }
+    ]
+   }
+  },
+  "problem": {
+   "path": "src/_data/problem.json",
+   "data": {
+    "kicker": "The problem",
+    "title": "Period poverty is real —<br />and it's happening here.",
+    "subtitle": "In the UK today, more than one in ten women and people who menstruate struggled to afford period products in the last year. Behind that number are impossible choices no one should have to make.",
+    "manifesto": "A period can start in a lecture, on a shift, halfway through a match. What happens next shouldn't depend on the coins in your pocket. So we're putting the answer on the wall — *free*, for everyone, no questions asked. *Period.*",
+    "manifestoPhoto": {
+     "src": "/images/story-3-get.jpg",
+     "alt": "A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall",
+     "decorative": false
+    },
+    "stats": [
+     {
+      "number": 11,
+      "suffix": "%",
+      "label": "struggled to afford period products for themselves or a dependent in the last year"
+     },
+     {
+      "number": 64,
+      "suffix": "%",
+      "label": "of those had to prioritise buying food instead"
+     },
+     {
+      "number": 36,
+      "suffix": "%",
+      "label": "of those wore single-use pads or tampons for longer, risking infection"
+     },
+     {
+      "number": 22,
+      "suffix": "%",
+      "label": "of those stayed at home as a result — shut out of work, school and daily life"
+     }
+    ],
+    "sourceLabel": "Source:",
+    "sourceText": "ActionAid UK period poverty polling",
+    "sourceUrl": "https://www.actionaid.org.uk/latest-news/new-uk-period-poverty-poll-one-10-struggle-afford-period-products",
+    "photos": [
+     {
+      "src": "images/story-4-perks.jpg",
+      "alt": "A woman relaxing on a sofa smiling at her phone — no one should have to sit life out",
+      "decorative": false,
+      "caption": "No one should have to sit life out.",
+      "tilt": -3
+     },
+     {
+      "src": "images/flatlay-products.jpg",
+      "alt": "Plastic-free pads and a tampon in paper wrappers on a warm peach background — the products COVERED dispenses free",
+      "decorative": false,
+      "caption": "Plastic-free. Biodegradable. Free.",
+      "tilt": 2
+     },
+     {
+      "src": "images/venue-campus.jpg",
+      "alt": "A COVERED dispenser in a bright university corridor — the high-footfall venues where dispensers live",
+      "decorative": false,
+      "caption": "Right where people actually are.",
+      "tilt": -1.5
+     }
+    ]
+   }
+  },
+  "motion": {
+   "path": "src/_data/motion.json",
+   "data": {
+    "enabled": true,
+    "speed": "normal",
+    "reveal": "rise",
+    "heroIntro": true,
+    "floatingHearts": true,
+    "marquee": true,
+    "counters": true,
+    "conveyor": true,
+    "mapPinDrop": true,
+    "confetti": true,
+    "scrollProgress": true
+   }
+  },
+  "pages:about": {
+   "path": "src/pages/about.md",
+   "data": {
+    "title": "About us",
+    "permalink": "/about/",
+    "description": "COVERED is a UK social enterprise giving out free, plastic-free period products from smart dispensers — funded entirely by advertising.",
+    "layout": "page.njk",
+    "sections": [
+     {
+      "type": "hero",
+      "heading": "We're covering the UK,",
+      "accent": "one dispenser at a time.",
+      "sub": "COVERED is a social enterprise built on a simple swap: brands pay for attention, and that money puts free period products where people actually need them.",
+      "ctaText": "See how it works",
+      "ctaLink": "/#how"
+     },
+     {
+      "type": "text",
+      "kicker": "Our story",
+      "heading": "Started in Exeter. Built in the open.",
+      "body": "COVERED began with a stubborn question: why, in 2026, is anyone still caught without a pad or tampon when they need one?\n\nMore than one in ten UK women and people who menstruate struggled to afford period products in the last year. We think the fix isn't charity boxes or coin slots — it's a business model where someone else happily pays. Brands want real attention in real places. We have dispensers in exactly those places. The maths does the rest."
+     },
+     {
+      "type": "imageText",
+      "image": "/images/pads-beige.jpg",
+      "alt": "Plastic-free pads — the products COVERED dispenses free of charge",
+      "decorative": false,
+      "caption": "Plastic-free. Biodegradable. Free.",
+      "heading": "What we hand out",
+      "body": "High-quality, plastic-free and biodegradable pads and tampons, in convenient 4-packs. Good for you, better for the planet — and always free to the person who needs them.",
+      "imageRight": true
+     },
+     {
+      "type": "banner",
+      "title": "Want to be part of it?",
+      "text": "Host a dispenser, advertise with purpose, or just spread the word.",
+      "buttonText": "Get in touch",
+      "buttonLink": "/#brands"
+     }
+    ],
+    "_body": ""
+   }
+  }
+ }
+}

@@ -1,11 +1,11 @@
 {% import "picture.njk" as pic %}
     <!-- ============ HOW IT WORKS / DEMO ============ -->
-    <section id="how" aria-labelledby="how-title">
+    <section id="how" aria-labelledby="how-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ how.kicker }}</span>
-          <h2 class="section-title" id="how-title">{{ how.title }}</h2>
-          <p class="section-sub" style="margin: 0 auto;">
+          <span class="kicker"{% cms "how.kicker", "text" %}>{{ how.kicker }}</span>
+          <h2 class="section-title" id="how-title"{% cms "how.title", "text" %}>{{ how.title }}</h2>
+          <p class="section-sub" style="margin: 0 auto;"{% cms "how.subtitle", "longtext" %}>
             {{ how.subtitle }}
           </p>
         </div>
@@ -14,21 +14,21 @@
         <div class="story-strip reveal" role="list" aria-label="{{ how.storyLabel }}">
           {%- for s in how.story %}
           {%- set im = s.src | imageInfo %}
-          <figure class="story-card" role="listitem">
+          <figure class="story-card" role="listitem"{% cms "how.story." + loop.index0, "item" %}>
             {%- if im.src %}
-            {{ pic.picture(im, s.alt, s.decorative, "(max-width: 780px) 46vw, 270px") }}
+            {{ pic.picture(im, s.alt, s.decorative, "(max-width: 780px) 46vw, 270px", false, "how.story." + loop.index0 + ".src", "how.story." + loop.index0 + ".alt", "how.story." + loop.index0 + ".decorative") }}
             {%- endif %}
-            <figcaption><strong>{{ s.title }}</strong><span>{{ s.caption }}</span></figcaption>
+            <figcaption><strong{% cms "how.story." + loop.index0 + ".title", "text" %}>{{ s.title }}</strong><span{% cms "how.story." + loop.index0 + ".caption", "text" %}>{{ s.caption }}</span></figcaption>
           </figure>
           {%- endfor %}
         </div>
         {%- endif %}
 
         <ol class="stepper reveal" id="stepper" aria-label="{{ how.demo.stepperLabel }}">
-          <li class="step-chip active" data-step="0" aria-current="step"><span class="n" aria-hidden="true">1</span> {{ how.demo.scan.chip }}</li>
-          <li class="step-chip" data-step="1"><span class="n" aria-hidden="true">2</span> {{ how.demo.checkIn.chip }}</li>
-          <li class="step-chip" data-step="2"><span class="n" aria-hidden="true">3</span> {{ how.demo.sponsor.chip }}</li>
-          <li class="step-chip" data-step="3"><span class="n" aria-hidden="true">4</span> {{ how.demo.done.chip }}</li>
+          <li class="step-chip active" data-step="0" aria-current="step"{% cms "how.demo.scan.chip", "text" %}><span class="n" aria-hidden="true">1</span> {{ how.demo.scan.chip }}</li>
+          <li class="step-chip" data-step="1"{% cms "how.demo.checkIn.chip", "text" %}><span class="n" aria-hidden="true">2</span> {{ how.demo.checkIn.chip }}</li>
+          <li class="step-chip" data-step="2"{% cms "how.demo.sponsor.chip", "text" %}><span class="n" aria-hidden="true">3</span> {{ how.demo.sponsor.chip }}</li>
+          <li class="step-chip" data-step="3"{% cms "how.demo.done.chip", "text" %}><span class="n" aria-hidden="true">4</span> {{ how.demo.done.chip }}</li>
         </ol>
 
         <div class="demo-card reveal">
@@ -39,25 +39,25 @@
               <div class="m-screen" id="machineScreen">
                 <div class="qr" aria-hidden="true"></div>
               </div>
-              <div class="m-label">{{ how.demo.machine.label }}</div>
+              <div class="m-label"{% cms "how.demo.machine.label", "text" %}>{{ how.demo.machine.label }}</div>
               <div class="m-slot" id="machineSlot">
-                <div class="pack" id="pack">{{ how.demo.machine.packText }}</div>
+                <div class="pack" id="pack"{% cms "how.demo.machine.packText", "text" %}>{{ how.demo.machine.packText }}</div>
               </div>
             </div>
-            <span class="stamp machine-stamp" id="machineStamp">{{ how.demo.machine.stamp }}</span>
+            <span class="stamp machine-stamp" id="machineStamp"{% cms "how.demo.machine.stamp", "text" %}>{{ how.demo.machine.stamp }}</span>
           </div>
 
           <!-- Phone -->
           <div class="phone">
             <div class="p-screen" id="phoneScreen" aria-live="polite" tabindex="-1">
-              <h3>{{ how.demo.scan.title }}</h3>
-              <p>{{ how.demo.scan.text }}</p>
-              <button class="btn btn-primary" id="btnScan">{{ how.demo.scan.button }}</button>
+              <h3{% cms "how.demo.scan.title", "text" %}>{{ how.demo.scan.title }}</h3>
+              <p{% cms "how.demo.scan.text", "longtext" %}>{{ how.demo.scan.text }}</p>
+              <button class="btn btn-primary" id="btnScan"{% cms "how.demo.scan.button", "text" %}>{{ how.demo.scan.button }}</button>
             </div>
           </div>
         </div>
 
-        <p class="demo-note">
+        <p class="demo-note"{% cms "how.demoNote", "longtext" %}>
           {{ how.demoNote }}
         </p>
       </div>

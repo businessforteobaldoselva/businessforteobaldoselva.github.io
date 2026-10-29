@@ -20,7 +20,7 @@
   <link rel="preload" href="/fonts/open-sauce-one-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/assets/site.css" />
 </head>
-<body>
+<body{% cms "theme.paper", "color", { cssvar: "--paper" } %}>
 
   {% include "chrome/skip-link.njk" %}
 
@@ -28,6 +28,8 @@
 
   <main id="top">
     {%- for block in sections %}
+      {%- set blockRef = "pages:" + page.fileSlug + ".sections." + loop.index0 %}
+      {%- set blockKind = "item" %}
 
       {%- if block.type == "hero" %}
 {% include "blocks/hero.njk" %}

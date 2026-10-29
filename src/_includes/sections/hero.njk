@@ -26,7 +26,7 @@
              data-dir="/frames/desktop" data-count="145" data-pad="4" data-ext="jpg"
              data-mdir="/frames/mobile" data-mcount="121"
              data-scroll="1" data-shift="0.18" data-focal="0.55" data-smooth="0.11"
-             data-stamp="0.78">
+             data-stamp="0.78"{% cms blockRef, blockKind %}>
       <div class="hero-pin">
         <canvas class="hero-bg" aria-hidden="true"></canvas>
         <noscript><img class="hero-bg hero-bg-poster" src="/frames/desktop/frame_0001.jpg" alt="" aria-hidden="true" /></noscript>
@@ -34,14 +34,14 @@
 
         <div class="container hero-inner">
           <div class="hero-copy">
-            <span class="hero-badge"><span class="dot-pulse" aria-hidden="true"></span> {{ hero.badge }}</span>
-            <h1>{{ hero.headlineMain }} <span class="accent">{{ hero.headlineAccent }}</span></h1>
+            <span class="hero-badge"{% cms "hero.badge", "text" %}><span class="dot-pulse" aria-hidden="true"></span> {{ hero.badge }}</span>
+            <h1{% cms "hero.headlineMain", "text" %}>{{ hero.headlineMain }} <span class="accent"{% cms "hero.headlineAccent", "text" %}>{{ hero.headlineAccent }}</span></h1>
 
             <div class="hero-stamp-row">
-              <span class="stamp" id="heroStamp">{{ hero.stamp }}</span>
+              <span class="stamp" id="heroStamp"{% cms "hero.stamp", "text" %}>{{ hero.stamp }}</span>
             </div>
 
-            <p class="hero-sub">
+            <p class="hero-sub"{% cms "hero.subhead", "longtext" %}>
               {{ hero.subhead }}
             </p>
 
@@ -49,12 +49,12 @@
             {%- set heroVenuesOn = homepage | sectionEnabled("venues") %}
             {%- if heroBrandsOn or heroVenuesOn %}
             <div class="hero-ctas">
-              {% if heroBrandsOn %}<a href="#brands" class="btn btn-primary">{{ hero.ctaBrand }}</a>{% endif %}
-              {% if heroVenuesOn %}<a href="#venues" class="btn btn-outline">{{ hero.ctaVenue }}</a>{% endif %}
+              {% if heroBrandsOn %}<a href="#brands" class="btn btn-primary"{% cms "hero.ctaBrand", "text" %}>{{ hero.ctaBrand }}</a>{% endif %}
+              {% if heroVenuesOn %}<a href="#venues" class="btn btn-outline"{% cms "hero.ctaVenue", "text" %}>{{ hero.ctaVenue }}</a>{% endif %}
             </div>
             {%- endif %}
 
-            {% if homepage | sectionEnabled("problem") %}<p class="hero-scroll"><a href="#problem">{{ hero.scrollText }}</a></p>{% endif %}
+            {% if homepage | sectionEnabled("problem") %}<p class="hero-scroll"><a href="#problem"{% cms "hero.scrollText", "text" %}>{{ hero.scrollText }}</a></p>{% endif %}
           </div>
         </div>
       </div>

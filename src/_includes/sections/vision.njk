@@ -1,38 +1,38 @@
 {% import "forms/enquiry-form.njk" as ef %}
     <!-- ============ VISION ============ -->
-    <section class="vision-band texture-dots" aria-labelledby="vision-title">
+    <section class="vision-band texture-dots" aria-labelledby="vision-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ vision.kicker }}</span>
-          <h2 class="section-title" id="vision-title">{{ vision.title | safeTitle | safe }}</h2>
+          <span class="kicker"{% cms "vision.kicker", "text" %}>{{ vision.kicker }}</span>
+          <h2 class="section-title" id="vision-title"{% cms "vision.title", "text" %}>{{ vision.title | safeTitle | safe }}</h2>
         </div>
 
         <div class="timeline">
           {%- for m in vision.milestones %}
-          <div class="milestone reveal">
-            <span class="phase-tag">{{ m.tag }}</span>
-            <h3>{{ m.title }}</h3>
-            <p>{{ m.desc }}</p>
+          <div class="milestone reveal"{% cms "vision.milestones." + loop.index0, "item" %}>
+            <span class="phase-tag"{% cms "vision.milestones." + loop.index0 + ".tag", "text" %}>{{ m.tag }}</span>
+            <h3{% cms "vision.milestones." + loop.index0 + ".title", "text" %}>{{ m.title }}</h3>
+            <p{% cms "vision.milestones." + loop.index0 + ".desc", "longtext" %}>{{ m.desc }}</p>
           </div>
           {%- endfor %}
         </div>
 
         <div class="bip reveal">
-          <h3>{{ vision.bipTitle }}</h3>
-          <p>
+          <h3{% cms "vision.bipTitle", "text" %}>{{ vision.bipTitle }}</h3>
+          <p{% cms "vision.bipText", "longtext" %}>
             {{ vision.bipText }}
           </p>
           <div class="soon-chips">
             {%- for chip in vision.soonChips %}
-            <span class="chip">{{ chip }}</span>
+            <span class="chip"{% cms "vision.soonChips." + loop.index0, "text" %}>{{ chip }}</span>
             {%- endfor %}
           </div>
           <form name="launch-notify" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="notify-form" id="notifyForm">
             <input type="hidden" name="form-name" value="launch-notify" />
             {{ ef.honeypot() }}
-            <label class="visually-hidden" for="nEmail">{{ vision.notify.label }}</label>
+            <label class="visually-hidden" for="nEmail"{% cms "vision.notify.label", "text" %}>{{ vision.notify.label }}</label>
             <input id="nEmail" type="email" name="email" required placeholder="{{ vision.notify.placeholder }}" autocomplete="email" />
-            <button class="btn btn-primary" type="submit">{{ vision.notify.button }}</button>
+            <button class="btn btn-primary" type="submit"{% cms "vision.notify.button", "text" %}>{{ vision.notify.button }}</button>
           </form>
         </div>
       </div>

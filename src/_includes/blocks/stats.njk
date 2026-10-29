@@ -1,11 +1,11 @@
-    <section{% if block.anchor | safeAnchor %} id="{{ block.anchor | safeAnchor }}"{% endif %}>
+    <section{% if block.anchor | safeAnchor %} id="{{ block.anchor | safeAnchor }}"{% endif %}{% cms blockRef, blockKind %}>
       <div class="container">
-        {% if block.heading %}<h2 class="section-title" style="text-align: center;">{{ block.heading }}</h2>{% endif %}
+        {% if block.heading %}<h2 class="section-title" style="text-align: center;"{% cms blockRef + ".heading", "text" %}>{{ block.heading }}</h2>{% endif %}
         <div class="stats-grid">
           {%- for item in block.items %}
-          <div class="stat-card">
-            <div class="stat-num">{{ item.number }}</div>
-            <p class="stat-label">{{ item.label }}</p>
+          <div class="stat-card"{% cms blockRef + ".items." + loop.index0, "item" %}>
+            <div class="stat-num"{% cms blockRef + ".items." + loop.index0 + ".number", "text" %}>{{ item.number }}</div>
+            <p class="stat-label"{% cms blockRef + ".items." + loop.index0 + ".label", "text" %}>{{ item.label }}</p>
           </div>
           {%- endfor %}
         </div>
