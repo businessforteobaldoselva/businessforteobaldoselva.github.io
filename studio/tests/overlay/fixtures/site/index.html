@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio overlay fixture</title>
+<style>
+:root { --paper: #FFEFDA; --ink: #2F4D19; }
+body { margin: 0; font: 18px/1.5 Georgia, serif; background: var(--paper); color: var(--ink); }
+section { padding: 40px 24px; border-bottom: 1px solid #0002; }
+img { max-width: 320px; height: 200px; object-fit: cover; display: block; }
+figure { margin: 0 0 16px; }
+a { color: inherit; }
+.card-row { display: flex; gap: 16px; flex-wrap: wrap; }
+#swatch { width: 120px; height: 60px; background: var(--paper); border: 1px solid #000; }
+</style>
+</head>
+<body>
+<main>
+  <section id="hero" data-cms="homepage.sections.0" data-cms-kind="section">
+    <h1 id="h1" data-cms="hero.headlineMain" data-cms-kind="text">We're covering the UK,</h1>
+    <h2 id="mix" data-cms="hero.badge" data-cms-kind="text">Now in 12 venues <span id="accent" data-cms="hero.headlineAccent" data-cms-kind="text">one venue at a time</span></h2>
+    <p id="sub" data-cms="hero.subhead" data-cms-kind="longtext">Free sanitary products, paid for by brands.</p>
+    <p><a id="cta" href="/#faq" data-cms="hero.ctaText" data-cms-kind="text" data-cms-href="hero.ctaLink">Join the waitlist</a></p>
+  </section>
+  <section id="how" data-cms="homepage.sections.1" data-cms-kind="section">
+    <h2 id="how-title" data-cms="how.title" data-cms-kind="text">How it works</h2>
+    <div class="card-row">
+      <figure id="card0" data-cms="how.story.0" data-cms-kind="item"><picture><source srcset="/images/story-1.svg 400w" type="image/svg+xml"><img id="img0" data-cms="how.story.0.image" data-cms-kind="image" data-cms-alt="how.story.0.alt" data-cms-decorative="how.story.0.decorative" src="/images/story-1.svg" alt="A dispenser in a bathroom"></picture><figcaption><strong id="t0" data-cms="how.story.0.title" data-cms-kind="text">Step one</strong></figcaption></figure>
+      <figure id="card1" data-cms="how.story.1" data-cms-kind="item"><img id="img1" data-cms="how.story.1.image" data-cms-kind="image" data-cms-alt="how.story.1.alt" data-cms-decorative="how.story.1.decorative" src="/images/story-2.svg" alt="A phone showing an advert"><figcaption><strong id="t1" data-cms="how.story.1.title" data-cms-kind="text">Step two</strong></figcaption></figure>
+      <figure id="card2" data-cms="how.story.2" data-cms-kind="item"><img id="img2" data-cms="how.story.2.image" data-cms-kind="image" data-cms-alt="how.story.2.alt" data-cms-decorative="how.story.2.decorative" src="/images/story-3.svg" alt="A smiling student"><figcaption><strong id="t2" data-cms="how.story.2.title" data-cms-kind="text">Step three</strong></figcaption></figure>
+    </div>
+  </section>
+  <section id="faq" data-cms="homepage.sections.2" data-cms-kind="section">
+    <h2 id="faq-title" data-cms="faq.title" data-cms-kind="text">Questions</h2>
+    <div data-cms="faq.items.0" data-cms-kind="item"><h3 id="q0" data-cms="faq.items.0.q" data-cms-kind="text">Is it free?</h3><p id="a0" data-cms="faq.items.0.a" data-cms-kind="longtext">Yes, always.</p></div>
+    <div data-cms="faq.items.1" data-cms-kind="item"><h3 id="q1" data-cms="faq.items.1.q" data-cms-kind="text">Who pays?</h3><p id="a1" data-cms="faq.items.1.a" data-cms-kind="longtext">Brands.</p></div>
+  </section>
+  <section id="problem" data-cms="homepage.sections.3" data-cms-kind="section">
+    <h2 id="prob-title" data-cms="problem.title" data-cms-kind="text">Too many people<br />go without</h2>
+    <div id="swatch" data-cms="theme.paper" data-cms-kind="color" data-cms-cssvar="--paper"></div>
+    <div id="md" data-cms="pages:about._body" data-cms-kind="markdown"><p>We are <strong>COVERED</strong>.</p><ul><li>free</li><li>fair</li></ul></div>
+  </section>
+</main>
+<script src="/studio/overlay.js" defer data-studio data-api="__API__" data-app="__API__" data-content="/studio/content.json"></script>
+</body>
+</html>

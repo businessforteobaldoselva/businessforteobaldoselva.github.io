@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "build": {
+    "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "branch": "main",
+    "builtAt": "2026-10-29T10:00:00Z",
+    "prNumber": null
+  },
+  "schemaSha256": "fixture-sha",
+  "files": {
+    "hero": {
+      "path": "src/_data/hero.json",
+      "data": {
+        "badge": "Now in 12 venues",
+        "headlineMain": "We're covering the UK,",
+        "headlineAccent": "one venue at a time",
+        "subhead": "Free sanitary products, paid for by brands.",
+        "ctaText": "Join the waitlist",
+        "ctaLink": "/#faq"
+      }
+    },
+    "homepage": {
+      "path": "src/_data/homepage.json",
+      "data": {
+        "sections": [
+          {
+            "type": "hero",
+            "enabled": true
+          },
+          {
+            "type": "how",
+            "enabled": true
+          },
+          {
+            "type": "faq",
+            "enabled": true
+          },
+          {
+            "type": "problem",
+            "enabled": true
+          }
+        ]
+      }
+    },
+    "how": {
+      "path": "src/_data/how.json",
+      "data": {
+        "title": "How it works",
+        "story": [
+          {
+            "title": "Step one",
+            "image": "story-1.svg",
+            "alt": "A dispenser in a bathroom"
+          },
+          {
+            "title": "Step two",
+            "image": "story-2.svg",
+            "alt": "A phone showing an advert"
+          },
+          {
+            "title": "Step three",
+            "image": "story-3.svg",
+            "alt": "A smiling student"
+          }
+        ]
+      }
+    },
+    "faq": {
+      "path": "src/_data/faq.json",
+      "data": {
+        "title": "Questions",
+        "items": [
+          {
+            "q": "Is it free?",
+            "a": "Yes, always."
+          },
+          {
+            "q": "Who pays?",
+            "a": "Brands."
+          }
+        ]
+      }
+    },
+    "problem": {
+      "path": "src/_data/problem.json",
+      "data": {
+        "title": "Too many people<br />go without"
+      }
+    },
+    "theme": {
+      "path": "src/_data/theme.json",
+      "data": {
+        "paper": "#FFEFDA",
+        "ink": "#2F4D19"
+      }
+    },
+    "site": {
+      "path": "src/_data/site.json",
+      "data": {
+        "pageTitle": "COVERED",
+        "contactEmail": "hello@example.test",
+        "metaDescription": "Free period products."
+      }
+    },
+    "pages:about": {
+      "path": "src/pages/about.md",
+      "data": {
+        "title": "About us",
+        "_body": "We are **COVERED**.\n\n- free\n- fair"
+      }
+    }
+  }
+}
