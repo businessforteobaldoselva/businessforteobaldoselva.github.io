@@ -5,7 +5,8 @@
   "manifesto": "A period can start in a lecture, on a shift, halfway through a match. What happens next shouldn't depend on the coins in your pocket. So we're putting the answer on the wall — *free*, for everyone, no questions asked. *Period.*",
   "manifestoPhoto": {
     "src": "/images/story-3-get.jpg",
-    "alt": "A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall"
+    "alt": "A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall",
+    "decorative": false
   },
   "stats": [
     {
@@ -36,18 +37,21 @@
     {
       "src": "images/story-4-perks.jpg",
       "alt": "A woman relaxing on a sofa smiling at her phone — no one should have to sit life out",
+      "decorative": false,
       "caption": "No one should have to sit life out.",
       "tilt": -3
     },
     {
       "src": "images/flatlay-products.jpg",
       "alt": "Plastic-free pads and a tampon in paper wrappers on a warm peach background — the products COVERED dispenses free",
+      "decorative": false,
       "caption": "Plastic-free. Biodegradable. Free.",
       "tilt": 2
     },
     {
       "src": "images/venue-campus.jpg",
       "alt": "A COVERED dispenser in a bright university corridor — the high-footfall venues where dispensers live",
+      "decorative": false,
       "caption": "Right where people actually are.",
       "tilt": -1.5
     }

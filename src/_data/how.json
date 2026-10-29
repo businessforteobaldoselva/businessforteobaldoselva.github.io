@@ -9,25 +9,29 @@
       "src": "/images/story-1-spot.jpg",
       "title": "Spot it.",
       "caption": "Machines live where you already are.",
-      "alt": "A COVERED dispenser wall-mounted in a warm tiled bathroom"
+      "alt": "A COVERED dispenser wall-mounted in a warm tiled bathroom",
+      "decorative": false
     },
     {
       "src": "/images/story-2-scan.jpg",
       "title": "Scan and join.",
       "caption": "A few taps. You're in.",
-      "alt": "A hand scanning the QR code on the dispenser's screen with a phone"
+      "alt": "A hand scanning the QR code on the dispenser's screen with a phone",
+      "decorative": false
     },
     {
       "src": "/images/story-3-get.jpg",
       "title": "Take what you need.",
       "caption": "Dispensed. Free, obviously.",
-      "alt": "Close-up of a wrapped pack with an orange band sitting in the dispenser tray"
+      "alt": "Close-up of a wrapped pack with an orange band sitting in the dispenser tray",
+      "decorative": false
     },
     {
       "src": "/images/story-4-perks.jpg",
       "title": "Perks incoming.",
       "caption": "Brand treats land in your inbox.",
-      "alt": "A woman relaxing on a sofa, smiling at her phone"
+      "alt": "A woman relaxing on a sofa, smiling at her phone",
+      "decorative": false
     }
   ],
   "demo": {

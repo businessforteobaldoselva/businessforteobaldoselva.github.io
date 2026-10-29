@@ -6,6 +6,7 @@
 
 const fs = require("fs");
 const vm = require("vm");
+const path = require("path");
 
 function makeH() {
   return function h(tag, props, ...kids) {
@@ -75,7 +76,20 @@ function loadPreviews(file) {
     registerEventListener() {},
   };
   const sandbox = { CMS, createClass: (s) => s, h: makeH(), console, window: {} };
-  vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file, timeout: 5000 });
+  vm.createContext(sandbox);
+  // cms/index.html loads contrast.js (a plain script that defines window.CoveredContrast) before previews.js
+  const contrast = path.join(path.dirname(file), "contrast.js");
+  if (fs.existsSync(contrast)) {
+    vm.runInContext(fs.readFileSync(contrast, "utf8"), sandbox, { filename: contrast, timeout: 5000 });
+    sandbox.window.CoveredContrast = sandbox.CoveredContrast;
+  }
+  // ... and redirect-rules.js (window.CoveredRedirects): the same rule checker the build uses
+  const redirects = path.join(path.dirname(file), "redirect-rules.js");
+  if (fs.existsSync(redirects)) {
+    vm.runInContext(fs.readFileSync(redirects, "utf8"), sandbox, { filename: redirects, timeout: 5000 });
+    sandbox.window.CoveredRedirects = sandbox.CoveredRedirects;
+  }
+  vm.runInContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file, timeout: 5000 });
   return { templates, styles };
 }
 

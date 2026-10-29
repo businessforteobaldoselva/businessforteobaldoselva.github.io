@@ -28,18 +28,21 @@
     {
       "src": "images/venue-pub.jpg",
       "alt": "A COVERED dispenser mounted on dark wood panelling in a British pub corridor",
+      "decorative": false,
       "caption": "At home in the local.",
       "tilt": -2
     },
     {
       "src": "images/venue-station.jpg",
       "alt": "A COVERED dispenser in a busy railway station concourse, departures board glowing behind blurred commuters",
+      "decorative": false,
       "caption": "There for the rush hour.",
       "tilt": 1.2
     },
     {
       "src": "images/venue-gym.jpg",
       "alt": "A COVERED dispenser in a modern gym changing area beside lockers",
+      "decorative": false,
       "caption": "Right by the lockers.",
       "tilt": -1.5
     }

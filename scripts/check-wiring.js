@@ -44,7 +44,7 @@ function main() {
   for (const s of sources) refs[s.name] = s.data;
   const allow = new AllowList(exists(allowFile) ? readJson(allowFile) : {}, refs);
 
-  const plan = makePlan(sources, cfg, (name, schema, check, injected) => ignore.match(name, schema, check, injected), { switches: true });
+  const plan = makePlan(sources, cfg, (name, schema, check, injected, kind) => ignore.match(name, schema, check, injected, kind), { switches: true });
   for (const f of plan.missingEntry) report.add("CMS coverage", f + " has no entry in cms/config.yml, so its text cannot be tested (and cannot be edited)");
 
   const workspaces = [];

@@ -102,8 +102,11 @@ class Corpus {
     return null;
   }
 
-  // A picture / video path on a built page: the editable path itself, or a WebP sibling the site
-  // derives from an editable .jpg / .png path (x.webp, x-480.webp). The site's own origin is ignored.
+  // A picture / video path on a built page: the editable path itself, a WebP sibling the site
+  // derives from an editable .jpg / .png path (x.webp, x-480.webp), or a picture the image pipeline
+  // generated from an editable one: /img/<name>-<10-char content hash>-<width>.<avif|webp|jpeg|png>
+  // (lib/eleventy/images.js), whose <name> must be the file name of a picture held in the data.
+  // The site's own origin is ignored.
   hasMedia(url) {
     let p = String(url).trim().split(/[?#]/)[0].replace(/^https?:\/\/(www\.)?coveredaccess\.com/i, "");
     p = p.replace(/^\/+/, "");
@@ -111,6 +114,13 @@ class Corpus {
     const m = /^(.*?)(-480)?\.webp$/i.exec(p);
     if (m) for (const ext of [".jpg", ".jpeg", ".png", ".webp"]) stems.push(m[1] + ext);
     for (const s of stems) if (this.exact.has(norm(s)) || this.exact.has(norm("/" + s))) return true;
+    const g = /^img\/(.+)-[A-Za-z0-9_-]{10}-\d+\.(avif|webp|jpe?g|png)$/i.exec(p);
+    if (g) {
+      for (const e of this.exact) {
+        const base = e.split("/").pop();
+        if (/\.(jpe?g|png|webp)$/i.test(base) && base.replace(/\.[^.]+$/, "") === norm(g[1])) return true;
+      }
+    }
     return false;
   }
 

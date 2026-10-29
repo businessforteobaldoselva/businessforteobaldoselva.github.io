@@ -13,6 +13,7 @@ const { widgetOf, listItemFields, contentCollections } = require("./cmsconfig");
 const { schemaPath, pathString, setAt, getAt, joinFrontMatter, leaves } = require("./data");
 const { listFiles, toPosix, readText } = require("./util");
 const { proseKind } = require("./prose");
+const REDIRECT_RULES = require("../../cms/redirect-rules.js");
 
 const TOKEN_RE = /wiretk\d{5}x/gi;
 const MEDIA_RE = /^\/?(images|videos)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp|gif|avif|svg|mp4|webm|m4v)$/i;
@@ -38,7 +39,13 @@ function sentinelValue(tok, orig, field) {
   const name = (field && field.name) || "";
   if (MEDIA_WIDGETS.has(w) || (typeof orig === "string" && MEDIA_RE.test(orig))) return { kind: "media" };
   if (typeof orig === "string") {
-    if (/^https?:\/\//i.test(orig)) return { kind: "text", value: "https://" + tok + ".example/" };
+    if (/^https?:\/\//i.test(orig)) {
+      // a website on the redirects' approved list (cms/redirect-rules.js) keeps its host, because a redirect to any other
+      // host is dropped by the build; the token goes into the path instead
+      const host = (/^https:\/\/([A-Za-z0-9.-]+)(?:[/?#]|$)/.exec(orig) || [])[1];
+      if (host && Object.prototype.hasOwnProperty.call(REDIRECT_RULES.EXTERNAL_HOSTS, host.toLowerCase())) return { kind: "text", value: "https://" + host.toLowerCase() + "/" + tok };
+      return { kind: "text", value: "https://" + tok + ".example/" };
+    }
     if (/^mailto:/i.test(orig)) return { kind: "text", value: "mailto:" + tok + "@example.com" };
     if (/^#./.test(orig)) return { kind: "text", value: "#" + tok };
     if (/^\/(?!\/)/.test(orig)) return { kind: "text", value: "/" + tok + "/" };
@@ -55,7 +62,10 @@ function planFor(plan, src, p, field, orig, extra) {
   const w = widgetOf(field);
   if (w === "boolean" && plan.switches && typeof orig === "boolean") {
     // yes / no switches are flipped between builds so conditional markup shows up too (not part of the token search)
-    plan.edits.push({ src, path: p, schema, field, orig, token: null, kind: "bool", value: true, flip: true });
+    // The "Decorative picture" switch hides the picture's description (alt=""), so it stays OFF in the token
+    // build - otherwise every description token would vanish and look like a dead field - and is only
+    // flipped in the alternating variants.
+    plan.edits.push({ src, path: p, schema, field, orig, token: null, kind: "bool", value: field.name === "decorative" ? false : true, flip: true });
     return;
   }
   if (w === "select" && plan.switches && typeof orig === "string" && Array.isArray(field.options) && field.options.length) {
@@ -192,7 +202,7 @@ function makePlan(sources, cfg, ignoreMatcher, opts) {
   // ignore-list: drop edits (and everything beneath a dropped structure is already separate)
   const kept = [];
   for (const e of plan.edits) {
-    const m = ignoreMatcher && !e.dev ? ignoreMatcher(e.src.name, e.schema, "wiring", !!e.injected) : null;
+    const m = ignoreMatcher && !e.dev ? ignoreMatcher(e.src.name, e.schema, "wiring", !!e.injected, e.src.kind) : null;
     if (m) plan.skipped.push({ src: e.src.file, schema: e.schema, reason: "wiring-ignore: " + m.reason });
     else kept.push(e);
   }
@@ -323,9 +333,9 @@ function applyPlan(ws, plan, sources, opts) {
 
 // Text files of a build that can show a token to a visitor (internal tools and passthrough excluded).
 function readBuild(outDir, isExcluded) {
-  const skipTop = new Set(["images", "fonts", "videos", "frames", "cms", "admin", "assets"]);
+  const skipTop = new Set(["images", "img", "fonts", "videos", "frames", "cms", "admin", "assets"]);
   const parts = [];
-  for (const f of listFiles(outDir, (x) => /\.(html?|xml|txt|json|webmanifest)$/i.test(x))) {
+  for (const f of listFiles(outDir, (x) => /\.(html?|xml|txt|json|webmanifest)$|(^|[\\/])_redirects$/i.test(x))) {
     const rel = toPosix(path.relative(outDir, f));
     if (skipTop.has(rel.split("/")[0])) continue;
     const url = "/" + rel.replace(/index\.html$/, "");

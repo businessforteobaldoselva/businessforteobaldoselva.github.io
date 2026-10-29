@@ -72,7 +72,7 @@
   <div class="scrollvideo-pin">
     <canvas class="scrollvideo-canvas" aria-hidden="true"></canvas>
     <noscript>
-      <img class="scrollvideo-poster" src="{{ svDir }}/frame_{{ pad4(svPoster + 1) }}.{{ svExt }}" alt="" />
+      <img class="scrollvideo-poster" src="{{ svDir }}/frame_{{ pad4(svPoster + 1) }}.{{ svExt }}" alt="" aria-hidden="true" />
     </noscript>
     {%- if sv and sv.title %}
     <div class="scrollvideo-overlay">

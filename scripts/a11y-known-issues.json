@@ -1,0 +1,23 @@
+{
+  "_about": "Real accessibility defects the gate found when it was added. They are listed here instead of being hidden or ignored: each is shown in the report and in the pull-request summary, may not get WORSE (a contrast entry fails again if its ratio drops by more than 0.05), and must be removed once fixed (a fixed one fails in strict mode, i.e. on pull requests). Fixing a contrast entry means changing a colour or a stylesheet rule, which was outside the scope of the change that added the gate. 'key' is the pairing exactly as `node scripts/check-a11y.js --list-pairs` prints it; 'ratio' is the contrast when it was recorded.",
+  "entries": [
+    {
+      "kind": "contrast",
+      "key": "--red-deep | --ink > rgba(255, 248, 236, 0.05) | u",
+      "ratio": 1.62,
+      "reason": "The red asterisk that marks a required field (.req) is drawn in the 'Button colour' (#BB4A12 by default) on the dark forest-green enquiry cards, about 1.6:1; a required marker should reach 3:1. Suggested fix: a '.form-card .req' rule using the lighter accent (--red), as '.dark .kicker' already does. Found by the Phase 3 accessibility gate."
+    },
+    {
+      "kind": "contrast",
+      "key": "--red-deep | --ink > rgba(255, 248, 236, 0.05) | u | ring",
+      "ratio": 1.62,
+      "reason": "The keyboard focus ring of the enquiry-form fields ('.field input:focus', 2px solid var(--red-deep), 1px gap) is orange-brown on the dark enquiry card, about 1.6:1 against the card around it (it does contrast with the cream field inside). It out-ranks the '.dark :focus-visible' rule that would make it the light cream. Suggested fix: scope the form ring colour to the card (cream on '.dark')."
+    },
+    {
+      "kind": "contrast",
+      "key": "#757575 | --paper | t",
+      "ratio": 4.36,
+      "reason": "Placeholder text in the light-background form fields uses the browser's default grey (#757575, no '::placeholder' rule in the stylesheet) on the cream page colour: 4.36:1 against the 4.5:1 needed. Suggested fix: a '::placeholder' rule with the 'Quiet text' colour (--muted)."
+    }
+  ]
+}

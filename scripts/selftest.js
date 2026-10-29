@@ -23,11 +23,15 @@ const { scanScript } = require("./lib/jsscan");
 const { cssContentStrings } = require("./lib/css");
 
 const GUARDS = {
+  images: "check-images.js",
   cms: "check-cms.js",
   copy: "check-copy.js",
   previews: "check-previews.js",
   wiring: "check-wiring.js",
   hostile: "check-hostile.js",
+  tokens: "check-tokens.js",
+  a11y: "check-a11y.js",
+  seo: "check-seo.js",
 };
 
 let passed = 0;
@@ -40,12 +44,12 @@ const mark = (ok, label, detail) => {
   } else {
     failed += 1;
     failures.push(label);
-    console.log("  FAIL  " + label + (detail ? "\n" + String(detail).split("\n").slice(0, 25).map((l) => "          " + l).join("\n") : ""));
+    console.log("  FAIL  " + label + (detail ? "\n" + String(detail).split("\n").slice(0, Number(process.env.SELFTEST_TAIL) || 25).map((l) => "          " + l).join("\n") : ""));
   }
 };
 
 function runGuard(guard, root, args) {
-  const r = spawnSync(process.execPath, [path.join(SCRIPTS_DIR, GUARDS[guard]), "--root", root].concat(args || []), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: Object.assign({}, process.env, { GUARD_STRICT_STALE: "" }) });
+  const r = spawnSync(process.execPath, [path.join(SCRIPTS_DIR, GUARDS[guard]), "--root", root].concat(args || []), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: Object.assign({}, process.env, { GUARD_STRICT_STALE: "", GITHUB_ACTIONS: "", GITHUB_STEP_SUMMARY: "" }) });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
 }
 
@@ -55,7 +59,7 @@ function expectRun(label, res, expect) {
   if (res.code !== expect.code) problems.push("exit code " + res.code + ", expected " + expect.code);
   for (const s of expect.has || []) if (!res.out.includes(s)) problems.push("output does not mention: " + s);
   for (const s of expect.hasNot || []) if (res.out.includes(s)) problems.push("output unexpectedly mentions: " + s);
-  mark(problems.length === 0, label, problems.length ? problems.join("\n") + "\n--- output ---\n" + res.out.split("\n").slice(-30).join("\n") : "");
+  mark(problems.length === 0, label, problems.length ? problems.join("\n") + "\n--- output ---\n" + res.out.split("\n").slice(-(Number(process.env.SELFTEST_TAIL) || 30)).join("\n") : "");
 }
 
 // ------------------------------------------------------------------ helpers to break a copy
@@ -95,6 +99,11 @@ const scenarios = [
       expectRun("copy passes", runGuard("copy", ws.dir, ["--site", site]), { code: 0 });
       expectRun("wiring passes (sentinel build and its switch / dropdown variants)", runGuard("wiring", ws.dir), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir), { code: 0 });
+      expectRun("tokens passes (hostile, lowest and highest token values built)", runGuard("tokens", ws.dir), { code: 0 });
+      expectRun("a11y passes (the recorded known issues are listed, nothing new)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["CHECK-A11Y OK", "known issues recorded"] });
+      expectRun("a11y: the CMS contrast table also covers the copy with every optional field and block switched on", runGuard("a11y", ws.dir, ["--site", site, "--maximal"]), { code: 0 });
+      expectRun("seo passes (rules, site audit and the all-switches probe)", runGuard("seo", ws.dir), { code: 0 });
+      expectRun("images passes", runGuard("images", ws.dir, ["--site", site]), { code: 0 });
     },
   },
   {
@@ -126,7 +135,7 @@ const scenarios = [
           "---",
           "title: A very long page title that keeps going and going to see whether the browser tab title still matches",
           "permalink: /press/",
-          "description: Press information.",
+          "description: Press information, logos and contact details for journalists writing about COVERED and free period products.",
           "layout: page.njk",
           "sections:",
           "  - type: hero",
@@ -142,7 +151,7 @@ const scenarios = [
           '    kicker: "About"',
           '    heading: "Hello"',
           "    body: |-",
-          "      Para one with a [link](/about/).",
+          "      Para one with a link to [our team page](/about/).",
           "",
           "      - bullet one",
           "      - bullet two",
@@ -157,6 +166,134 @@ const scenarios = [
       expectRun("previews pass", runGuard("previews", ws.dir), { code: 0 });
       expectRun("copy passes (new words are traceable, derived sentences still match)", runGuard("copy", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
       expectRun("wiring passes (every new field reaches the page)", runGuard("wiring", ws.dir, FAST), { code: 0 });
+      expectRun("a11y passes (the new page, form field and menu link are accessible too)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
+      expectRun("seo passes (the new page has one h1, its own title and description)", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 0, has: ["/press/"] });
+    },
+  },
+  {
+    name: "an editor does SEO work (hides a page, sets a canonical, titles, social card, sitemap values, redirects) and every guard stays green",
+    mutate: (ws) => {
+      const fm = (rel, fn) => {
+        const yamlLib = require("js-yaml");
+        const m = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(ws.read(rel));
+        const data = yamlLib.load(m[1]);
+        fn(data);
+        ws.write(rel, "---\n" + yamlLib.dump(data, { lineWidth: -1 }) + "---\n" + m[2]);
+      };
+      fm("src/pages/privacy.md", (d) => (d.hideFromSearch = true));
+      fm("src/pages/about.md", (d) => {
+        d.seoTitle = "About COVERED - who we are";
+        d.socialTitle = "Meet the team behind COVERED";
+        d.socialDescription = "Free period products, paid for by advertising.";
+        d.shareImage = "/images/covered-og.jpg";
+        d.shareImageAlt = "The COVERED dispenser";
+        d.sitemapPriority = "0.8";
+        d.sitemapChangefreq = "monthly";
+        d.lastModified = "2026-09-01";
+      });
+      editJson(ws, "src/_data/site.json", (j) => {
+        j.socialTitle = "COVERED - free period products";
+        j.shareImageAlt = "Two COVERED dispensers";
+        j.sitemapPriority = "1.0";
+      });
+      editJson(ws, "src/_data/redirects.json", (j) => {
+        j.items = [
+          { fromLink: "/about-us/", toLink: "/about/", permanent: true },
+          { fromLink: "/privacy-policy/", toLink: "/privacy/", permanent: false },
+          { fromLink: "/partners-old/", toLink: "https://example.org/partners", permanent: true },
+        ];
+      });
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("cms passes", runGuard("cms", ws.dir), { code: 0 });
+      expectRun("previews pass", runGuard("previews", ws.dir), { code: 0 });
+      expectRun("copy passes", runGuard("copy", ws.dir, ["--site", site]), { code: 0 });
+      expectRun("seo passes (hidden page out of the sitemap, redirect targets exist, tags complete)", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 0, has: ["2 public page(s)"] });
+      expectRun("wiring passes", runGuard("wiring", ws.dir, FAST), { code: 0 });
+    },
+  },
+  {
+    name: "seo regression: a public page without an <h1>",
+    mutate: (ws) => edit(ws, "src/pages/about.md", (t) => t.replace(/  - type: hero[\s\S]*?  - type: text/, "  - type: text")),
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the missing <h1>", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["/about/ has 0 <h1>"] });
+    },
+  },
+  {
+    name: "seo regression: two pages with the same title and the same description",
+    mutate: (ws) => {
+      const take = (rel) => ws.read(rel);
+      const desc = /^description: .*$/m.exec(take("src/pages/about.md"))[0];
+      edit(ws, "src/pages/privacy.md", (t) => t.replace(/^description: .*$/m, desc).replace(/^title: .*$/m, "title: About us"));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports both duplicates", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["has the same title as", "has the same description as"] });
+    },
+  },
+  {
+    name: "seo regression: the sitemap lists a page hidden from search engines",
+    mutate: (ws) => {
+      edit(ws, "src/pages/privacy.md", (t) => t.replace("layout: page.njk", "layout: page.njk\nhideFromSearch: true"));
+      edit(ws, "src/sitemap.njk", replaceOnce("d.hideFromSearch !== true and ", ""));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the hidden page in sitemap.xml", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["is hidden from search engines but listed in sitemap.xml"] });
+    },
+  },
+  {
+    name: "seo regression: the noindex tag is not printed for a hidden page",
+    mutate: (ws) => {
+      edit(ws, "src/pages/privacy.md", (t) => t.replace("layout: page.njk", "layout: page.njk\nhideFromSearch: true"));
+      edit(ws, "src/_includes/page.njk", replaceOnce('{% if hideFromSearch === true %}<meta name="robots" content="noindex, follow" />{% endif %}', ""));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo notices: the page is still public, so it must be in the sitemap", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["/privacy/ is a public page but is missing from sitemap.xml"] });
+      expectRun("the probe notices the missing noindex tag", runGuard("seo", ws.dir), { code: 1, has: ["hideFromSearch adds a robots noindex tag"] });
+    },
+  },
+  {
+    name: "seo regression: a relative canonical link and a missing share picture tag",
+    mutate: (ws) => {
+      edit(ws, "src/_includes/page.njk", replaceOnce('<link rel="canonical" href="{{ canon }}" />', '<link rel="canonical" href="{{ page.url }}" />'));
+      edit(ws, "src/_includes/page.njk", (t) => t.replace(/<meta property="og:image" content="https:\/\/coveredaccess\.com\{\{ shareSrc \}\}" \/>/, ""));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports both", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["canonical is not an absolute https address", "is missing og:image"] });
+    },
+  },
+  {
+    name: "seo regression: redirects printed without the safe filter (hostile addresses reach the file)",
+    mutate: (ws) => {
+      edit(ws, "src/redirects.njk", replaceOnce("{%- for line in redirects.items | redirectRules(collections.all) %}\n{{ line }}", "{%- for it in redirects.items %}\n{{ it.fromLink }} {{ it.toLink }} 200"));
+      editJson(ws, "src/_data/redirects.json", (j) => (j.items = [{ fromLink: "/old/", toLink: "/about/", permanent: true }, { fromLink: "/proxy/", toLink: "https://evil.example/ x", permanent: true }]));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the malformed lines", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["_redirects holds a line of the wrong shape"] });
+      expectRun("check-hostile reports them too", runGuard("hostile", ws.dir, ["--quick"]), { code: 1, has: ["Redirects file"] });
+    },
+  },
+  {
+    name: "seo regression: redirects.json with a loop, a wildcard and a missing target",
+    mutate: (ws) => {
+      editJson(ws, "src/_data/redirects.json", (j) => {
+        j.items = [
+          { fromLink: "/a/", toLink: "/b/", permanent: true },
+          { fromLink: "/b/", toLink: "/a/", permanent: true },
+          { fromLink: "/blog/*", toLink: "/about/", permanent: true },
+          { fromLink: "/gone/", toLink: "/does-not-exist/", permanent: true },
+        ];
+      });
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the ignored rules and the dead target", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["would create a redirect loop", "plain path", "which is not a page of the site"] });
     },
   },
   {
@@ -175,6 +312,121 @@ const scenarios = [
       expectRun("copy passes; allow-list entries for the missing features are only noted", runGuard("copy", ws.dir, ["--site", site]), { code: 0, has: ["note:"] });
       expectRun("wiring passes (sections that are off are switched on for the test)", runGuard("wiring", ws.dir, FAST), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir, ["--quick"]), { code: 0 });
+      expectRun("a11y passes (nothing is measured for what is switched off)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "accessibility: a safe re-theme (white page, black text) stays green",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/theme.json", (j) => {
+        j.paper = "#FFFFFF";
+        j.ink = "#000000";
+        j.inkDeep = "#000000";
+        j.inkSoft = "#222222";
+        j.muted = "#444444";
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("a11y passes after the editor picks a stricter palette", runGuard("a11y", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "accessibility: hostile palettes typed into the colour boxes are flagged, naming the colour roles and the ratio",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/theme.json", (j) => {
+        for (const k of Object.keys(j)) j[k] = "#FFFFFF";
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("all-white palette: errors name the roles and the 1.00:1 ratio", runGuard("a11y", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["[contrast]", "1.00:1", "needs 4.5:1", "“Main text & dark sections” [ink]", "“Page background” [paper]", "CHECK-A11Y FAILED"],
+      });
+      const palettes = [
+        ["near-identical text and page background", { ink: "#FEF8EC", inkSoft: "#FEF8EC", inkDeep: "#FEF8EC" }, ["“Main text & dark sections” [ink]", "“Page background” [paper]"]],
+        ["quiet text barely darker than the page", { muted: "#F5EBDD" }, ["“Quiet text” [muted]", "“Page background” [paper]"]],
+        ["white button text on a white button colour", { accentDeep: "#FFFFFF" }, ["“Button colour” [accentDeep]", "fixed #FFFFFF"]],
+      ];
+      for (const [label, over, mentions] of palettes) {
+        ws.writeJson("src/_data/theme.json", Object.assign(JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "src/_data/theme.json"), "utf8")), over));
+        const b = ws.build("pal");
+        if (!b.ok) {
+          mark(false, label + ": the copy still builds", b.log.split("\n").slice(-8).join("\n"));
+          continue;
+        }
+        expectRun(label + ": flagged with the roles", runGuard("a11y", ws.dir, ["--site", b.out]), { code: 1, has: ["[contrast]", ":1, needs"].concat(mentions) });
+      }
+    },
+  },
+  {
+    name: "accessibility: missing alt text, a skipped heading and an empty link each fail the gate",
+    mutate: (ws) => {
+      editJson(ws, "src/_data/venues.json", (j) => (j.photos[0].alt = ""));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
+      edit(ws, FAQ_TEMPLATE, (t) => t + '\n<a class="guard-test" href="/empty-link-test/"></a>\n');
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-a11y names all three, each with the page and element", runGuard("a11y", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["[image-alt]", "[heading-order]", "is followed by <h6>", "[link-name]", "a link with no accessible name", "/empty-link-test/", "CHECK-A11Y FAILED"],
+      });
+      // the same page with the alt attribute removed altogether
+      editJson(ws, "src/_data/venues.json", (j) => (j.photos[0].alt = "A COVERED dispenser on a pub wall"));
+      edit(ws, "src/_includes/picture.njk", (t) => { if (!t.includes(' alt="{{ altText }}"')) throw new Error("selftest anchor not found: alt attribute in picture.njk"); return t.split(' alt="{{ altText }}"').join(""); });
+      const b = ws.build("noalt");
+      if (!b.ok) return mark(false, "the copy without alt attributes builds", b.log.split("\n").slice(-8).join("\n"));
+      expectRun("an <img> with no alt attribute at all fails too", runGuard("a11y", ws.dir, ["--site", b.out]), { code: 1, has: ["image has no alt attribute"] });
+    },
+  },
+  {
+    name: "accessibility: unreadable markup (several h1, unlabelled field, positive tabindex, duplicate id, aria-hidden link)",
+    mutate: (ws) => {
+      edit(ws, FAQ_TEMPLATE, (t) => t + '\n<h1 id="dup-id">Second main heading</h1><div id="dup-id" tabindex="4">x</div><div aria-hidden="true"><a href="/x/">reachable</a></div><input type="text" name="guardtest" placeholder="Name">\n');
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("each defect is reported by rule", runGuard("a11y", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["[heading-h1]", "[duplicate-id]", "[tabindex]", "[aria-hidden]", "[form-label]"],
+      });
+    },
+  },
+  {
+    name: "accessibility: a new colour pairing in the stylesheet that the CMS contrast table does not know fails the pair-table check",
+    mutate: (ws) => edit(ws, "src/_includes/site-styles.css", (t) => t + "\n    .stats-source { color: var(--green-dark); }\n"),
+    build: true,
+    run(ws, site) {
+      expectRun("the table in cms/contrast.js is reported out of date", runGuard("a11y", ws.dir, ["--site", site]), { code: 1, has: ["[pair-table]", "--write-pairs"] });
+      expectRun("--write-pairs regenerates it and the check passes again", runGuard("a11y", ws.dir, ["--site", site, "--write-pairs"]), { code: 0, has: ["wrote"] });
+      expectRun("and a second run is green", runGuard("a11y", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "accessibility: the pull-request output (annotations and job summary) is written without trusting editor text",
+    mutate: (ws) => {
+      editJson(ws, "src/_data/theme.json", (j) => (j.ink = "#FFF8EC"));
+      editJson(ws, "src/_data/faq.json", (j) => (j.title = "Q\n::error file=evil.txt::INJECTED"));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
+    },
+    build: true,
+    run(ws, site) {
+      const summary = path.join(ws.dir, "summary.md");
+      fs.writeFileSync(summary, "");
+      const r = spawnSync(process.execPath, [path.join(SCRIPTS_DIR, "check-a11y.js"), "--root", ws.dir, "--site", site, "--github"], { encoding: "utf8", env: Object.assign({}, process.env, { GITHUB_STEP_SUMMARY: summary, GITHUB_ACTIONS: "true" }) });
+      const out = (r.stdout || "") + (r.stderr || "");
+      const md = fs.readFileSync(summary, "utf8");
+      const problems = [];
+      if (r.status !== 1) problems.push("exit code " + r.status + ", expected 1");
+      if (!/^::error file=src\/_data\/theme\.json,title=contrast::/m.test(out)) problems.push("no ::error annotation pointing at src/_data/theme.json");
+      if (!out.includes("INJECTED")) problems.push("the editor text never reached the report, so this test proves nothing");
+      if (/^::error file=evil\.txt/m.test(out)) problems.push("text typed by an editor became a workflow command");
+      if (/^::(set-output|stop-commands|add-mask|set-env)/m.test(out)) problems.push("a workflow command from editor text");
+      if (!md.includes("## Accessibility gate: FAILED") || !md.includes("| Errors |")) problems.push("job summary has no result table");
+      if (/\n::/.test(md)) problems.push("summary contains a line starting with ::");
+      mark(problems.length === 0, "--github writes ::error annotations and a job-summary table, and editor text cannot inject a command", problems.join("\n") + "\n" + out.split("\n").slice(-12).join("\n"));
     },
   },
   {
@@ -207,6 +459,130 @@ const scenarios = [
     run(ws, site) {
       expectRun("check-copy names the picture", runGuard("copy", ws.dir, ["--site", site]), { code: 1, has: ["media", ws.guardPicture] });
       expectRun("check-wiring (sentinel build) names it too", runGuard("wiring", ws.dir, FAST), { code: 1, has: ["Hard-coded words", ws.guardPicture] });
+    },
+  },
+  {
+    name: "a picture with no description that is not marked decorative",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/venues.json", (j) => {
+        j.photos[0].alt = "";
+        j.photos[0].decorative = false;
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("check-cms names the undescribed picture", runGuard("cms", ws.dir), { code: 1, has: ["Picture descriptions", "venues.json", "no description"] });
+      expectRun("check-images names the empty alt", runGuard("images", ws.dir, ["--site", site]), { code: 1, has: ["empty alt"] });
+    },
+  },
+  {
+    name: "a decorative picture is fine without a description",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/venues.json", (j) => {
+        j.photos[0].alt = "";
+        j.photos[0].decorative = true;
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("check-cms accepts it", runGuard("cms", ws.dir), { code: 0 });
+      expectRun("check-images accepts the empty alt", runGuard("images", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "a picture field with no description field beside it",
+    mutate: (ws) =>
+      editYaml(ws, (c) => {
+        const f = JSON.stringify(c);
+        if (!f.includes('"name":"decorative"')) throw new Error("config has no decorative field");
+        const strip = (fields) => {
+          for (const x of fields || []) {
+            if (x.fields) {
+              if (x.fields.some((y) => y.name === "src" && y.widget === "image") && x.name === "photos") x.fields = x.fields.filter((y) => y.name !== "decorative");
+              strip(x.fields);
+            }
+            for (const t of x.types || []) strip(t.fields);
+          }
+        };
+        for (const col of c.collections) for (const e of col.files || []) strip(e.fields);
+      }),
+    run(ws) {
+      expectRun("check-cms names the picture field", runGuard("cms", ws.dir), { code: 1, has: ["Picture descriptions", "a picture field without a description"] });
+    },
+  },
+  {
+    name: "a picture written by hand without width, height or a description",
+    mutate: (ws) => edit(ws, FAQ_TEMPLATE, (t) => t + '\n<img class="guard-test" src="{{ site.shareImage }}">\n'),
+    build: true,
+    run(ws, site) {
+      expectRun("check-images names the missing attributes", runGuard("images", ws.dir, ["--site", site]), { code: 1, has: ["no alt attribute", "needs numeric width and height"] });
+    },
+  },
+  {
+    name: "uploaded picture files that are empty, corrupt, carry GPS data, or are an SVG with a script",
+    mutate: (ws) => {
+      ws.write("images/zero.jpg", "");
+      ws.write("images/corrupt.jpg", "this is a text file renamed to .jpg");
+      // a one-pixel JPEG whose EXIF block holds a GPS entry (tag 0x8825)
+      const exif = Buffer.concat([Buffer.from("Exif\0\0MM\0\x2a\0\0\0\x08\0\x01\x88\x25\0\x04\0\0\0\x01\0\0\0\0\0\0\0\0", "latin1")]);
+      const app1 = Buffer.concat([Buffer.from([0xff, 0xe1, 0, exif.length + 2]), exif]);
+      const sof = Buffer.from([0xff, 0xc0, 0, 11, 8, 0, 1, 0, 1, 1, 1, 0x11, 0]);
+      ws.write("images/gps.jpg", Buffer.concat([Buffer.from([0xff, 0xd8]), app1, sof, Buffer.from([0xff, 0xd9])]));
+      ws.write("images/evil.svg", '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script><rect onload="x()" width="1" height="1"/></svg>');
+      ws.write("images/linky.svg", '<svg xmlns="http://www.w3.org/2000/svg"><image href="https://evil.example/x.png"/></svg>');
+      ws.write("images/fine.svg", '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><defs><linearGradient id="g"/></defs><rect width="2" height="2" fill="url(#g)"/><use href="#g"/></svg>');
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-images names each bad file and spares the harmless SVG", runGuard("images", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["images/zero.jpg is not a usable picture", "images/corrupt.jpg is not a usable picture", "images/gps.jpg carries the GPS position", "images/evil.svg is not a safe SVG", "images/linky.svg is not a safe SVG"],
+        hasNot: ["images/fine.svg"],
+      });
+    },
+  },
+  {
+    name: "an editor types picture-folder paths (/img/..) into a text field: the build still works and nothing outside the folder is copied",
+    mutate: (ws) => editJson(ws, "src/_data/problem.json", (j) => (j.title = "see /img/.. and /img/. and /img/.cache here")),
+    build: true,
+    run(ws, site) {
+      expectRun("check-images passes", runGuard("images", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "an editor sets every type size to its lowest allowed value (smallest page text too): the accessibility gate stays green",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/tokens.json", (j) => {
+        const T = require(path.join(ws.dir, "lib", "tokens.js"));
+        for (const t of T.TOKENS) {
+          if (!t.key.startsWith("text.")) continue;
+          const k = t.key.split(".")[1];
+          if (t.bounds) j.text[k] = Object.fromEntries(Object.keys(t.bounds).map((p) => [p, t.bounds[p][0]]));
+          else j.text[k] = t.min;
+        }
+        j.weights.title = "400";
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("check-tokens passes", runGuard("tokens", ws.dir), { code: 0 });
+      expectRun("check-a11y passes", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["CHECK-A11Y OK"] });
+    },
+  },
+  {
+    name: "a title size allowed to fall below large text (the lowest 'min' lowered in lib/tokens.js and the CMS)",
+    mutate: (ws) => {
+      edit(ws, "lib/tokens.js", replaceOnce("min: [1.9, 6], fluid: [0, 12], max: [1.9, 9] }, step: 0.05, largeText: true", "min: [1.2, 6], fluid: [0, 12], max: [1.9, 9] }, step: 0.05, largeText: true"));
+      editYaml(ws, (cfg) => {
+        const walk = (n) => {
+          if (Array.isArray(n)) n.forEach(walk);
+          else if (n && typeof n === "object") {
+            if (n.label === "Section titles — smallest size") n.min = 1.2;
+            Object.values(n).forEach(walk);
+          }
+        };
+        walk(cfg);
+      });
+    },
+    run(ws) {
+      expectRun("check-tokens says the title can stop being large text", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["can be set so small"] });
     },
   },
   {
@@ -312,7 +688,7 @@ const scenarios = [
   },
   {
     name: "an unescaped image alt text (| safe on an alt attribute)",
-    mutate: (ws) => edit(ws, "src/_includes/sections/problem.njk", replaceOnce('alt="{{ problem.manifestoPhoto.alt }}"', 'alt="{{ problem.manifestoPhoto.alt | safe }}"')),
+    mutate: (ws) => edit(ws, "src/_includes/picture.njk", replaceOnce('{%- set altText = "" if decorative else alt -%}', '{%- set altText = ("" if decorative else alt) | safe -%}')),
     run(ws) {
       expectRun("check-hostile sees the attribute breakout in the alt", runGuard("hostile", ws.dir), { code: 1, has: ["CHECK-HOSTILE FAILED"] });
     },
@@ -382,6 +758,79 @@ const scenarios = [
       expectRun("check-cms reports both", runGuard("cms", ws.dir), { code: 1, has: ["hero.json > stamp is hidden in the CMS", '"warp" is not one of this select\'s options'] });
     },
   },
+  // ---- design tokens (src/_data/tokens.json, lib/tokens.js, scripts/check-tokens.js)
+  {
+    name: "an editor changes design tokens within their limits (sizes, spacing, corners, fonts) and keeps every guard green",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/tokens.json", (j) => {
+        j.text.title.max = 4.6;
+        j.text.baseSize = 105;
+        j.lines.body = 1.7;
+        j.space.cardGap = 1.5;
+        j.shape.radiusButton = "square";
+        j.shape.shadow = 0.2;
+        j.fonts.display = "openSauce";
+        j.weights.button = "700";
+      }),
+    run(ws) {
+      expectRun("check-tokens passes", runGuard("tokens", ws.dir), { code: 0 });
+      expectRun("check-cms passes", runGuard("cms", ws.dir), { code: 0 });
+    },
+  },
+  {
+    name: "a design token with no limit (the clamp removed from lib/tokens.js)",
+    mutate: (ws) => edit(ws, "lib/tokens.js", replaceOnce("(isNum(v) ? Math.min(hi, Math.max(lo, v)) : dflt)", "(isNum(v) ? v : dflt)")),
+    run(ws) {
+      expectRun("check-tokens sees values escape their bounds", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["Tokens: values are bounded by the build", "escaped its bounds"] });
+    },
+  },
+  {
+    name: "a word typed into a font / weight / corner choice is not checked against the allowed list",
+    mutate: (ws) => edit(ws, "lib/tokens.js", replaceOnce('typeof raw === "string" && Object.prototype.hasOwnProperty.call(t.options, raw) ? raw : t.def', 'typeof raw === "string" ? raw : t.def')),
+    run(ws) {
+      expectRun("check-tokens sees an unlisted word reach the css", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["Tokens: values are bounded by the build", "escaped its bounds"] });
+    },
+  },
+  {
+    name: "a CMS field allows a wider range than the build enforces",
+    mutate: (ws) =>
+      editYaml(ws, (cfg) => {
+        const e = cfg.collections[0].files.find((f) => f.name === "tokens");
+        const text = e.fields.find((f) => f.name === "text");
+        text.fields.find((f) => f.name === "small").max = 50;
+      }),
+    run(ws) {
+      expectRun("check-tokens names the field and the bound", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["text.small: max must be 1.2"] });
+    },
+  },
+  {
+    name: "a design token that nothing in the stylesheet uses (dead token)",
+    mutate: (ws) => edit(ws, "src/_includes/site-styles.css", (t) => t.split("var(--tk-card-gap)").join("1.2rem")),
+    run(ws) {
+      expectRun("check-tokens reports the dead token", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["--tk-card-gap is declared but nothing in site-styles.css uses it"] });
+    },
+  },
+  {
+    name: "a shipped default in the stylesheet drifts from the token table (the untouched site would change)",
+    mutate: (ws) => edit(ws, "src/_includes/site-styles.css", replaceOnce("--tk-small: 0.93rem;", "--tk-small: 0.95rem;")),
+    run(ws) {
+      expectRun("check-tokens reports the drift", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["default of --tk-small differs from the table"] });
+    },
+  },
+  {
+    name: "theme-vars prints token data without the validating filter",
+    mutate: (ws) => edit(ws, "src/_includes/theme-vars.njk", replaceOnce("{{ tokens | tokenVars | safe }}", "  --tk-title: clamp(2.5rem, {{ tokens.text.title.fluid }}vw, 4.2rem);")),
+    run(ws) {
+      expectRun("check-tokens reports it", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["does not print the validated tokens"] });
+    },
+  },
+  {
+    name: "the live preview carries an out-of-date copy of the token limits",
+    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('"def":0.93,"min":0.7,"max":1.2', '"def":0.93,"min":0.7,"max":9')),
+    run(ws) {
+      expectRun("check-tokens reports the stale copy", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["TOKEN_SPEC is out of date"] });
+    },
+  },
 ];
 
 // ------------------------------------------------------------------ allow-list hygiene (uses the control build)
@@ -432,6 +881,7 @@ function allowListScenarios(ws, site) {
 // ------------------------------------------------------------------ unit checks
 function unitChecks(root) {
   console.log("\n== Detector checks");
+  mark(require("./lib/a11y-unit").run() === 0, "accessibility gate: contrast maths, CSS cascade, contrast finder and structure rules (scripts/lib/a11y-unit.js)");
   const fx = JSON.parse(fs.readFileSync(path.join(SCRIPTS_DIR, "fixtures", "js-strings.json"), "utf8"));
   for (const c of fx.cases) {
     const r = scanScript(c.code);

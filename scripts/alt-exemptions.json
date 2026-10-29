@@ -1,0 +1,30 @@
+{
+  "_comment": "Picture fields that have no 'alt' + 'decorative' pair next to them, each with the reason. check-cms refuses any other picture field without a description (see scripts/README.md, 'Picture descriptions'). Path syntax is the same as wiring-ignore.json; an entry that exempts nothing is an error. This is only for pictures that are never shown to a visitor as a picture - not a way to skip writing alt text for a photo.",
+  "entries": [
+    {
+      "path": "site.shareImage",
+      "checks": ["alt"],
+      "reason": "The social-share / search-engine picture lives in <meta> tags, not in the page: it is never drawn as an <img>, so there is nothing for a screen reader to describe."
+    },
+    {
+      "path": "*.shareImage",
+      "checks": ["alt"],
+      "reason": "A page's own social-share picture lives in <meta> tags, never as an <img>. Its optional description (shareImageAlt) is printed as og:image:alt, checked by check-seo."
+    },
+    {
+      "path": "locations.mapImage",
+      "checks": ["alt"],
+      "reason": "The UK map backdrop sits inside the map graphic, which is described as a whole by the 'Map description (for screen readers)' field (svgAriaLabel); the picture itself is an SVG <image> inside that described graphic."
+    },
+    {
+      "path": "model.video.poster",
+      "checks": ["alt"],
+      "reason": "Cover frame of the concept film: it is the video's poster attribute, not an <img>. The film is described by its own 'Description for screen readers' field (model.video.label)."
+    },
+    {
+      "path": "homepage.sections[].video.poster",
+      "checks": ["alt"],
+      "reason": "Cover frame of the closing-banner animation: it is the video's poster attribute, not an <img>. The video carries its own accessible label (the section's videoLabel)."
+    }
+  ]
+}

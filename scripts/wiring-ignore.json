@@ -22,6 +22,17 @@
       "reason": "Parked data on purpose: a city (Belfast) kept out of the map until Northern Ireland launches. No template or script reads the key (grep src lib). The CMS field is labelled 'Parked cities - not shown on the map yet' and its hint says nothing in it appears on the website, so an editor is told it changes nothing; they copy an entry into Cities to publish it. Delete this entry if the key is ever rendered or removed."
     },
     {
+      "path": "title",
+      "kind": "page",
+      "checks": ["wiring"],
+      "reason": "The page title is only the DEFAULT browser-tab / Google title (the Site-wide ending is added to it). Whenever the optional Search title is set the title tag uses that instead, and the sentinel build sets every optional field, so the plain title never shows up in that build. check-seo proves the default (every public page has a unique title tag) and its probe proves the override."
+    },
+    {
+      "path": "site.subpageTitle",
+      "checks": ["wiring"],
+      "reason": "The ending added to every page title tag; a page with its own optional Search title does not use it, and the sentinel build gives every page one. check-seo proves the default title tags of the real pages."
+    },
+    {
       "path": "*.permalink",
       "checks": ["wiring"],
       "reason": "Front-matter key Eleventy itself uses to place a page. Replacing it with a token in the sentinel build would move the pages the other checks look for; it is exercised by every build (the page exists at its permalink)."

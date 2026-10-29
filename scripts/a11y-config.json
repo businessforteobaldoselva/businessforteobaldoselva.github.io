@@ -1,0 +1,19 @@
+{
+  "_about": "Settings for scripts/check-a11y.js (the accessibility gate). Every entry says why it is here; see scripts/README.md.",
+  "stateClasses": {
+    "_reason": "Classes the page's own scripts add and remove while somebody uses the page. The gate tries each one on every element a stylesheet rule could apply it to, so text that is only styled in that state (an active step, a lit word, an open menu) is measured too. A class named here that no stylesheet rule uses any more is reported as stale in strict mode.",
+    "list": ["active", "done", "lit", "live", "soon", "open"]
+  },
+  "exempt": [
+    {
+      "selector": ".logo",
+      "reason": "The COVERED logo is brand artwork. WCAG 1.4.3 exempts text that is part of a logo, and the logo colours are fixed on purpose (not editable in the CMS)."
+    }
+  ],
+  "genericLinkText": {
+    "_reason": "Link and button text that tells nobody where it goes. 'error' texts fail the check, 'warn' texts are listed. Compared in lower case, ignoring trailing punctuation and arrows.",
+    "error": ["click here", "click", "here", "link", "this link", "this"],
+    "warn": ["read more", "more", "learn more", "find out more", "details", "more info", "more information", "continue"]
+  },
+  "excludePagesFrom": "scripts/copy-allowlist.json (excludePages): the internal tools /og/ /ident/ /cms/ /admin/ are not public pages and are not checked"
+}

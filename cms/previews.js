@@ -58,6 +58,16 @@
   function note(text) {
     return h("p", { className: "cms-note" }, "ℹ️ " + text);
   }
+  // Mirrors the site's picture macro: a decorative picture is printed with an empty
+  // description, and a picture with neither a description nor the "Decorative" tick is
+  // flagged here (the site's checks refuse to publish it too).
+  function altFor(alt, decorative) {
+    return decorative === true ? "" : alt || "";
+  }
+  function altWarn(src, alt, decorative) {
+    if (!src || decorative === true || String(alt || "").replace(/\s+/g, "") !== "") return null;
+    return h("p", { className: "cms-note", style: { width: "auto", margin: "6px 0 0" } }, "⚠️ Add a picture description (or tick “Decorative picture”) before publishing.");
+  }
   // `breaks` is true for the headings the site renders with safeTitle (line
   // breaks allowed) and false for plain-text headings (model, how, FAQ).
   function sectionHead(kicker, title, subtitle, center, breaks) {
@@ -67,6 +77,60 @@
       h("span", { className: "kicker" }, kicker),
       breaks ? titleEl("h2", { className: "section-title" }, title) : h("h2", { className: "section-title" }, String(title)),
       subtitle ? h("p", { className: "section-sub", style: center ? { margin: "0 auto" } : {} }, subtitle) : null
+    );
+  }
+
+  // ---------- Search-result and social-card preview ----------
+  // Text only: every editor-typed value is a React child or a plain attribute (React escapes
+  // it); the picture src is only used when it looks like a site picture path. No raw HTML here.
+  var SEO_DOMAIN = "coveredaccess.com";
+  var SEO_IMG = /^\/?(images|videos)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp|gif|avif|svg)$/i;
+  function seoClip(value, n) {
+    var s = value === undefined || value === null ? "" : String(value).replace(/\s+/g, " ").trim();
+    return s.length > n ? s.slice(0, n - 1).replace(/\s+$/, "") + "…" : s;
+  }
+  function seoCount(value, soft, label) {
+    var n = value === undefined || value === null ? 0 : String(value).replace(/\s+/g, " ").trim().length;
+    var msg = n === 0 ? label + ": empty" : label + ": " + n + " characters" + (n > soft ? " - longer than about " + soft + ", so Google may cut it off" : " - fits");
+    return h("li", { style: { color: n > soft ? "#a15c00" : "#555" } }, msg);
+  }
+  function seoPreview(o) {
+    var title = o.title ? String(o.title) : "";
+    var desc = o.desc ? String(o.desc) : "";
+    var sTitle = o.socialTitle ? String(o.socialTitle) : title;
+    var sDesc = o.socialDesc ? String(o.socialDesc) : desc;
+    var image = typeof o.image === "string" ? o.image : "";
+    var imgOk = SEO_IMG.test(image) && image.indexOf("..") < 0;
+    var box = { fontFamily: "Arial, sans-serif", background: "#fff", border: "1px solid #dadce0", borderRadius: "8px", padding: "14px 16px", maxWidth: "620px", margin: "8px 0 14px", color: "#202124" };
+    var cap = { fontFamily: "Arial, sans-serif", fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.04em", color: "#555", margin: "14px 0 0" };
+    return h(
+      "div",
+      { style: { width: "min(1120px, 92%)", margin: "14px auto" } },
+      o.hidden ? h("p", { className: "cms-note" }, "🚫 This page is hidden from search engines (and left out of the sitemap). The previews below show what it would look like if it were listed.") : null,
+      h("p", { style: cap }, "How it may look in Google"),
+      h(
+        "div",
+        { style: box },
+        h("div", { style: { fontSize: "12px", color: "#4d5156" } }, SEO_DOMAIN + (o.path ? String(o.path) : "")),
+        h("div", { style: { fontSize: "20px", lineHeight: "1.3", color: "#1a0dab", margin: "2px 0 4px" } }, seoClip(title, 60) || "(no title yet)"),
+        h("div", { style: { fontSize: "14px", lineHeight: "1.5", color: "#4d5156" } }, seoClip(desc, 160) || "(no description - Google will write its own from the page text)")
+      ),
+      h("ul", { style: { fontFamily: "Arial, sans-serif", fontSize: "12px", margin: "0 0 4px", paddingLeft: "18px" } }, seoCount(title, 60, "Title"), seoCount(desc, 160, "Description")),
+      h("p", { style: cap }, "How it may look when shared (WhatsApp, LinkedIn, Facebook)"),
+      h(
+        "div",
+        { style: Object.assign({}, box, { padding: "0", overflow: "hidden", maxWidth: "500px", background: "#f0f2f5" }) },
+        imgOk
+          ? h("img", { src: image.charAt(0) === "/" ? image : "/" + image, alt: "", style: { width: "100%", aspectRatio: "1.91 / 1", objectFit: "cover", display: "block" } })
+          : h("div", { style: { aspectRatio: "1.91 / 1", background: "#dfe3e8", color: "#555", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", textAlign: "center", padding: "8px" } }, o.imageNote ? String(o.imageNote) : "No picture"),
+        h(
+          "div",
+          { style: { padding: "10px 14px 12px" } },
+          h("div", { style: { fontSize: "12px", color: "#65676b", textTransform: "uppercase" } }, SEO_DOMAIN),
+          h("div", { style: { fontSize: "16px", fontWeight: "bold", lineHeight: "1.3", margin: "2px 0" } }, seoClip(sTitle, 70) || "(no title yet)"),
+          h("div", { style: { fontSize: "14px", color: "#65676b", lineHeight: "1.4" } }, seoClip(sDesc, 200))
+        )
+      )
     );
   }
 
@@ -200,7 +264,7 @@
                   "div",
                   { className: "manifesto-duo" },
                   h("p", { className: "manifesto" }, String(manifesto).replace(/\*/g, "")),
-                  mSrc ? h("figure", { className: "manifesto-photo" }, h("img", { src: imgSrc(mSrc), alt: mAlt })) : null
+                  mSrc ? h("figure", { className: "manifesto-photo" }, h("img", { src: imgSrc(mSrc), alt: altFor(mAlt, g(e, ["manifestoPhoto", "decorative"], false)) }), altWarn(mSrc, mAlt, g(e, ["manifestoPhoto", "decorative"], false))) : null
                 )
               : null,
             h(
@@ -227,7 +291,8 @@
                 return h(
                   "figure",
                   { className: "polaroid", key: i, style: { "--tilt": tilt + "deg" } },
-                  h("img", { src: imgSrc(p.src), alt: p.alt || "" }),
+                  h("img", { src: imgSrc(p.src), alt: altFor(p.alt, p.decorative) }),
+                  altWarn(p.src, p.alt, p.decorative),
                   h("figcaption", {}, p.caption)
                 );
               })
@@ -359,7 +424,8 @@
                     return h(
                       "figure",
                       { className: "story-card", role: "listitem", key: i },
-                      src ? h("img", { src: imgSrc(src), alt: s.alt || "" }) : null,
+                      src ? h("img", { src: imgSrc(src), alt: altFor(s.alt, s.decorative) }) : null,
+                      altWarn(src, s.alt, s.decorative),
                       h("figcaption", {}, h("strong", {}, s.title), h("span", {}, s.caption))
                     );
                   })
@@ -439,7 +505,8 @@
               h(
                 "figure",
                 { className: "polaroid" },
-                h("img", { src: imgSrc(g(e, ["headerPhoto", "src"])), alt: g(e, ["headerPhoto", "alt"]) }),
+                h("img", { src: imgSrc(g(e, ["headerPhoto", "src"])), alt: altFor(g(e, ["headerPhoto", "alt"]), g(e, ["headerPhoto", "decorative"], false)) }),
+                altWarn(g(e, ["headerPhoto", "src"]), g(e, ["headerPhoto", "alt"]), g(e, ["headerPhoto", "decorative"], false)),
                 h("figcaption", {}, g(e, ["headerPhoto", "caption"]))
               )
             ),
@@ -560,7 +627,8 @@
                     return h(
                       "figure",
                       { className: "polaroid", key: i, style: { "--tilt": (parseFloat(ph.tilt) || 0) + "deg" } },
-                      h("img", { src: imgSrc(ph.src), alt: ph.alt || "" }),
+                      h("img", { src: imgSrc(ph.src), alt: altFor(ph.alt, ph.decorative) }),
+                      altWarn(ph.src, ph.alt, ph.decorative),
                       h("figcaption", {}, ph.caption || "")
                     );
                   })
@@ -799,9 +867,21 @@
             return h("p", { key: i, style: { marginBottom: "0.8em" } }, p);
           });
         }
+        var pageTitle = g(e, ["seoTitle"]) || (g(e, ["title"]) ? String(g(e, ["title"])) + " — COVERED" : "");
         return h(
           "div",
           {},
+          seoPreview({
+            title: pageTitle,
+            desc: g(e, ["description"]),
+            path: g(e, ["permalink"]),
+            socialTitle: g(e, ["socialTitle"]),
+            socialDesc: g(e, ["socialDescription"]),
+            image: g(e, ["shareImage"]),
+            imageNote: "The site-wide social share picture is used (Site-wide settings)",
+            hidden: g(e, ["hideFromSearch"]) === true,
+          }),
+          note("The search title ends with “ — COVERED” unless you typed a Search title or changed the ending in Site-wide settings."),
           blocks.length === 0 ? note("Add sections with the “Add page sections” button — they preview here as you type.") : null,
           blocks.map(function (b, i) {
             if (b.type === "hero") {
@@ -819,7 +899,8 @@
             }
             if (b.type === "imageText") {
               var img = h("figure", { className: "polaroid", style: { maxWidth: "380px" } },
-                h("img", { src: b.image && b.image.charAt(0) === "/" ? b.image : "/" + (b.image || "") }),
+                h("img", { src: b.image && b.image.charAt(0) === "/" ? b.image : "/" + (b.image || ""), alt: altFor(b.alt, b.decorative) }),
+                altWarn(b.image, b.alt, b.decorative),
                 b.caption ? h("figcaption", {}, b.caption) : null);
               var txt = h("div", {},
                 b.heading ? h("h2", { className: "section-title" }, b.heading) : null,
@@ -854,6 +935,37 @@
             }
             return null;
           })
+        );
+      },
+    })
+  );
+
+  // ---------- Redirects ----------
+  CMS.registerPreviewTemplate(
+    "redirects",
+    createClass({
+      render: function () {
+        var items = list(this.props.entry, "items");
+        // the very same checker the website build uses (cms/redirect-rules.js), so every rule the site leaves out is marked, with the reason
+        var RR = typeof window !== "undefined" ? window.CoveredRedirects : null;
+        var reasons = {};
+        if (RR) RR.analyse(items).dropped.forEach(function (d) { reasons[d.index] = d.reason; });
+        return h(
+          "div",
+          { style: { width: "min(1120px, 92%)", margin: "14px auto", fontFamily: "Arial, sans-serif", fontSize: "14px" } },
+          note("Each line sends visitors from an old address to a new one. Lines that cannot work are ignored by the website; they are marked below. A page that really exists is never replaced by a redirect."),
+          RR ? null : note("The rule checker did not load, so nothing is marked here. Reload the editor."),
+          items.length === 0 ? note("No redirects yet.") : null,
+          h(
+            "ul",
+            {},
+            items.map(function (it, i) {
+              var from = it && typeof it.fromLink === "string" ? it.fromLink.trim() : "";
+              var to = it && typeof it.toLink === "string" ? it.toLink.trim() : "";
+              var problem = reasons[i] || "";
+              return h("li", { key: i, style: { margin: "4px 0", color: problem ? "#b00020" : "inherit" } }, from + "  →  " + to + (it && it.permanent === false ? "  (temporary)" : "  (permanent)") + (problem ? "  - ignored: " + problem : ""));
+            })
+          )
         );
       },
     })
@@ -964,6 +1076,16 @@
         return h(
           "div",
           {},
+          seoPreview({
+            title: g(e, ["pageTitle"]),
+            desc: g(e, ["metaDescription"]),
+            path: "",
+            socialTitle: g(e, ["socialTitle"]),
+            socialDesc: g(e, ["ogDescription"]),
+            image: g(e, ["shareImage"]),
+            imageNote: "No social share picture chosen yet",
+            hidden: g(e, ["hideFromSearch"]) === true,
+          }),
           note("Browser-tab title: " + g(e, ["pageTitle"])),
           note("Search-engine description: " + g(e, ["metaDescription"])),
           note("Social-share description: " + g(e, ["ogDescription"])),
@@ -1122,6 +1244,208 @@
             )
           ),
           note("Links to sections that are switched off in “Page layout” are left out automatically on the live site.")
+        );
+      },
+    })
+  );
+
+  // ---------- Type & spacing (design tokens) ----------
+  // A copy of the token table in lib/tokens.js (the file the site build uses to validate the values). It is
+  // generated and checked by `node scripts/check-tokens.js --write`, so the preview can never use looser limits
+  // than the site. The preview applies the SAME rules: numbers are clamped to the bounds, anything that is not a
+  // number (or a listed word) falls back to the shipped value. Sample words are plain text (escaped by React).
+  /* TOKEN-SPEC:BEGIN */
+  var TOKEN_SPEC = [
+    {"key":"fonts.display","kind":"select","css":"--tk-font-display","def":"motor","options":{"motor":"\"Motor\", \"Oswald\", \"Arial Narrow\", Arial, sans-serif","openSauce":"\"Open Sauce One\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"}},
+    {"key":"fonts.heading","kind":"select","css":"--tk-font-head","def":"openSauce","options":{"motor":"\"Motor\", \"Oswald\", \"Arial Narrow\", Arial, sans-serif","openSauce":"\"Open Sauce One\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"}},
+    {"key":"fonts.body","kind":"select","css":"--tk-font-body","def":"openSauce","options":{"motor":"\"Motor\", \"Oswald\", \"Arial Narrow\", Arial, sans-serif","openSauce":"\"Open Sauce One\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"}},
+    {"key":"text.baseSize","kind":"num","css":"--tk-root-size","unit":"%","def":100,"min":80,"max":130,"step":1},
+    {"key":"text.small","kind":"num","css":"--tk-small","unit":"rem","def":0.93,"min":0.7,"max":1.2,"step":0.01},
+    {"key":"text.lead","kind":"clamp","css":"--tk-lead","def":{"min":1.05,"fluid":2,"max":1.2},"bounds":{"min":[0.8,2],"fluid":[0,6],"max":[0.9,3]},"step":0.05},
+    {"key":"text.heroLead","kind":"clamp","css":"--tk-hero-lead","def":{"min":1.05,"fluid":2.2,"max":1.25},"bounds":{"min":[0.8,2],"fluid":[0,6],"max":[0.9,3]},"step":0.05},
+    {"key":"text.heading","kind":"clamp","css":"--tk-heading","def":{"min":1.8,"fluid":4,"max":2.6},"bounds":{"min":[1,4],"fluid":[0,10],"max":[1.2,6]},"step":0.05},
+    {"key":"text.stat","kind":"clamp","css":"--tk-stat","def":{"min":2.6,"fluid":5,"max":3.4},"bounds":{"min":[1.2,5],"fluid":[0,10],"max":[1.5,7]},"step":0.05},
+    {"key":"text.quote","kind":"clamp","css":"--tk-quote","def":{"min":1.5,"fluid":2.9,"max":2.5},"bounds":{"min":[1,4],"fluid":[0,8],"max":[1.2,5]},"step":0.05},
+    {"key":"text.title","kind":"clamp","css":"--tk-title","def":{"min":2.5,"fluid":5.5,"max":4.2},"bounds":{"min":[1.9,6],"fluid":[0,12],"max":[1.9,9]},"step":0.05,"largeText":true},
+    {"key":"text.heroPin","kind":"clampfit","css":"--tk-hero-pin","def":{"min":2.6,"fluid":7.2,"vh":10.5,"max":5.6},"bounds":{"min":[1.5,5],"fluid":[0,14],"vh":[0,20],"max":[2,9]},"step":0.1},
+    {"key":"text.display","kind":"clamp","css":"--tk-display","def":{"min":3.2,"fluid":8.5,"max":6.5},"bounds":{"min":[1.5,8],"fluid":[0,16],"max":[2,12]},"step":0.05},
+    {"key":"lines.body","kind":"num","css":"--tk-lh-body","unit":"","def":1.6,"min":1.2,"max":2.2,"step":0.05},
+    {"key":"lines.heading","kind":"num","css":"--tk-lh-heading","unit":"","def":1.1,"min":0.9,"max":1.6,"step":0.05},
+    {"key":"lines.title","kind":"num","css":"--tk-lh-title","unit":"","def":1.04,"min":0.8,"max":1.5,"step":0.01},
+    {"key":"lines.display","kind":"num","css":"--tk-lh-display","unit":"","def":1.05,"min":0.8,"max":1.4,"step":0.01},
+    {"key":"tracking.heading","kind":"num","css":"--tk-ls-heading","unit":"em","def":-0.02,"min":-0.06,"max":0.1,"step":0.005},
+    {"key":"tracking.title","kind":"num","css":"--tk-ls-title","unit":"em","def":0.015,"min":-0.06,"max":0.1,"step":0.005},
+    {"key":"tracking.display","kind":"num","css":"--tk-ls-display","unit":"em","def":0.01,"min":-0.08,"max":0.1,"step":0.005},
+    {"key":"tracking.kicker","kind":"num","css":"--tk-ls-kicker","unit":"em","def":0.16,"min":0,"max":0.4,"step":0.01},
+    {"key":"weights.display","kind":"select","css":"--tk-fw-display","def":"600","options":{"400":"400","500":"500","600":"600","700":"700"}},
+    {"key":"weights.title","kind":"select","css":"--tk-fw-title","def":"600","options":{"400":"400","500":"500","600":"600","700":"700"}},
+    {"key":"weights.label","kind":"select","css":"--tk-fw-label","def":"700","options":{"400":"400","500":"500","600":"600","700":"700"}},
+    {"key":"weights.button","kind":"select","css":"--tk-fw-button","def":"600","options":{"400":"400","500":"500","600":"600","700":"700"}},
+    {"key":"space.section","kind":"clampvh","css":"--tk-section-pad","def":{"min":6,"fluid":12,"max":10},"bounds":{"min":[2,12],"fluid":[0,30],"max":[3,18]},"step":0.5},
+    {"key":"space.containerMax","kind":"num","css":"--tk-container-max","unit":"px","def":1120,"min":800,"max":1600,"step":10},
+    {"key":"space.containerWidth","kind":"num","css":"--tk-container-width","unit":"%","def":92,"min":80,"max":100,"step":1},
+    {"key":"space.cardGap","kind":"num","css":"--tk-card-gap","unit":"rem","def":1.2,"min":0.5,"max":3,"step":0.05},
+    {"key":"shape.radiusCard","kind":"num","css":"--tk-radius-card","unit":"px","def":20,"min":0,"max":40,"step":1},
+    {"key":"shape.radiusButton","kind":"select","css":"--tk-radius-button","def":"pill","options":{"pill":"999px","rounded":"16px","soft":"10px","square":"0px"}},
+    {"key":"shape.radiusPill","kind":"select","css":"--tk-radius-pill","def":"pill","options":{"pill":"999px","rounded":"16px","soft":"10px","square":"0px"}},
+    {"key":"shape.shadow","kind":"num","css":null,"unit":"","def":0.12,"min":0,"max":0.4,"step":0.01}
+  ];
+  /* TOKEN-SPEC:END */
+  function tokNum(v, lo, hi, dflt) {
+    return typeof v === "number" && isFinite(v) ? Math.min(hi, Math.max(lo, v)) : dflt;
+  }
+  function tokFmt(n) {
+    return String(Math.round(n * 1000) / 1000 + 0);
+  }
+  function tokenStyle(entry) {
+    var style = {};
+    var base = 100;
+    TOKEN_SPEC.forEach(function (t) {
+      var path = t.key.split(".");
+      var css = null;
+      if (t.kind === "select") {
+        var w = g(entry, path, null);
+        var word = typeof w === "string" && Object.prototype.hasOwnProperty.call(t.options, w) ? w : t.def;
+        css = t.options[word];
+      } else if (t.kind === "num") {
+        var n = tokNum(g(entry, path, null), t.min, t.max, t.def);
+        if (t.key === "text.baseSize") base = n;
+        css = tokFmt(n) + t.unit;
+      } else {
+        var o = {};
+        Object.keys(t.bounds).forEach(function (p) {
+          o[p] = tokNum(g(entry, path.concat(p), null), t.bounds[p][0], t.bounds[p][1], t.def[p]);
+        });
+        o.max = Math.max(o.min, o.max);
+        css =
+          t.kind === "clampfit"
+            ? "clamp(" + tokFmt(o.min) + "rem, min(" + tokFmt(o.fluid) + "vw, " + tokFmt(o.vh) + "vh), " + tokFmt(o.max) + "rem)"
+            : "clamp(" + tokFmt(o.min) + "rem, " + tokFmt(o.fluid) + (t.kind === "clampvh" ? "vh" : "vw") + ", " + tokFmt(o.max) + "rem)";
+      }
+      if (t.css && css) style[t.css] = css;
+    });
+    // --font-* / --radius / --text-sm are declared on :root from the --tk-* values; re-point them for the sample
+    style["--font-display"] = style["--tk-font-display"];
+    style["--font-head"] = style["--tk-font-head"];
+    style["--font-body"] = style["--tk-font-body"];
+    style["--radius"] = style["--tk-radius-card"];
+    style["--text-sm"] = style["--tk-small"];
+    // the card shadow: same recipe as theme-vars.njk (ink colour + chosen strength)
+    var shadowT = TOKEN_SPEC.filter(function (t) { return t.key === "shape.shadow"; })[0];
+    if (shadowT) style["--shadow"] = "0 10px 30px rgba(47, 77, 25, " + tokFmt(tokNum(g(entry, ["shape", "shadow"], null), shadowT.min, shadowT.max, shadowT.def)) + ")";
+    // The page's text size is the root font size, which a preview cannot change: zoom the sample instead.
+    style.zoom = String(base / 100);
+    return style;
+  }
+  CMS.registerPreviewTemplate(
+    "tokens",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var style = tokenStyle(e);
+        style.fontFamily = "var(--tk-font-body)";
+        style.lineHeight = "var(--tk-lh-body)";
+        style.color = "var(--ink)";
+        style.background = "var(--paper)";
+        style.padding = "1.2rem 0";
+        var cards = ["Plain cards", "keep their gap", "and their corners"].map(function (t, i) {
+          return h("div", { className: "stat-card", key: i }, h("div", { className: "stat-num" }, String(10 * (i + 1))), h("div", { className: "stat-label" }, t));
+        });
+        return h(
+          "div",
+          { style: style },
+          h(
+            "div",
+            { className: "container" },
+            h("span", { className: "kicker" }, "Sample label"),
+            h("h2", { className: "section-title" }, "A sample section title"),
+            h("p", { className: "section-sub" }, "A sample intro paragraph, to show the size and spacing of the text that sits under a title."),
+            h("h3", { style: { margin: "1.2rem 0 0.4rem" } }, "A sample smaller heading"),
+            h("p", {}, "Ordinary paragraph text looks like this. It is set in the paragraph font, with the line spacing chosen above, so you can judge how comfortable it is to read."),
+            h("p", { style: { fontSize: "var(--text-sm)", color: "var(--muted)" } }, "Small print looks like this."),
+            h("div", { style: { display: "flex", gap: "0.9rem", flexWrap: "wrap", margin: "1.2rem 0" } }, h("span", { className: "btn btn-primary" }, "Sample button"), h("span", { className: "hero-badge" }, "Sample tag")),
+            h("div", { className: "stats-grid", style: { gridTemplateColumns: "repeat(3, 1fr)", marginTop: "1rem" } }, cards)
+          ),
+          note("A preview of the type, spacing, corners and shadows. The space above and below each section and the opening headline are shown on the real page rather than here.")
+        );
+      },
+    })
+  );
+
+  // ---------- Colours & theme: live contrast report ----------
+  // Re-checks every text / background pairing of the site (the table in cms/contrast.js, generated from the built
+  // pages by scripts/check-a11y.js) against the colours currently typed into the form, and lists the ones that
+  // are too low with their ratio. All output is plain text; the only styled values are #RRGGBB strings produced
+  // by cms/contrast.js, never anything an editor typed. The same maths runs in the pull-request check.
+  CMS.registerPreviewTemplate(
+    "theme",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var CC = typeof window !== "undefined" ? window.CoveredContrast : null;
+        var wrap = { fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", fontSize: "14px", lineHeight: 1.45, color: "#1c1c1c", background: "#fff", padding: "16px 18px", margin: "12px auto", maxWidth: "760px", border: "1px solid #d0d0d0", borderRadius: "10px" };
+        if (!CC || !CC.PAIRS || !CC.PAIRS.length) {
+          return h("div", { style: wrap }, h("p", { style: { margin: 0 } }, "The live contrast report could not be loaded (contrast.js is missing). Colours are still checked automatically before a change is published."));
+        }
+        var raw = e.getIn(["data"]);
+        var data = raw && raw.toJS ? raw.toJS() : {};
+        var values = CC.themeValues(data, CC.VARS);
+        var all = CC.evaluateAll(CC.PAIRS, values);
+        // one row per pair of colour roles (the same pair appears on several backgrounds): keep the worst
+        var rows = {};
+        var passing = 0;
+        all.forEach(function (x) {
+          if (x.result.status === "pass") {
+            passing += 1;
+            return;
+          }
+          var key = CC.layerName(x.pair.fg, CC.VARS) + "|" + CC.stackName(x.pair.bg, CC.VARS) + "|" + x.pair.k + "|" + x.pair.what;
+          var cur = rows[key];
+          if (!cur || x.result.ratio < cur.result.ratio) rows[key] = x;
+        });
+        var list = Object.keys(rows).map(function (k) { return rows[k]; });
+        list.sort(function (a, b) {
+          var sa = a.result.status === "fail" ? 0 : 1;
+          var sb = b.result.status === "fail" ? 0 : 1;
+          return sa - sb || a.result.ratio - b.result.ratio;
+        });
+        var fails = list.filter(function (x) { return x.result.status === "fail"; });
+        var warns = list.filter(function (x) { return x.result.status !== "fail"; });
+        function row(x, i) {
+          var p = x.pair;
+          var r = x.result;
+          var what = p.what === "focus ring" ? "keyboard focus outline" : p.what === "symbol" || p.what === "decorative symbol" ? "symbol" : p.k === "l" ? "large text" : p.what === "placeholder" ? "placeholder text" : "text";
+          return h(
+            "li",
+            { key: i, style: { margin: "0 0 10px", listStyle: "none", display: "flex", gap: "10px", alignItems: "flex-start" } },
+            h("span", { "aria-hidden": "true", style: { flex: "0 0 auto", background: r.bg, color: r.fg, border: "1px solid #888", borderRadius: "5px", padding: "2px 8px", fontWeight: 700 } }, "Aa"),
+            h(
+              "span",
+              {},
+              h("strong", {}, CC.fmt(r.ratio, r.need) + ":1"),
+              " (needs " + r.need + ":1) \u2014 " + what + " in " + CC.layerName(p.fg, CC.VARS) + " on " + CC.stackName(p.bg, CC.VARS),
+              r.altRatio !== null && r.altRatio !== undefined ? " (" + CC.fmt(r.altRatio, r.need) + ":1 on the other side of the outline)" : "",
+              r.known ? h("span", { style: { display: "block", color: "#7a5200", fontSize: "12px" } }, "Already this low before any change here (recorded by the accessibility check); it only matters if it gets worse.") : null,
+              p.on ? h("span", { style: { display: "block", color: "#666", fontSize: "12px" } }, "Used by: " + p.on) : null
+            )
+          );
+        }
+        return h(
+          "div",
+          { style: wrap },
+          h("h3", { style: { margin: "0 0 6px", fontSize: "16px" } }, "Colour contrast check"),
+          h(
+            "p",
+            { style: { margin: "0 0 12px", fontWeight: 600, color: fails.length ? "#9b1c1c" : "#1d6b2f" } },
+            fails.length
+              ? fails.length + " colour pairing" + (fails.length === 1 ? " is" : "s are") + " too low to read comfortably. Change one of the colours in each pair before publishing."
+              : "Every pairing of these colours is readable (" + passing + " checked)." + (warns.length ? " " + warns.length + " worth a second look below." : "")
+          ),
+          fails.length ? h("ul", { style: { margin: "0 0 8px", padding: 0 } }, fails.slice(0, 30).map(row)) : null,
+          fails.length > 30 ? h("p", { style: { margin: "0 0 8px", color: "#555" } }, "\u2026and " + (fails.length - 30) + " more pairings that are too low.") : null,
+          warns.length ? h("p", { style: { margin: "8px 0 6px", fontWeight: 600 } }, "Worth a second look") : null,
+          warns.length ? h("ul", { style: { margin: "0 0 8px", padding: 0 } }, warns.map(row)) : null,
+          h("p", { style: { margin: "10px 0 0", color: "#555", fontSize: "12px" } }, "Small text needs 4.5:1, large text and symbols 3:1 (WCAG 2.2). The logo colours are fixed artwork and are not part of this check. " + passing + " of " + all.length + " pairings pass.")
         );
       },
     })

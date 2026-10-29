@@ -1,3 +1,4 @@
+{% import "picture.njk" as pic %}
     <!-- ============ HOW IT WORKS / DEMO ============ -->
     <section id="how" aria-labelledby="how-title">
       <div class="container">
@@ -15,7 +16,7 @@
           {%- set im = s.src | imageInfo %}
           <figure class="story-card" role="listitem">
             {%- if im.src %}
-            <picture>{% if im.webp %}<source type="image/webp" srcset="{% if im.webp480 %}{{ im.webp480 }} 480w, {% endif %}{{ im.webp }} 1200w" sizes="(max-width: 780px) 46vw, 270px" />{% endif %}<img src="{{ im.src }}" width="{{ im.width }}" height="{{ im.height }}" loading="lazy" alt="{{ s.alt }}" /></picture>
+            {{ pic.picture(im, s.alt, s.decorative, "(max-width: 780px) 46vw, 270px") }}
             {%- endif %}
             <figcaption><strong>{{ s.title }}</strong><span>{{ s.caption }}</span></figcaption>
           </figure>
