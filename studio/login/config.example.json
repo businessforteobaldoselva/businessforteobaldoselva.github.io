@@ -1,0 +1,6 @@
+{
+  "_about": "Copy to config.json next to index.html when deploying the login page (STUDIO_APP_URL). Written by the deployer; contains no secrets. See studio/DESIGN.md 8.5 and 17.",
+  "api": "https://studio-api.example.com/api/studio",
+  "allowedOrigins": ["http://localhost:8080"],
+  "previewOriginTemplate": "https://deploy-preview-{n}--your-site.netlify.app"
+}
