@@ -70,6 +70,60 @@
     );
   }
 
+  // ---------- Search-result and social-card preview ----------
+  // Text only: every editor-typed value is a React child or a plain attribute (React escapes
+  // it); the picture src is only used when it looks like a site picture path. No raw HTML here.
+  var SEO_DOMAIN = "coveredaccess.com";
+  var SEO_IMG = /^\/?(images|videos)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp|gif|avif|svg)$/i;
+  function seoClip(value, n) {
+    var s = value === undefined || value === null ? "" : String(value).replace(/\s+/g, " ").trim();
+    return s.length > n ? s.slice(0, n - 1).replace(/\s+$/, "") + "…" : s;
+  }
+  function seoCount(value, soft, label) {
+    var n = value === undefined || value === null ? 0 : String(value).replace(/\s+/g, " ").trim().length;
+    var msg = n === 0 ? label + ": empty" : label + ": " + n + " characters" + (n > soft ? " - longer than about " + soft + ", so Google may cut it off" : " - fits");
+    return h("li", { style: { color: n > soft ? "#a15c00" : "#555" } }, msg);
+  }
+  function seoPreview(o) {
+    var title = o.title ? String(o.title) : "";
+    var desc = o.desc ? String(o.desc) : "";
+    var sTitle = o.socialTitle ? String(o.socialTitle) : title;
+    var sDesc = o.socialDesc ? String(o.socialDesc) : desc;
+    var image = typeof o.image === "string" ? o.image : "";
+    var imgOk = SEO_IMG.test(image) && image.indexOf("..") < 0;
+    var box = { fontFamily: "Arial, sans-serif", background: "#fff", border: "1px solid #dadce0", borderRadius: "8px", padding: "14px 16px", maxWidth: "620px", margin: "8px 0 14px", color: "#202124" };
+    var cap = { fontFamily: "Arial, sans-serif", fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.04em", color: "#555", margin: "14px 0 0" };
+    return h(
+      "div",
+      { style: { width: "min(1120px, 92%)", margin: "14px auto" } },
+      o.hidden ? h("p", { className: "cms-note" }, "🚫 This page is hidden from search engines (and left out of the sitemap). The previews below show what it would look like if it were listed.") : null,
+      h("p", { style: cap }, "How it may look in Google"),
+      h(
+        "div",
+        { style: box },
+        h("div", { style: { fontSize: "12px", color: "#4d5156" } }, SEO_DOMAIN + (o.path ? String(o.path) : "")),
+        h("div", { style: { fontSize: "20px", lineHeight: "1.3", color: "#1a0dab", margin: "2px 0 4px" } }, seoClip(title, 60) || "(no title yet)"),
+        h("div", { style: { fontSize: "14px", lineHeight: "1.5", color: "#4d5156" } }, seoClip(desc, 160) || "(no description - Google will write its own from the page text)")
+      ),
+      h("ul", { style: { fontFamily: "Arial, sans-serif", fontSize: "12px", margin: "0 0 4px", paddingLeft: "18px" } }, seoCount(title, 60, "Title"), seoCount(desc, 160, "Description")),
+      h("p", { style: cap }, "How it may look when shared (WhatsApp, LinkedIn, Facebook)"),
+      h(
+        "div",
+        { style: Object.assign({}, box, { padding: "0", overflow: "hidden", maxWidth: "500px", background: "#f0f2f5" }) },
+        imgOk
+          ? h("img", { src: image.charAt(0) === "/" ? image : "/" + image, alt: "", style: { width: "100%", aspectRatio: "1.91 / 1", objectFit: "cover", display: "block" } })
+          : h("div", { style: { aspectRatio: "1.91 / 1", background: "#dfe3e8", color: "#555", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", textAlign: "center", padding: "8px" } }, o.imageNote ? String(o.imageNote) : "No picture"),
+        h(
+          "div",
+          { style: { padding: "10px 14px 12px" } },
+          h("div", { style: { fontSize: "12px", color: "#65676b", textTransform: "uppercase" } }, SEO_DOMAIN),
+          h("div", { style: { fontSize: "16px", fontWeight: "bold", lineHeight: "1.3", margin: "2px 0" } }, seoClip(sTitle, 70) || "(no title yet)"),
+          h("div", { style: { fontSize: "14px", color: "#65676b", lineHeight: "1.4" } }, seoClip(sDesc, 200))
+        )
+      )
+    );
+  }
+
   // ---------- enquiry-form helpers (For Brands + For Venues) ----------
   var OLD_BRAND_FIELDS = [
     { label: "Your name", type: "text", required: true },
@@ -799,9 +853,21 @@
             return h("p", { key: i, style: { marginBottom: "0.8em" } }, p);
           });
         }
+        var pageTitle = g(e, ["seoTitle"]) || (g(e, ["title"]) ? String(g(e, ["title"])) + " — COVERED" : "");
         return h(
           "div",
           {},
+          seoPreview({
+            title: pageTitle,
+            desc: g(e, ["description"]),
+            path: g(e, ["permalink"]),
+            socialTitle: g(e, ["socialTitle"]),
+            socialDesc: g(e, ["socialDescription"]),
+            image: g(e, ["shareImage"]),
+            imageNote: "The site-wide social share picture is used (Site-wide settings)",
+            hidden: g(e, ["hideFromSearch"]) === true,
+          }),
+          note("The search title ends with “ — COVERED” unless you typed a Search title or changed the ending in Site-wide settings."),
           blocks.length === 0 ? note("Add sections with the “Add page sections” button — they preview here as you type.") : null,
           blocks.map(function (b, i) {
             if (b.type === "hero") {
@@ -854,6 +920,41 @@
             }
             return null;
           })
+        );
+      },
+    })
+  );
+
+  // ---------- Redirects ----------
+  CMS.registerPreviewTemplate(
+    "redirects",
+    createClass({
+      render: function () {
+        var items = list(this.props.entry, "items");
+        var seen = {};
+        var okFrom = /^\/[A-Za-z0-9._~%+-][A-Za-z0-9._~\/%+-]*$/;
+        var okTo = /^(\/(?!\/)[A-Za-z0-9._~\/%+=?#-]*|https:\/\/[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+(:[0-9]{1,5})?(\/[A-Za-z0-9._~\/%+=?#-]*)?)$/;
+        return h(
+          "div",
+          { style: { width: "min(1120px, 92%)", margin: "14px auto", fontFamily: "Arial, sans-serif", fontSize: "14px" } },
+          note("Each line sends visitors from an old address to a new one. Lines that cannot work are ignored by the website; they are marked below."),
+          items.length === 0 ? note("No redirects yet.") : null,
+          h(
+            "ul",
+            {},
+            items.map(function (it, i) {
+              var from = it && typeof it.fromLink === "string" ? it.fromLink.trim() : "";
+              var to = it && typeof it.toLink === "string" ? it.toLink.trim() : "";
+              var key = from.replace(/\/+$/, "").toLowerCase();
+              var problem = "";
+              if (!okFrom.test(from) || from.indexOf("..") >= 0 || from.indexOf("//") >= 0) problem = "the old address must look like /old-page/";
+              else if (!okTo.test(to)) problem = "the new address must be a /page/ on this site or a full https:// address";
+              else if (key === to.replace(/\/+$/, "").toLowerCase()) problem = "it sends the page to itself";
+              else if (seen[key]) problem = "this old address is already used by an earlier line";
+              seen[key] = true;
+              return h("li", { key: i, style: { margin: "4px 0", color: problem ? "#b00020" : "inherit" } }, from + "  →  " + to + (it && it.permanent === false ? "  (temporary)" : "  (permanent)") + (problem ? "  - ignored: " + problem : ""));
+            })
+          )
         );
       },
     })
@@ -964,6 +1065,16 @@
         return h(
           "div",
           {},
+          seoPreview({
+            title: g(e, ["pageTitle"]),
+            desc: g(e, ["metaDescription"]),
+            path: "",
+            socialTitle: g(e, ["socialTitle"]),
+            socialDesc: g(e, ["ogDescription"]),
+            image: g(e, ["shareImage"]),
+            imageNote: "No social share picture chosen yet",
+            hidden: g(e, ["hideFromSearch"]) === true,
+          }),
           note("Browser-tab title: " + g(e, ["pageTitle"])),
           note("Search-engine description: " + g(e, ["metaDescription"])),
           note("Social-share description: " + g(e, ["ogDescription"])),

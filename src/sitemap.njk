@@ -6,10 +6,21 @@ eleventyExcludeFromCollections: true
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {%- for p in collections.all %}
 {%- if p.url and "." not in p.url %}
+{%- set own = "https://coveredaccess.com" + p.url %}
+{%- set d = site if p.url == "/" else p.data %}
+{#- left out: pages hidden from search engines, and pages whose canonical address is another page #}
+{%- if d.hideFromSearch !== true and (d.canonicalUrl | seoCanonical(own)) == own %}
   <url>
-    <loc>https://coveredaccess.com{{ p.url }}</loc>
-    <lastmod>{{ p.date.toISOString().split("T")[0] }}</lastmod>
+    <loc>{{ own }}</loc>
+    <lastmod>{{ d.lastModified | seoDate(p.date.toISOString().split("T")[0]) }}</lastmod>
+{%- if d.sitemapChangefreq | seoChangefreq %}
+    <changefreq>{{ d.sitemapChangefreq | seoChangefreq }}</changefreq>
+{%- endif %}
+{%- if d.sitemapPriority | seoPriority %}
+    <priority>{{ d.sitemapPriority | seoPriority }}</priority>
+{%- endif %}
   </url>
+{%- endif %}
 {%- endif %}
 {%- endfor %}
 </urlset>

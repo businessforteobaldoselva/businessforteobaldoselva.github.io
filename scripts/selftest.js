@@ -30,6 +30,7 @@ const GUARDS = {
   hostile: "check-hostile.js",
   tokens: "check-tokens.js",
   a11y: "check-a11y.js",
+  seo: "check-seo.js",
 };
 
 let passed = 0;
@@ -100,6 +101,7 @@ const scenarios = [
       expectRun("tokens passes (hostile, lowest and highest token values built)", runGuard("tokens", ws.dir), { code: 0 });
       expectRun("a11y passes (the recorded known issues are listed, nothing new)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["CHECK-A11Y OK", "known issues recorded"] });
       expectRun("a11y: the CMS contrast table also covers the copy with every optional field and block switched on", runGuard("a11y", ws.dir, ["--site", site, "--maximal"]), { code: 0 });
+      expectRun("seo passes (rules, site audit and the all-switches probe)", runGuard("seo", ws.dir), { code: 0 });
     },
   },
   {
@@ -131,7 +133,7 @@ const scenarios = [
           "---",
           "title: A very long page title that keeps going and going to see whether the browser tab title still matches",
           "permalink: /press/",
-          "description: Press information.",
+          "description: Press information, logos and contact details for journalists writing about COVERED and free period products.",
           "layout: page.njk",
           "sections:",
           "  - type: hero",
@@ -163,6 +165,133 @@ const scenarios = [
       expectRun("copy passes (new words are traceable, derived sentences still match)", runGuard("copy", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
       expectRun("wiring passes (every new field reaches the page)", runGuard("wiring", ws.dir, FAST), { code: 0 });
       expectRun("a11y passes (the new page, form field and menu link are accessible too)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
+      expectRun("seo passes (the new page has one h1, its own title and description)", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 0, has: ["/press/"] });
+    },
+  },
+  {
+    name: "an editor does SEO work (hides a page, sets a canonical, titles, social card, sitemap values, redirects) and every guard stays green",
+    mutate: (ws) => {
+      const fm = (rel, fn) => {
+        const yamlLib = require("js-yaml");
+        const m = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(ws.read(rel));
+        const data = yamlLib.load(m[1]);
+        fn(data);
+        ws.write(rel, "---\n" + yamlLib.dump(data, { lineWidth: -1 }) + "---\n" + m[2]);
+      };
+      fm("src/pages/privacy.md", (d) => (d.hideFromSearch = true));
+      fm("src/pages/about.md", (d) => {
+        d.seoTitle = "About COVERED - who we are";
+        d.socialTitle = "Meet the team behind COVERED";
+        d.socialDescription = "Free period products, paid for by advertising.";
+        d.shareImage = "/images/covered-og.jpg";
+        d.shareImageAlt = "The COVERED dispenser";
+        d.sitemapPriority = "0.8";
+        d.sitemapChangefreq = "monthly";
+        d.lastModified = "2026-09-01";
+      });
+      editJson(ws, "src/_data/site.json", (j) => {
+        j.socialTitle = "COVERED - free period products";
+        j.shareImageAlt = "Two COVERED dispensers";
+        j.sitemapPriority = "1.0";
+      });
+      editJson(ws, "src/_data/redirects.json", (j) => {
+        j.items = [
+          { fromLink: "/about-us/", toLink: "/about/", permanent: true },
+          { fromLink: "/privacy-policy/", toLink: "/privacy/", permanent: false },
+          { fromLink: "/partners-old/", toLink: "https://example.org/partners", permanent: true },
+        ];
+      });
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("cms passes", runGuard("cms", ws.dir), { code: 0 });
+      expectRun("previews pass", runGuard("previews", ws.dir), { code: 0 });
+      expectRun("copy passes", runGuard("copy", ws.dir, ["--site", site]), { code: 0 });
+      expectRun("seo passes (hidden page out of the sitemap, redirect targets exist, tags complete)", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 0, has: ["2 public page(s)"] });
+      expectRun("wiring passes", runGuard("wiring", ws.dir, FAST), { code: 0 });
+    },
+  },
+  {
+    name: "seo regression: a public page without an <h1>",
+    mutate: (ws) => edit(ws, "src/pages/about.md", (t) => t.replace(/  - type: hero[\s\S]*?  - type: text/, "  - type: text")),
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the missing <h1>", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["/about/ has 0 <h1>"] });
+    },
+  },
+  {
+    name: "seo regression: two pages with the same title and the same description",
+    mutate: (ws) => {
+      const take = (rel) => ws.read(rel);
+      const desc = /^description: .*$/m.exec(take("src/pages/about.md"))[0];
+      edit(ws, "src/pages/privacy.md", (t) => t.replace(/^description: .*$/m, desc).replace(/^title: .*$/m, "title: About us"));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports both duplicates", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["has the same title as", "has the same description as"] });
+    },
+  },
+  {
+    name: "seo regression: the sitemap lists a page hidden from search engines",
+    mutate: (ws) => {
+      edit(ws, "src/pages/privacy.md", (t) => t.replace("layout: page.njk", "layout: page.njk\nhideFromSearch: true"));
+      edit(ws, "src/sitemap.njk", replaceOnce("d.hideFromSearch !== true and ", ""));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the hidden page in sitemap.xml", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["is hidden from search engines but listed in sitemap.xml"] });
+    },
+  },
+  {
+    name: "seo regression: the noindex tag is not printed for a hidden page",
+    mutate: (ws) => {
+      edit(ws, "src/pages/privacy.md", (t) => t.replace("layout: page.njk", "layout: page.njk\nhideFromSearch: true"));
+      edit(ws, "src/_includes/page.njk", replaceOnce('{% if hideFromSearch === true %}<meta name="robots" content="noindex, follow" />{% endif %}', ""));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo notices: the page is still public, so it must be in the sitemap", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["/privacy/ is a public page but is missing from sitemap.xml"] });
+      expectRun("the probe notices the missing noindex tag", runGuard("seo", ws.dir), { code: 1, has: ["hideFromSearch adds a robots noindex tag"] });
+    },
+  },
+  {
+    name: "seo regression: a relative canonical link and a missing share picture tag",
+    mutate: (ws) => {
+      edit(ws, "src/_includes/page.njk", replaceOnce('<link rel="canonical" href="{{ canon }}" />', '<link rel="canonical" href="{{ page.url }}" />'));
+      edit(ws, "src/_includes/page.njk", (t) => t.replace(/<meta property="og:image" content="https:\/\/coveredaccess\.com\{\{ shareSrc \}\}" \/>/, ""));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports both", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["canonical is not an absolute https address", "is missing og:image"] });
+    },
+  },
+  {
+    name: "seo regression: redirects printed without the safe filter (hostile addresses reach the file)",
+    mutate: (ws) => {
+      edit(ws, "src/redirects.njk", replaceOnce("{%- for line in redirects.items | redirectRules %}\n{{ line }}", "{%- for it in redirects.items %}\n{{ it.fromLink }} {{ it.toLink }} 200"));
+      editJson(ws, "src/_data/redirects.json", (j) => (j.items = [{ fromLink: "/old/", toLink: "/about/", permanent: true }, { fromLink: "/proxy/", toLink: "https://evil.example/ x", permanent: true }]));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the malformed lines", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["_redirects holds a line of the wrong shape"] });
+      expectRun("check-hostile reports them too", runGuard("hostile", ws.dir, ["--quick"]), { code: 1, has: ["Redirects file"] });
+    },
+  },
+  {
+    name: "seo regression: redirects.json with a loop, a wildcard and a missing target",
+    mutate: (ws) => {
+      editJson(ws, "src/_data/redirects.json", (j) => {
+        j.items = [
+          { fromLink: "/a/", toLink: "/b/", permanent: true },
+          { fromLink: "/b/", toLink: "/a/", permanent: true },
+          { fromLink: "/blog/*", toLink: "/about/", permanent: true },
+          { fromLink: "/gone/", toLink: "/does-not-exist/", permanent: true },
+        ];
+      });
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-seo reports the ignored rules and the dead target", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 1, has: ["would create a redirect loop", "plain path", "which is not a page of the site"] });
     },
   },
   {
