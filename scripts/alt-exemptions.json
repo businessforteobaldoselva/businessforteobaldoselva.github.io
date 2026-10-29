@@ -7,6 +7,11 @@
       "reason": "The social-share / search-engine picture lives in <meta> tags, not in the page: it is never drawn as an <img>, so there is nothing for a screen reader to describe."
     },
     {
+      "path": "*.shareImage",
+      "checks": ["alt"],
+      "reason": "A page's own social-share picture lives in <meta> tags, never as an <img>. Its optional description (shareImageAlt) is printed as og:image:alt, checked by check-seo."
+    },
+    {
       "path": "locations.mapImage",
       "checks": ["alt"],
       "reason": "The UK map backdrop sits inside the map graphic, which is described as a whole by the 'Map description (for screen readers)' field (svgAriaLabel); the picture itself is an SVG <image> inside that described graphic."

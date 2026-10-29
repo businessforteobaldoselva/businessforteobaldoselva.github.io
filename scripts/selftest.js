@@ -374,7 +374,7 @@ const scenarios = [
       });
       // the same page with the alt attribute removed altogether
       editJson(ws, "src/_data/venues.json", (j) => (j.photos[0].alt = "A COVERED dispenser on a pub wall"));
-      edit(ws, "src/_includes/sections/venues.njk", replaceOnce('alt="{{ photo.alt }}" /></picture>', "/></picture>"));
+      edit(ws, "src/_includes/picture.njk", (t) => { if (!t.includes(' alt="{{ altText }}"')) throw new Error("selftest anchor not found: alt attribute in picture.njk"); return t.split(' alt="{{ altText }}"').join(""); });
       const b = ws.build("noalt");
       if (!b.ok) return mark(false, "the copy without alt attributes builds", b.log.split("\n").slice(-8).join("\n"));
       expectRun("an <img> with no alt attribute at all fails too", runGuard("a11y", ws.dir, ["--site", b.out]), { code: 1, has: ["image has no alt attribute"] });
