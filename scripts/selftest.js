@@ -28,6 +28,7 @@ const GUARDS = {
   previews: "check-previews.js",
   wiring: "check-wiring.js",
   hostile: "check-hostile.js",
+  tokens: "check-tokens.js",
 };
 
 let passed = 0;
@@ -95,6 +96,7 @@ const scenarios = [
       expectRun("copy passes", runGuard("copy", ws.dir, ["--site", site]), { code: 0 });
       expectRun("wiring passes (sentinel build and its switch / dropdown variants)", runGuard("wiring", ws.dir), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir), { code: 0 });
+      expectRun("tokens passes (hostile, lowest and highest token values built)", runGuard("tokens", ws.dir), { code: 0 });
     },
   },
   {
@@ -380,6 +382,79 @@ const scenarios = [
     },
     run(ws) {
       expectRun("check-cms reports both", runGuard("cms", ws.dir), { code: 1, has: ["hero.json > stamp is hidden in the CMS", '"warp" is not one of this select\'s options'] });
+    },
+  },
+  // ---- design tokens (src/_data/tokens.json, lib/tokens.js, scripts/check-tokens.js)
+  {
+    name: "an editor changes design tokens within their limits (sizes, spacing, corners, fonts) and keeps every guard green",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/tokens.json", (j) => {
+        j.text.title.max = 4.6;
+        j.text.baseSize = 105;
+        j.lines.body = 1.7;
+        j.space.cardGap = 1.5;
+        j.shape.radiusButton = "square";
+        j.shape.shadow = 0.2;
+        j.fonts.display = "openSauce";
+        j.weights.button = "700";
+      }),
+    run(ws) {
+      expectRun("check-tokens passes", runGuard("tokens", ws.dir), { code: 0 });
+      expectRun("check-cms passes", runGuard("cms", ws.dir), { code: 0 });
+    },
+  },
+  {
+    name: "a design token with no limit (the clamp removed from lib/tokens.js)",
+    mutate: (ws) => edit(ws, "lib/tokens.js", replaceOnce("(isNum(v) ? Math.min(hi, Math.max(lo, v)) : dflt)", "(isNum(v) ? v : dflt)")),
+    run(ws) {
+      expectRun("check-tokens sees values escape their bounds", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["Tokens: values are bounded by the build", "escaped its bounds"] });
+    },
+  },
+  {
+    name: "a word typed into a font / weight / corner choice is not checked against the allowed list",
+    mutate: (ws) => edit(ws, "lib/tokens.js", replaceOnce('typeof raw === "string" && Object.prototype.hasOwnProperty.call(t.options, raw) ? raw : t.def', 'typeof raw === "string" ? raw : t.def')),
+    run(ws) {
+      expectRun("check-tokens sees an unlisted word reach the css", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["Tokens: values are bounded by the build", "escaped its bounds"] });
+    },
+  },
+  {
+    name: "a CMS field allows a wider range than the build enforces",
+    mutate: (ws) =>
+      editYaml(ws, (cfg) => {
+        const e = cfg.collections[0].files.find((f) => f.name === "tokens");
+        const text = e.fields.find((f) => f.name === "text");
+        text.fields.find((f) => f.name === "small").max = 50;
+      }),
+    run(ws) {
+      expectRun("check-tokens names the field and the bound", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["text.small: max must be 1.2"] });
+    },
+  },
+  {
+    name: "a design token that nothing in the stylesheet uses (dead token)",
+    mutate: (ws) => edit(ws, "src/_includes/site-styles.css", (t) => t.split("var(--tk-card-gap)").join("1.2rem")),
+    run(ws) {
+      expectRun("check-tokens reports the dead token", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["--tk-card-gap is declared but nothing in site-styles.css uses it"] });
+    },
+  },
+  {
+    name: "a shipped default in the stylesheet drifts from the token table (the untouched site would change)",
+    mutate: (ws) => edit(ws, "src/_includes/site-styles.css", replaceOnce("--tk-small: 0.93rem;", "--tk-small: 0.95rem;")),
+    run(ws) {
+      expectRun("check-tokens reports the drift", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["default of --tk-small differs from the table"] });
+    },
+  },
+  {
+    name: "theme-vars prints token data without the validating filter",
+    mutate: (ws) => edit(ws, "src/_includes/theme-vars.njk", replaceOnce("{{ tokens | tokenVars | safe }}", "  --tk-title: clamp(2.5rem, {{ tokens.text.title.fluid }}vw, 4.2rem);")),
+    run(ws) {
+      expectRun("check-tokens reports it", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["does not print the validated tokens"] });
+    },
+  },
+  {
+    name: "the live preview carries an out-of-date copy of the token limits",
+    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('"def":0.93,"min":0.7,"max":1.2', '"def":0.93,"min":0.7,"max":9')),
+    run(ws) {
+      expectRun("check-tokens reports the stale copy", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["TOKEN_SPEC is out of date"] });
     },
   },
 ];

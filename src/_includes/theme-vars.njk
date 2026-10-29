@@ -25,5 +25,9 @@
   --sage: {{ theme.lavender | safeColor("#E2F099") }};
   /* hairline + shadow derive from the ink colour (defaults: rgba(47, 77, 25, …)) */
   --line: {{ theme.ink | safeColor("#2F4D19") | hexToRgba(0.20) }};
-  --shadow: 0 10px 30px {{ theme.ink | safeColor("#2F4D19") | hexToRgba(0.12) }};
+  --shadow: 0 10px 30px {{ theme.ink | safeColor("#2F4D19") | hexToRgba(tokens | tokenValue("shape.shadow")) }};
+  /* TOKENS-BEGIN — "Type & spacing" (src/_data/tokens.json): numbers clamped to hard bounds, words looked up in a
+     fixed table (lib/tokens.js); nothing typed by an editor is printed as text. */
+{{ tokens | tokenVars | safe }}
+  /* TOKENS-END */
 }
