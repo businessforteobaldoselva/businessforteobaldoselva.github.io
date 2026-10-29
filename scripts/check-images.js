@@ -180,19 +180,8 @@ function main() {
 }
 
 // ---- the uploaded files themselves
-const RASTER = /\.(jpe?g|png|webp|gif|avif)$/i;
-const SVG_HAZARDS = [
-  [/<\s*script/i, "a <script> element"],
-  [/<\s*foreignObject/i, "a <foreignObject> element (can hold HTML and script)"],
-  [/<\s*(iframe|embed|object|audio|video|link|meta|base)\b/i, "an <iframe> / <embed> / <object> / <link> style element that loads something else"],
-  [/<!ENTITY/i, "an entity declaration (<!ENTITY>)"],
-  [/\bon[a-z]+\s*=/i, "an event-handler attribute (onload=, onclick= ...)"],
-  [/(javascript|vbscript)\s*:/i, "a javascript: URL"],
-  [/(?:xlink:)?\bhref\s*=\s*["']?\s*(?!#|data:image\/(?:png|jpe?g|webp|gif);)[^"'\s>]/i, "a link / image reference that is not inside the file (href other than #id)"],
-  [/url\(\s*["']?\s*(?!#|data:image\/(?:png|jpe?g|webp|gif);)[^"')\s]/i, "a CSS url() that is not inside the file"],
-  [/@import/i, "a CSS @import"],
-  [/<\s*(set|animate)\b[^>]*attributeName\s*=\s*["']?\s*(xlink:)?href/i, "an animation that rewrites a link"],
-];
+// The picture-file rules (SVG hazards, EXIF GPS) live in scripts/lib/image-rules.js, shared with the Studio API.
+const { RASTER, SVG_HAZARDS, jpegHasGps } = require("./lib/image-rules");
 function walkFiles(dir, out) {
   let list = [];
   try {
@@ -206,33 +195,6 @@ function walkFiles(dir, out) {
     else out.push(p);
   }
   return out;
-}
-// true when a JPEG carries the GPS block of its EXIF data (APP1 "Exif" -> TIFF -> tag 0x8825)
-function jpegHasGps(buf) {
-  if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) return false;
-  let i = 2;
-  while (i + 4 < buf.length && buf[i] === 0xff) {
-    const marker = buf[i + 1];
-    if (marker === 0xda || marker === 0xd9) break;
-    const len = buf.readUInt16BE(i + 2);
-    if (marker === 0xe1 && buf.toString("latin1", i + 4, i + 8) === "Exif") {
-      const t = i + 10; // start of the TIFF header
-      if (t + 8 > buf.length) return false;
-      const le = buf.toString("latin1", t, t + 2) === "II";
-      const u16 = (o) => (le ? buf.readUInt16LE(o) : buf.readUInt16BE(o));
-      const u32 = (o) => (le ? buf.readUInt32LE(o) : buf.readUInt32BE(o));
-      try {
-        const ifd = t + u32(t + 4);
-        const n = u16(ifd);
-        for (let k = 0; k < n; k += 1) if (u16(ifd + 2 + k * 12) === 0x8825) return true;
-      } catch (e) {
-        return false;
-      }
-      return false;
-    }
-    i += 2 + len;
-  }
-  return false;
 }
 function fileProblems(root, report) {
   const G = "Picture files";

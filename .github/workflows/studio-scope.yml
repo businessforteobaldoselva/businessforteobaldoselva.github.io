@@ -1,0 +1,45 @@
+name: Studio scope
+
+# Second gate behind the Studio API: a pull request from a studio/ branch may change ONLY website content
+# (src/_data/*.json, src/pages/*.md, new pictures in images/). The definition lives in studio/validate/scope.js and is
+# shared with the API itself. Read-only: no secrets, no deploys, no privileged trigger.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-scope-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  studio-scope:
+    name: studio-scope
+    if: startsWith(github.head_ref, 'studio/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Same pinned actions as site-checks.yml (full commit SHAs).
+      - name: Check out the repository (full history, to diff against main)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      # The guard and the scope definition are taken from main, so a pull request cannot widen its own scope.
+      - name: Take the guard and the scope definition from main
+        run: |
+          git fetch --no-tags origin main
+          mkdir -p "$RUNNER_TEMP/guard/studio/guards" "$RUNNER_TEMP/guard/studio/validate"
+          git show origin/main:studio/guards/check-scope.js > "$RUNNER_TEMP/guard/studio/guards/check-scope.js"
+          git show origin/main:studio/validate/scope.js > "$RUNNER_TEMP/guard/studio/validate/scope.js"
+
+      - name: Only content files changed
+        run: node "$RUNNER_TEMP/guard/studio/guards/check-scope.js" --root "$GITHUB_WORKSPACE" --base origin/main --head HEAD
