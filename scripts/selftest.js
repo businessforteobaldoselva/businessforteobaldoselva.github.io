@@ -270,7 +270,7 @@ const scenarios = [
   {
     name: "seo regression: redirects printed without the safe filter (hostile addresses reach the file)",
     mutate: (ws) => {
-      edit(ws, "src/redirects.njk", replaceOnce("{%- for line in redirects.items | redirectRules %}\n{{ line }}", "{%- for it in redirects.items %}\n{{ it.fromLink }} {{ it.toLink }} 200"));
+      edit(ws, "src/redirects.njk", replaceOnce("{%- for line in redirects.items | redirectRules(collections.all) %}\n{{ line }}", "{%- for it in redirects.items %}\n{{ it.fromLink }} {{ it.toLink }} 200"));
       editJson(ws, "src/_data/redirects.json", (j) => (j.items = [{ fromLink: "/old/", toLink: "/about/", permanent: true }, { fromLink: "/proxy/", toLink: "https://evil.example/ x", permanent: true }]));
     },
     build: true,
@@ -514,6 +514,75 @@ const scenarios = [
     build: true,
     run(ws, site) {
       expectRun("check-images names the missing attributes", runGuard("images", ws.dir, ["--site", site]), { code: 1, has: ["no alt attribute", "needs numeric width and height"] });
+    },
+  },
+  {
+    name: "uploaded picture files that are empty, corrupt, carry GPS data, or are an SVG with a script",
+    mutate: (ws) => {
+      ws.write("images/zero.jpg", "");
+      ws.write("images/corrupt.jpg", "this is a text file renamed to .jpg");
+      // a one-pixel JPEG whose EXIF block holds a GPS entry (tag 0x8825)
+      const exif = Buffer.concat([Buffer.from("Exif\0\0MM\0\x2a\0\0\0\x08\0\x01\x88\x25\0\x04\0\0\0\x01\0\0\0\0\0\0\0\0", "latin1")]);
+      const app1 = Buffer.concat([Buffer.from([0xff, 0xe1, 0, exif.length + 2]), exif]);
+      const sof = Buffer.from([0xff, 0xc0, 0, 11, 8, 0, 1, 0, 1, 1, 1, 0x11, 0]);
+      ws.write("images/gps.jpg", Buffer.concat([Buffer.from([0xff, 0xd8]), app1, sof, Buffer.from([0xff, 0xd9])]));
+      ws.write("images/evil.svg", '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script><rect onload="x()" width="1" height="1"/></svg>');
+      ws.write("images/linky.svg", '<svg xmlns="http://www.w3.org/2000/svg"><image href="https://evil.example/x.png"/></svg>');
+      ws.write("images/fine.svg", '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><defs><linearGradient id="g"/></defs><rect width="2" height="2" fill="url(#g)"/><use href="#g"/></svg>');
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-images names each bad file and spares the harmless SVG", runGuard("images", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["images/zero.jpg is not a usable picture", "images/corrupt.jpg is not a usable picture", "images/gps.jpg carries the GPS position", "images/evil.svg is not a safe SVG", "images/linky.svg is not a safe SVG"],
+        hasNot: ["images/fine.svg"],
+      });
+    },
+  },
+  {
+    name: "an editor types picture-folder paths (/img/..) into a text field: the build still works and nothing outside the folder is copied",
+    mutate: (ws) => editJson(ws, "src/_data/problem.json", (j) => (j.title = "see /img/.. and /img/. and /img/.cache here")),
+    build: true,
+    run(ws, site) {
+      expectRun("check-images passes", runGuard("images", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "an editor sets every type size to its lowest allowed value (smallest page text too): the accessibility gate stays green",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/tokens.json", (j) => {
+        const T = require(path.join(ws.dir, "lib", "tokens.js"));
+        for (const t of T.TOKENS) {
+          if (!t.key.startsWith("text.")) continue;
+          const k = t.key.split(".")[1];
+          if (t.bounds) j.text[k] = Object.fromEntries(Object.keys(t.bounds).map((p) => [p, t.bounds[p][0]]));
+          else j.text[k] = t.min;
+        }
+        j.weights.title = "400";
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("check-tokens passes", runGuard("tokens", ws.dir), { code: 0 });
+      expectRun("check-a11y passes", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["CHECK-A11Y OK"] });
+    },
+  },
+  {
+    name: "a title size allowed to fall below large text (the lowest 'min' lowered in lib/tokens.js and the CMS)",
+    mutate: (ws) => {
+      edit(ws, "lib/tokens.js", replaceOnce("min: [1.9, 6], fluid: [0, 12], max: [1.9, 9] }, step: 0.05, largeText: true", "min: [1.2, 6], fluid: [0, 12], max: [1.9, 9] }, step: 0.05, largeText: true"));
+      editYaml(ws, (cfg) => {
+        const walk = (n) => {
+          if (Array.isArray(n)) n.forEach(walk);
+          else if (n && typeof n === "object") {
+            if (n.label === "Section titles — smallest size") n.min = 1.2;
+            Object.values(n).forEach(walk);
+          }
+        };
+        walk(cfg);
+      });
+    },
+    run(ws) {
+      expectRun("check-tokens says the title can stop being large text", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["can be set so small"] });
     },
   },
   {

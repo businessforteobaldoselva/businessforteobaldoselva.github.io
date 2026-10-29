@@ -4,6 +4,6 @@ eleventyExcludeFromCollections: true
 ---
 # Generated from the Redirects entry in the CMS (src/_data/redirects.json). Do not edit by hand.
 # Netlify reads this file BEFORE the redirects in netlify.toml. Rules are never "forced": a real page always wins over a redirect from the same address.
-{%- for line in redirects.items | redirectRules %}
+{%- for line in redirects.items | redirectRules(collections.all) %}
 {{ line }}
 {%- endfor %}

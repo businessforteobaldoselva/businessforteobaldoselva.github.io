@@ -83,6 +83,12 @@ function loadPreviews(file) {
     vm.runInContext(fs.readFileSync(contrast, "utf8"), sandbox, { filename: contrast, timeout: 5000 });
     sandbox.window.CoveredContrast = sandbox.CoveredContrast;
   }
+  // ... and redirect-rules.js (window.CoveredRedirects): the same rule checker the build uses
+  const redirects = path.join(path.dirname(file), "redirect-rules.js");
+  if (fs.existsSync(redirects)) {
+    vm.runInContext(fs.readFileSync(redirects, "utf8"), sandbox, { filename: redirects, timeout: 5000 });
+    sandbox.window.CoveredRedirects = sandbox.CoveredRedirects;
+  }
   vm.runInContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file, timeout: 5000 });
   return { templates, styles };
 }

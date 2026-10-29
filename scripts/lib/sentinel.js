@@ -13,6 +13,7 @@ const { widgetOf, listItemFields, contentCollections } = require("./cmsconfig");
 const { schemaPath, pathString, setAt, getAt, joinFrontMatter, leaves } = require("./data");
 const { listFiles, toPosix, readText } = require("./util");
 const { proseKind } = require("./prose");
+const REDIRECT_RULES = require("../../cms/redirect-rules.js");
 
 const TOKEN_RE = /wiretk\d{5}x/gi;
 const MEDIA_RE = /^\/?(images|videos)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp|gif|avif|svg|mp4|webm|m4v)$/i;
@@ -38,7 +39,13 @@ function sentinelValue(tok, orig, field) {
   const name = (field && field.name) || "";
   if (MEDIA_WIDGETS.has(w) || (typeof orig === "string" && MEDIA_RE.test(orig))) return { kind: "media" };
   if (typeof orig === "string") {
-    if (/^https?:\/\//i.test(orig)) return { kind: "text", value: "https://" + tok + ".example/" };
+    if (/^https?:\/\//i.test(orig)) {
+      // a website on the redirects' approved list (cms/redirect-rules.js) keeps its host, because a redirect to any other
+      // host is dropped by the build; the token goes into the path instead
+      const host = (/^https:\/\/([A-Za-z0-9.-]+)(?:[/?#]|$)/.exec(orig) || [])[1];
+      if (host && Object.prototype.hasOwnProperty.call(REDIRECT_RULES.EXTERNAL_HOSTS, host.toLowerCase())) return { kind: "text", value: "https://" + host.toLowerCase() + "/" + tok };
+      return { kind: "text", value: "https://" + tok + ".example/" };
+    }
     if (/^mailto:/i.test(orig)) return { kind: "text", value: "mailto:" + tok + "@example.com" };
     if (/^#./.test(orig)) return { kind: "text", value: "#" + tok };
     if (/^\/(?!\/)/.test(orig)) return { kind: "text", value: "/" + tok + "/" };

@@ -124,6 +124,12 @@ function staticChecks(root, T, report) {
     for (const k of Object.keys(specs)) if (!found.has(k)) report.add(S, "token " + k + " has no CMS field");
   }
 
+  // ---- sizes that must stay LARGE text (WCAG: 24px) because their colours only pass at 3:1
+  const baseMin = (T.TOKENS.find((x) => x.key === "text.baseSize") || {}).min;
+  for (const t of T.TOKENS.filter((x) => x.largeText)) {
+    const px = t.bounds.min[0] * 16 * (baseMin / 100);
+    if (!(px >= 24)) report.add(S, "token " + t.key + " can be set so small (" + Math.round(px * 10) / 10 + "px with the page text at " + baseMin + "%) that it stops being large text", "Its colours pass the accessibility check only as large text (24px or more). Raise the lowest allowed 'min' in lib/tokens.js and the CMS field.");
+  }
   // ---- stylesheet defaults
   const cssFile = path.join(root, "src", "_includes", "site-styles.css");
   const css = readText(cssFile);

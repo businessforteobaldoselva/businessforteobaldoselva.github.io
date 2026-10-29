@@ -360,7 +360,7 @@ function run(args, root, siteDir) {
       } else knownHit.push({ kind: "contrast", f: { message: msg, detail }, entry });
       continue;
     }
-    (sev === "error" ? errors : warnings).push({ group: "contrast", rule: "contrast", url: "", where: "", message: msg, detail, source: nonTheme ? "src/_includes/site-styles.css" : "src/_data/theme.json", fix: nonTheme ? "These colours are fixed in the stylesheet, not in the CMS." : "Change one of the two colours under \u201CColours & theme\u201D in the CMS (or keep the roles apart by at least " + needText(r.need) + ")." });
+    (sev === "error" ? errors : warnings).push({ group: "contrast", rule: "contrast", url: "", where: "", message: msg, detail, source: nonTheme ? "src/_includes/site-styles.css" : "src/_data/theme.json", fix: nonTheme ? "These colours are fixed in the stylesheet, not in the CMS." : "Change one of the two colours under \u201CColours & theme\u201D in the CMS (or keep the roles apart by at least " + needText(r.need) + ")." + (p.k === "t" && r.need === 4.5 && r.ratio >= 3 ? " If you changed a size under \u201CType & spacing\u201D instead, set it back: this pair only passes as large text (24px or more)." : "") });
   }
   for (const u of res.unresolved) warnings.push({ group: "contrast", rule: "contrast-unresolved", url: u.url, where: u.where, message: u.why, source: "src/_includes/site-styles.css" });
   // text drawn over a picture is not measurable
@@ -422,7 +422,7 @@ function run(args, root, siteDir) {
           if (themed && !known2.has(p.key) && !missing.some((x) => x.key === p.key)) missing.push(p);
         }
         if (missing.length) {
-          errors.push({ group: "cms", rule: "pair-table", message: missing.length + " colour pairing" + (missing.length === 1 ? "" : "s") + " in the site's stylesheet and templates " + (missing.length === 1 ? "is" : "are") + " not in the table behind the live contrast report in the CMS (cms/contrast.js), e.g. " + missing.slice(0, 2).map((p) => p.key).join("  /  ") + ". Run: node scripts/check-a11y.js --write-pairs", source: "cms/contrast.js" });
+          errors.push({ group: "cms", rule: "pair-table", message: missing.length + " colour pairing" + (missing.length === 1 ? "" : "s") + " in the site's stylesheet and templates " + (missing.length === 1 ? "is" : "are") + " not in the table behind the live contrast report in the CMS (cms/contrast.js), e.g. " + missing.slice(0, 2).map((p) => p.key).join("  /  ") + ". If you changed a colour or a text size, undo that change first (a contrast error above usually names it). A developer refreshes the table with: node scripts/check-a11y.js --write-pairs", source: "cms/contrast.js" });
         }
       }
     }

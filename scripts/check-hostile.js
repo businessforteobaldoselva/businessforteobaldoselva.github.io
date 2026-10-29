@@ -35,6 +35,8 @@ const FAMILIES = [
   { id: "path traversal + attribute breakout", fn: () => "../../../../etc/passwd\" onmouseover=\"alert(7)\" x='" },
   { id: "CSS / style breakout", fn: () => "red;}</style><script>alert(8)</script><style>{{ 90911 + 6 }}" },
   { id: "data: URL", fn: () => "data:text/html;base64,PHNjcmlwdD5hbGVydCg5KTwvc2NyaXB0Pg==" },
+  // text that looks like the optimised-picture folder: the build copies files named in the pages, so "/img/.." must never reach the file system
+  { id: "picture-folder paths", fn: (s) => s + " HXIMG /img/.. /img/. /img/.cache /img/..%2f /img/-x-1.webp /img/x.avif" },
 ];
 const SKIP_KEYS = new Set(["permalink", "layout"]); // path-level keys: Eleventy itself decides what they may be
 const DANGEROUS_SCHEME = /^\s*(javascript|vbscript):|^\s*data:(?!image\/)/i;

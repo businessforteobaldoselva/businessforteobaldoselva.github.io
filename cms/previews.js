@@ -946,13 +946,15 @@
     createClass({
       render: function () {
         var items = list(this.props.entry, "items");
-        var seen = {};
-        var okFrom = /^\/[A-Za-z0-9._~%+-][A-Za-z0-9._~\/%+-]*$/;
-        var okTo = /^(\/(?!\/)[A-Za-z0-9._~\/%+=?#-]*|https:\/\/[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+(:[0-9]{1,5})?(\/[A-Za-z0-9._~\/%+=?#-]*)?)$/;
+        // the very same checker the website build uses (cms/redirect-rules.js), so every rule the site leaves out is marked, with the reason
+        var RR = typeof window !== "undefined" ? window.CoveredRedirects : null;
+        var reasons = {};
+        if (RR) RR.analyse(items).dropped.forEach(function (d) { reasons[d.index] = d.reason; });
         return h(
           "div",
           { style: { width: "min(1120px, 92%)", margin: "14px auto", fontFamily: "Arial, sans-serif", fontSize: "14px" } },
-          note("Each line sends visitors from an old address to a new one. Lines that cannot work are ignored by the website; they are marked below."),
+          note("Each line sends visitors from an old address to a new one. Lines that cannot work are ignored by the website; they are marked below. A page that really exists is never replaced by a redirect."),
+          RR ? null : note("The rule checker did not load, so nothing is marked here. Reload the editor."),
           items.length === 0 ? note("No redirects yet.") : null,
           h(
             "ul",
@@ -960,13 +962,7 @@
             items.map(function (it, i) {
               var from = it && typeof it.fromLink === "string" ? it.fromLink.trim() : "";
               var to = it && typeof it.toLink === "string" ? it.toLink.trim() : "";
-              var key = from.replace(/\/+$/, "").toLowerCase();
-              var problem = "";
-              if (!okFrom.test(from) || from.indexOf("..") >= 0 || from.indexOf("//") >= 0) problem = "the old address must look like /old-page/";
-              else if (!okTo.test(to)) problem = "the new address must be a /page/ on this site or a full https:// address";
-              else if (key === to.replace(/\/+$/, "").toLowerCase()) problem = "it sends the page to itself";
-              else if (seen[key]) problem = "this old address is already used by an earlier line";
-              seen[key] = true;
+              var problem = reasons[i] || "";
               return h("li", { key: i, style: { margin: "4px 0", color: problem ? "#b00020" : "inherit" } }, from + "  →  " + to + (it && it.permanent === false ? "  (temporary)" : "  (permanent)") + (problem ? "  - ignored: " + problem : ""));
             })
           )
@@ -1270,7 +1266,7 @@
     {"key":"text.heading","kind":"clamp","css":"--tk-heading","def":{"min":1.8,"fluid":4,"max":2.6},"bounds":{"min":[1,4],"fluid":[0,10],"max":[1.2,6]},"step":0.05},
     {"key":"text.stat","kind":"clamp","css":"--tk-stat","def":{"min":2.6,"fluid":5,"max":3.4},"bounds":{"min":[1.2,5],"fluid":[0,10],"max":[1.5,7]},"step":0.05},
     {"key":"text.quote","kind":"clamp","css":"--tk-quote","def":{"min":1.5,"fluid":2.9,"max":2.5},"bounds":{"min":[1,4],"fluid":[0,8],"max":[1.2,5]},"step":0.05},
-    {"key":"text.title","kind":"clamp","css":"--tk-title","def":{"min":2.5,"fluid":5.5,"max":4.2},"bounds":{"min":[1.2,6],"fluid":[0,12],"max":[1.8,9]},"step":0.05},
+    {"key":"text.title","kind":"clamp","css":"--tk-title","def":{"min":2.5,"fluid":5.5,"max":4.2},"bounds":{"min":[1.9,6],"fluid":[0,12],"max":[1.9,9]},"step":0.05,"largeText":true},
     {"key":"text.heroPin","kind":"clampfit","css":"--tk-hero-pin","def":{"min":2.6,"fluid":7.2,"vh":10.5,"max":5.6},"bounds":{"min":[1.5,5],"fluid":[0,14],"vh":[0,20],"max":[2,9]},"step":0.1},
     {"key":"text.display","kind":"clamp","css":"--tk-display","def":{"min":3.2,"fluid":8.5,"max":6.5},"bounds":{"min":[1.5,8],"fluid":[0,16],"max":[2,12]},"step":0.05},
     {"key":"lines.body","kind":"num","css":"--tk-lh-body","unit":"","def":1.6,"min":1.2,"max":2.2,"step":0.05},

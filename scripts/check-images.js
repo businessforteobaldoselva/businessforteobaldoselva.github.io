@@ -13,6 +13,11 @@
 //   * no <img src>, <source srcset>, <img srcset> or <video poster> points at a file missing from the site
 //   * at most one picture per page is eager / fetchpriority="high" (the LCP image; today none)
 //   * every <img> has an alt attribute (the decorative scroll-scrub stills under /frames/ may be empty)
+// It also reads the uploaded FILES in images/ and videos/ (they are published byte for byte):
+//   * a picture must not be empty or corrupt (the page would show a broken image), and a JPEG must not
+//     carry the GPS position of where the photo was taken (the original stays downloadable and is the share picture)
+//   * an SVG must be inert: no <script>, event-handler attribute, <foreignObject>, <iframe> / <embed> / <object>,
+//     javascript: URL, or link / CSS url() to another site - opened on its own address it would run on our domain
 // and, for the home page, that the image bytes a browser would download (simulated: sizes + srcset
 // choice, AVIF first, every lazy picture counted as if the visitor scrolled the whole page) at
 // 390 px and 1280 px wide, on 1x and 2x screens, are not larger than scripts/fixtures/images-baseline.json
@@ -26,6 +31,7 @@ const { parseDocument } = require("htmlparser2");
 const { runMain, mkTmp, removeTree, parseArgs, readJson, exists, Report, REPO_ROOT, SCRIPTS_DIR } = require("./lib/util");
 const { loadSources } = require("./lib/data");
 const { eleventyBin } = require("./lib/workspace");
+const sizeOf = require("image-size");
 
 const BASELINE_FILE = path.join(SCRIPTS_DIR, "fixtures", "images-baseline.json");
 const VIEWPORTS = [390, 1280];
@@ -173,9 +179,101 @@ function main() {
   }
 }
 
+// ---- the uploaded files themselves
+const RASTER = /\.(jpe?g|png|webp|gif|avif)$/i;
+const SVG_HAZARDS = [
+  [/<\s*script/i, "a <script> element"],
+  [/<\s*foreignObject/i, "a <foreignObject> element (can hold HTML and script)"],
+  [/<\s*(iframe|embed|object|audio|video|link|meta|base)\b/i, "an <iframe> / <embed> / <object> / <link> style element that loads something else"],
+  [/<!ENTITY/i, "an entity declaration (<!ENTITY>)"],
+  [/\bon[a-z]+\s*=/i, "an event-handler attribute (onload=, onclick= ...)"],
+  [/(javascript|vbscript)\s*:/i, "a javascript: URL"],
+  [/(?:xlink:)?\bhref\s*=\s*["']?\s*(?!#|data:image\/(?:png|jpe?g|webp|gif);)[^"'\s>]/i, "a link / image reference that is not inside the file (href other than #id)"],
+  [/url\(\s*["']?\s*(?!#|data:image\/(?:png|jpe?g|webp|gif);)[^"')\s]/i, "a CSS url() that is not inside the file"],
+  [/@import/i, "a CSS @import"],
+  [/<\s*(set|animate)\b[^>]*attributeName\s*=\s*["']?\s*(xlink:)?href/i, "an animation that rewrites a link"],
+];
+function walkFiles(dir, out) {
+  let list = [];
+  try {
+    list = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (e) {
+    return out;
+  }
+  for (const f of list) {
+    const p = path.join(dir, f.name);
+    if (f.isDirectory()) walkFiles(p, out);
+    else out.push(p);
+  }
+  return out;
+}
+// true when a JPEG carries the GPS block of its EXIF data (APP1 "Exif" -> TIFF -> tag 0x8825)
+function jpegHasGps(buf) {
+  if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) return false;
+  let i = 2;
+  while (i + 4 < buf.length && buf[i] === 0xff) {
+    const marker = buf[i + 1];
+    if (marker === 0xda || marker === 0xd9) break;
+    const len = buf.readUInt16BE(i + 2);
+    if (marker === 0xe1 && buf.toString("latin1", i + 4, i + 8) === "Exif") {
+      const t = i + 10; // start of the TIFF header
+      if (t + 8 > buf.length) return false;
+      const le = buf.toString("latin1", t, t + 2) === "II";
+      const u16 = (o) => (le ? buf.readUInt16LE(o) : buf.readUInt16BE(o));
+      const u32 = (o) => (le ? buf.readUInt32LE(o) : buf.readUInt32BE(o));
+      try {
+        const ifd = t + u32(t + 4);
+        const n = u16(ifd);
+        for (let k = 0; k < n; k += 1) if (u16(ifd + 2 + k * 12) === 0x8825) return true;
+      } catch (e) {
+        return false;
+      }
+      return false;
+    }
+    i += 2 + len;
+  }
+  return false;
+}
+function fileProblems(root, report) {
+  const G = "Picture files";
+  let n = 0;
+  for (const dirName of ["images", "videos"]) {
+    for (const file of walkFiles(path.join(root, dirName), [])) {
+      const rel = path.relative(root, file).split(path.sep).join("/");
+      if (RASTER.test(file)) {
+        n += 1;
+        let size = 0;
+        try {
+          size = fs.statSync(file).size;
+          if (!size) throw new Error("the file is empty (0 bytes)");
+          const d = sizeOf(file);
+          if (!d.width || !d.height) throw new Error("it has no pixel size");
+        } catch (e) {
+          report.add(G, rel + " is not a usable picture (" + String(e.message).split("\n")[0] + ")", "Upload the picture again. A broken file would be shown as a broken image on the live site.");
+          continue;
+        }
+        if (/\.jpe?g$/i.test(file) && jpegHasGps(fs.readFileSync(file))) report.add(G, rel + " carries the GPS position where the photo was taken", "The original upload is published as it is and can be downloaded. Remove the location data (re-save / export the photo without it) and upload it again.");
+      } else if (/\.svg$/i.test(file)) {
+        n += 1;
+        const text = fs.readFileSync(file, "utf8");
+        if (!/<\s*svg\b/i.test(text)) {
+          report.add(G, rel + " is not an SVG picture", "The file holds no <svg> element.");
+          continue;
+        }
+        for (const [re, what] of SVG_HAZARDS) {
+          const m = re.exec(text);
+          if (m) report.add(G, rel + " is not a safe SVG: it contains " + what, "An SVG opened on its own address runs its scripts on the real website. Export it again as a plain picture without scripts, event handlers or outside links. Found: " + JSON.stringify(m[0].slice(0, 60)));
+        }
+      }
+    }
+  }
+  return n;
+}
+
 function check(root, siteDir) {
   const report = new Report("check-images");
   const G = "Pictures";
+  const nFiles = fileProblems(root, report);
   const hasFrames = exists(path.join(siteDir, "frames"));
   const fileOk = (u) => {
     const p = String(u).split(/[?#]/)[0];
@@ -266,7 +364,7 @@ function check(root, siteDir) {
     }
   } else report.add("Page weight", "scripts/fixtures/images-baseline.json is missing", "Create it with --write-baseline <site built before the pipeline>.");
 
-  report.note("check-images: " + ps.length + " page(s), " + nImg + " <img>, " + nSrcset + " srcset candidates, " + emptyAlt + " empty alt (" + decorative + " decorative in data)");
+  report.note("check-images: " + nFiles + " picture file(s) read, " + ps.length + " page(s), " + nImg + " <img>, " + nSrcset + " srcset candidates, " + emptyAlt + " empty alt (" + decorative + " decorative in data)");
   if (weightNote) report.note(weightNote);
   return report.print({ max: 200, okMessage: "OK - every picture exists, has a size and a description, and the home page is no heavier than before" });
 }

@@ -189,6 +189,10 @@ in `theme.json` ("Colours & theme"). The rules that keep this safe:
    validated declarations, each token must change the output (it follows its data), `--shadow` follows `shape.shadow`, and
    no attack text may appear in any output file.
 
+   A token marked `largeText` in `lib/tokens.js` (today the section title, dark ink on the orange accent at 3.4:1) must
+   not be settable below 24px even with the page text at 80%: layer 1 checks that arithmetic, so a size change inside the
+   CMS limits can never turn large text into normal text and fail the accessibility gate for the wrong reason.
+
 Adding a token: add a row to `lib/tokens.js`, the default to the `TOKENS` block of `site-styles.css`, use `var(--tk-…)`,
 add the field to the "Type & spacing" entry of `cms/config.yml` and `tokens.json`, run `node scripts/check-tokens.js --write`.
 ## check-a11y (accessibility gate)
@@ -316,7 +320,14 @@ so an editor can never create a `200` rewrite / proxy of another site. The old a
 digits, `- . _ ~ % +` and slashes; no `*`, no `:placeholder`, no query, no spaces; never `/`, the editor `/cms` `/admin`,
 `/images` `/assets` `/fonts` `/videos` `/frames`, `sitemap.xml` `robots.txt` `llms.txt` `feed.xml`). The new address is
 a path on the site (`#anchor` and `?x=1` allowed, `..` and `//` not) or a full `https://` address on another host (a
-`https://coveredaccess.com/...` address is turned into a path so loops stay visible). A rule that points to itself,
+`https://coveredaccess.com/...` address is turned into a path so loops stay visible). **A full `https://` address on
+another host is only accepted when the host is on the approved list `EXTERNAL_HOSTS` in `cms/redirect-rules.js`**
+(exact host names, no ports, no IP addresses; a change to that file is a code review): a redirect starts on our own
+address, so an unapproved target would let a stolen editor session send visitors from `coveredaccess.com` to a
+lookalike site. Encoded dot-segments and slashes (`%2e`, `%2f`, `%5c`) are refused. The rules live in one shared file,
+`cms/redirect-rules.js`, used by the build (`lib/eleventy/seo.js`) and by the CMS preview, so the preview marks exactly
+the rules the build drops, with the same reason; a rule whose old address is a page that exists is written but the
+build says it never fires. A rule that points to itself,
 closes a loop, repeats an earlier old address, makes a chain of more than 5 steps, or is number 101+ is dropped (with a
 build warning). The CMS field patterns say the same in plain English, so a valid CMS save is never dropped; the
 Redirects preview marks lines that would be ignored.
@@ -371,6 +382,15 @@ Editors upload a photo of any size (a 4 MB JPEG is fine); nothing else is done b
   `scripts/fixtures/images-baseline.json`, measured once on the previous hand-made WebP markup
   (`--write-baseline <site>`; today 64 KB against 147 KB at 1x). The scroll-scrub stills under `/frames/`
   are not content pictures (no size rule; they still need an `alt` attribute).
+* `check:images` also reads the uploaded FILES in `images/` and `videos/` (they are published byte for byte): an
+  empty or undecodable picture fails (the build leaves it out of the pages instead of publishing a broken image, and
+  `imageInfo` reports `src: ""`); a JPEG carrying the GPS block of its EXIF data fails (the original stays
+  downloadable and is the share picture); an SVG fails if it holds a `<script>`, an event-handler attribute,
+  `<foreignObject>`, `<iframe>` / `<embed>` / `<object>` / `<link>`, a `javascript:` URL, an `href` or CSS `url()` that
+  is not inside the file, or `@import` (an SVG opened on its own address runs on our domain; `netlify.toml` also
+  serves `/images/*.svg` with a sandboxing Content-Security-Policy). Pictures with an EXIF rotate flag (5-8) get
+  their `width` / `height` swapped, like the generated copies. After the build only files the optimiser itself wrote
+  are copied to `/img/`, so text such as `/img/..` typed into a field can never reach the file system.
 * `check:copy` accepts `/img/<name>-<hash>-<width>.<ext>` only when `<name>` is the file name of a
   picture held in the editable data, so the generated files are traceable like the originals.
 

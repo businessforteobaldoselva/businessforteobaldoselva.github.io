@@ -73,7 +73,7 @@ function mulberry(seed) {
   };
 }
 
-function ruleChecks(report, seo) {
+function ruleChecks(report, seo, root) {
   const R = (items) => seo.analyseRedirects(items);
   const item = (f, t, p) => ({ fromLink: f, toLink: t, permanent: p });
   const expectLines = (label, items, want) => {
@@ -124,10 +124,30 @@ function ruleChecks(report, seo) {
     "not an object": "/a/ /b/ 301",
     "a page sent to itself": item("/a/", "/a/"),
     "a page sent to itself (trailing slash differs)": item("/a", "/a/"),
+    "a page sent to itself, written as a full address": item("/about/", "https://coveredaccess.com/about/"),
+    "any other website (not on the approved list)": item("/a/", "https://evil.example/phish"),
+    "a lookalike of our own website": item("/a/", "https://coveredaccess.com.evil.example/"),
+    "an IP address": item("/a/", "https://127.0.0.1/"),
+    "a port number on an approved website": item("/a/", "https://example.org:99999/z"),
+    "a dot-segment hidden as %2e in the old address": item("/a/%2e%2e/b/", "/about/"),
+    "a dot-segment hidden as %2E in the new address": item("/a/", "/%2E%2e/etc"),
+    "an encoded slash": item("/a%2fb/", "/about/"),
+    "a protected address in capitals": item("/Sitemap.xml", "/about/"),
+    "the .well-known folder": item("/.well-known/x", "/about/"),
   };
   for (const [label, it] of Object.entries(bad)) {
     const got = R([it]).lines;
     if (got.length) report.add("Redirect rules", "'" + label + "' was written to the redirects file", JSON.stringify(got));
+  }
+  // the preview in the CMS must use the build's own rule checker, so no rule is silently left out without a mark
+  const pv = readText(path.join(root, "cms", "previews.js"));
+  const idx = readText(path.join(root, "cms", "index.html"));
+  if (!/CoveredRedirects/.test(pv) || !/\.analyse\(/.test(pv)) report.add("Redirect rules", "the Redirects preview in cms/previews.js does not use the shared checker (cms/redirect-rules.js)", "It would mark other rules than the build drops. Use window.CoveredRedirects.analyse(items).");
+  if (!/<script src="redirect-rules\.js"><\/script>\s*<script src="previews\.js"><\/script>/.test(idx)) report.add("Redirect rules", "cms/index.html does not load redirect-rules.js before previews.js", "The Redirects preview would show nothing marked.");
+  // a rule on a page that exists is written but never fires: the build says so
+  {
+    const r = seo.analyseRedirects([item("/about/", "/x/", true)], { pages: { "/about": true } });
+    if (r.ineffective.length !== 1) report.add("Redirect rules", "a rule that starts at an existing page is not reported as never firing");
   }
   // loops, duplicates, chains
   expectLines("a loop is cut at the rule that closes it", [item("/a/", "/b/"), item("/b/", "/a/")], ["/a/ /b/ 301"]);
@@ -464,7 +484,7 @@ function main() {
     console.error("check-seo: lib/eleventy/seo.js could not be loaded: " + e.message);
     return 2;
   }
-  ruleChecks(report, seo);
+  ruleChecks(report, seo, root);
   let siteDir = args.site ? path.resolve(args.site) : null;
   let tmp = null;
   try {
