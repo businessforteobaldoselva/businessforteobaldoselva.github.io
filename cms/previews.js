@@ -1126,4 +1126,83 @@
       },
     })
   );
+
+  // ---------- Colours & theme: live contrast report ----------
+  // Re-checks every text / background pairing of the site (the table in cms/contrast.js, generated from the built
+  // pages by scripts/check-a11y.js) against the colours currently typed into the form, and lists the ones that
+  // are too low with their ratio. All output is plain text; the only styled values are #RRGGBB strings produced
+  // by cms/contrast.js, never anything an editor typed. The same maths runs in the pull-request check.
+  CMS.registerPreviewTemplate(
+    "theme",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var CC = typeof window !== "undefined" ? window.CoveredContrast : null;
+        var wrap = { fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif", fontSize: "14px", lineHeight: 1.45, color: "#1c1c1c", background: "#fff", padding: "16px 18px", margin: "12px auto", maxWidth: "760px", border: "1px solid #d0d0d0", borderRadius: "10px" };
+        if (!CC || !CC.PAIRS || !CC.PAIRS.length) {
+          return h("div", { style: wrap }, h("p", { style: { margin: 0 } }, "The live contrast report could not be loaded (contrast.js is missing). Colours are still checked automatically before a change is published."));
+        }
+        var raw = e.getIn(["data"]);
+        var data = raw && raw.toJS ? raw.toJS() : {};
+        var values = CC.themeValues(data, CC.VARS);
+        var all = CC.evaluateAll(CC.PAIRS, values);
+        // one row per pair of colour roles (the same pair appears on several backgrounds): keep the worst
+        var rows = {};
+        var passing = 0;
+        all.forEach(function (x) {
+          if (x.result.status === "pass") {
+            passing += 1;
+            return;
+          }
+          var key = CC.layerName(x.pair.fg, CC.VARS) + "|" + CC.stackName(x.pair.bg, CC.VARS) + "|" + x.pair.k + "|" + x.pair.what;
+          var cur = rows[key];
+          if (!cur || x.result.ratio < cur.result.ratio) rows[key] = x;
+        });
+        var list = Object.keys(rows).map(function (k) { return rows[k]; });
+        list.sort(function (a, b) {
+          var sa = a.result.status === "fail" ? 0 : 1;
+          var sb = b.result.status === "fail" ? 0 : 1;
+          return sa - sb || a.result.ratio - b.result.ratio;
+        });
+        var fails = list.filter(function (x) { return x.result.status === "fail"; });
+        var warns = list.filter(function (x) { return x.result.status !== "fail"; });
+        function row(x, i) {
+          var p = x.pair;
+          var r = x.result;
+          var what = p.what === "focus ring" ? "keyboard focus outline" : p.what === "symbol" || p.what === "decorative symbol" ? "symbol" : p.k === "l" ? "large text" : p.what === "placeholder" ? "placeholder text" : "text";
+          return h(
+            "li",
+            { key: i, style: { margin: "0 0 10px", listStyle: "none", display: "flex", gap: "10px", alignItems: "flex-start" } },
+            h("span", { "aria-hidden": "true", style: { flex: "0 0 auto", background: r.bg, color: r.fg, border: "1px solid #888", borderRadius: "5px", padding: "2px 8px", fontWeight: 700 } }, "Aa"),
+            h(
+              "span",
+              {},
+              h("strong", {}, CC.fmt(r.ratio, r.need) + ":1"),
+              " (needs " + r.need + ":1) \u2014 " + what + " in " + CC.layerName(p.fg, CC.VARS) + " on " + CC.stackName(p.bg, CC.VARS),
+              r.altRatio !== null && r.altRatio !== undefined ? " (" + CC.fmt(r.altRatio, r.need) + ":1 on the other side of the outline)" : "",
+              r.known ? h("span", { style: { display: "block", color: "#7a5200", fontSize: "12px" } }, "Already this low before any change here (recorded by the accessibility check); it only matters if it gets worse.") : null,
+              p.on ? h("span", { style: { display: "block", color: "#666", fontSize: "12px" } }, "Used by: " + p.on) : null
+            )
+          );
+        }
+        return h(
+          "div",
+          { style: wrap },
+          h("h3", { style: { margin: "0 0 6px", fontSize: "16px" } }, "Colour contrast check"),
+          h(
+            "p",
+            { style: { margin: "0 0 12px", fontWeight: 600, color: fails.length ? "#9b1c1c" : "#1d6b2f" } },
+            fails.length
+              ? fails.length + " colour pairing" + (fails.length === 1 ? " is" : "s are") + " too low to read comfortably. Change one of the colours in each pair before publishing."
+              : "Every pairing of these colours is readable (" + passing + " checked)." + (warns.length ? " " + warns.length + " worth a second look below." : "")
+          ),
+          fails.length ? h("ul", { style: { margin: "0 0 8px", padding: 0 } }, fails.slice(0, 30).map(row)) : null,
+          fails.length > 30 ? h("p", { style: { margin: "0 0 8px", color: "#555" } }, "\u2026and " + (fails.length - 30) + " more pairings that are too low.") : null,
+          warns.length ? h("p", { style: { margin: "8px 0 6px", fontWeight: 600 } }, "Worth a second look") : null,
+          warns.length ? h("ul", { style: { margin: "0 0 8px", padding: 0 } }, warns.map(row)) : null,
+          h("p", { style: { margin: "10px 0 0", color: "#555", fontSize: "12px" } }, "Small text needs 4.5:1, large text and symbols 3:1 (WCAG 2.2). The logo colours are fixed artwork and are not part of this check. " + passing + " of " + all.length + " pairings pass.")
+        );
+      },
+    })
+  );
 })();
