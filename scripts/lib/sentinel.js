@@ -192,7 +192,7 @@ function makePlan(sources, cfg, ignoreMatcher, opts) {
   // ignore-list: drop edits (and everything beneath a dropped structure is already separate)
   const kept = [];
   for (const e of plan.edits) {
-    const m = ignoreMatcher && !e.dev ? ignoreMatcher(e.src.name, e.schema, "wiring", !!e.injected) : null;
+    const m = ignoreMatcher && !e.dev ? ignoreMatcher(e.src.name, e.schema, "wiring", !!e.injected, e.src.kind) : null;
     if (m) plan.skipped.push({ src: e.src.file, schema: e.schema, reason: "wiring-ignore: " + m.reason });
     else kept.push(e);
   }
@@ -325,7 +325,7 @@ function applyPlan(ws, plan, sources, opts) {
 function readBuild(outDir, isExcluded) {
   const skipTop = new Set(["images", "fonts", "videos", "frames", "cms", "admin", "assets"]);
   const parts = [];
-  for (const f of listFiles(outDir, (x) => /\.(html?|xml|txt|json|webmanifest)$/i.test(x))) {
+  for (const f of listFiles(outDir, (x) => /\.(html?|xml|txt|json|webmanifest)$|(^|[\\/])_redirects$/i.test(x))) {
     const rel = toPosix(path.relative(outDir, f));
     if (skipTop.has(rel.split("/")[0])) continue;
     const url = "/" + rel.replace(/index\.html$/, "");

@@ -9,13 +9,14 @@ problem and exits `1` on any violation (`2` for a usage error such as a missing 
 
 | command | what it proves | time |
 | --- | --- | --- |
-| `npm run check` | runs the id guard and the five guards below, fast ones first | ~45 s |
+| `npm run check` | runs the id guard and the six guards below, fast ones first | ~60 s |
 | `npm run check:ids` | the built-in page ids that editor anchors must not reuse are read from the templates, and every CMS anchor pattern lists them all (`lib/reserved-ids.js --check`) | <1 s |
 | `npm run check:cms` | `cms/config.yml` is well formed and **covers every key** of the content | <1 s |
 | `npm run check:previews` | the live previews survive empty / broken / hostile entries | <1 s |
 | `npm run check:copy` | **every visible word, picture and outward link on the built site is traceable to editable data** | <1 s |
 | `npm run check:wiring` | **sentinel test**: every editable field really reaches the page, and no word is hard-coded | ~15 s |
 | `npm run check:hostile` | hostile text typed into any field cannot break out of where it is printed | ~20 s |
+| `npm run check:seo` | **search / social presentation**: one h1, unique titles and descriptions, canonical, og tags, sitemap, hidden pages, redirects file (below) | ~25 s |
 | `npm run check:selftest` | breaks a throwaway copy of the site in ~20 ways and requires the right guard to fail | ~2.5 min |
 
 `check:copy` builds the checkout into a fresh temp folder (so leftovers in `_site` cannot add pages that
@@ -106,7 +107,8 @@ once it reaches the page; only a browser run (the behaviour harness) proves the 
 Data paths the structure and wiring guards skip, each with a **reason**. `checks` says which guard
 (`cms`, `wiring`); `injectedOnly` skips only the probe injected into items that do not hold the field
 (fields a template reads for some item types only). Path syntax: `<data file or page>.<key>[].<key>`,
-`[]` = any list item, `*` = any key, `**` = anything below. It is for values an editor must not or
+`[]` = any list item, `*` = any key, `**` = anything below. `kind: "page"` / `"data"` limits an entry to page
+front matter or to `src/_data` files (used for `title`, which an optional Search title overrides). It is for values an editor must not or
 cannot meaningfully change - not a way to avoid giving the CMS a field. Unused entries: see strict mode
 above.
 
@@ -147,6 +149,62 @@ JSON-LD still parses; no `{{ }}` / `{% %}` typed into a field was evaluated; no 
 static rule bans HTML or code sinks fed from data in the page's own scripts (`innerHTML =` anything but
 a fixed string, `document.write`, `eval`, `setTimeout("…")`, `location` changes that do not start with
 `mailto:`, `/` or `#`). The test fails when the attack string does not reach the pages (a vacuous run).
+
+## check-seo
+
+Search and social presentation (Phase 3). No network. `--site <dir>` audits an existing build,
+`--no-probe` skips stage 3.
+
+1. **Rules** - `lib/eleventy/seo.js` (`analyseRedirects`, `seoCanonical`, sitemap value filters) is run against
+   ~40 hostile / broken redirect and canonical inputs (newline, space, tab, NUL, wildcard, `:splat`, `//host`,
+   `javascript:`, `http:`, credentials, `..`, protected folders, loops, duplicates, long chains, >100 rules, a
+   "permanent" value that tries to become a 200) and 6000 random ones. Every line that comes out must match one
+   strict shape: `/path /path-or-https-address 301|302`.
+2. **Site** - every public (not noindex) page of a fresh build has exactly one `<h1>`; one non-empty `<title>`
+   and meta description that are unique across the site and of sensible length (title 10-120, description 50-320
+   characters - longer than about 60 / 160 is only a note); exactly one canonical, absolute `https://coveredaccess.com/...`;
+   `og:title/description/type/url/image` and `twitter:card`, `og:url` equal to the canonical, the share picture
+   exists; every JSON-LD block parses, has the schema.org context and typed items. `sitemap.xml` lists exactly the
+   public pages that are their own canonical address (no duplicates, valid values); a page hidden from search
+   (`robots noindex`) appears in none of `sitemap.xml`, `llms.txt`, `feed.xml`; `robots.txt` points at the sitemap and does not
+   block the site; `_redirects` has only well-shaped lines, every rule of `redirects.json` took effect (a rule the
+   builder had to drop - loop, wildcard ... - is reported, because the CMS pattern would not have let it be typed) and
+   every internal target exists.
+3. **Probe** - a throwaway copy is built with every SEO field set: one page hidden, a page whose canonical is another page, a
+   foreign canonical (must be refused), sitemap priority / frequency / date, a search title, a social card with
+   picture and description, and a list of redirects mixing valid and hostile entries. The output must change exactly
+   that way (noindex tag, sitemap entries, only the valid redirect lines), and the probe site must itself pass stage 2.
+
+`check-hostile` also reads `_redirects` and `sitemap.xml` of every hostile build: any line of the wrong shape fails.
+
+### What is generated from data, and what is not
+
+| output | source |
+| --- | --- |
+| `<title>`, meta description, `og:*`, `twitter:*`, canonical, robots | `site.json` (homepage) and page front matter, through `seoCanonical` / `imageInfo`; defaults reproduce the pre-Phase-3 markup byte for byte |
+| `sitemap.xml` | every page; hidden pages and pages whose canonical is elsewhere are left out; `lastmod` / `priority` / `changefreq` from the data (validated), `lastmod` falls back to the file date |
+| `_redirects` | `src/_data/redirects.json` via `src/redirects.njk` |
+| JSON-LD (homepage) | `site.json` / `faq.json`, unchanged and strict |
+| `robots.txt`, `llms.txt`, `feed.xml` | **still hand-maintained files at the repository root** (copied as they are). `check-seo` verifies that no hidden page is linked from them. They are not data-driven yet. |
+
+### Redirects: how they are kept safe
+
+`redirects.json` -> `redirectRules` filter -> `_redirects`. Only `301` (permanent) and `302` (temporary) are ever written,
+so an editor can never create a `200` rewrite / proxy of another site. The old address must be a plain path (letters,
+digits, `- . _ ~ % +` and slashes; no `*`, no `:placeholder`, no query, no spaces; never `/`, the editor `/cms` `/admin`,
+`/images` `/assets` `/fonts` `/videos` `/frames`, `sitemap.xml` `robots.txt` `llms.txt` `feed.xml`). The new address is
+a path on the site (`#anchor` and `?x=1` allowed, `..` and `//` not) or a full `https://` address on another host (a
+`https://coveredaccess.com/...` address is turned into a path so loops stay visible). A rule that points to itself,
+closes a loop, repeats an earlier old address, makes a chain of more than 5 steps, or is number 101+ is dropped (with a
+build warning). The CMS field patterns say the same in plain English, so a valid CMS save is never dropped; the
+Redirects preview marks lines that would be ignored.
+
+**Netlify precedence** (Netlify documentation, not testable offline): redirect rules in a `_redirects` file in the
+published folder are processed *before* the `[[redirects]]` of `netlify.toml`, first match wins, and neither is
+"forced" here, so a real page always beats a redirect from the same address. `netlify.toml` is unchanged: its four
+`coveredaccess.co.uk` host rules are host-based (`force = true`) and keep canonicalising the old domain. A path
+rule from `_redirects` applies to every host, so a visitor to `coveredaccess.co.uk/old` takes two hops (path rule,
+then host rule). The GitHub Pages mirror ignores `_redirects`.
 
 ## selftest
 
@@ -193,7 +251,7 @@ allow-list / ignore entry - with the reason a reviewer needs to agree.
 
 ```
 scripts/
-  check-*.js                  the five guards            selftest.js   the regression proof
+  check-*.js                  the six guards            selftest.js   the regression proof
   copy-allowlist.json         accepted non-data text     wiring-ignore.json   skipped fields
   previews-known-issues.json  known preview problems
   fixtures/                   detector fixtures

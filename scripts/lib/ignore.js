@@ -5,6 +5,7 @@
 //
 // path   <data file or page name>.<key>.<key>[].<key>   ("[]" = any list item, "*" = any one key, "**" = anything below)
 // checks which guards may skip it: "cms" (check-cms coverage) and/or "wiring" (check-wiring sentinel)
+// kind (optional) "page" | "data": the entry only applies to that kind of source (page front matter / src/_data file)
 // injectedOnly (optional, wiring): skip only the probe check-wiring injects into items that do not hold the field
 //          (for fields that a template reads for some item types only, e.g. a dropdown's first choice)
 // reason why an editor never needs to change it / why it cannot be tested (20+ characters)
@@ -32,15 +33,15 @@ class IgnoreList {
         this.problems.push(label + ': "checks" may only contain "cms" and "wiring"');
         continue;
       }
-      this.entries.push({ path: e.path, re: patternToRegExp(e.path), reason: e.reason, checks, injectedOnly: e.injectedOnly === true, uses: { cms: 0, wiring: 0 } });
+      this.entries.push({ path: e.path, re: patternToRegExp(e.path), reason: e.reason, checks, injectedOnly: e.injectedOnly === true, kind: e.kind === "page" || e.kind === "data" ? e.kind : null, uses: { cms: 0, wiring: 0 } });
     }
   }
 
   // -> entry | null.   sourceName "brands" / "about", schema "form.fields[].id"
-  match(sourceName, schema, check, injected) {
+  match(sourceName, schema, check, injected, kind) {
     const full = sourceName + "." + schema;
     for (const e of this.entries) {
-      if (e.checks.includes(check) && (!e.injectedOnly || injected) && (e.re.test(full) || e.re.test(schema))) {
+      if (e.checks.includes(check) && (!e.injectedOnly || injected) && (!e.kind || e.kind === kind) && (e.re.test(full) || e.re.test(schema))) {
         e.uses[check] += 1;
         return e;
       }

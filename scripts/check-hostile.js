@@ -25,6 +25,7 @@ const { Workspace } = require("./lib/workspace");
 const { makePlan, applyPlan } = require("./lib/sentinel");
 const { findPages, pageUrlOf } = require("./lib/copycheck");
 const { analysePage, scriptProblems, sinkProblems } = require("./lib/hostile");
+const { redirectsOf, sitemapProblems } = require("./lib/seoshape");
 
 // Each family is applied to every editable field in its own build.
 const FAMILIES = [
@@ -82,6 +83,10 @@ function main() {
       return report.print({ max: args.max || 200 });
     }
     const base = analyseSite(ref.b.out);
+    // generated non-HTML files: the reference must hold a redirect rule (else the test below is vacuous)
+    const refRedirects = redirectsOf(ref.b.out);
+    if (!refRedirects.rules.length) report.add("Test is not exercising the site", "the reference build wrote no redirect rule to _redirects", "The planted redirect fields did not reach the file, so hostile redirects could not be tested.");
+    refRedirects.problems.forEach((p) => report.add("Redirects file", "[reference] " + p));
 
     // ---------------- static rules on the page's own scripts
     let scriptCount = 0;
@@ -102,6 +107,7 @@ function main() {
 
     let reached = 0;
     let tested = 0;
+    let redirectLinesSeen = refRedirects.rules.length;
     for (const run of runs) {
       const { b } = buildWith(run.id, run.opts);
       if (!b.ok) {
@@ -110,6 +116,12 @@ function main() {
       }
       const got = analyseSite(b.out);
       tested += 1;
+      // generated non-HTML files: only well-shaped redirect lines (no injected line, space, status 200 ...) and a clean sitemap
+      const rdr = redirectsOf(b.out);
+      rdr.problems.forEach((p) => report.add("Redirects file", "[" + run.id + "] " + p));
+      const smPath = path.join(b.out, "sitemap.xml");
+      if (fs.existsSync(smPath)) sitemapProblems(readText(smPath)).forEach((p) => report.add("Sitemap file", "[" + run.id + "] " + p));
+      redirectLinesSeen += rdr.rules.length;
       for (const [url, h] of got) {
         const g = base.get(url);
         if (!g) {
@@ -148,7 +160,7 @@ function main() {
     if (!args.quick && reached < 100) report.add("Test is not exercising the site", "the appended attack string reached only " + reached + " places in the built pages", "Something stopped the payload from being printed; the test would pass vacuously.");
 
     report.note("check-hostile: " + base.size + " page(s), " + plan.edits.length + " planted fields (incl. optional fields and unused block types), " + tested + " hostile build(s) [" + runs.map((r) => r.id).join("; ") + "]");
-    report.note("  attack string printed in " + reached + " places (escaped); " + scriptCount + " inline scripts checked for HTML / eval sinks");
+    report.note("  attack string printed in " + reached + " places (escaped); " + redirectLinesSeen + " redirect line(s) across all builds, each strictly shaped; " + scriptCount + " inline scripts checked for HTML / eval sinks");
   } finally {
     if (args.keep) workspaces.forEach((w) => console.log("workspace kept: " + w.dir));
     else workspaces.forEach((w) => w.cleanup());
