@@ -1,2 +1,2 @@
 {#- "Skip to content" link, first thing in <body> on every page. Text: src/_data/nav.json -#}
-<a class="skip-link" href="#top">{{ nav.skipLink }}</a>
+<a class="skip-link" href="#top"{% cms "nav.skipLink", "text" %}>{{ nav.skipLink }}</a>

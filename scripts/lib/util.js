@@ -1,4 +1,6 @@
 "use strict";
+// Studio (phase 4): every guard must build the PRODUCTION html, even when the developer's shell has CMS_EDIT=1.
+delete process.env.CMS_EDIT;
 // Shared helpers for the site guards (scripts/check-*.js). No network, no side effects outside
 // the directories a script is told to use.
 

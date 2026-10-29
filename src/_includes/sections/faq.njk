@@ -1,19 +1,19 @@
     <!-- ============ FAQ ============ -->
-    <section id="faq" aria-labelledby="faq-title">
+    <section id="faq" aria-labelledby="faq-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ faq.kicker }}</span>
-          <h2 class="section-title" id="faq-title">{{ faq.title }}</h2>
+          <span class="kicker"{% cms "faq.kicker", "text" %}>{{ faq.kicker }}</span>
+          <h2 class="section-title" id="faq-title"{% cms "faq.title", "text" %}>{{ faq.title }}</h2>
         </div>
 
         <div class="faq-list">
           {%- for item in faq.items %}
-          <div class="faq-item reveal">
-            <button class="faq-q" aria-expanded="false">
+          <div class="faq-item reveal"{% cms "faq.items." + loop.index0, "item" %}>
+            <button class="faq-q" aria-expanded="false"{% cms "faq.items." + loop.index0 + ".q", "text" %}>
               {{ item.q }}
               <span class="indicator" aria-hidden="true">+</span>
             </button>
-            <div class="faq-a"><div class="faq-a-inner">
+            <div class="faq-a"><div class="faq-a-inner"{% cms "faq.items." + loop.index0 + ".a", "longtext" %}>
               {{ item.a }}
             </div></div>
           </div>

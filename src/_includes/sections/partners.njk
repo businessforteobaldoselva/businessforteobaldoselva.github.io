@@ -1,10 +1,10 @@
     <!-- ============ PARTNERS ============ -->
-    <section id="partners" aria-labelledby="partners-title">
+    <section id="partners" aria-labelledby="partners-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal">
-          <span class="kicker">{{ partners.kicker }}</span>
-          <h2 class="section-title" id="partners-title">{{ partners.title | safeTitle | safe }}</h2>
-          <p class="section-sub">
+          <span class="kicker"{% cms "partners.kicker", "text" %}>{{ partners.kicker }}</span>
+          <h2 class="section-title" id="partners-title"{% cms "partners.title", "text" %}>{{ partners.title | safeTitle | safe }}</h2>
+          <p class="section-sub"{% cms "partners.subtitle", "longtext" %}>
             {{ partners.subtitle }}
           </p>
         </div>
@@ -12,22 +12,22 @@
         <div class="partner-grid">
           {%- for slot in partners.slots %}
           {%- if slot.founding %}
-          <div class="p-slot founding reveal">
+          <div class="p-slot founding reveal"{% cms "partners.slots." + loop.index0, "item" %}>
             {%- if partners.reservedStamp %}
-            <span class="stamp">{{ partners.reservedStamp }}</span>
+            <span class="stamp"{% cms "partners.reservedStamp", "text" %}>{{ partners.reservedStamp }}</span>
             {%- endif %}
-            <span class="slot-logo">{{ slot.logoText }}</span>
-            <small>{{ slot.category }}</small>
+            <span class="slot-logo"{% cms "partners.slots." + loop.index0 + ".logoText", "text" %}>{{ slot.logoText }}</span>
+            <small{% cms "partners.slots." + loop.index0 + ".category", "text" %}>{{ slot.category }}</small>
           </div>
           {%- else %}
-          <div class="p-slot reveal"><span class="slot-logo">{{ slot.logoText }}</span><small>{{ slot.category }}</small></div>
+          <div class="p-slot reveal"{% cms "partners.slots." + loop.index0, "item" %}><span class="slot-logo"{% cms "partners.slots." + loop.index0 + ".logoText", "text" %}>{{ slot.logoText }}</span><small{% cms "partners.slots." + loop.index0 + ".category", "text" %}>{{ slot.category }}</small></div>
           {%- endif %}
           {%- endfor %}
         </div>
 
         {%- if homepage | sectionEnabled("brands") %}
         <p class="reveal" style="margin-top: 2rem; text-align: center;">
-          <a href="#brands" class="btn btn-primary">{{ partners.ctaButton }}</a>
+          <a href="#brands" class="btn btn-primary"{% cms "partners.ctaButton", "text" %}>{{ partners.ctaButton }}</a>
         </p>
         {%- endif %}
       </div>

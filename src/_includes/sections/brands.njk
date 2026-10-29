@@ -1,13 +1,13 @@
 {% import "forms/enquiry-form.njk" as ef %}
 {% import "picture.njk" as pic %}
     <!-- ============ FOR BRANDS ============ -->
-    <section id="brands" class="dark" aria-labelledby="brands-title">
+    <section id="brands" class="dark" aria-labelledby="brands-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal brands-head">
           <div>
-            <span class="kicker">{{ brands.kicker }}</span>
-            <h2 class="section-title" id="brands-title">{{ brands.title | safeTitle | safe }}</h2>
-            <p class="section-sub">
+            <span class="kicker"{% cms "brands.kicker", "text" %}>{{ brands.kicker }}</span>
+            <h2 class="section-title" id="brands-title"{% cms "brands.title", "text" %}>{{ brands.title | safeTitle | safe }}</h2>
+            <p class="section-sub"{% cms "brands.subtitle", "longtext" %}>
               {{ brands.subtitle }}
             </p>
           </div>
@@ -20,31 +20,31 @@
             {%- else %}
             {%- set im = brands.headerPhoto.src | imageInfo %}
             {%- if im.src %}
-            {{ pic.picture(im, brands.headerPhoto.alt, brands.headerPhoto.decorative, "250px") }}
+            {{ pic.picture(im, brands.headerPhoto.alt, brands.headerPhoto.decorative, "250px", false, "brands.headerPhoto.src", "brands.headerPhoto.alt", "brands.headerPhoto.decorative") }}
             {%- endif %}
             {%- endif %}
-            <figcaption>{{ brands.headerPhoto.caption }}</figcaption>
+            <figcaption{% cms "brands.headerPhoto.caption", "text" %}>{{ brands.headerPhoto.caption }}</figcaption>
           </figure>
         </div>
 
         <div class="benefit-grid">
           {%- for b in brands.benefits %}
-          <div class="benefit reveal">
+          <div class="benefit reveal"{% cms "brands.benefits." + loop.index0, "item" %}>
             <div class="b-icon" aria-hidden="true">{{ ic.emojiIcon(b.icon) }}</div>
-            <h3>{{ b.title }}</h3>
-            <p>{{ b.desc }}</p>
+            <h3{% cms "brands.benefits." + loop.index0 + ".title", "text" %}>{{ b.title }}</h3>
+            <p{% cms "brands.benefits." + loop.index0 + ".desc", "longtext" %}>{{ b.desc }}</p>
           </div>
           {%- endfor %}
         </div>
 
         <div class="chip-row reveal">
           {%- for chip in brands.chips %}
-          <span class="chip">{{ chip }}</span>
+          <span class="chip"{% cms "brands.chips." + loop.index0, "text" %}>{{ chip }}</span>
           {%- endfor %}
         </div>
 
         <div class="form-card reveal">
-          <h3>{{ brands.form.heading }}</h3>
+          <h3{% cms "brands.form.heading", "text" %}>{{ brands.form.heading }}</h3>
           {{ ef.enquiryForm("brandForm", "brand-enquiry", brands.form, "bf") }}
         </div>
       </div>

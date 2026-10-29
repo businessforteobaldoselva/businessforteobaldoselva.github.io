@@ -1,5 +1,5 @@
     <!-- ============ CTA ============ -->
-    <section{% if sectionData.ariaLabel %} aria-label="{{ sectionData.ariaLabel }}"{% endif %}>
+    <section{% if sectionData.ariaLabel %} aria-label="{{ sectionData.ariaLabel }}"{% endif %}{% cms blockRef, blockKind %}>
       <div class="container">
         {#- Brand ident: the "covered." sting (Kling generation, local trial).
             Plays once when it scrolls into view; click/tap replays.
@@ -43,10 +43,10 @@
           })();
         </script>
         {%- endif %}
-        <div class="cta-banner reveal">
-          <h2>{{ site.ctaBannerTitle }}</h2>
-          <p>{{ site.ctaBannerText }}</p>
-          <a class="btn btn-light" href="mailto:{{ site.contactEmail }}{% if sectionData.emailSubject %}?subject={{ sectionData.emailSubject | ctaMailtoSubject }}{% endif %}">{{ site.ctaBannerButton }}</a>
+        <div class="cta-banner reveal"{% cms "theme.ink", "color", { cssvar: "--ink" } %}>
+          <h2{% cms "site.ctaBannerTitle", "text" %}>{{ site.ctaBannerTitle }}</h2>
+          <p{% cms "site.ctaBannerText", "longtext" %}>{{ site.ctaBannerText }}</p>
+          <a class="btn btn-light" href="mailto:{{ site.contactEmail }}{% if sectionData.emailSubject %}?subject={{ sectionData.emailSubject | ctaMailtoSubject }}{% endif %}"{% cms "site.ctaBannerButton", "text" %}>{{ site.ctaBannerButton }}</a>
         </div>
       </div>
     </section>

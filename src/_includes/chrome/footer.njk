@@ -9,18 +9,20 @@
 {%- set linkPrefix = "/#" -%}
 {%- set cp = footer.copyright or "" -%}
 {%- set yearAt = cp.indexOf("{year}") -%}
-<footer>
+<footer{% cms "theme.inkDeep", "color", { cssvar: "--ink-deep" } %}>
     <div class="container">
       <div class="foot-grid">
         <div class="foot-brand">
           {% include "chrome/logo.njk" %}
-          <p>{{ footer.tagline }}</p>
+          <p{% cms "footer.tagline", "text" %}>{{ footer.tagline }}</p>
         </div>
         {%- for col in footer.columns %}
-        <nav class="foot-col" aria-label="{{ col.ariaLabel or col.heading }}">
-          <p class="foot-head">{{ col.heading }}</p>
+        {%- set colIdx = loop.index0 %}
+        <nav class="foot-col" aria-label="{{ col.ariaLabel or col.heading }}"{% cms "footer.columns." + colIdx, "item" %}>
+          <p class="foot-head"{% cms "footer.columns." + colIdx + ".heading", "text" %}>{{ col.heading }}</p>
           <ul>
             {%- for item in col.links %}
+            {%- set linkRef = "footer.columns." + colIdx + ".links." + loop.index0 %}
             {% include "chrome/link-item.njk" %}
             {%- endfor %}
           </ul>
@@ -30,7 +32,7 @@
       <div class="foot-bottom">
         <span>{% if yearAt >= 0 %}{{ cp.slice(0, yearAt) }}<span id="year"></span>{{ cp.slice(yearAt + 6) | replace("{year}", "") }}{% else %}{{ cp }}{% endif %}</span>
         {% if footer.lastUpdated %}<span>{{ footer.updatedLabel }} {{ footer.lastUpdated }}</span>{% endif %}
-        {% if footer.signOff %}<span class="script" style="font-size: 1.15rem;">{{ footer.signOff }}</span>{% endif %} {% if footer.signOffEmoji %}<span aria-hidden="true">{{ footer.signOffEmoji }}</span>{% endif %}
+        {% if footer.signOff %}<span class="script" style="font-size: 1.15rem;"{% cms "footer.signOff", "text" %}>{{ footer.signOff }}</span>{% endif %} {% if footer.signOffEmoji %}<span aria-hidden="true"{% cms "footer.signOffEmoji", "text" %}>{{ footer.signOffEmoji }}</span>{% endif %}
       </div>
     </div>
   </footer>
@@ -38,11 +40,11 @@
 {%- set linkPrefix = "/#" -%}
 {%- set linkBare = true -%}
 {%- set linkStyle = "color: inherit;" -%}
-<footer>
+<footer{% cms "theme.inkDeep", "color", { cssvar: "--ink-deep" } %}>
     <div class="container">
       <div class="foot-bottom" style="margin-top: 0; padding-top: 0; border-top: none;">
         <span>{{ (footer.copyright or "") | replace("{year} ", "") | replace("{year}", "") }}</span>
-        <span>{% for item in footer.compactLinks %}{% if not loop.first %} · {% endif %}{% include "chrome/link-item.njk" %}{% endfor %}</span>
+        <span>{% for item in footer.compactLinks %}{% set linkRef = "footer.compactLinks." + loop.index0 %}{% if not loop.first %} · {% endif %}{% include "chrome/link-item.njk" %}{% endfor %}</span>
       </div>
     </div>
   </footer>

@@ -1,10 +1,10 @@
     <!-- ============ LOCATIONS ============ -->
-    <section id="locations" aria-labelledby="locations-title">
+    <section id="locations" aria-labelledby="locations-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal" style="text-align:center;">
-          <span class="kicker">{{ locations.kicker }}</span>
-          <h2 class="section-title" id="locations-title">{{ locations.title | safeTitle | safe }}</h2>
-          <p class="section-sub" style="margin: 0 auto;">
+          <span class="kicker"{% cms "locations.kicker", "text" %}>{{ locations.kicker }}</span>
+          <h2 class="section-title" id="locations-title"{% cms "locations.title", "text" %}>{{ locations.title | safeTitle | safe }}</h2>
+          <p class="section-sub" style="margin: 0 auto;"{% cms "locations.subtitle", "longtext" %}>
             {{ locations.subtitle }}
           </p>
         </div>
@@ -31,7 +31,7 @@
               {%- if mapIm.src %}
               {%- set mapSrc = mapIm.src if mapIm.src.startsWith("/") else "/" + mapIm.src %}
               {%- set mapBox = (locations.svgViewBox | default("")).split(" ") %}
-              <image href="{{ mapSrc }}" x="0" y="0" width="{{ mapBox[2] or mapIm.width }}" height="{{ mapBox[3] or mapIm.height }}" />
+              <image href="{{ mapSrc }}" x="0" y="0" width="{{ mapBox[2] or mapIm.width }}" height="{{ mapBox[3] or mapIm.height }}"{% cms "locations.mapImage", "image" %} />
               {%- else %}
               <path class="uk-neighbor" d="{{ locations.neighborPath }}"/>
               <path class="uk-land" d="{{ locations.landPath }}"/>
@@ -39,8 +39,8 @@
               <g id="mapPins" aria-hidden="true"></g>
             </svg>
             <div class="map-legend" aria-hidden="true">
-              <span><span class="dot live"></span>{{ locations.labels.legendLive }}</span>
-              <span><span class="dot soon"></span>{{ locations.labels.legendSoon }}</span>
+              <span{% cms "locations.labels.legendLive", "text" %}><span class="dot live"></span>{{ locations.labels.legendLive }}</span>
+              <span{% cms "locations.labels.legendSoon", "text" %}><span class="dot soon"></span>{{ locations.labels.legendSoon }}</span>
             </div>
           </div>
 
@@ -48,15 +48,15 @@
             <div class="city-chips" id="cityChips" role="group" aria-label="{{ locations.labels.cityPickerAriaLabel }}"></div>
             <div class="city-detail" id="cityDetail" aria-live="polite"></div>
             <div class="loc-types">
-              <p class="loc-types-title">{{ locations.placeTypesTitle }}</p>
+              <p class="loc-types-title"{% cms "locations.placeTypesTitle", "text" %}>{{ locations.placeTypesTitle }}</p>
               <div class="chip-row">
                 {%- for pt in locations.placeTypes %}
-                <span class="chip">{{ ic.emojiIcon(pt.emoji) }} {{ pt.label }}</span>
+                <span class="chip"{% cms "locations.placeTypes." + loop.index0, "item" %}>{{ ic.emojiIcon(pt.emoji) }} {{ pt.label }}</span>
                 {%- endfor %}
               </div>
               {%- if homepage | sectionEnabled("venues") %}
               <p class="loc-cta">
-                <a href="#venues" class="btn btn-outline">{{ locations.ctaButton }}</a>
+                <a href="#venues" class="btn btn-outline"{% cms "locations.ctaButton", "text" %}>{{ locations.ctaButton }}</a>
               </p>
               {%- endif %}
             </div>

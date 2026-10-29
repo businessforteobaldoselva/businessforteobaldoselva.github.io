@@ -1,22 +1,22 @@
 {% import "picture.njk" as pic %}
     <!-- ============ PROBLEM ============ -->
-    <section id="problem" aria-labelledby="problem-title">
+    <section id="problem" aria-labelledby="problem-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal">
-          <span class="kicker">{{ problem.kicker }}</span>
-          <h2 class="section-title" id="problem-title">{{ problem.title | safeTitle | safe }}</h2>
-          <p class="section-sub">
+          <span class="kicker"{% cms "problem.kicker", "text" %}>{{ problem.kicker }}</span>
+          <h2 class="section-title" id="problem-title"{% cms "problem.title", "text" %}>{{ problem.title | safeTitle | safe }}</h2>
+          <p class="section-sub"{% cms "problem.subtitle", "longtext" %}>
             {{ problem.subtitle }}
           </p>
         </div>
 
         {%- if problem.manifesto %}
         <div class="manifesto-duo reveal">
-          <p class="manifesto" id="manifesto">{{ problem.manifesto }}</p>
+          <p class="manifesto" id="manifesto"{% cms "problem.manifesto", "longtext" %}>{{ problem.manifesto }}</p>
           {%- set mim = problem.manifestoPhoto.src | imageInfo %}
           {%- if mim.src %}
           <figure class="manifesto-photo" aria-hidden="false">
-            {{ pic.picture(mim, problem.manifestoPhoto.alt, problem.manifestoPhoto.decorative, "(max-width: 800px) 60vw, 340px") }}
+            {{ pic.picture(mim, problem.manifestoPhoto.alt, problem.manifestoPhoto.decorative, "(max-width: 800px) 60vw, 340px", false, "problem.manifestoPhoto.src", "problem.manifestoPhoto.alt", "problem.manifestoPhoto.decorative") }}
           </figure>
           {%- endif %}
         </div>
@@ -24,24 +24,24 @@
 
         <div class="stats-grid">
           {%- for stat in problem.stats %}
-          <div class="stat-card reveal">
+          <div class="stat-card reveal"{% cms "problem.stats." + loop.index0, "item" %}>
             <div class="stat-num"><span class="count" data-target="{{ stat.number }}">{{ stat.number }}</span>{{ stat.suffix }}</div>
-            <p class="stat-label">{{ stat.label }}</p>
+            <p class="stat-label"{% cms "problem.stats." + loop.index0 + ".label", "longtext" %}>{{ stat.label }}</p>
           </div>
           {%- endfor %}
         </div>
 
         {%- if problem.sourceText %}
-        <p class="stats-source reveal">{% if problem.sourceLabel %}{{ problem.sourceLabel }} {% endif %}<a href="{{ problem.sourceUrl | safeUrl }}" target="_blank" rel="noopener">{{ problem.sourceText }}</a>.</p>
+        <p class="stats-source reveal">{% if problem.sourceLabel %}{{ problem.sourceLabel }} {% endif %}<a href="{{ problem.sourceUrl | safeUrl }}" target="_blank" rel="noopener"{% cms "problem.sourceText", "text", { href: "problem.sourceUrl" } %}>{{ problem.sourceText }}</a>.</p>
         {%- endif %}
 
         <div class="photo-strip">
           {%- for photo in problem.photos %}
           {%- set im = photo.src | imageInfo %}
           {%- if im.src %}
-          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt | storyTilt }}deg;">
-            {{ pic.picture(im, photo.alt, photo.decorative, "(max-width: 780px) 92vw, 420px") }}
-            <figcaption>{{ photo.caption }}</figcaption>
+          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt | storyTilt }}deg;"{% cms "problem.photos." + loop.index0, "item" %}>
+            {{ pic.picture(im, photo.alt, photo.decorative, "(max-width: 780px) 92vw, 420px", false, "problem.photos." + loop.index0 + ".src", "problem.photos." + loop.index0 + ".alt", "problem.photos." + loop.index0 + ".decorative") }}
+            <figcaption{% cms "problem.photos." + loop.index0 + ".caption", "text" %}>{{ photo.caption }}</figcaption>
           </figure>
           {%- endif %}
           {%- endfor %}
