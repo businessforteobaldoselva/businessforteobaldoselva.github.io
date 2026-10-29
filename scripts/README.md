@@ -9,13 +9,14 @@ problem and exits `1` on any violation (`2` for a usage error such as a missing 
 
 | command | what it proves | time |
 | --- | --- | --- |
-| `npm run check` | runs the id guard and the five guards below, fast ones first | ~45 s |
+| `npm run check` | runs the id guard and the guards below, fast ones first | ~1 min |
 | `npm run check:ids` | the built-in page ids that editor anchors must not reuse are read from the templates, and every CMS anchor pattern lists them all (`lib/reserved-ids.js --check`) | <1 s |
 | `npm run check:cms` | `cms/config.yml` is well formed and **covers every key** of the content | <1 s |
 | `npm run check:previews` | the live previews survive empty / broken / hostile entries | <1 s |
 | `npm run check:copy` | **every visible word, picture and outward link on the built site is traceable to editable data** | <1 s |
 | `npm run check:wiring` | **sentinel test**: every editable field really reaches the page, and no word is hard-coded | ~15 s |
 | `npm run check:hostile` | hostile text typed into any field cannot break out of where it is printed | ~20 s |
+| `npm run check:a11y` | **accessibility gate**: colour contrast of every text / background pairing (from the built CSS and `theme.json`, in hover / focus / toggled states) and page structure (headings, alt text, names, labels, landmarks, ARIA, media) | ~5 s + build |
 | `npm run check:selftest` | breaks a throwaway copy of the site in ~20 ways and requires the right guard to fail | ~2.5 min |
 
 `check:copy` builds the checkout into a fresh temp folder (so leftovers in `_site` cannot add pages that
@@ -148,6 +149,84 @@ static rule bans HTML or code sinks fed from data in the page's own scripts (`in
 a fixed string, `document.write`, `eval`, `setTimeout("…")`, `location` changes that do not start with
 `mailto:`, `/` or `#`). The test fails when the attack string does not reach the pages (a vacuous run).
 
+## check-a11y (accessibility gate)
+
+Builds the checkout (or reads `--site <dir>`) and, for every public page (everything `check-copy` scans; the
+internal tools `/og/ /ident/ /cms/ /admin/` are skipped), checks colour contrast and page structure. **Errors
+fail the run, warnings are listed.** Pages marked `noindex` (today the developer demo `/scroll/`) are checked but
+their errors are only warnings. `--github` (used by the workflow) also prints `::error file=...` / `::warning`
+annotations and appends a result table to `$GITHUB_STEP_SUMMARY`; nothing is posted, no token is needed.
+`--list-pairs` prints every colour pairing found, worst first. `--unit` runs the gate's own tests.
+
+### Colour contrast (WCAG 2.2: 1.4.3 text 4.5:1, large text 3:1, 1.4.11 symbols and focus rings 3:1)
+
+The pairings are **derived, not typed in**. `lib/a11y-css.js` reads the page's real stylesheet (inline `<style>` and
+linked CSS: selectors with specificity, `@media`, `var()`, `!important`, inheritance, inline `style`) and
+`lib/a11y-style.js` computes for every element the text colour, the stack of backgrounds behind it (each
+ancestor's colour, see-through layers composited, every colour stop of a gradient), opacity, font size and weight.
+`lib/a11y-contrast.js` then collects one pairing per distinct (text colour, background stack, size class) and
+keeps the theme **role** each colour came from (`var(--muted)` stays "Quiet text", not a hex code), so a failure
+reads *"Quiet text [muted] #F5EBDD on Page background [paper] #FFF8EC: 1.12:1, needs 4.5:1"* and works for any values
+in `src/_data/theme.json` (the check reads the built CSS, so an editor's colours are what is measured).
+
+What is measured, on every page:
+
+* text in every element: body text, headings, kickers / labels, links, buttons (incl. the white text on the button
+  colour), section and band backgrounds (partner wall, opening screen, how-it-works, dark sections, accent band),
+  the pastel cards, nav, footer, the form fields and their hints, stat numbers, receipts, chips, FAQ;
+* text printed by CSS `::before` / `::after` (ticks, arrows, bullets: a symbol with no letters is judged at 3:1,
+  and only warns when it is a purely decorative pseudo-element glyph), placeholders (the browser's grey when the
+  stylesheet sets none), SVG `<text>` (uses `fill`);
+* the **keyboard focus ring** (`outline`) of every link, button and form control against what is outside it
+  (a ring touching the control, offset under 1px, is also judged against the control's own fill; failing on only
+  one side is a warning);
+* **states**: hover, `:focus`, `:focus-visible`, pressed, `[aria-*]` / `[data-*]` states, and the classes the
+  page's scripts toggle (`stateClasses` in `a11y-config.json`: `active done lit live soon open`), each tried on every
+  element a rule could apply it to; and a **wide (1280) and a narrow (360) screen** (`@media` rules differ);
+* large text = 24px, or 18.66px and bold, computed from `rem` / `em` / `vw` / `clamp()` / `calc()`.
+
+Deliberately **not** covered (the report says so for text over pictures): text drawn over a photograph or the
+hero canvas / video (only the plain colour behind it is measured, the report counts such pairings), text size /
+spacing overrides, hover text on elements the page positions over something else (the check follows the
+element's ancestors, not stacking order), the logo (`exempt` in `a11y-config.json`, WCAG exempts logotypes),
+disabled controls, form-control borders, target size. A selector the reader cannot interpret never matches and is
+listed ("could not interpret"), so a new CSS feature cannot silently hide text.
+
+### Structure
+
+`lang` and `<title>`; zoom not blocked by the viewport tag; exactly one `<main>`, a banner and footer landmark,
+labelled `<nav>`s when there are several; exactly one `<h1>`, no empty heading, **no skipped level**; a skip link
+whose target exists, in-page `#links` that point at something; **every `<img>` has `alt`**, an empty `alt` only on
+an image marked decorative (`aria-hidden="true"` or `role="presentation"`) or inside a link / button that has its
+own text, file-name-like or "image of ..." alt text warns; `<svg role="img">`, `<canvas>`, `<iframe>` names;
+**links and buttons have a name** (text, `aria-label`, `aria-labelledby`, image alt, SVG title), "click here" /
+"here" / "link" fail, "read more" / "learn more" warn (`genericLinkText` in `a11y-config.json`); **every form
+control has a label** (a placeholder is not one), `email` / `tel` fields without `autocomplete` warn; duplicate ids;
+`aria-labelledby` / `for` pointing nowhere; `tabindex` above 0; **`aria-hidden="true"` on something the keyboard can
+still reach** (or on `<body>`); autoplay with sound, a `<video>` without controls that is neither muted + labelled
+nor decorative, a silent looping video with no pause control (warning), and **reduced motion**: an autoplaying video
+needs a `prefers-reduced-motion` rule in the CSS or scripts, CSS animations without one warn.
+
+### Known issues (`a11y-known-issues.json`)
+
+Real defects the gate found on day one are recorded with a reason, not hidden: they are shown in every report and
+in the pull-request summary, **may not get worse** (a contrast entry fails again when its ratio drops by more than
+0.05), and a fixed one must be deleted (an error in strict mode, i.e. on pull requests). Today: the required-field
+asterisk and the form-field focus ring on the dark enquiry card (1.62:1), and the placeholder grey (4.36:1).
+
+### The live report in the CMS
+
+`cms/contrast.js` is a plain UMD file (no dependencies, text maths only) loaded by `cms/index.html` and `require`d
+by this script, so the CMS and the pull-request check use **the same code**. Its `PAIRS` block is generated from
+the built site by `node scripts/check-a11y.js --write-pairs` and `npm run check` fails when it is out of date, so the
+table of pairings the CMS uses cannot drift from the real stylesheet and templates. The "Colours & theme" preview
+(`cms/previews.js`, template `theme`) re-runs every pairing against the colours currently typed into the form and
+lists the ones that are too low with their ratio; pairings that are recorded known issues show as "worth a second
+look" until they get worse. It prints plain text only (the only styled values are `#RRGGBB` strings produced by the
+maths), so it adds no HTML sink. A custom Decap colour **widget** was not used on purpose: a widget only sees its own
+value, so it could not judge a colour against the others without reaching into Decap's internals (and it would
+replace the built-in picker); the preview sees the whole entry.
+
 ## selftest
 
 `npm run check:selftest` proves the guards still bite (`--unit` = detectors only, `--only <text>` =
@@ -164,7 +243,8 @@ hard-coded text in every place a visitor can read it), then works on a throwaway
   no data (optional and required); data and a field that no template reads; a template reading the wrong
   key; `| safe` on a text field; data in a script without escaping `<`; a link without `safeUrl`;
   `innerHTML` fed from data; a preview that throws, prints `undefined` or renders typed text as HTML; a
-  malformed CMS config; hidden fields and values outside their select; every allow-list rule.
+  malformed CMS config; hidden fields and values outside their select; every allow-list rule;
+* the accessibility gate: a safe re-theme stays green; hostile palettes (all white, near-identical text and page, quiet text on the page colour, white button text on a white button) fail naming the colour roles and the ratio; a missing / empty alt, a skipped heading level and an empty link each fail; several `h1` / unlabelled field / `tabindex` / duplicate id / reachable `aria-hidden` fail; a stylesheet change that adds a pairing the CMS table does not know fails until `--write-pairs`; `--github` output carries annotations and a summary table and editor text cannot inject a workflow command.
 
 **Not vacuous:** against the pre-refactor build the copy guard reports a wall of violations.
 
@@ -193,7 +273,8 @@ allow-list / ignore entry - with the reason a reviewer needs to agree.
 
 ```
 scripts/
-  check-*.js                  the five guards            selftest.js   the regression proof
+  check-*.js                  the guards                 selftest.js   the regression proof
+  a11y-config.json            gate settings              a11y-known-issues.json   recorded defects
   copy-allowlist.json         accepted non-data text     wiring-ignore.json   skipped fields
   previews-known-issues.json  known preview problems
   fixtures/                   detector fixtures

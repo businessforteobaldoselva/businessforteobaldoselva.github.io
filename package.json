@@ -12,8 +12,9 @@
     "check:copy": "node scripts/check-copy.js",
     "check:wiring": "node scripts/check-wiring.js",
     "check:hostile": "node scripts/check-hostile.js",
+    "check:a11y": "node scripts/check-a11y.js",
     "check:selftest": "node scripts/selftest.js",
-    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:copy && npm run check:wiring && npm run check:hostile"
+    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:copy && npm run check:wiring && npm run check:hostile && npm run check:a11y"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0",
