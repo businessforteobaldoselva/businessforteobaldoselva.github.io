@@ -24,7 +24,7 @@ const JS_TYPES = /^(|text\/javascript|application\/javascript|module|text\/ecmas
 //          sources, social-share images, icon links, and any attribute holding an /images /frames /videos path
 //   link   a / area hrefs that leave the site (http, https, mailto, tel, sms)
 const MEDIA_TAGS = { img: ["src", "srcset"], source: ["src", "srcset"], video: ["src", "poster"], audio: ["src"], track: ["src"], embed: ["src"], object: ["data"], iframe: ["src"], image: ["href", "xlink:href"] };
-const MEDIA_PATH = /^\/?(images|frames|videos)\//i;
+const MEDIA_PATH = /^\/?(images|img|frames|videos)\//i;
 function referencesOf(n, a) {
   const out = [];
   const add = (kind, attr, url) => {

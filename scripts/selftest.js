@@ -23,6 +23,7 @@ const { scanScript } = require("./lib/jsscan");
 const { cssContentStrings } = require("./lib/css");
 
 const GUARDS = {
+  images: "check-images.js",
   cms: "check-cms.js",
   copy: "check-copy.js",
   previews: "check-previews.js",
@@ -95,6 +96,7 @@ const scenarios = [
       expectRun("copy passes", runGuard("copy", ws.dir, ["--site", site]), { code: 0 });
       expectRun("wiring passes (sentinel build and its switch / dropdown variants)", runGuard("wiring", ws.dir), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir), { code: 0 });
+      expectRun("images passes", runGuard("images", ws.dir, ["--site", site]), { code: 0 });
     },
   },
   {
@@ -210,6 +212,61 @@ const scenarios = [
     },
   },
   {
+    name: "a picture with no description that is not marked decorative",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/venues.json", (j) => {
+        j.photos[0].alt = "";
+        j.photos[0].decorative = false;
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("check-cms names the undescribed picture", runGuard("cms", ws.dir), { code: 1, has: ["Picture descriptions", "venues.json", "no description"] });
+      expectRun("check-images names the empty alt", runGuard("images", ws.dir, ["--site", site]), { code: 1, has: ["empty alt"] });
+    },
+  },
+  {
+    name: "a decorative picture is fine without a description",
+    mutate: (ws) =>
+      editJson(ws, "src/_data/venues.json", (j) => {
+        j.photos[0].alt = "";
+        j.photos[0].decorative = true;
+      }),
+    build: true,
+    run(ws, site) {
+      expectRun("check-cms accepts it", runGuard("cms", ws.dir), { code: 0 });
+      expectRun("check-images accepts the empty alt", runGuard("images", ws.dir, ["--site", site]), { code: 0 });
+    },
+  },
+  {
+    name: "a picture field with no description field beside it",
+    mutate: (ws) =>
+      editYaml(ws, (c) => {
+        const f = JSON.stringify(c);
+        if (!f.includes('"name":"decorative"')) throw new Error("config has no decorative field");
+        const strip = (fields) => {
+          for (const x of fields || []) {
+            if (x.fields) {
+              if (x.fields.some((y) => y.name === "src" && y.widget === "image") && x.name === "photos") x.fields = x.fields.filter((y) => y.name !== "decorative");
+              strip(x.fields);
+            }
+            for (const t of x.types || []) strip(t.fields);
+          }
+        };
+        for (const col of c.collections) for (const e of col.files || []) strip(e.fields);
+      }),
+    run(ws) {
+      expectRun("check-cms names the picture field", runGuard("cms", ws.dir), { code: 1, has: ["Picture descriptions", "a picture field without a description"] });
+    },
+  },
+  {
+    name: "a picture written by hand without width, height or a description",
+    mutate: (ws) => edit(ws, FAQ_TEMPLATE, (t) => t + '\n<img class="guard-test" src="{{ site.shareImage }}">\n'),
+    build: true,
+    run(ws, site) {
+      expectRun("check-images names the missing attributes", runGuard("images", ws.dir, ["--site", site]), { code: 1, has: ["no alt attribute", "needs numeric width and height"] });
+    },
+  },
+  {
     name: "hard-coded words in a stylesheet (::before content)",
     mutate: (ws) => edit(ws, "src/_includes/site-styles.css", (t) => t + '\n.guard-test::before { content: "Hard-coded pseudo-element words"; }\n'),
     build: true,
@@ -312,7 +369,7 @@ const scenarios = [
   },
   {
     name: "an unescaped image alt text (| safe on an alt attribute)",
-    mutate: (ws) => edit(ws, "src/_includes/sections/problem.njk", replaceOnce('alt="{{ problem.manifestoPhoto.alt }}"', 'alt="{{ problem.manifestoPhoto.alt | safe }}"')),
+    mutate: (ws) => edit(ws, "src/_includes/picture.njk", replaceOnce('{%- set altText = "" if decorative else alt -%}', '{%- set altText = ("" if decorative else alt) | safe -%}')),
     run(ws) {
       expectRun("check-hostile sees the attribute breakout in the alt", runGuard("hostile", ws.dir), { code: 1, has: ["CHECK-HOSTILE FAILED"] });
     },

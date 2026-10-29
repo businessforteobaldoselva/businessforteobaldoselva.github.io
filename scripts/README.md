@@ -9,13 +9,14 @@ problem and exits `1` on any violation (`2` for a usage error such as a missing 
 
 | command | what it proves | time |
 | --- | --- | --- |
-| `npm run check` | runs the id guard and the five guards below, fast ones first | ~45 s |
+| `npm run check` | runs the id guard and the six guards below, fast ones first | ~45 s |
 | `npm run check:ids` | the built-in page ids that editor anchors must not reuse are read from the templates, and every CMS anchor pattern lists them all (`lib/reserved-ids.js --check`) | <1 s |
 | `npm run check:cms` | `cms/config.yml` is well formed and **covers every key** of the content | <1 s |
 | `npm run check:previews` | the live previews survive empty / broken / hostile entries | <1 s |
 | `npm run check:copy` | **every visible word, picture and outward link on the built site is traceable to editable data** | <1 s |
 | `npm run check:wiring` | **sentinel test**: every editable field really reaches the page, and no word is hard-coded | ~15 s |
 | `npm run check:hostile` | hostile text typed into any field cannot break out of where it is printed | ~20 s |
+| `npm run check:images` | **every picture exists, has a size and a description, and `/` is no heavier than before the image pipeline** | ~10 s |
 | `npm run check:selftest` | breaks a throwaway copy of the site in ~20 ways and requires the right guard to fail | ~2.5 min |
 
 `check:copy` builds the checkout into a fresh temp folder (so leftovers in `_site` cannot add pages that
@@ -148,6 +149,52 @@ static rule bans HTML or code sinks fed from data in the page's own scripts (`in
 a fixed string, `document.write`, `eval`, `setTimeout("…")`, `location` changes that do not start with
 `mailto:`, `/` or `#`). The test fails when the attack string does not reach the pages (a vacuous run).
 
+## Pictures: the image pipeline and check-images
+
+Editors upload a photo of any size (a 4 MB JPEG is fine); nothing else is done by hand.
+
+* `lib/eleventy/images.js` (plugin, `@11ty/eleventy-img` 6.0.4 on sharp) finds every `/images/...` picture
+  that `src/_data`, `src/pages` and `src/*.njk` mention and, before each build, makes AVIF + WebP + the
+  original format at 480 / 960 / 1600 px wide (never enlarged) in `.cache/img/` (git-ignored; Netlify may
+  start with it empty, then it is regenerated - about 30 s cold, 2 s warm). File names are
+  `<name>-<hash of the picture's bytes>-<width>.<ext>`, so a replaced picture can never be served stale.
+  After the build exactly the files the pages mention are copied to `_site/img/` (cached for a year in
+  `netlify.toml`). The originals are still copied under `/images/`; hand-made `.webp` siblings are no
+  longer used (and not deleted).
+* `{% set im = photo.src | imageInfo %}` keeps its safe-path contract (only existing files under
+  `images/`, or `videos/` for a cover picture; no `..`, no web addresses; anything else gives an empty
+  `im.src` and the template prints nothing). `im` now also carries ready `srcset` strings; templates print
+  them with the macro in `src/_includes/picture.njk`:
+  `{{ pic.picture(im, photo.alt, photo.decorative, "(max-width: 780px) 92vw, 420px") }}`. The macro writes
+  `<picture>` with AVIF and WebP `<source>`s and an `<img>` (original format) with `srcset`, `sizes`,
+  intrinsic `width`/`height`, `decoding="async"` and `loading="lazy"` (a fifth argument `true` makes the
+  one top-of-page picture `loading="eager" fetchpriority="high"`; nothing uses it today because the home
+  page leads with the scroll-scrub canvas). A picture the pipeline cannot process (GIF, SVG, broken file, a
+  path the scan did not see) falls back to a plain `<img src=original>` - never a broken image. Video cover
+  pictures, the share picture and the SVG map keep pointing at the original file.
+* **Picture descriptions.** Every picture field in `cms/config.yml` has an `alt` text field and a boolean
+  "Decorative picture (no description needed)" (`decorative`) beside it; the macro prints `alt=""` for
+  decorative pictures. Decap cannot require a field only while a switch is off, so the form leaves `alt`
+  optional (hint: required unless decorative) and the rule is enforced by the guards: `check:cms` fails a
+  picture field with no `alt` + `decorative` pair (structure) and any picture in the data that has
+  neither a description nor `decorative: true` (values). Pictures that are never drawn as a picture are
+  listed with a reason in `scripts/alt-exemptions.json` (share image, map backdrop, two video cover
+  frames); an entry that exempts nothing is an error. The CMS previews print a warning under such a picture.
+  `check:wiring` keeps every `decorative` switch off in its token build (otherwise the description would
+  vanish and look like a dead field) and flips it in the alternating variants.
+* `check:images` (`scripts/check-images.js`) reads a build and requires, per public page: every content
+  `<img>` (`/img/` or `/images/`) has numeric `width` + `height`, an `alt` attribute, `loading` and
+  `decoding="async"`; `sizes` wherever there is a `srcset` or `<source>`; no `src`, `srcset` candidate,
+  `<source>` or video `poster` pointing at a file that is not in the site; at most one eager /
+  `fetchpriority="high"` picture; empty `alt` only as often as the data has `decorative: true`. It also
+  simulates the browser (the `sizes` + `srcset` choice, AVIF first, every lazy picture counted) for `/` at
+  390 and 1280 px on 1x and 2x screens and requires the bytes to be no larger than
+  `scripts/fixtures/images-baseline.json`, measured once on the previous hand-made WebP markup
+  (`--write-baseline <site>`; today 64 KB against 147 KB at 1x). The scroll-scrub stills under `/frames/`
+  are not content pictures (no size rule; they still need an `alt` attribute).
+* `check:copy` accepts `/img/<name>-<hash>-<width>.<ext>` only when `<name>` is the file name of a
+  picture held in the editable data, so the generated files are traceable like the originals.
+
 ## selftest
 
 `npm run check:selftest` proves the guards still bite (`--unit` = detectors only, `--only <text>` =
@@ -193,7 +240,7 @@ allow-list / ignore entry - with the reason a reviewer needs to agree.
 
 ```
 scripts/
-  check-*.js                  the five guards            selftest.js   the regression proof
+  check-*.js                  the six guards             selftest.js   the regression proof
   copy-allowlist.json         accepted non-data text     wiring-ignore.json   skipped fields
   previews-known-issues.json  known preview problems
   fixtures/                   detector fixtures

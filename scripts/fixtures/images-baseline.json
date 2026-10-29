@@ -1,0 +1,9 @@
+{
+  "_comment": "Image bytes a browser downloads for / (every picture counted) on the markup before the image pipeline (hand-made WebP siblings). check-images fails if the pipeline is ever heavier. Regenerate only on purpose: node scripts/check-images.js --write-baseline <site>.",
+  "bytes": {
+    "390@1x": 146646,
+    "390@2x": 295952,
+    "1280@1x": 146646,
+    "1280@2x": 370256
+  }
+}

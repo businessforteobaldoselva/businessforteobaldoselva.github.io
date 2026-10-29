@@ -11,7 +11,7 @@ const { proseKind } = require("./prose");
 const { hasCopyChars, norm } = require("./corpus");
 const { cssContentStrings } = require("./css");
 
-const PASSTHROUGH_DIRS = new Set(["images", "frames", "fonts", "videos", "node_modules"]);
+const PASSTHROUGH_DIRS = new Set(["images", "img", "frames", "fonts", "videos", "node_modules"]);
 
 function pageUrlOf(siteDir, file) {
   const rel = toPosix(path.relative(siteDir, file));

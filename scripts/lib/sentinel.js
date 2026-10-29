@@ -55,7 +55,10 @@ function planFor(plan, src, p, field, orig, extra) {
   const w = widgetOf(field);
   if (w === "boolean" && plan.switches && typeof orig === "boolean") {
     // yes / no switches are flipped between builds so conditional markup shows up too (not part of the token search)
-    plan.edits.push({ src, path: p, schema, field, orig, token: null, kind: "bool", value: true, flip: true });
+    // The "Decorative picture" switch hides the picture's description (alt=""), so it stays OFF in the token
+    // build - otherwise every description token would vanish and look like a dead field - and is only
+    // flipped in the alternating variants.
+    plan.edits.push({ src, path: p, schema, field, orig, token: null, kind: "bool", value: field.name === "decorative" ? false : true, flip: true });
     return;
   }
   if (w === "select" && plan.switches && typeof orig === "string" && Array.isArray(field.options) && field.options.length) {
@@ -323,7 +326,7 @@ function applyPlan(ws, plan, sources, opts) {
 
 // Text files of a build that can show a token to a visitor (internal tools and passthrough excluded).
 function readBuild(outDir, isExcluded) {
-  const skipTop = new Set(["images", "fonts", "videos", "frames", "cms", "admin", "assets"]);
+  const skipTop = new Set(["images", "img", "fonts", "videos", "frames", "cms", "admin", "assets"]);
   const parts = [];
   for (const f of listFiles(outDir, (x) => /\.(html?|xml|txt|json|webmanifest)$/i.test(x))) {
     const rel = toPosix(path.relative(outDir, f));

@@ -58,6 +58,16 @@
   function note(text) {
     return h("p", { className: "cms-note" }, "ℹ️ " + text);
   }
+  // Mirrors the site's picture macro: a decorative picture is printed with an empty
+  // description, and a picture with neither a description nor the "Decorative" tick is
+  // flagged here (the site's checks refuse to publish it too).
+  function altFor(alt, decorative) {
+    return decorative === true ? "" : alt || "";
+  }
+  function altWarn(src, alt, decorative) {
+    if (!src || decorative === true || String(alt || "").replace(/\s+/g, "") !== "") return null;
+    return h("p", { className: "cms-note", style: { width: "auto", margin: "6px 0 0" } }, "⚠️ Add a picture description (or tick “Decorative picture”) before publishing.");
+  }
   // `breaks` is true for the headings the site renders with safeTitle (line
   // breaks allowed) and false for plain-text headings (model, how, FAQ).
   function sectionHead(kicker, title, subtitle, center, breaks) {
@@ -200,7 +210,7 @@
                   "div",
                   { className: "manifesto-duo" },
                   h("p", { className: "manifesto" }, String(manifesto).replace(/\*/g, "")),
-                  mSrc ? h("figure", { className: "manifesto-photo" }, h("img", { src: imgSrc(mSrc), alt: mAlt })) : null
+                  mSrc ? h("figure", { className: "manifesto-photo" }, h("img", { src: imgSrc(mSrc), alt: altFor(mAlt, g(e, ["manifestoPhoto", "decorative"], false)) }), altWarn(mSrc, mAlt, g(e, ["manifestoPhoto", "decorative"], false))) : null
                 )
               : null,
             h(
@@ -227,7 +237,8 @@
                 return h(
                   "figure",
                   { className: "polaroid", key: i, style: { "--tilt": tilt + "deg" } },
-                  h("img", { src: imgSrc(p.src), alt: p.alt || "" }),
+                  h("img", { src: imgSrc(p.src), alt: altFor(p.alt, p.decorative) }),
+                  altWarn(p.src, p.alt, p.decorative),
                   h("figcaption", {}, p.caption)
                 );
               })
@@ -359,7 +370,8 @@
                     return h(
                       "figure",
                       { className: "story-card", role: "listitem", key: i },
-                      src ? h("img", { src: imgSrc(src), alt: s.alt || "" }) : null,
+                      src ? h("img", { src: imgSrc(src), alt: altFor(s.alt, s.decorative) }) : null,
+                      altWarn(src, s.alt, s.decorative),
                       h("figcaption", {}, h("strong", {}, s.title), h("span", {}, s.caption))
                     );
                   })
@@ -439,7 +451,8 @@
               h(
                 "figure",
                 { className: "polaroid" },
-                h("img", { src: imgSrc(g(e, ["headerPhoto", "src"])), alt: g(e, ["headerPhoto", "alt"]) }),
+                h("img", { src: imgSrc(g(e, ["headerPhoto", "src"])), alt: altFor(g(e, ["headerPhoto", "alt"]), g(e, ["headerPhoto", "decorative"], false)) }),
+                altWarn(g(e, ["headerPhoto", "src"]), g(e, ["headerPhoto", "alt"]), g(e, ["headerPhoto", "decorative"], false)),
                 h("figcaption", {}, g(e, ["headerPhoto", "caption"]))
               )
             ),
@@ -560,7 +573,8 @@
                     return h(
                       "figure",
                       { className: "polaroid", key: i, style: { "--tilt": (parseFloat(ph.tilt) || 0) + "deg" } },
-                      h("img", { src: imgSrc(ph.src), alt: ph.alt || "" }),
+                      h("img", { src: imgSrc(ph.src), alt: altFor(ph.alt, ph.decorative) }),
+                      altWarn(ph.src, ph.alt, ph.decorative),
                       h("figcaption", {}, ph.caption || "")
                     );
                   })
@@ -819,7 +833,8 @@
             }
             if (b.type === "imageText") {
               var img = h("figure", { className: "polaroid", style: { maxWidth: "380px" } },
-                h("img", { src: b.image && b.image.charAt(0) === "/" ? b.image : "/" + (b.image || "") }),
+                h("img", { src: b.image && b.image.charAt(0) === "/" ? b.image : "/" + (b.image || ""), alt: altFor(b.alt, b.decorative) }),
+                altWarn(b.image, b.alt, b.decorative),
                 b.caption ? h("figcaption", {}, b.caption) : null);
               var txt = h("div", {},
                 b.heading ? h("h2", { className: "section-title" }, b.heading) : null,

@@ -4,7 +4,8 @@
 //   { "entries": [ { "path": "brands.form.fields[].id", "checks": ["cms", "wiring"], "reason": "..." } ] }
 //
 // path   <data file or page name>.<key>.<key>[].<key>   ("[]" = any list item, "*" = any one key, "**" = anything below)
-// checks which guards may skip it: "cms" (check-cms coverage) and/or "wiring" (check-wiring sentinel)
+// checks which guards may skip it: "cms" (check-cms coverage), "wiring" (check-wiring sentinel) and/or
+//        "alt" (check-cms picture-description rule; scripts/alt-exemptions.json)
 // injectedOnly (optional, wiring): skip only the probe check-wiring injects into items that do not hold the field
 //          (for fields that a template reads for some item types only, e.g. a dropdown's first choice)
 // reason why an editor never needs to change it / why it cannot be tested (20+ characters)
@@ -28,11 +29,11 @@ class IgnoreList {
         continue;
       }
       const checks = Array.isArray(e.checks) && e.checks.length ? e.checks : ["cms", "wiring"];
-      if (checks.some((c) => c !== "cms" && c !== "wiring")) {
-        this.problems.push(label + ': "checks" may only contain "cms" and "wiring"');
+      if (checks.some((c) => c !== "cms" && c !== "wiring" && c !== "alt")) {
+        this.problems.push(label + ': "checks" may only contain "cms", "wiring" and "alt"');
         continue;
       }
-      this.entries.push({ path: e.path, re: patternToRegExp(e.path), reason: e.reason, checks, injectedOnly: e.injectedOnly === true, uses: { cms: 0, wiring: 0 } });
+      this.entries.push({ path: e.path, re: patternToRegExp(e.path), reason: e.reason, checks, injectedOnly: e.injectedOnly === true, uses: { cms: 0, wiring: 0, alt: 0 } });
     }
   }
 

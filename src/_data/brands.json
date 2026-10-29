@@ -5,6 +5,7 @@
   "headerPhoto": {
     "src": "images/tampon-coral.jpg",
     "alt": "The COVERED dispenser's screen rotating softly between advertising layouts — every free pack is funded by a brand's advertising",
+    "decorative": false,
     "caption": "Your brand, at the moment it matters.",
     "video": "images/ad-loop.mp4",
     "poster": "images/ad-loop-poster.jpg"
