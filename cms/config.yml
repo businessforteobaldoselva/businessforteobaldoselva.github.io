@@ -454,6 +454,224 @@ collections:
             required: false
             hint: "The soft highlight colour: the ticker strip, the model section background, the map's land shape, pill and chip backgrounds, the highlighter underline in the opening headline and one of the confetti colours. Keyboard focus rings on the ticker and model section use the “Footer & deepest dark” colour, so keep this light enough for them to stay visible."
 
+      - name: "tokens"
+        label: "🔤 Type & spacing"
+        file: "src/_data/tokens.json"
+        preview_path: "/"
+        fields:
+          - label: "Fonts"
+            name: "fonts"
+            widget: "object"
+            collapsed: true
+            hint: "Choose which of the site’s own fonts is used where. Every value is kept within safe limits, so nothing typed here can break the layout. Clearing a value restores the shipped one."
+            fields:
+              - label: "Big headline font"
+                name: "display"
+                widget: "select"
+                options:
+                  - { label: "Motor (the bold display typeface)", value: "motor" }
+                  - { label: "Open Sauce One (the clean paragraph typeface)", value: "openSauce" }
+                default: "motor"
+                hint: "The typeface of the biggest words: the opening headline, the section titles, the stamp-style quote and the receipt. Only fonts that are already part of the site can be chosen."
+              - label: "Heading & label font"
+                name: "heading"
+                widget: "select"
+                options:
+                  - { label: "Motor (the bold display typeface)", value: "motor" }
+                  - { label: "Open Sauce One (the clean paragraph typeface)", value: "openSauce" }
+                default: "openSauce"
+                hint: "The typeface of smaller headings, buttons, small labels, card titles and the figures in the statistics."
+              - label: "Paragraph font"
+                name: "body"
+                widget: "select"
+                options:
+                  - { label: "Motor (the bold display typeface)", value: "motor" }
+                  - { label: "Open Sauce One (the clean paragraph typeface)", value: "openSauce" }
+                default: "openSauce"
+                hint: "The typeface of ordinary paragraphs, form fields and descriptions."
+          - label: "Text sizes"
+            name: "text"
+            widget: "object"
+            collapsed: false
+            hint: "How big each kind of text is. Every value is kept within safe limits, so nothing typed here can break the layout. Clearing a value restores the shipped one."
+            fields:
+              - { label: "Overall text size", name: "baseSize", widget: "number", value_type: "int", min: 80, max: 130, step: 1, default: 100, required: false, hint: "Scales ALL text and most spacing on the site at once (100 = normal, 110 = 10% bigger). Visitors who set a larger text size in their browser still get larger text. Allowed range 80 to 130 (%)." }
+              - { label: "Small text size", name: "small", widget: "number", value_type: "float", min: 0.7, max: 1.2, step: 0.01, default: 0.93, required: false, hint: "The size of small descriptions, card captions and statistic labels, in rem (1 rem = normal body text). Shipped value 0.93. Allowed range 0.7 to 1.2 (rem)." }
+              - label: "Section intro text"
+                name: "lead"
+                widget: "object"
+                collapsed: true
+                hint: "The paragraph that sits under each section title. Sizes are in rem (1 rem = normal body text); it grows with the width of the screen between the smallest and the largest size."
+                fields:
+                  - { label: "Section intro text — smallest size", name: "min", widget: "number", value_type: "float", min: 0.8, max: 2, step: 0.05, default: 1.05, required: false, hint: "On phones the text is never smaller than this. In rem, from 0.8 to 2. Shipped value 1.05." }
+                  - { label: "Section intro text — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 6, step: 0.05, default: 2, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 6. Shipped value 2." }
+                  - { label: "Section intro text — largest size", name: "max", widget: "number", value_type: "float", min: 0.9, max: 3, step: 0.05, default: 1.2, required: false, hint: "On big screens the text is never bigger than this. In rem, from 0.9 to 3. Shipped value 1.2." }
+              - label: "Opening-screen intro text"
+                name: "heroLead"
+                widget: "object"
+                collapsed: true
+                hint: "The short paragraph under the opening headline (when the animated opening is not showing). Sizes in rem; grows with screen width between the smallest and the largest size."
+                fields:
+                  - { label: "Opening-screen intro text — smallest size", name: "min", widget: "number", value_type: "float", min: 0.8, max: 2, step: 0.05, default: 1.05, required: false, hint: "On phones the text is never smaller than this. In rem, from 0.8 to 2. Shipped value 1.05." }
+                  - { label: "Opening-screen intro text — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 6, step: 0.05, default: 2.2, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 6. Shipped value 2.2." }
+                  - { label: "Opening-screen intro text — largest size", name: "max", widget: "number", value_type: "float", min: 0.9, max: 3, step: 0.05, default: 1.25, required: false, hint: "On big screens the text is never bigger than this. In rem, from 0.9 to 3. Shipped value 1.25." }
+              - label: "Closing-banner heading"
+                name: "heading"
+                widget: "object"
+                collapsed: true
+                hint: "The heading inside the closing call-to-action banner. Sizes in rem; grows with screen width between the smallest and the largest size."
+                fields:
+                  - { label: "Closing-banner heading — smallest size", name: "min", widget: "number", value_type: "float", min: 1, max: 4, step: 0.05, default: 1.8, required: false, hint: "On phones the text is never smaller than this. In rem, from 1 to 4. Shipped value 1.8." }
+                  - { label: "Closing-banner heading — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 10, step: 0.05, default: 4, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 10. Shipped value 4." }
+                  - { label: "Closing-banner heading — largest size", name: "max", widget: "number", value_type: "float", min: 1.2, max: 6, step: 0.05, default: 2.6, required: false, hint: "On big screens the text is never bigger than this. In rem, from 1.2 to 6. Shipped value 2.6." }
+              - label: "Statistic figures"
+                name: "stat"
+                widget: "object"
+                collapsed: true
+                hint: "The big numbers in the problem section. Sizes in rem; grows with screen width between the smallest and the largest size."
+                fields:
+                  - { label: "Statistic figures — smallest size", name: "min", widget: "number", value_type: "float", min: 1.2, max: 5, step: 0.05, default: 2.6, required: false, hint: "On phones the text is never smaller than this. In rem, from 1.2 to 5. Shipped value 2.6." }
+                  - { label: "Statistic figures — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 10, step: 0.05, default: 5, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 10. Shipped value 5." }
+                  - { label: "Statistic figures — largest size", name: "max", widget: "number", value_type: "float", min: 1.5, max: 7, step: 0.05, default: 3.4, required: false, hint: "On big screens the text is never bigger than this. In rem, from 1.5 to 7. Shipped value 3.4." }
+              - label: "Manifesto quote"
+                name: "quote"
+                widget: "object"
+                collapsed: true
+                hint: "The large uppercase quote whose words light up as you scroll. Sizes in rem; grows with screen width between the smallest and the largest size."
+                fields:
+                  - { label: "Manifesto quote — smallest size", name: "min", widget: "number", value_type: "float", min: 1, max: 4, step: 0.05, default: 1.5, required: false, hint: "On phones the text is never smaller than this. In rem, from 1 to 4. Shipped value 1.5." }
+                  - { label: "Manifesto quote — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 8, step: 0.05, default: 2.9, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 8. Shipped value 2.9." }
+                  - { label: "Manifesto quote — largest size", name: "max", widget: "number", value_type: "float", min: 1.2, max: 5, step: 0.05, default: 2.5, required: false, hint: "On big screens the text is never bigger than this. In rem, from 1.2 to 5. Shipped value 2.5." }
+              - label: "Section titles"
+                name: "title"
+                widget: "object"
+                collapsed: true
+                hint: "The big title at the top of every section. Sizes in rem; grows with screen width between the smallest and the largest size."
+                fields:
+                  - { label: "Section titles — smallest size", name: "min", widget: "number", value_type: "float", min: 1.2, max: 6, step: 0.05, default: 2.5, required: false, hint: "On phones the text is never smaller than this. In rem, from 1.2 to 6. Shipped value 2.5." }
+                  - { label: "Section titles — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 12, step: 0.05, default: 5.5, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 12. Shipped value 5.5." }
+                  - { label: "Section titles — largest size", name: "max", widget: "number", value_type: "float", min: 1.8, max: 9, step: 0.05, default: 4.2, required: false, hint: "On big screens the text is never bigger than this. In rem, from 1.8 to 9. Shipped value 4.2." }
+              - label: "Opening headline (animated opening)"
+                name: "heroPin"
+                widget: "object"
+                collapsed: true
+                hint: "The headline over the scrolling dispenser animation. It also has a height limit, so the headline, buttons and animation always fit the screen: whichever of “grows with width” and “height limit” is smaller wins."
+                fields:
+                  - { label: "Opening headline (animated opening) — smallest size", name: "min", widget: "number", value_type: "float", min: 1.5, max: 5, step: 0.1, default: 2.6, required: false, hint: "On phones the text is never smaller than this. In rem, from 1.5 to 5. Shipped value 2.6." }
+                  - { label: "Opening headline (animated opening) — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 14, step: 0.1, default: 7.2, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 14. Shipped value 7.2." }
+                  - { label: "Opening headline (animated opening) — height limit", name: "vh", widget: "number", value_type: "float", min: 0, max: 20, step: 0.1, default: 10.5, required: false, hint: "The text can also never be bigger than this share of the screen HEIGHT (in %), so everything fits without scrolling. In % of screen height, from 0 to 20. Shipped value 10.5." }
+                  - { label: "Opening headline (animated opening) — largest size", name: "max", widget: "number", value_type: "float", min: 2, max: 9, step: 0.1, default: 5.6, required: false, hint: "On big screens the text is never bigger than this. In rem, from 2 to 9. Shipped value 5.6." }
+              - label: "Opening headline (simple opening)"
+                name: "display"
+                widget: "object"
+                collapsed: true
+                hint: "The headline of the opening screen when the scrolling animation is switched off or cannot run. Sizes in rem; grows with screen width between the smallest and the largest size."
+                fields:
+                  - { label: "Opening headline (simple opening) — smallest size", name: "min", widget: "number", value_type: "float", min: 1.5, max: 8, step: 0.05, default: 3.2, required: false, hint: "On phones the text is never smaller than this. In rem, from 1.5 to 8. Shipped value 3.2." }
+                  - { label: "Opening headline (simple opening) — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 16, step: 0.05, default: 8.5, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen width, from 0 to 16. Shipped value 8.5." }
+                  - { label: "Opening headline (simple opening) — largest size", name: "max", widget: "number", value_type: "float", min: 2, max: 12, step: 0.05, default: 6.5, required: false, hint: "On big screens the text is never bigger than this. In rem, from 2 to 12. Shipped value 6.5." }
+          - label: "Line spacing"
+            name: "lines"
+            widget: "object"
+            collapsed: true
+            hint: "Space between lines of text. Every value is kept within safe limits, so nothing typed here can break the layout. Clearing a value restores the shipped one."
+            fields:
+              - { label: "Paragraph line spacing", name: "body", widget: "number", value_type: "float", min: 1.2, max: 2.2, step: 0.05, default: 1.6, required: false, hint: "Space between lines of ordinary text, as a multiple of the text size. 1.6 is airy, 1.3 is tight. Allowed range 1.2 to 2.2." }
+              - { label: "Heading line spacing", name: "heading", widget: "number", value_type: "float", min: 0.9, max: 1.6, step: 0.05, default: 1.1, required: false, hint: "Space between lines of smaller headings, as a multiple of the text size. Allowed range 0.9 to 1.6." }
+              - { label: "Section title line spacing", name: "title", widget: "number", value_type: "float", min: 0.8, max: 1.5, step: 0.01, default: 0.95, required: false, hint: "Space between lines of section titles. These big titles look best tight; below 0.9 the lines can touch. Allowed range 0.8 to 1.5." }
+              - { label: "Opening headline line spacing", name: "display", widget: "number", value_type: "float", min: 0.8, max: 1.4, step: 0.01, default: 0.92, required: false, hint: "Space between lines of the opening headline. Below 0.9 the lines can touch. Allowed range 0.8 to 1.4." }
+          - label: "Letter spacing"
+            name: "tracking"
+            widget: "object"
+            collapsed: true
+            hint: "Space between letters. Every value is kept within safe limits, so nothing typed here can break the layout. Clearing a value restores the shipped one."
+            fields:
+              - { label: "Heading letter spacing", name: "heading", widget: "number", value_type: "float", min: -0.06, max: 0.1, step: 0.005, default: -0.02, required: false, hint: "Space between letters of headings and section titles, in em (a fraction of the text size). Negative pulls letters together, positive spreads them. Shipped value -0.02. Allowed range -0.06 to 0.1 (em)." }
+              - { label: "Opening headline letter spacing", name: "display", widget: "number", value_type: "float", min: -0.08, max: 0.1, step: 0.005, default: -0.04, required: false, hint: "Space between letters of the opening headline, in em. Negative pulls letters together. Shipped value -0.04. Allowed range -0.08 to 0.1 (em)." }
+              - { label: "Small label letter spacing", name: "kicker", widget: "number", value_type: "float", min: 0, max: 0.4, step: 0.01, default: 0.16, required: false, hint: "Space between letters of the small capital labels above section titles (“kickers”), in em. Shipped value 0.16. Allowed range 0 to 0.4 (em)." }
+          - label: "Boldness"
+            name: "weights"
+            widget: "object"
+            collapsed: true
+            hint: "How bold each kind of text is. Every value is kept within safe limits, so nothing typed here can break the layout. Clearing a value restores the shipped one."
+            fields:
+              - label: "Big headline weight"
+                name: "display"
+                widget: "select"
+                options:
+                  - { label: "Regular (400)", value: "400" }
+                  - { label: "Medium (500)", value: "500" }
+                  - { label: "Semi-bold (600)", value: "600" }
+                  - { label: "Bold (700)", value: "700" }
+                default: "400"
+                hint: "How bold the big headlines and section titles are."
+              - label: "Small label weight"
+                name: "label"
+                widget: "select"
+                options:
+                  - { label: "Regular (400)", value: "400" }
+                  - { label: "Medium (500)", value: "500" }
+                  - { label: "Semi-bold (600)", value: "600" }
+                  - { label: "Bold (700)", value: "700" }
+                default: "700"
+                hint: "How bold the small capital labels above section titles are."
+              - label: "Button text weight"
+                name: "button"
+                widget: "select"
+                options:
+                  - { label: "Regular (400)", value: "400" }
+                  - { label: "Medium (500)", value: "500" }
+                  - { label: "Semi-bold (600)", value: "600" }
+                  - { label: "Bold (700)", value: "700" }
+                default: "600"
+                hint: "How bold the text on buttons is."
+          - label: "Spacing"
+            name: "space"
+            widget: "object"
+            collapsed: true
+            hint: "Space around sections, the page width and the gaps between cards. Every value is kept within safe limits, so nothing typed here can break the layout. Clearing a value restores the shipped one."
+            fields:
+              - label: "Space above and below each section"
+                name: "section"
+                widget: "object"
+                collapsed: true
+                hint: "Sizes in rem. The space grows with the height of the screen (as a % of its height) between the smallest and the largest size."
+                fields:
+                  - { label: "Space above and below each section — smallest size", name: "min", widget: "number", value_type: "float", min: 2, max: 12, step: 0.5, default: 6, required: false, hint: "On phones the text is never smaller than this. In rem, from 2 to 12. Shipped value 6." }
+                  - { label: "Space above and below each section — grows with screen width", name: "fluid", widget: "number", value_type: "float", min: 0, max: 30, step: 0.5, default: 12, required: false, hint: "How fast the text grows as the screen gets wider (in % of the screen width). In % of screen height, from 0 to 30. Shipped value 12." }
+                  - { label: "Space above and below each section — largest size", name: "max", widget: "number", value_type: "float", min: 3, max: 18, step: 0.5, default: 10, required: false, hint: "On big screens the text is never bigger than this. In rem, from 3 to 18. Shipped value 10." }
+              - { label: "Page content width (widest)", name: "containerMax", widget: "number", value_type: "int", min: 800, max: 1600, step: 10, default: 1120, required: false, hint: "The widest the page content can grow on big screens, in pixels. Shipped value 1120. Allowed range 800 to 1600 (px)." }
+              - { label: "Page content width (% of the screen)", name: "containerWidth", widget: "number", value_type: "int", min: 80, max: 100, step: 1, default: 92, required: false, hint: "On smaller screens the content takes this share of the screen width, which sets the side margins (92 leaves 4% on each side). Shipped value 92. Allowed range 80 to 100 (%)." }
+              - { label: "Gap between cards", name: "cardGap", widget: "number", value_type: "float", min: 0.5, max: 3, step: 0.05, default: 1.2, required: false, hint: "The space between cards in the statistics, benefits, roadmap and partner grids, in rem (1 rem = normal body text). Shipped value 1.2. Allowed range 0.5 to 3 (rem)." }
+          - label: "Corners & shadows"
+            name: "shape"
+            widget: "object"
+            collapsed: true
+            hint: "How round the corners are and how strong the soft shadows are. Every value is kept within safe limits, so nothing typed here can break the layout. Clearing a value restores the shipped one."
+            fields:
+              - { label: "Card corner roundness", name: "radiusCard", widget: "number", value_type: "int", min: 0, max: 40, step: 1, default: 20, required: false, hint: "How rounded the corners of cards, panels and photos are, in pixels (0 = square corners). Shipped value 20. Allowed range 0 to 40 (px)." }
+              - label: "Button corners"
+                name: "radiusButton"
+                widget: "select"
+                options:
+                  - { label: "Fully round (pill)", value: "pill" }
+                  - { label: "Rounded", value: "rounded" }
+                  - { label: "Slightly rounded", value: "soft" }
+                  - { label: "Square corners", value: "square" }
+                default: "pill"
+                hint: "The corner shape of the main buttons."
+              - label: "Tags, chips & form fields corners"
+                name: "radiusPill"
+                widget: "select"
+                options:
+                  - { label: "Fully round (pill)", value: "pill" }
+                  - { label: "Rounded", value: "rounded" }
+                  - { label: "Slightly rounded", value: "soft" }
+                  - { label: "Square corners", value: "square" }
+                default: "pill"
+                hint: "The corner shape of the small rounded tags, city chips, the menu pills and the launch-notify email field."
+              - { label: "Card shadow strength", name: "shadow", widget: "number", value_type: "float", min: 0, max: 0.4, step: 0.01, default: 0.12, required: false, hint: "How dark the soft shadow under cards is (0 = no shadow, 0.4 = strong). The shadow takes its colour from the “Main text & dark sections” colour. Shipped value 0.12. Allowed range 0 to 0.4." }
+
       - name: "motion"
         label: "🎬 Animations"
         file: "src/_data/motion.json"

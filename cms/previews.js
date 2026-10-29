@@ -1126,4 +1126,125 @@
       },
     })
   );
+
+  // ---------- Type & spacing (design tokens) ----------
+  // A copy of the token table in lib/tokens.js (the file the site build uses to validate the values). It is
+  // generated and checked by `node scripts/check-tokens.js --write`, so the preview can never use looser limits
+  // than the site. The preview applies the SAME rules: numbers are clamped to the bounds, anything that is not a
+  // number (or a listed word) falls back to the shipped value. Sample words are plain text (escaped by React).
+  /* TOKEN-SPEC:BEGIN */
+  var TOKEN_SPEC = [
+    {"key":"fonts.display","kind":"select","css":"--tk-font-display","def":"motor","options":{"motor":"\"Motor\", \"Oswald\", \"Arial Narrow\", Arial, sans-serif","openSauce":"\"Open Sauce One\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"}},
+    {"key":"fonts.heading","kind":"select","css":"--tk-font-head","def":"openSauce","options":{"motor":"\"Motor\", \"Oswald\", \"Arial Narrow\", Arial, sans-serif","openSauce":"\"Open Sauce One\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"}},
+    {"key":"fonts.body","kind":"select","css":"--tk-font-body","def":"openSauce","options":{"motor":"\"Motor\", \"Oswald\", \"Arial Narrow\", Arial, sans-serif","openSauce":"\"Open Sauce One\", \"Helvetica Neue\", Helvetica, Arial, sans-serif"}},
+    {"key":"text.baseSize","kind":"num","css":"--tk-root-size","unit":"%","def":100,"min":80,"max":130,"step":1},
+    {"key":"text.small","kind":"num","css":"--tk-small","unit":"rem","def":0.93,"min":0.7,"max":1.2,"step":0.01},
+    {"key":"text.lead","kind":"clamp","css":"--tk-lead","def":{"min":1.05,"fluid":2,"max":1.2},"bounds":{"min":[0.8,2],"fluid":[0,6],"max":[0.9,3]},"step":0.05},
+    {"key":"text.heroLead","kind":"clamp","css":"--tk-hero-lead","def":{"min":1.05,"fluid":2.2,"max":1.25},"bounds":{"min":[0.8,2],"fluid":[0,6],"max":[0.9,3]},"step":0.05},
+    {"key":"text.heading","kind":"clamp","css":"--tk-heading","def":{"min":1.8,"fluid":4,"max":2.6},"bounds":{"min":[1,4],"fluid":[0,10],"max":[1.2,6]},"step":0.05},
+    {"key":"text.stat","kind":"clamp","css":"--tk-stat","def":{"min":2.6,"fluid":5,"max":3.4},"bounds":{"min":[1.2,5],"fluid":[0,10],"max":[1.5,7]},"step":0.05},
+    {"key":"text.quote","kind":"clamp","css":"--tk-quote","def":{"min":1.5,"fluid":2.9,"max":2.5},"bounds":{"min":[1,4],"fluid":[0,8],"max":[1.2,5]},"step":0.05},
+    {"key":"text.title","kind":"clamp","css":"--tk-title","def":{"min":2.5,"fluid":5.5,"max":4.2},"bounds":{"min":[1.2,6],"fluid":[0,12],"max":[1.8,9]},"step":0.05},
+    {"key":"text.heroPin","kind":"clampfit","css":"--tk-hero-pin","def":{"min":2.6,"fluid":7.2,"vh":10.5,"max":5.6},"bounds":{"min":[1.5,5],"fluid":[0,14],"vh":[0,20],"max":[2,9]},"step":0.1},
+    {"key":"text.display","kind":"clamp","css":"--tk-display","def":{"min":3.2,"fluid":8.5,"max":6.5},"bounds":{"min":[1.5,8],"fluid":[0,16],"max":[2,12]},"step":0.05},
+    {"key":"lines.body","kind":"num","css":"--tk-lh-body","unit":"","def":1.6,"min":1.2,"max":2.2,"step":0.05},
+    {"key":"lines.heading","kind":"num","css":"--tk-lh-heading","unit":"","def":1.1,"min":0.9,"max":1.6,"step":0.05},
+    {"key":"lines.title","kind":"num","css":"--tk-lh-title","unit":"","def":0.95,"min":0.8,"max":1.5,"step":0.01},
+    {"key":"lines.display","kind":"num","css":"--tk-lh-display","unit":"","def":0.92,"min":0.8,"max":1.4,"step":0.01},
+    {"key":"tracking.heading","kind":"num","css":"--tk-ls-heading","unit":"em","def":-0.02,"min":-0.06,"max":0.1,"step":0.005},
+    {"key":"tracking.display","kind":"num","css":"--tk-ls-display","unit":"em","def":-0.04,"min":-0.08,"max":0.1,"step":0.005},
+    {"key":"tracking.kicker","kind":"num","css":"--tk-ls-kicker","unit":"em","def":0.16,"min":0,"max":0.4,"step":0.01},
+    {"key":"weights.display","kind":"select","css":"--tk-fw-display","def":"400","options":{"400":"400","500":"500","600":"600","700":"700"}},
+    {"key":"weights.label","kind":"select","css":"--tk-fw-label","def":"700","options":{"400":"400","500":"500","600":"600","700":"700"}},
+    {"key":"weights.button","kind":"select","css":"--tk-fw-button","def":"600","options":{"400":"400","500":"500","600":"600","700":"700"}},
+    {"key":"space.section","kind":"clampvh","css":"--tk-section-pad","def":{"min":6,"fluid":12,"max":10},"bounds":{"min":[2,12],"fluid":[0,30],"max":[3,18]},"step":0.5},
+    {"key":"space.containerMax","kind":"num","css":"--tk-container-max","unit":"px","def":1120,"min":800,"max":1600,"step":10},
+    {"key":"space.containerWidth","kind":"num","css":"--tk-container-width","unit":"%","def":92,"min":80,"max":100,"step":1},
+    {"key":"space.cardGap","kind":"num","css":"--tk-card-gap","unit":"rem","def":1.2,"min":0.5,"max":3,"step":0.05},
+    {"key":"shape.radiusCard","kind":"num","css":"--tk-radius-card","unit":"px","def":20,"min":0,"max":40,"step":1},
+    {"key":"shape.radiusButton","kind":"select","css":"--tk-radius-button","def":"pill","options":{"pill":"999px","rounded":"16px","soft":"10px","square":"0px"}},
+    {"key":"shape.radiusPill","kind":"select","css":"--tk-radius-pill","def":"pill","options":{"pill":"999px","rounded":"16px","soft":"10px","square":"0px"}},
+    {"key":"shape.shadow","kind":"num","css":null,"unit":"","def":0.12,"min":0,"max":0.4,"step":0.01}
+  ];
+  /* TOKEN-SPEC:END */
+  function tokNum(v, lo, hi, dflt) {
+    return typeof v === "number" && isFinite(v) ? Math.min(hi, Math.max(lo, v)) : dflt;
+  }
+  function tokFmt(n) {
+    return String(Math.round(n * 1000) / 1000 + 0);
+  }
+  function tokenStyle(entry) {
+    var style = {};
+    var base = 100;
+    TOKEN_SPEC.forEach(function (t) {
+      var path = t.key.split(".");
+      var css = null;
+      if (t.kind === "select") {
+        var w = g(entry, path, null);
+        var word = typeof w === "string" && Object.prototype.hasOwnProperty.call(t.options, w) ? w : t.def;
+        css = t.options[word];
+      } else if (t.kind === "num") {
+        var n = tokNum(g(entry, path, null), t.min, t.max, t.def);
+        if (t.key === "text.baseSize") base = n;
+        css = tokFmt(n) + t.unit;
+      } else {
+        var o = {};
+        Object.keys(t.bounds).forEach(function (p) {
+          o[p] = tokNum(g(entry, path.concat(p), null), t.bounds[p][0], t.bounds[p][1], t.def[p]);
+        });
+        o.max = Math.max(o.min, o.max);
+        css =
+          t.kind === "clampfit"
+            ? "clamp(" + tokFmt(o.min) + "rem, min(" + tokFmt(o.fluid) + "vw, " + tokFmt(o.vh) + "vh), " + tokFmt(o.max) + "rem)"
+            : "clamp(" + tokFmt(o.min) + "rem, " + tokFmt(o.fluid) + (t.kind === "clampvh" ? "vh" : "vw") + ", " + tokFmt(o.max) + "rem)";
+      }
+      if (t.css && css) style[t.css] = css;
+    });
+    // --font-* / --radius / --text-sm are declared on :root from the --tk-* values; re-point them for the sample
+    style["--font-display"] = style["--tk-font-display"];
+    style["--font-head"] = style["--tk-font-head"];
+    style["--font-body"] = style["--tk-font-body"];
+    style["--radius"] = style["--tk-radius-card"];
+    style["--text-sm"] = style["--tk-small"];
+    // the card shadow: same recipe as theme-vars.njk (ink colour + chosen strength)
+    var shadowT = TOKEN_SPEC.filter(function (t) { return t.key === "shape.shadow"; })[0];
+    if (shadowT) style["--shadow"] = "0 10px 30px rgba(47, 77, 25, " + tokFmt(tokNum(g(entry, ["shape", "shadow"], null), shadowT.min, shadowT.max, shadowT.def)) + ")";
+    // The page's text size is the root font size, which a preview cannot change: zoom the sample instead.
+    style.zoom = String(base / 100);
+    return style;
+  }
+  CMS.registerPreviewTemplate(
+    "tokens",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var style = tokenStyle(e);
+        style.fontFamily = "var(--tk-font-body)";
+        style.lineHeight = "var(--tk-lh-body)";
+        style.color = "var(--ink)";
+        style.background = "var(--paper)";
+        style.padding = "1.2rem 0";
+        var cards = ["Plain cards", "keep their gap", "and their corners"].map(function (t, i) {
+          return h("div", { className: "stat-card", key: i }, h("div", { className: "stat-num" }, String(10 * (i + 1))), h("div", { className: "stat-label" }, t));
+        });
+        return h(
+          "div",
+          { style: style },
+          h(
+            "div",
+            { className: "container" },
+            h("span", { className: "kicker" }, "Sample label"),
+            h("h2", { className: "section-title" }, "A sample section title"),
+            h("p", { className: "section-sub" }, "A sample intro paragraph, to show the size and spacing of the text that sits under a title."),
+            h("h3", { style: { margin: "1.2rem 0 0.4rem" } }, "A sample smaller heading"),
+            h("p", {}, "Ordinary paragraph text looks like this. It is set in the paragraph font, with the line spacing chosen above, so you can judge how comfortable it is to read."),
+            h("p", { style: { fontSize: "var(--text-sm)", color: "var(--muted)" } }, "Small print looks like this."),
+            h("div", { style: { display: "flex", gap: "0.9rem", flexWrap: "wrap", margin: "1.2rem 0" } }, h("span", { className: "btn btn-primary" }, "Sample button"), h("span", { className: "hero-badge" }, "Sample tag")),
+            h("div", { className: "stats-grid", style: { gridTemplateColumns: "repeat(3, 1fr)", marginTop: "1rem" } }, cards)
+          ),
+          note("A preview of the type, spacing, corners and shadows. The space above and below each section and the opening headline are shown on the real page rather than here.")
+        );
+      },
+    })
+  );
 })();
