@@ -3,6 +3,7 @@ const htmlmin = require("html-minifier-terser");
 const fs = require("fs");
 const path = require("path");
 const { reservedIds } = require("./lib/reserved-ids");
+const rules = require("./lib/rules");
 
 module.exports = function (eleventyConfig) {
   const md = markdownIt({ html: false, linkify: true });
@@ -18,23 +19,15 @@ module.exports = function (eleventyConfig) {
   // Guards CMS-supplied colours (src/_data/theme.json): only a well-formed
   // hex colour is emitted; anything else — including attempted CSS/JS
   // injection — falls back to the shipped default.
-  const HEX_COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
-  eleventyConfig.addFilter("safeColor", (value, fallback) => {
-    const v = typeof value === "string" ? value.trim() : "";
-    return HEX_COLOR_RE.test(v) ? v : fallback;
-  });
+  // The rules themselves live in lib/rules.js (shared with the Studio API validator).
+  const HEX_COLOR_RE = rules.HEX_COLOR_RE;
+  eleventyConfig.addFilter("safeColor", (value, fallback) => rules.safeColor(value, fallback));
 
   // Guards CMS-supplied link fields (button links, source URLs): only
   // same-site paths (/…), in-page anchors (#…) and http(s)/mailto URLs are
   // emitted. Anything else — javascript:, data:, protocol-relative //… —
   // falls back to "/", closing off URL-scheme XSS from the CMS.
-  eleventyConfig.addFilter("safeUrl", (value) => {
-    const v = typeof value === "string" ? value.trim() : "";
-    if (!v) return "/";
-    if (/^\/(?!\/)/.test(v) || v.startsWith("#")) return v;
-    if (/^(https?|mailto):/i.test(v)) return v;
-    return "/";
-  });
+  eleventyConfig.addFilter("safeUrl", (value) => rules.safeUrl(value));
 
   // Section headings advertised in the CMS as "HTML allowed, e.g. <br />"
   // accept ONLY line breaks: everything is escaped, then <br> variants are
@@ -57,12 +50,7 @@ module.exports = function (eleventyConfig) {
   // anchor" patterns are checked against the same list with
   // `node lib/reserved-ids.js --check`.
   const reserved = reservedIds(__dirname);
-  eleventyConfig.addFilter("safeAnchor", (value) => {
-    const v = typeof value === "string" ? value.trim() : "";
-    if (!/^[a-z0-9-]+$/.test(v)) return "";
-    if (reserved.has(v)) return "";
-    return v;
-  });
+  eleventyConfig.addFilter("safeAnchor", (value) => rules.safeAnchor(value, reserved));
 
   // hex (#RGB/#RGBA/#RRGGBB/#RRGGBBAA) -> rgba(r, g, b, alpha). Any alpha
   // channel in the source colour is ignored — the caller supplies alpha.
