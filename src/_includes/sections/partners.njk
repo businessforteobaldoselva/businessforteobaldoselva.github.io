@@ -13,7 +13,9 @@
           {%- for slot in partners.slots %}
           {%- if slot.founding %}
           <div class="p-slot founding reveal">
-            <span class="stamp">Reserved</span>
+            {%- if partners.reservedStamp %}
+            <span class="stamp">{{ partners.reservedStamp }}</span>
+            {%- endif %}
             <span class="slot-logo">{{ slot.logoText }}</span>
             <small>{{ slot.category }}</small>
           </div>

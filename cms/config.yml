@@ -26,12 +26,151 @@ collections:
           - { label: "Page title (browser tab)", name: "pageTitle", widget: "string" }
           - { label: "Meta description (search engines)", name: "metaDescription", widget: "text" }
           - { label: "Social share description", name: "ogDescription", widget: "text" }
-          - { label: "Contact email", name: "contactEmail", widget: "string" }
-          - { label: "Footer tagline", name: "footerTagline", widget: "string" }
-          - { label: "Last updated date (shown in footer)", name: "lastUpdated", widget: "string" }
+          - { label: "Contact email", name: "contactEmail", widget: "string", pattern: ["^[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+$", "Enter one email address, like hello@example.com (no spaces)."], hint: "The address people write to. It is used by every “Email us” link in the menu and footer, the closing-banner button, the fallback e-mail that opens when a form cannot be sent, and the contact address search engines read. It is also typed by hand (not linked to this box) in the Privacy page text, the updates feed file (feed.xml) and llms.txt — if you change it here, change it there too." }
+          - { label: "Browser-tab title on other pages (About, Privacy…)", name: "subpageTitle", widget: "string", hint: "The title shown in the browser tab and in social shares for every page except the homepage. Write {title} where the page's own title should go, e.g. {title} — COVERED." }
+          - { label: "Social share picture", name: "shareImage", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The picture that appears when the site is shared on WhatsApp, LinkedIn and similar apps, and the logo picture search engines use. Best size is 1200 × 630 pixels. Upload a picture or pick one from the library — web addresses are not accepted." }
+          - { label: "Updates feed name", name: "feedTitle", widget: "string", hint: "The name given to the updates-feed link in every page's hidden header, which news-reader apps may show when they discover the feed from the page. Not visible on the pages themselves. The feed file (feed.xml) has its own title, which this box does not change." }
+          - { label: "Search-engine tagline", name: "schemaSlogan", widget: "string", hint: "A one-line slogan for COVERED that search engines and AI assistants read. Not visible on the pages themselves." }
+          - { label: "Search-engine description of COVERED", name: "schemaDescription", widget: "text", hint: "A short factual description of what COVERED is, read by search engines and AI assistants. Not visible on the pages themselves." }
+          - { label: "Search-engine location", name: "schemaPlace", widget: "string", hint: "Where COVERED was founded, e.g. Exeter, United Kingdom. Read by search engines and AI assistants; not visible on the pages themselves." }
           - { label: "Closing banner — heading", name: "ctaBannerTitle", widget: "string" }
           - { label: "Closing banner — text", name: "ctaBannerText", widget: "text" }
           - { label: "Closing banner — button label", name: "ctaBannerButton", widget: "string" }
+
+      - name: "nav"
+        label: "🧭 Navigation menu (top bar)"
+        file: "src/_data/nav.json"
+        fields:
+          - { label: "Skip link text", name: "skipLink", widget: "string", hint: "A hidden link that appears when someone presses Tab on any page. It lets keyboard and screen-reader users jump straight past the menu to the content." }
+          - { label: "Logo link — screen-reader label", name: "homeLabel", widget: "string", hint: "Read aloud by screen readers for the COVERED logo in the top bar and footer. Not visible on the page." }
+          - { label: "Mobile menu button — screen-reader label", name: "menuLabel", widget: "string", hint: "Read aloud for the three-line menu button on phones. Not visible on the page." }
+          - { label: "“Back” button text (About, Privacy and other pages)", name: "backLabel", widget: "string", hint: "The button at the right of the top bar on every page except the homepage. It links back to the homepage." }
+          - label: "Menu links"
+            name: "items"
+            widget: "list"
+            label_singular: "menu link"
+            collapsed: false
+            min: 1
+            max: 8
+            summary: "{{fields.label}}"
+            hint: "The links in the top bar of the homepage, left to right (on phones they appear in the menu that opens from the three-line button). Drag to reorder, add or delete links. Keep it to 8 or fewer so the bar fits. A link to a homepage section disappears by itself while that section is hidden in “Page layout”."
+            types:
+              - label: "⚓ Jump to a homepage section"
+                name: "section"
+                widget: "object"
+                summary: "{{fields.label}} — jumps to a section"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "The words shown in the top bar." }
+                  - label: "Which section"
+                    name: "section"
+                    widget: "select"
+                    options:
+                      - { label: "The problem", value: "problem" }
+                      - { label: "How it works", value: "how" }
+                      - { label: "For brands", value: "brands" }
+                      - { label: "Partner wall", value: "partners" }
+                      - { label: "For venues", value: "venues" }
+                      - { label: "Locations", value: "locations" }
+                      - { label: "FAQ", value: "faq" }
+                  - { label: "Show as a highlighted button", name: "button", widget: "boolean", default: false, required: false, hint: "Turns the link into the highlighted button (the accent-coloured one), like “Advertise with us”." }
+              - label: "🔗 Link to a page or website"
+                name: "link"
+                widget: "object"
+                summary: "{{fields.label}} — {{fields.url}}"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "The words shown in the top bar." }
+                  - { label: "Address", name: "url", widget: "string", pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the link goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage." }
+                  - { label: "Show as a highlighted button", name: "button", widget: "boolean", default: false, required: false, hint: "Turns the link into the highlighted button (the accent-coloured one)." }
+              - label: "✉️ Email us"
+                name: "email"
+                widget: "object"
+                summary: "{{fields.label}} — emails the contact address"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
+                  - { label: "Show as a highlighted button", name: "button", widget: "boolean", default: false, required: false }
+
+      - name: "footer"
+        label: "🦶 Footer (bottom of every page)"
+        file: "src/_data/footer.json"
+        fields:
+          - { label: "Tagline under the logo", name: "tagline", widget: "string", hint: "The short sentence under the COVERED logo in the footer of the homepage." }
+          - label: "Link columns"
+            name: "columns"
+            widget: "list"
+            label_singular: "column"
+            collapsed: true
+            max: 4
+            summary: "{{fields.heading}}"
+            hint: "The columns of links in the footer of the homepage (currently “Explore” and “Partner”). Drag to reorder, add or delete columns."
+            fields:
+              - { label: "Column heading", name: "heading", widget: "string", hint: "The small capitals heading above the links." }
+              - { label: "Screen-reader label", name: "ariaLabel", widget: "string", required: false, hint: "Read aloud by screen readers to describe this group of links, e.g. “Footer — explore”. Not visible. If left empty the column heading is used." }
+              - label: "Links"
+                name: "links"
+                widget: "list"
+                label_singular: "link"
+                collapsed: false
+                max: 12
+                summary: "{{fields.label}}"
+                hint: "A link to a homepage section disappears by itself while that section is hidden in “Page layout”."
+                types:
+                  - label: "⚓ Jump to a homepage section"
+                    name: "section"
+                    widget: "object"
+                    summary: "{{fields.label}} — jumps to a section"
+                    fields:
+                      - { label: "Link text", name: "label", widget: "string" }
+                      - label: "Which section"
+                        name: "section"
+                        widget: "select"
+                        options:
+                          - { label: "The problem", value: "problem" }
+                          - { label: "How it works", value: "how" }
+                          - { label: "For brands", value: "brands" }
+                          - { label: "Partner wall", value: "partners" }
+                          - { label: "For venues", value: "venues" }
+                          - { label: "Locations", value: "locations" }
+                          - { label: "FAQ", value: "faq" }
+                  - label: "🔗 Link to a page or website"
+                    name: "link"
+                    widget: "object"
+                    summary: "{{fields.label}} — {{fields.url}}"
+                    fields:
+                      - { label: "Link text", name: "label", widget: "string" }
+                      - { label: "Address", name: "url", widget: "string", pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the link goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage." }
+                  - label: "✉️ Email us"
+                    name: "email"
+                    widget: "object"
+                    summary: "{{fields.label}} — emails the contact address"
+                    fields:
+                      - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
+          - { label: "Copyright line", name: "copyright", widget: "string", hint: "Bottom-left of the footer. Write {year} where the current year should appear — it updates itself every January. (Pages other than the homepage show the line without the year.)" }
+          - { label: "“Last updated” label", name: "updatedLabel", widget: "string", hint: "The words before the date in the footer, e.g. “Last updated:”." }
+          - { label: "Last updated date", name: "lastUpdated", widget: "string", required: false, hint: "Shown after the label in the footer of the homepage. Leave empty to hide the whole “Last updated” line." }
+          - { label: "Sign-off message", name: "signOff", widget: "string", required: false, hint: "The handwritten-style message at the bottom of the homepage footer." }
+          - { label: "Sign-off emoji", name: "signOffEmoji", widget: "string", required: false, hint: "A single emoji shown after the sign-off message. Decorative only." }
+          - label: "Short footer links (About, Privacy and other pages)"
+            name: "compactLinks"
+            widget: "list"
+            label_singular: "link"
+            collapsed: true
+            max: 6
+            summary: "{{fields.label}}"
+            hint: "Every page except the homepage has a slim footer: the copyright line plus these links, separated by dots."
+            types:
+              - label: "🔗 Link to a page or website"
+                name: "link"
+                widget: "object"
+                summary: "{{fields.label}} — {{fields.url}}"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string" }
+                  - { label: "Address", name: "url", widget: "string", pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the link goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage." }
+              - label: "✉️ Email us"
+                name: "email"
+                widget: "object"
+                summary: "{{fields.label}} — emails the contact address"
+                fields:
+                  - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
 
       - name: "homepage"
         label: "🧩 Page layout — order, add & hide sections"
@@ -55,12 +194,16 @@ collections:
                 summary: "Ticker — the moving strip of venue names"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
-                  - label: "Ticker words (optional)"
+                  - label: "Ticker words"
                     name: "items"
                     widget: "list"
                     required: false
                     field: { label: "Word or phrase", name: "item", widget: "string" }
-                    hint: "Leave this empty to keep the standard venue list (Universities, Train stations, Stadiums…). Add your own words here to replace it."
+                    hint: "The words that scroll across the moving strip under the hero (Universities, Train stations, Stadiums…), in this order. If you empty the list the strip disappears — to hide it deliberately, untick “Show this section” instead."
+                  - { label: "Pause button — screen-reader label", name: "pauseLabel", widget: "string", hint: "Not visible on the page. Read aloud by screen readers for the small pause (⏸) button at the left end of the ticker." }
+                  - { label: "Hidden sentence — start", name: "screenReaderIntro", widget: "string", required: false, hint: "Not visible on the page. The ticker is hidden from screen readers, so they read one sentence instead: this start, then your ticker words in lowercase, then the ending. Example: “Target venues include universities, train stations and schools.”" }
+                  - { label: "Hidden sentence — word before the last item", name: "screenReaderJoiner", widget: "string", required: false, hint: "Usually “and”. Placed between the second-to-last and last ticker word in the hidden sentence." }
+                  - { label: "Hidden sentence — ending", name: "screenReaderEnd", widget: "string", required: false, hint: "Usually a full stop. Added after the last ticker word in the hidden sentence." }
               - label: "📊 The problem (stats & photos)"
                 name: "problem"
                 widget: "object"
@@ -120,7 +263,18 @@ collections:
                 widget: "object"
                 summary: "Closing banner — the big sign-off with email button"
                 fields:
-                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
+                  - { label: "Show this section", name: "enabled", widget: "boolean", default: true, hint: "The banner’s heading, text and button label are edited under “Site-wide (title, contact, CTA)”; the fields below are the small extras." }
+                  - { label: "Section name — screen-reader label", name: "ariaLabel", widget: "string", hint: "Not visible on the page. Read aloud by screen readers when they reach the closing section (brand animation + banner)." }
+                  - { label: "Brand animation — description (accessibility)", name: "videoLabel", widget: "text", hint: "Not visible on the page. Describes the “covered.” animation above the banner for screen-reader users and anyone who can’t see the video." }
+                  - { label: "Email subject line", name: "emailSubject", widget: "string", required: false, hint: "The subject that is pre-filled when someone clicks the banner button and their email app opens. The address itself is the contact email under “Site-wide”. Leave empty for no pre-filled subject." }
+                  - label: "Brand animation — video"
+                    name: "video"
+                    widget: "object"
+                    required: false
+                    hint: "The short “covered.” animation that plays above the closing banner when it scrolls into view. Leave both boxes empty to hide the animation."
+                    fields:
+                      - { label: "Video file", name: "src", widget: "file", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([mM][pP]4|[wW][eE][bB][mM]|[mM]4[vV])$", "Pick or upload an .mp4 (or .webm / .m4v) video. The file name may only use letters, numbers, dots, dashes and underscores."], hint: "Upload or pick an .mp4 video — web addresses are not accepted. Leave empty to hide the animation." }
+                      - { label: "Cover picture (shown before it plays)", name: "poster", widget: "image", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The still picture shown until the video starts; its shape also sets the shape of the video on the page. Upload a picture or pick one from the library — web addresses are not accepted." }
               - label: "📝 Text section (add your own)"
                 name: "textBlock"
                 widget: "object"
@@ -130,20 +284,20 @@ collections:
                   - { label: "Small label above heading", name: "kicker", widget: "string", required: false }
                   - { label: "Heading", name: "heading", widget: "string", required: false }
                   - { label: "Text", name: "body", widget: "markdown" }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
               - label: "🖼️ Image + text (add your own)"
                 name: "imageTextBlock"
                 widget: "object"
                 summary: "Your image + text — {{fields.heading}}"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
-                  - { label: "Image", name: "image", widget: "image" }
+                  - { label: "Image", name: "image", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The picture shown beside the text. Upload a picture or pick one from the library — web addresses are not accepted." }
                   - { label: "Image description (accessibility)", name: "alt", widget: "string" }
                   - { label: "Caption under image", name: "caption", widget: "string", required: false }
                   - { label: "Heading", name: "heading", widget: "string", required: false }
                   - { label: "Text", name: "body", widget: "markdown" }
                   - { label: "Image on the right?", name: "imageRight", widget: "boolean", default: false }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets /#our-story scroll straight to it." }
               - label: "🔢 Number cards (add your own)"
                 name: "statsBlock"
                 widget: "object"
@@ -157,8 +311,8 @@ collections:
                     fields:
                       - { label: "Big number (e.g. 11% or 20+)", name: "number", widget: "string" }
                       - { label: "Label underneath", name: "label", widget: "string" }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-numbers"], hint: "Gives this block its own link — the anchor “our-numbers” lets /#our-numbers scroll straight to it." }
-              - label: "📣 Big orange banner (add your own)"
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-numbers"], hint: "Gives this block its own link — the anchor “our-numbers” lets /#our-numbers scroll straight to it." }
+              - label: "📣 Big call-to-action banner (add your own)"
                 name: "bannerBlock"
                 widget: "object"
                 summary: "Your banner — {{fields.title}}"
@@ -167,8 +321,8 @@ collections:
                   - { label: "Title", name: "title", widget: "string" }
                   - { label: "Text", name: "text", widget: "text", required: false }
                   - { label: "Button text", name: "buttonText", widget: "string", required: false }
-                  - { label: "Button link", name: "buttonLink", widget: "string", required: false }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. join-us"], hint: "Gives this block its own link — the anchor “join-us” lets /#join-us scroll straight to it." }
+                  - { label: "Button link", name: "buttonLink", widget: "string", required: false, pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the button goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage. The button only appears when it has text; if you leave this empty it links to the homepage." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. join-us"], hint: "Gives this block its own link — the anchor “join-us” lets /#join-us scroll straight to it." }
               - label: "❓ Questions & answers (add your own)"
                 name: "faqBlock"
                 widget: "object"
@@ -182,114 +336,114 @@ collections:
                     fields:
                       - { label: "Question", name: "q", widget: "string" }
                       - { label: "Answer", name: "a", widget: "text" }
-                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(top|progress|year|pack|stepper|problem|model|how|brands|partners|venues|locations|vision|faq)(-title)?$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. more-questions"], hint: "Gives this block its own link — the anchor “more-questions” lets /#more-questions scroll straight to it." }
+                  - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. more-questions"], hint: "Gives this block its own link — the anchor “more-questions” lets /#more-questions scroll straight to it." }
 
       - name: "theme"
         label: "🎨 Colours & theme"
         file: "src/_data/theme.json"
         fields:
-          - label: "Backgrounds — page background"
+          - label: "Page background"
             name: "paper"
             widget: "color"
             allowInput: true
             required: false
-            hint: "The main canvas behind the whole site (light lavender). Note — the COVERED logo colours are part of the logo artwork and cannot be changed here. When changing any colour, keep text/background contrast at least 4.5:1 (webaim.org/resources/contrastchecker). Clearing a colour restores its default."
-          - label: "Backgrounds — cards & inputs tint"
+            hint: "The main background of the whole site. It is also the colour of text on dark areas (the footer, dark sections and outlined buttons). Note — the COVERED logo colours are part of the logo artwork and cannot be changed here. When changing any colour, keep text/background contrast at least 4.5:1 (webaim.org/resources/contrastchecker). Clearing a colour restores its default."
+          - label: "Small panels & tags"
             name: "paper2"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Slightly deeper tint for alternate panels and form fields. Also colours the browser bar on mobile — and the keyboard focus ring on the dark violet sections, the footer and the closing banner, so keep it light (at least 3:1 contrast against the violet)."
-          - label: "Backgrounds — partner wall band (grass)"
+            hint: "A slightly deeper tint for small panels and tags (the mobile menu, the demo phone screen, step numbers and the “roadmap” tag), and the colour of text on the dark sections. Also colours the browser bar on mobile — and the keyboard focus ring on the dark sections, the footer and the closing banner, so keep it light (at least 3:1 contrast against the main text colour)."
+          - label: "Backgrounds — partner wall band"
             name: "bandGrass"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Light grass background behind the partner wall."
-          - label: "Backgrounds — hero band (lavender)"
+            hint: "The background band behind the partner wall."
+          - label: "Backgrounds — opening screen band"
             name: "bandLav"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Light lavender background behind the opening screen."
-          - label: "Backgrounds — how-it-works band (warm)"
+            hint: "The background of the opening screen. You see it behind the scrolling dispenser animation while its pictures load (or if they cannot play)."
+          - label: "Backgrounds — how-it-works band"
             name: "bandRosa"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Light warm background behind the interactive demo."
-          - label: "Backgrounds — hover tint on dark sections"
+            hint: "The background band behind the interactive demo section."
+          - label: "Hover tint on dark areas"
             name: "peach"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Light orange used for link/button hovers on dark violet sections."
-          - label: "Body text / dark sections (violet)"
+            hint: "The light tint used when hovering over footer links and the closing-banner button, and for the “pilot” badge on a selected city button."
+          - label: "Main text & dark sections"
             name: "ink"
             widget: "color"
             allowInput: true
             required: false
-            hint: "The main text colour — also fills the dark violet sections, and tints hairlines and card shadows. Keep it dark: it must read clearly on the page background (at least 4.5:1 contrast)."
-          - label: "Footer & deep headings (darker violet)"
+            hint: "The main text colour. It also fills the dark sections, the closing banner and the phone and machine outlines in the demo, and tints hairlines and card shadows. Keep it dark: it must read clearly on the page background (at least 4.5:1 contrast)."
+          - label: "Footer & deepest dark"
             name: "inkDeep"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Deeper violet for the footer background and heading depth. Also the keyboard focus ring on the lavender and grass bands (the model, vision and ticker strips), so keep it dark (at least 3:1 contrast against those bands)."
-          - label: "Subheadings (softer violet)"
+            hint: "The footer background and the darkest accents (the small labels and full stops on the model and roadmap sections). Also the keyboard focus ring on the ticker, model and roadmap sections, so keep it dark (at least 3:1 contrast against those sections)."
+          - label: "Secondary text"
             name: "inkSoft"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Softer violet used for subheadings."
-          - label: "Secondary text (muted mauve)"
+            hint: "A softer dark colour for subheadings, descriptions and the paragraphs inside cards."
+          - label: "Quiet text (captions & small print)"
             name: "muted"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Quieter text such as captions and small print — keep at least 4.5:1 contrast on the page background."
-          - label: "Buttons & accents (orange)"
+            hint: "Quieter text such as captions, the statistics source line and small print — keep at least 4.5:1 contrast on the page background."
+          - label: "Accent colour (highlights & fills)"
             name: "accent"
             widget: "color"
             allowInput: true
             required: false
-            hint: "The primary accent — CTA button fill, highlights and confetti."
-          - label: "Buttons with white text (deep orange)"
+            hint: "The brand's primary accent: the reading-progress bar, the active step in the demo, the roadmap section background, the closing-banner button, the full stops after headings on dark sections, and confetti."
+          - label: "Button colour (white text on top)"
             name: "accentDeep"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Deeper accent used where white text sits on top — keep it dark enough for the white text to stay readable."
-          - label: "Accent text on light backgrounds (dark orange)"
+            hint: "The fill of the main buttons, which carry white text — keep it dark enough for that text to stay readable. Also used for strong accents: menu hover, the big statistic numbers, step numbers, the live city's pin and highlighted manifesto words."
+          - label: "Accent text on light backgrounds"
             name: "accentDark"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Darkest accent — used for accent-coloured text and focus outlines on light backgrounds (needs strong contrast)."
-          - label: "Small kicker labels (dark orange)"
+            hint: "The strongest accent: the small uppercase labels above section headings, button hover, the “paid” line on the receipt and keyboard focus outlines on light backgrounds (needs strong contrast)."
+          - label: "Small kicker labels (not used yet)"
             name: "kickerBand"
             widget: "color"
             allowInput: true
             required: false
-            hint: "The little uppercase labels above section headings."
-          - label: "Decorative dots & ticker band (grass)"
+            hint: "Meant for the small uppercase labels above section headings. At the moment those labels follow “Accent text on light backgrounds” instead, so changing this box has no visible effect yet."
+          - label: "Status dots & lights"
             name: "grass"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Grass accent — decorative dots, the scrolling ticker band and confetti. Keyboard focus rings on the ticker band are drawn in the deep violet, so keep this light enough for them to stay visible."
-          - label: "Grass text on light backgrounds (dark grass)"
+            hint: "The pulsing dot in the opening-screen badge, the status light on the demo machine, footer link hover and one of the confetti colours. Keep it light enough to show on the dark sections."
+          - label: "Ticks & completed steps"
             name: "grassDark"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Darker grass used for grass-coloured text on light backgrounds."
-          - label: "Pills & soft fills (lavender)"
+            hint: "Text and icons in this colour on light backgrounds: the tick marks in the venue lists, finished steps in the demo's progress bar and the third roadmap tag."
+          - label: "Soft fills (ticker, model section, pills)"
             name: "lavender"
             widget: "color"
             allowInput: true
             required: false
-            hint: "Lavender accent — pills, the model band background and soft highlights. Keyboard focus rings on the model and vision bands are drawn in the deep violet, so keep this light enough for them to stay visible."
+            hint: "The soft highlight colour: the ticker strip, the model section background, the map's land shape, pill and chip backgrounds, the highlighter underline in the opening headline and one of the confetti colours. Keyboard focus rings on the ticker and model section use the “Footer & deepest dark” colour, so keep this light enough for them to stay visible."
 
       - name: "motion"
         label: "🎬 Animations"
@@ -357,212 +511,544 @@ collections:
             name: "scrollProgress"
             widget: "boolean"
             default: true
-            hint: "The thin orange line along the very top of the page that fills up as you scroll."
+            hint: "The thin accent-coloured line along the very top of the page that fills up as you scroll."
 
       - name: "hero"
         label: "🏠 Hero (top of page)"
         file: "src/_data/hero.json"
         fields:
-          - { label: "Badge text", name: "badge", widget: "string" }
-          - { label: "Headline — main part", name: "headlineMain", widget: "string" }
-          - { label: "Headline — accent part (red)", name: "headlineAccent", widget: "string" }
-          - { label: "Stamp text", name: "stamp", widget: "string" }
-          - { label: "Subheading", name: "subhead", widget: "text" }
-          - { label: "Button — brand CTA", name: "ctaBrand", widget: "string" }
-          - { label: "Button — venue CTA", name: "ctaVenue", widget: "string" }
-          - { label: "Scroll-down link text", name: "scrollText", widget: "string" }
+          - { label: "Badge text", name: "badge", widget: "string", hint: "The small pill with the pulsing dot above the headline." }
+          - { label: "Headline — main part", name: "headlineMain", widget: "string", hint: "The big page heading. It runs straight on into the highlighted part below, on the same line." }
+          - { label: "Headline — highlighted part", name: "headlineAccent", widget: "string", hint: "The second half of the big page heading, drawn with a highlighter-style underline (in the soft-fill colour from “Colours & theme”)." }
+          - { label: "Stamp text", name: "stamp", widget: "string", hint: "The ink-stamp that slams down under the headline as the dispenser animation finishes." }
+          - { label: "Subheading", name: "subhead", widget: "text", hint: "The paragraph under the stamp." }
+          - { label: "Button — brand CTA", name: "ctaBrand", widget: "string", hint: "Solid button that jumps to the “For brands” section. Only shown while that section is switched on." }
+          - { label: "Button — venue CTA", name: "ctaVenue", widget: "string", hint: "Outlined button that jumps to the “For venues” section. Only shown while that section is switched on." }
+          - { label: "Scroll-down link text", name: "scrollText", widget: "string", hint: "Small link under the buttons that jumps to the “problem” section. Only shown while that section is switched on." }
+          - { label: "Section name — screen-reader label", name: "sectionLabel", widget: "string", hint: "Not visible on the page. Read aloud by screen readers when they reach the hero (the opening screen)." }
 
       - name: "problem"
         label: "📊 The Problem section"
         file: "src/_data/problem.json"
         fields:
-          - { label: "Kicker (small label above heading)", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
-          - { label: "Manifesto (lights up word by word as visitors scroll; wrap a word in *stars* to turn it orange)", name: "manifesto", widget: "text", required: false }
+          - { label: "Kicker (small label above heading)", name: "kicker", widget: "string", hint: "The small label above the heading of the problem section, e.g. “The problem”." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading at the top of the problem section. Type <br /> where you want a line break." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the heading." }
+          - { label: "Manifesto (lights up word by word as visitors scroll; wrap a word in *stars* to highlight it in the accent colour)", name: "manifesto", widget: "text", required: false, hint: "The big statement that lights up as visitors scroll. Leave empty to hide the manifesto and its photo." }
+          - label: "Manifesto photo"
+            name: "manifestoPhoto"
+            widget: "object"
+            required: false
+            hint: "The photo shown beside the manifesto (only shown when the manifesto is filled in)."
+            fields:
+              - { label: "Photo", name: "src", widget: "image", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "Upload a picture or pick one from the library — web addresses are not accepted. Leave empty to show the manifesto without a photo." }
+              - { label: "Photo description (accessibility)", name: "alt", widget: "text", required: false, hint: "Read aloud by screen readers; describe what the photo shows." }
           - label: "Statistics"
             name: "stats"
+            label_singular: "statistic"
             widget: "list"
+            summary: "{{fields.number}}{{fields.suffix}} — {{fields.label}}"
+            hint: "The big counting-up numbers in the row of cards. They count up from 0 as visitors scroll."
             fields:
-              - { label: "Number (%)", name: "number", widget: "number" }
-              - { label: "Label text", name: "label", widget: "text" }
-          - { label: "Source citation text", name: "sourceText", widget: "string" }
-          - { label: "Source URL", name: "sourceUrl", widget: "string" }
+              - { label: "Number", name: "number", widget: "number", value_type: "int", min: 0, max: 1000000, hint: "A whole number. It counts up from 0 when the card scrolls into view." }
+              - { label: "Unit shown after the number", name: "suffix", widget: "string", required: false, hint: "Shown straight after the number, e.g. % (leave empty for none)." }
+              - { label: "Label text", name: "label", widget: "text", hint: "The sentence under the number." }
+          - { label: "Source — label", name: "sourceLabel", widget: "string", required: false, hint: "The word before the source link under the statistics, e.g. “Source:”. Leave empty for none." }
+          - { label: "Source citation text", name: "sourceText", widget: "string", required: false, hint: "The clickable name of the source under the statistics. Leave empty to hide the whole source line." }
+          - { label: "Source URL", name: "sourceUrl", widget: "string", required: false, pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the source link under the statistics goes: the full web address of the source, starting with https://. A page on this site (starting with /) also works, but the box refuses anything else because it would quietly turn into a link to the homepage." }
           - label: "Photos"
             name: "photos"
+            label_singular: "photo"
             widget: "list"
+            summary: "{{fields.caption}}"
+            hint: "The strip of tilted photo cards under the statistics. Drag to reorder."
             fields:
-              - { label: "Image path", name: "src", widget: "hidden" }
-              - { label: "Width", name: "width", widget: "hidden" }
-              - { label: "Height", name: "height", widget: "hidden" }
-              - { label: "Rotation", name: "tilt", widget: "hidden" }
-              - { label: "Alt text (accessibility)", name: "alt", widget: "text" }
-              - { label: "Caption", name: "caption", widget: "string" }
+              - { label: "Photo", name: "src", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The photo for this card. Upload a picture or pick one from the library — web addresses are not accepted." }
+              - { label: "Rotation (degrees)", name: "tilt", widget: "number", value_type: "float", min: -10, max: 10, step: 0.5, default: 0, hint: "How far the card is tilted, from -10 to 10 degrees. Negative leans left, positive leans right." }
+              - { label: "Alt text (accessibility)", name: "alt", widget: "text", hint: "Read aloud by screen readers; describe what the photo shows." }
+              - { label: "Caption", name: "caption", widget: "string", hint: "The handwritten caption under the photo." }
 
       - name: "model"
         label: "🔁 The Model (Brands pay. You don't.)"
         file: "src/_data/model.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the model section." }
+          - { label: "Heading", name: "title", widget: "string", hint: "The big heading of the model section (plain text, no line breaks)." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the heading." }
           - label: "Steps"
             name: "steps"
+            label_singular: "step"
             widget: "list"
+            summary: "{{fields.emoji}} {{fields.title}}"
+            hint: "The funding loop: the steps shown in a row with an arrow between each."
             fields:
               - { label: "Emoji", name: "emoji", widget: "string" }
               - { label: "Title", name: "title", widget: "string" }
               - { label: "Description", name: "desc", widget: "text" }
+          - { label: "Arrow between steps", name: "loopArrow", widget: "string", required: false, hint: "The little symbol shown between the steps (e.g. →). Purely decorative." }
+          - label: "Moving conveyor belt"
+            name: "belt"
+            widget: "object"
+            required: false
+            hint: "The strip of little packs sliding across under the steps. Leave the words empty to hide the belt."
+            fields:
+              - label: "Words on the packs"
+                name: "words"
+                widget: "list"
+                required: false
+                hint: "One word or short phrase per pack, in the order they appear. The whole list is repeated to fill the belt."
+                field: { label: "Pack word", name: "word", widget: "string" }
+              - { label: "How many times to repeat the list", name: "repeats", widget: "number", value_type: "int", min: 1, max: 12, default: 4, hint: "Between 1 and 12. The belt scrolls forever, so it needs enough packs to fill a wide screen." }
+          - label: "Concept film"
+            name: "video"
+            widget: "object"
+            required: false
+            hint: "The short silent film that plays when it scrolls into view, next to the receipt."
+            fields:
+              - { label: "Video file", name: "src", widget: "file", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([mM][pP]4|[wW][eE][bB][mM]|[mM]4[vV])$", "Pick or upload an .mp4 (or .webm / .m4v) video. The file name may only use letters, numbers, dots, dashes and underscores."], hint: "Upload or pick an .mp4 video — web addresses are not accepted. Leave empty to hide the film." }
+              - { label: "Cover picture (shown before it plays)", name: "poster", widget: "image", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The still picture shown until the video starts. Use a picture with the same shape as the video. Upload a picture or pick one from the library — web addresses are not accepted." }
+              - { label: "Description for screen readers", name: "label", widget: "text", required: false, hint: "Read aloud by screen readers; describe what happens in the film." }
+          - label: "Receipt"
+            name: "receipt"
+            widget: "object"
+            required: false
+            hint: "The paper receipt that shows everything costing £0.00. Every part is optional and only the parts you fill in are shown; to remove the receipt, clear every box inside it."
+            fields:
+              - { label: "Description for screen readers", name: "ariaLabel", widget: "text", required: false, hint: "Read aloud by screen readers instead of the receipt lines. Spell out the whole receipt in one sentence, e.g. the prices, the total and who pays." }
+              - { label: "Brand line (top)", name: "brand", widget: "string", required: false, hint: "The big name at the top of the receipt. A brand-coloured full stop is added after it automatically." }
+              - { label: "Small line under the brand", name: "meta", widget: "string", required: false, hint: "e.g. the dispenser number and town." }
+              - label: "Receipt lines"
+                name: "rows"
+                label_singular: "line"
+                widget: "list"
+                required: false
+                summary: "{{fields.label}} — {{fields.value}}"
+                hint: "The itemised lines above the total (name on the left, price on the right)."
+                fields:
+                  - { label: "Item", name: "label", widget: "string" }
+                  - { label: "Price / value", name: "value", widget: "string" }
+              - label: "Total line"
+                name: "total"
+                widget: "object"
+                required: false
+                hint: "The bold total line under the items. Leave both boxes empty for no total line."
+                fields:
+                  - { label: "Total — label", name: "label", widget: "string", required: false }
+                  - { label: "Total — value", name: "value", widget: "string", required: false }
+              - { label: "“Paid” line", name: "paid", widget: "string", required: false, hint: "The line under the total saying who paid." }
+              - { label: "Handwritten sign-off", name: "script", widget: "string", required: false, hint: "The script-font line at the very bottom of the receipt." }
 
       - name: "how"
         label: "📱 How It Works (demo section text)"
         file: "src/_data/how.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
-          - { label: "Note below the demo", name: "demoNote", widget: "text" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the “How it works” section." }
+          - { label: "Heading", name: "title", widget: "string", hint: "The big heading of the “How it works” section. It also names the section for screen readers." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The sentence under the heading, above the four photo cards." }
+          - { label: "Note below the demo", name: "demoNote", widget: "text", hint: "The small print under the interactive demo (the Exeter pilot / fair-use note)." }
+          - { label: "Photo strip label (for screen readers)", name: "storyLabel", widget: "string", hint: "Read aloud by screen readers when they reach the four photo cards. It is not shown on screen." }
           - label: "Story strip (four photo moments above the demo)"
             name: "story"
             widget: "list"
             required: false
-            hint: "Leave empty to hide the strip. Titles ending in a full stop get the orange brand period automatically."
+            label_singular: "photo moment"
+            summary: "{{fields.title}}"
+            collapsed: true
+            hint: "The row of photo cards above the demo. Leave empty to hide the strip. Titles ending in a full stop get the brand's coloured full stop automatically."
             fields:
-              - { label: "Image path (without extension)", name: "img", widget: "hidden" }
-              - { label: "Image width", name: "w", widget: "hidden" }
-              - { label: "Image height", name: "h", widget: "hidden" }
-              - { label: "Title (e.g. Spot it.)", name: "title", widget: "string" }
-              - { label: "Caption", name: "caption", widget: "string" }
-              - { label: "Alt text (describes the image for screen readers)", name: "alt", widget: "string" }
+              - { label: "Photo", name: "src", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The picture at the top of this card. Portrait photos work best (the originals are about 764 × 896). Upload a picture or pick one from the library — web addresses are not accepted." }
+              - { label: "Title (e.g. Spot it.)", name: "title", widget: "string", hint: "The bold line under the photo." }
+              - { label: "Caption", name: "caption", widget: "string", hint: "The smaller line under the title." }
+              - { label: "Alt text (describes the image for screen readers)", name: "alt", widget: "string", hint: "Describe what the photo shows for people who cannot see it. Not shown on screen." }
+          - label: "Interactive demo text"
+            name: "demo"
+            widget: "object"
+            collapsed: true
+            hint: "All the words inside the clickable demo (the progress steps, the wall machine and the phone). The demo always has these four steps, in this order. The page keeps working exactly the same whatever you type here."
+            fields:
+              - { label: "Progress bar label (for screen readers)", name: "stepperLabel", widget: "string", hint: "Read aloud as the name of the four-step progress bar above the machine. Not shown on screen." }
+              - { label: "Screen-reader word for finished steps", name: "completedWord", widget: "string", hint: "Read aloud after a step label once that step is done, e.g. “Scan the QR (completed)”. Type just the word, without brackets. Not shown on screen." }
+              - label: "The wall machine"
+                name: "machine"
+                widget: "object"
+                collapsed: true
+                hint: "The drawing of the dispenser on the left of the demo."
+                fields:
+                  - { label: "Description (for screen readers)", name: "ariaLabel", widget: "string", hint: "What the machine illustration shows, for people who cannot see it. Not shown on screen." }
+                  - { label: "Name on the machine", name: "label", widget: "string", hint: "The small brand name printed on the machine body, under its screen." }
+                  - { label: "Text on the pack", name: "packText", widget: "string", hint: "The words on the pack that drops into the tray, e.g. 4-PACK." }
+                  - { label: "Stamp on the machine", name: "stamp", widget: "string", hint: "The round stamp that pops up on the machine when the pack is dispensed." }
+              - label: "Step 1 — Scan the QR"
+                name: "scan"
+                widget: "object"
+                collapsed: true
+                hint: "The first step. This is also the screen the phone shows before anyone clicks anything."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 1 in the progress bar above the demo." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the heading on the phone screen." }
+                  - { label: "Button", name: "button", widget: "string", hint: "The button on the phone screen that starts the demo." }
+              - label: "Step 2 — Quick check-in"
+                name: "checkIn"
+                widget: "object"
+                collapsed: true
+                hint: "The second step: the phone asks for a quick check-in."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 2 in the progress bar above the demo." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the heading on the phone screen." }
+                  - { label: "Example email shown in the box", name: "exampleEmail", widget: "string", hint: "The pretend email address shown in the (read-only) box on the phone." }
+                  - { label: "Email box description (for screen readers)", name: "exampleEmailLabel", widget: "string", hint: "Read aloud as the name of that box. Not shown on screen." }
+                  - { label: "Button", name: "button", widget: "string", hint: "The button on the phone screen that moves on to the sponsor step." }
+              - label: "Step 3 — A word from our sponsor"
+                name: "sponsor"
+                widget: "object"
+                collapsed: true
+                hint: "The third step: the pretend advert. The small “Sponsored” tag and the advert text are shown on both the phone and the machine's screen."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 3 in the progress bar above the demo." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Advert tag", name: "adTag", widget: "string", hint: "The small label above the pretend advert, e.g. Sponsored. Shown on the phone and on the machine's screen." }
+                  - { label: "Advert text", name: "adText", widget: "string", hint: "The pretend advert itself, e.g. “Your brand, here 👋”. Shown on the phone and on the machine's screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the advert on the phone screen." }
+              - label: "Step 4 — Covered."
+                name: "done"
+                widget: "object"
+                collapsed: true
+                hint: "The last step: the pack is dispensed."
+                fields:
+                  - { label: "Progress label", name: "chip", widget: "string", hint: "The label of step 4 in the progress bar above the demo." }
+                  - { label: "Stamp on the phone", name: "stamp", widget: "string", hint: "The round stamp at the top of the phone screen." }
+                  - { label: "Phone heading", name: "title", widget: "string", hint: "The heading on the phone screen." }
+                  - { label: "Phone text", name: "text", widget: "text", hint: "The sentence under the heading on the phone screen." }
+                  - { label: "Button", name: "button", widget: "string", hint: "The button that restarts the demo from step 1." }
 
       - name: "brands"
         label: "📣 For Brands section"
         file: "src/_data/brands.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the For Brands section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the For Brands section. Type <br /> where you want a line break." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the heading." }
           - label: "Header photo"
             name: "headerPhoto"
             widget: "object"
+            hint: "The polaroid card to the right of the heading."
             fields:
-              - { label: "Image path", name: "src", widget: "hidden" }
-              - { label: "Width", name: "width", widget: "hidden" }
-              - { label: "Height", name: "height", widget: "hidden" }
-              - { label: "Alt text (accessibility)", name: "alt", widget: "text" }
-              - { label: "Caption", name: "caption", widget: "string" }
+              - { label: "Photo", name: "src", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The photo on the card. It is shown when there is no video below. Upload a picture or pick one from the library — web addresses are not accepted." }
+              - { label: "Looping video (optional)", name: "video", widget: "file", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([mM][pP]4|[wW][eE][bB][mM]|[mM]4[vV])$", "Pick or upload an .mp4 (or .webm / .m4v) video. The file name may only use letters, numbers, dots, dashes and underscores."], hint: "A short silent clip that plays on the card instead of the photo. Upload or pick an .mp4 video — web addresses are not accepted. Leave empty to show the photo." }
+              - { label: "Video cover picture", name: "poster", widget: "image", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The still picture shown before the video plays. Only used with a video. Upload a picture or pick one from the library — web addresses are not accepted." }
+              - { label: "Alt text (accessibility)", name: "alt", widget: "text", hint: "Read aloud by screen readers; describe what the photo or video shows." }
+              - { label: "Caption", name: "caption", widget: "string", hint: "The handwritten caption under the card." }
           - label: "Benefits"
             name: "benefits"
+            label_singular: "benefit"
             widget: "list"
+            summary: "{{fields.icon}} {{fields.title}}"
+            hint: "The grid of benefit cards. Drag to reorder."
             fields:
-              - { label: "Icon (emoji)", name: "icon", widget: "string" }
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Description", name: "desc", widget: "text" }
+              - { label: "Icon (emoji)", name: "icon", widget: "string", hint: "A single emoji shown at the top of the card." }
+              - { label: "Title", name: "title", widget: "string", hint: "The bold benefit name." }
+              - { label: "Description", name: "desc", widget: "text", hint: "The sentence under the title." }
           - label: "Chips"
             name: "chips"
+            label_singular: "chip"
             widget: "list"
+            hint: "The row of small pills under the benefit cards."
             field: { label: "Chip text", name: "chip", widget: "string" }
-          - { label: "Form heading", name: "formHeading", widget: "string" }
-          - { label: "Form button label", name: "formButton", widget: "string" }
-          - { label: "Form hint text", name: "formHint", widget: "string" }
+          - label: "Enquiry form"
+            name: "form"
+            widget: "object"
+            hint: "The advertiser enquiry form at the bottom of the For Brands section. Every submission is stored by Netlify Forms and e-mailed to the team."
+            fields:
+              - { label: "Form heading", name: "heading", widget: "string", hint: "The heading above the form card." }
+              - label: "Form fields"
+                name: "fields"
+                label_singular: "field"
+                widget: "list"
+                collapsed: true
+                min: 1
+                max: 15
+                summary: "{{fields.label}} ({{fields.type}})"
+                hint: "The questions visitors fill in, in the order shown. Drag to reorder, add new ones with the + button, or delete ones you do not need. Keep at least one Email box so the team can reply — the form does not check this for you."
+                fields:
+                  - { label: "Internal field id (do not edit)", name: "id", widget: "hidden", required: false }
+                  - { label: "Internal field name (do not edit)", name: "name", widget: "hidden", required: false }
+                  - { label: "Label", name: "label", widget: "string", hint: "The question shown above the box, e.g. Your name. A question with no label is left out of the form. The label is also the column heading Netlify uses for this answer in the stored submissions: the original questions keep their headings for good, but if you re-word a question you added yourself, its column is renamed, so settle the wording before launch." }
+                  - { label: "Answer type", name: "type", widget: "select", default: "text", options: [{ label: "Short text", value: "text" }, { label: "Email address", value: "email" }, { label: "Phone number", value: "tel" }, { label: "Long text (several lines)", value: "textarea" }, { label: "Dropdown list", value: "select" }], hint: "What kind of box this is. Short text: a single line (name, company). Email address: checks that the address looks right. Phone number: a single line for a number. Long text: several lines (a message). Dropdown list: a pick-one menu — it needs choices below or a first choice; a dropdown with neither is left out of the form entirely." }
+                  - { label: "Required?", name: "required", widget: "boolean", default: false, hint: "When on, the form cannot be sent without an answer and the label shows a star." }
+                  - { label: "Box width", name: "width", widget: "select", required: false, options: [{ label: "Half width (two boxes per row)", value: "half" }, { label: "Full width", value: "full" }], hint: "Leave empty for automatic: long-text boxes are full width, everything else half width." }
+                  - { label: "Placeholder", name: "placeholder", widget: "string", required: false, hint: "Grey example text shown inside an empty box, e.g. you@company.com. Not used for dropdowns." }
+                  - { label: "Helper text under the box", name: "hint", widget: "string", required: false, hint: "Optional small print shown under this box. Leave empty for none." }
+                  - { label: "Browser autofill hint", name: "autocomplete", widget: "string", required: false, pattern: ["^[a-z0-9 -]*$", "Lowercase letters, numbers, spaces and dashes only, e.g. name, email, organization, tel."], hint: "Lets browsers fill the box automatically, e.g. name, email, organization, tel. Leave empty for none." }
+                  - { label: "Dropdown: first choice meaning no answer", name: "emptyOption", widget: "string", required: false, hint: "Dropdowns only: an optional first choice that sends nothing, e.g. Prefer not to say. Leave empty for none. (A dropdown needs this or at least one choice below, otherwise it is left out of the form. A required dropdown with no real choice below is treated as optional, so the form can still be sent.)" }
+                  - label: "Dropdown choices"
+                    name: "options"
+                    label_singular: "choice"
+                    widget: "list"
+                    required: false
+                    hint: "Dropdowns only: the choices visitors can pick from, in order. A dropdown with no choices (and no first choice above) does not appear on the website."
+                    field: { label: "Choice", name: "choice", widget: "string" }
+                  - label: "In the fallback e-mail"
+                    name: "mail"
+                    widget: "object"
+                    required: false
+                    hint: "Used only when sending fails and the visitor's own e-mail app opens instead. Leave both empty to use the label above and an empty answer."
+                    fields:
+                      - { label: "Label in the e-mail", name: "label", widget: "string", required: false, hint: "How this answer is named in the e-mail body. Leave empty to use the label above." }
+                      - { label: "Text if left empty", name: "ifEmpty", widget: "string", required: false, hint: "Written in the e-mail when the visitor skipped this box, e.g. Not specified." }
+              - { label: "Submit button label", name: "button", widget: "string", hint: "The text on the button that sends the form." }
+              - { label: "Text next to the button", name: "hint", widget: "string", required: false, hint: "The small reassurance line beside the button. Leave empty for none." }
+              - { label: "Button text while sending", name: "sending", widget: "string", hint: "Shown on the button for a moment after it is pressed, e.g. Sending…" }
+              - { label: "Success message", name: "success", widget: "text", hint: "Replaces the form once it has been sent successfully." }
+              - label: "Fallback e-mail (opens if sending fails)"
+                name: "mailto"
+                widget: "object"
+                hint: "If the form cannot be sent, the visitor's own e-mail app opens with a ready-written message to the team. Each box above is added to it as a Label: answer line."
+                fields:
+                  - { label: "E-mail subject", name: "subject", widget: "string", hint: "The subject line of the fallback e-mail." }
+                  - { label: "Greeting", name: "greeting", widget: "string", required: false, hint: "First line of the e-mail, e.g. Hi COVERED team," }
+                  - { label: "Opening sentence", name: "intro", widget: "text", required: false, hint: "The sentence before the answers. Leave empty for none." }
+                  - { label: "Sign-off", name: "signoff", widget: "string", required: false, hint: "Last line of the e-mail, e.g. Thanks!" }
 
       - name: "partners"
         label: "🤝 Partners wall"
         file: "src/_data/partners.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Partners section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Partners section. Type <br /> where you want a new line." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the Partners heading." }
+          - { label: "“Reserved” stamp text", name: "reservedStamp", widget: "string", required: false, hint: "The small stamp on top of any slot marked as the founding-partner slot below. Leave empty for no stamp." }
           - label: "Partner slots"
             name: "slots"
             widget: "list"
+            label_singular: "slot"
+            summary: "{{fields.logoText}} · {{fields.category}}"
+            collapsed: true
+            hint: "The boxes on the partner wall, in order. Swap in a brand’s name as partners sign up."
             fields:
-              - { label: "Founding-partner slot?", name: "founding", widget: "boolean", default: false }
-              - { label: "Logo text / brand name", name: "logoText", widget: "string" }
-              - { label: "Category label", name: "category", widget: "string" }
-          - { label: "Button label", name: "ctaButton", widget: "string" }
+              - { label: "Founding-partner slot?", name: "founding", widget: "boolean", default: false, hint: "Switch on to give the slot the highlighted look with the “Reserved” stamp." }
+              - { label: "Logo text / brand name", name: "logoText", widget: "string", hint: "Large text in the middle of the slot, e.g. “Your logo here” or a brand name." }
+              - { label: "Category label", name: "category", widget: "string", hint: "Small line under the logo text, e.g. “Beauty & personal care”." }
+          - { label: "Button label", name: "ctaButton", widget: "string", hint: "Button under the wall. It jumps to the “Advertise with us” form and only appears while that section is switched on." }
 
       - name: "venues"
         label: "🏟️ For Venues section"
         file: "src/_data/venues.json"
         fields:
-          - { label: "Pilot ribbon text", name: "ribbon", widget: "string" }
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
-          - label: "We handle (list)"
+          - { label: "Pilot ribbon text", name: "ribbon", widget: "string", hint: "The ribbon above the heading of the For Venues section." }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the For Venues section. Type <br /> where you want a line break." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the heading." }
+          - label: "Left card: what we handle"
             name: "weHandle"
-            widget: "list"
-            field: { label: "Item", name: "item", widget: "string" }
-          - label: "You provide (list)"
+            widget: "object"
+            hint: "The first of the two list cards."
+            fields:
+              - { label: "Icon (emoji)", name: "icon", widget: "string", hint: "A single emoji shown before the card title." }
+              - { label: "Card title", name: "title", widget: "string", hint: "The heading of the card, e.g. We handle." }
+              - label: "List items"
+                name: "items"
+                label_singular: "item"
+                widget: "list"
+                hint: "One bullet per item. Drag to reorder."
+                field: { label: "Item", name: "item", widget: "string" }
+          - label: "Right card: what the venue provides"
             name: "youProvide"
+            widget: "object"
+            hint: "The second of the two list cards."
+            fields:
+              - { label: "Icon (emoji)", name: "icon", widget: "string", hint: "A single emoji shown before the card title." }
+              - { label: "Card title", name: "title", widget: "string", hint: "The heading of the card, e.g. You provide." }
+              - label: "List items"
+                name: "items"
+                label_singular: "item"
+                widget: "list"
+                hint: "One bullet per item. Drag to reorder."
+                field: { label: "Item", name: "item", widget: "string" }
+          - label: "Photos"
+            name: "photos"
+            label_singular: "photo"
             widget: "list"
-            field: { label: "Item", name: "item", widget: "string" }
-          - { label: "Form heading", name: "formHeading", widget: "string" }
-          - { label: "Form button label", name: "formButton", widget: "string" }
-          - { label: "Form hint text", name: "formHint", widget: "string" }
+            required: false
+            summary: "{{fields.caption}}"
+            hint: "The strip of tilted venue photos above the form. Leave empty to hide the strip. Drag to reorder."
+            fields:
+              - { label: "Photo", name: "src", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The photo for this card. Upload a picture or pick one from the library — web addresses are not accepted." }
+              - { label: "Rotation (degrees)", name: "tilt", widget: "number", value_type: "float", min: -10, max: 10, step: 0.1, default: 0, hint: "How far the card is tilted, from -10 to 10 degrees. Negative leans left, positive leans right." }
+              - { label: "Alt text (accessibility)", name: "alt", widget: "text", hint: "Read aloud by screen readers; describe what the photo shows." }
+              - { label: "Caption", name: "caption", widget: "string", hint: "The handwritten caption under the photo." }
+          - label: "Enquiry form"
+            name: "form"
+            widget: "object"
+            hint: "The venue enquiry form at the bottom of the For Venues section. Every submission is stored by Netlify Forms and e-mailed to the team."
+            fields:
+              - { label: "Form heading", name: "heading", widget: "string", hint: "The heading above the form card." }
+              - label: "Form fields"
+                name: "fields"
+                label_singular: "field"
+                widget: "list"
+                collapsed: true
+                min: 1
+                max: 15
+                summary: "{{fields.label}} ({{fields.type}})"
+                hint: "The questions visitors fill in, in the order shown. Drag to reorder, add new ones with the + button, or delete ones you do not need. Keep at least one Email box so the team can reply — the form does not check this for you."
+                fields:
+                  - { label: "Internal field id (do not edit)", name: "id", widget: "hidden", required: false }
+                  - { label: "Internal field name (do not edit)", name: "name", widget: "hidden", required: false }
+                  - { label: "Label", name: "label", widget: "string", hint: "The question shown above the box, e.g. Your name. A question with no label is left out of the form. The label is also the column heading Netlify uses for this answer in the stored submissions: the original questions keep their headings for good, but if you re-word a question you added yourself, its column is renamed, so settle the wording before launch." }
+                  - { label: "Answer type", name: "type", widget: "select", default: "text", options: [{ label: "Short text", value: "text" }, { label: "Email address", value: "email" }, { label: "Phone number", value: "tel" }, { label: "Long text (several lines)", value: "textarea" }, { label: "Dropdown list", value: "select" }], hint: "What kind of box this is. Short text: a single line (name, company). Email address: checks that the address looks right. Phone number: a single line for a number. Long text: several lines (a message). Dropdown list: a pick-one menu — it needs choices below or a first choice; a dropdown with neither is left out of the form entirely." }
+                  - { label: "Required?", name: "required", widget: "boolean", default: false, hint: "When on, the form cannot be sent without an answer and the label shows a star." }
+                  - { label: "Box width", name: "width", widget: "select", required: false, options: [{ label: "Half width (two boxes per row)", value: "half" }, { label: "Full width", value: "full" }], hint: "Leave empty for automatic: long-text boxes are full width, everything else half width." }
+                  - { label: "Placeholder", name: "placeholder", widget: "string", required: false, hint: "Grey example text shown inside an empty box, e.g. you@company.com. Not used for dropdowns." }
+                  - { label: "Helper text under the box", name: "hint", widget: "string", required: false, hint: "Optional small print shown under this box. Leave empty for none." }
+                  - { label: "Browser autofill hint", name: "autocomplete", widget: "string", required: false, pattern: ["^[a-z0-9 -]*$", "Lowercase letters, numbers, spaces and dashes only, e.g. name, email, organization, tel."], hint: "Lets browsers fill the box automatically, e.g. name, email, organization, tel. Leave empty for none." }
+                  - { label: "Dropdown: first choice meaning no answer", name: "emptyOption", widget: "string", required: false, hint: "Dropdowns only: an optional first choice that sends nothing, e.g. Prefer not to say. Leave empty for none. (A dropdown needs this or at least one choice below, otherwise it is left out of the form. A required dropdown with no real choice below is treated as optional, so the form can still be sent.)" }
+                  - label: "Dropdown choices"
+                    name: "options"
+                    label_singular: "choice"
+                    widget: "list"
+                    required: false
+                    hint: "Dropdowns only: the choices visitors can pick from, in order. A dropdown with no choices (and no first choice above) does not appear on the website."
+                    field: { label: "Choice", name: "choice", widget: "string" }
+                  - label: "In the fallback e-mail"
+                    name: "mail"
+                    widget: "object"
+                    required: false
+                    hint: "Used only when sending fails and the visitor's own e-mail app opens instead. Leave both empty to use the label above and an empty answer."
+                    fields:
+                      - { label: "Label in the e-mail", name: "label", widget: "string", required: false, hint: "How this answer is named in the e-mail body. Leave empty to use the label above." }
+                      - { label: "Text if left empty", name: "ifEmpty", widget: "string", required: false, hint: "Written in the e-mail when the visitor skipped this box, e.g. Not specified." }
+              - { label: "Submit button label", name: "button", widget: "string", hint: "The text on the button that sends the form." }
+              - { label: "Text next to the button", name: "hint", widget: "string", required: false, hint: "The small reassurance line beside the button. Leave empty for none." }
+              - { label: "Button text while sending", name: "sending", widget: "string", hint: "Shown on the button for a moment after it is pressed, e.g. Sending…" }
+              - { label: "Success message", name: "success", widget: "text", hint: "Replaces the form once it has been sent successfully." }
+              - label: "Fallback e-mail (opens if sending fails)"
+                name: "mailto"
+                widget: "object"
+                hint: "If the form cannot be sent, the visitor's own e-mail app opens with a ready-written message to the team. Each box above is added to it as a Label: answer line."
+                fields:
+                  - { label: "E-mail subject", name: "subject", widget: "string", hint: "The subject line of the fallback e-mail." }
+                  - { label: "Greeting", name: "greeting", widget: "string", required: false, hint: "First line of the e-mail, e.g. Hi COVERED team," }
+                  - { label: "Opening sentence", name: "intro", widget: "text", required: false, hint: "The sentence before the answers. Leave empty for none." }
+                  - { label: "Sign-off", name: "signoff", widget: "string", required: false, hint: "Last line of the e-mail, e.g. Thanks!" }
 
       - name: "locations"
         label: "🗺️ Locations / UK map"
         file: "src/_data/locations.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
-          - { label: "Subheading", name: "subtitle", widget: "text" }
-          - { label: "Map viewBox (do not edit)", name: "svgViewBox", widget: "hidden" }
-          - { label: "Map alt text (do not edit)", name: "svgAriaLabel", widget: "hidden" }
-          - { label: "Map geometry — neighbours (do not edit)", name: "neighborPath", widget: "hidden" }
-          - { label: "Map geometry — UK (do not edit)", name: "landPath", widget: "hidden" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Locations section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Locations section. Type <br /> where you want a new line." }
+          - { label: "Subheading", name: "subtitle", widget: "text", hint: "The paragraph under the Locations heading." }
+          - { label: "Map picture", name: "mapImage", widget: "image", required: false, choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The UK map behind the pins. Leave it empty to show the plain built-in outline instead. If you pick a different picture, also set “Map size” below to that picture’s width and height and move each city’s pin to match. Upload a picture or pick one from the library — web addresses are not accepted." }
+          - { label: "Map size (width and height)", name: "svgViewBox", widget: "string", pattern: ["^0 0 [0-9]+(\\.[0-9]+)? [0-9]+(\\.[0-9]+)?$", "Must look like 0 0 765 1024 — start with 0 0, then the map picture’s width and height"], hint: "The grid the city pins are placed on. Always “0 0” followed by the map picture’s width and height, e.g. 0 0 765 1024 for the current map." }
+          - { label: "Map description (for screen readers)", name: "svgAriaLabel", widget: "text", hint: "Read aloud by screen readers in place of the map picture. Not shown on screen. If it mentions how many cities are on the map, update that number whenever you add or remove a city." }
+          - { label: "Plain outline — neighbouring countries (advanced)", name: "neighborPath", widget: "text", required: false, pattern: ["^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\\-\\s]*$", "Only map path data is allowed here (letters like M, L, Z and numbers)"], hint: "Advanced: drawing data for the simple outline that is shown only when no map picture is set or the picture cannot be found. Leave as it is unless you know SVG path data." }
+          - { label: "Plain outline — United Kingdom (advanced)", name: "landPath", widget: "text", required: false, pattern: ["^[MmLlHhVvCcSsQqTtAaZz0-9eE.,+\\-\\s]*$", "Only map path data is allowed here (letters like M, L, Z and numbers)"], hint: "Advanced: drawing data for the UK shape of the simple outline (see above). Leave as it is unless you know SVG path data." }
           - label: "Cities"
             name: "cities"
             widget: "list"
+            label_singular: "city"
+            summary: "{{fields.name}}"
+            collapsed: true
+            hint: "One pin on the map and one button above the description box for each city, in the order they drop onto the map."
             fields:
-              - { label: "ID (do not edit)", name: "id", widget: "hidden" }
-              - { label: "City name", name: "name", widget: "string" }
-              - { label: "Map X position (do not edit)", name: "x", widget: "hidden" }
-              - { label: "Map Y position (do not edit)", name: "y", widget: "hidden" }
-              - { label: "Is this the live pilot city?", name: "live", widget: "boolean", default: false }
-              - { label: "Description shown when selected", name: "blurb", widget: "text" }
+              - { label: "ID", name: "id", widget: "string", pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, e.g. bristol"], hint: "A short tag the page uses to link the pin to its button — lowercase letters, numbers and dashes, different for every city (e.g. bristol). Never shown to visitors." }
+              - { label: "City name", name: "name", widget: "string", hint: "Shown on the city’s button and as the heading of the description box." }
+              - { label: "Map X position", name: "x", widget: "number", value_type: "float", min: 0, max: 2000, step: 1, hint: "How far across the map the pin’s tip sits, measured from the left edge in map units. On the current map (765 wide) use 0 for the far left to 765 for the far right." }
+              - { label: "Map Y position", name: "y", widget: "number", value_type: "float", min: 0, max: 2000, step: 1, hint: "How far down the map the pin’s tip sits, measured from the top edge in map units. On the current map (1024 tall) use 0 for the top to 1024 for the bottom." }
+              - { label: "Is this the live pilot city?", name: "live", widget: "boolean", default: false, hint: "Live cities get a bigger pulsing pin, the badge on their button and the live status tag (their wording is set under “Map wording” below). The map opens on the first live city." }
+              - { label: "Description shown when selected", name: "blurb", widget: "text", hint: "The sentence or two that appears in the description box when someone picks this city." }
+          - label: "Parked cities — not shown on the map yet"
+            name: "citiesHidden"
+            widget: "list"
+            label_singular: "parked city"
+            summary: "{{fields.name}}"
+            collapsed: true
+            required: false
+            hint: "Cities you have worked out but are keeping off the map for now (nothing here appears on the website). To show one, copy its details into “Cities” above. They are kept here so no work is lost."
+            fields:
+              - { label: "ID", name: "id", widget: "string", pattern: ["^[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, e.g. bristol"], hint: "A short tag the page uses to link the pin to its button — lowercase letters, numbers and dashes, different for every city (e.g. bristol). Never shown to visitors." }
+              - { label: "City name", name: "name", widget: "string", hint: "Shown on the city’s button and as the heading of the description box." }
+              - { label: "Map X position", name: "x", widget: "number", value_type: "float", min: 0, max: 2000, step: 1, hint: "How far across the map the pin’s tip sits, measured from the left edge in map units. On the current map (765 wide) use 0 for the far left to 765 for the far right." }
+              - { label: "Map Y position", name: "y", widget: "number", value_type: "float", min: 0, max: 2000, step: 1, hint: "How far down the map the pin’s tip sits, measured from the top edge in map units. On the current map (1024 tall) use 0 for the top to 1024 for the bottom." }
+              - { label: "Is this the live pilot city?", name: "live", widget: "boolean", default: false, hint: "Leave off while the city is parked. Cities only get the pilot pin and badge once they are moved into “Cities” above and switched on there." }
+              - { label: "Description shown when selected", name: "blurb", widget: "text", hint: "The sentence or two that appears in the description box when someone picks this city." }
           - label: "Venue types targeted"
             name: "placeTypes"
             widget: "list"
+            label_singular: "venue type"
+            summary: "{{fields.emoji}} {{fields.label}}"
+            hint: "The pills under the city description, e.g. Universities."
             fields:
-              - { label: "Emoji", name: "emoji", widget: "string" }
-              - { label: "Label", name: "label", widget: "string" }
-          - { label: "Button label", name: "ctaButton", widget: "string" }
+              - { label: "Emoji", name: "emoji", widget: "string", hint: "One emoji shown before the label. Known ones (🎓 🛍️ 🏟️ 🚆 ☕ 📍) are swapped for the site’s own icon." }
+              - { label: "Label", name: "label", widget: "string", hint: "The pill’s text, e.g. Universities." }
+          - { label: "Venue types heading", name: "placeTypesTitle", widget: "string", hint: "Line above the venue-type pills." }
+          - { label: "Button label", name: "ctaButton", widget: "string", hint: "Button at the bottom of the section. It jumps to the “For Venues” form and only appears while that section is switched on." }
+          - label: "Map wording"
+            name: "labels"
+            widget: "object"
+            collapsed: true
+            hint: "Small pieces of text on and around the map."
+            fields:
+              - { label: "Legend — live pin", name: "legendLive", widget: "string", hint: "Caption under the map next to the filled, accent-coloured dot." }
+              - { label: "Legend — roadmap pin", name: "legendSoon", widget: "string", hint: "Caption under the map next to the white dot with a dark outline." }
+              - { label: "Tag for a live city", name: "statusLive", widget: "string", hint: "Small tag beside the city name in the description box when the selected city is live." }
+              - { label: "Tag for a roadmap city", name: "statusSoon", widget: "string", hint: "Small tag beside the city name in the description box when the selected city is not live." }
+              - { label: "Badge on a live city’s button", name: "liveBadge", widget: "string", required: false, hint: "Tiny badge after the name on the live city’s button, e.g. “● pilot”. Leave empty for no badge." }
+              - { label: "City buttons description (screen readers)", name: "cityPickerAriaLabel", widget: "string", hint: "Read aloud by screen readers for the row of city buttons. Not shown on screen." }
 
       - name: "vision"
         label: "🚀 Vision / roadmap"
         file: "src/_data/vision.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the vision section." }
+          - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the vision section. Type <br /> where you want a line break." }
           - label: "Milestones"
             name: "milestones"
+            label_singular: "milestone"
             widget: "list"
+            summary: "{{fields.tag}} — {{fields.title}}"
+            hint: "The roadmap cards. Drag to reorder."
             fields:
-              - { label: "Phase tag", name: "tag", widget: "string" }
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Description", name: "desc", widget: "text" }
-          - { label: "'Build in public' heading", name: "bipTitle", widget: "string" }
-          - { label: "'Build in public' text", name: "bipText", widget: "text" }
+              - { label: "Phase tag", name: "tag", widget: "string", hint: "The small tag on top of the card, e.g. Phase 2." }
+              - { label: "Title", name: "title", widget: "string", hint: "The bold milestone name." }
+              - { label: "Description", name: "desc", widget: "text", hint: "The sentence under the title." }
+          - { label: "'Build in public' heading", name: "bipTitle", widget: "string", hint: "The heading of the build-in-public box (an emoji at the start is fine)." }
+          - { label: "'Build in public' text", name: "bipText", widget: "text", hint: "The paragraph inside the build-in-public box." }
           - label: "Social channel chips"
             name: "soonChips"
+            label_singular: "chip"
             widget: "list"
+            hint: "The small pills for social channels that are coming soon."
             field: { label: "Chip text", name: "chip", widget: "string" }
+          - label: "Launch-notify sign-up"
+            name: "notify"
+            widget: "object"
+            hint: "The one-box e-mail sign-up inside the build-in-public box. Netlify Forms stores the addresses."
+            fields:
+              - { label: "E-mail box label (screen readers)", name: "label", widget: "string", hint: "Not shown on screen; read aloud by screen readers for the e-mail box." }
+              - { label: "E-mail box placeholder", name: "placeholder", widget: "string", hint: "Grey example text inside the empty box, e.g. you@email.com." }
+              - { label: "Button label", name: "button", widget: "string", hint: "The text on the sign-up button." }
+              - { label: "Success message", name: "success", widget: "text", hint: "Replaces the sign-up box once the address has been sent." }
+              - { label: "Fallback e-mail subject", name: "mailtoSubject", widget: "string", hint: "If sending fails, the visitor's own e-mail app opens with this subject line." }
 
       - name: "faq"
         label: "❓ FAQ"
         file: "src/_data/faq.json"
         fields:
-          - { label: "Kicker", name: "kicker", widget: "string" }
-          - { label: "Heading", name: "title", widget: "string" }
+          - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the FAQ heading." }
+          - { label: "Heading", name: "title", widget: "string", hint: "The big heading above the list of questions." }
           - label: "Questions"
             name: "items"
+            label_singular: "question"
             widget: "list"
+            summary: "{{fields.q}}"
+            collapsed: true
+            hint: "The expandable questions, top to bottom. The same questions and answers are also given to Google as an FAQ."
             fields:
-              - { label: "Question", name: "q", widget: "string" }
-              - { label: "Answer", name: "a", widget: "text" }
+              - { label: "Question", name: "q", widget: "string", hint: "The line visitors click to open the answer." }
+              - { label: "Answer", name: "a", widget: "text", hint: "Shown when the question is opened. Plain text only." }
 
   # ---------------------------------------------------------------
   # Editor-created pages: assembled from configurable blocks.
@@ -590,10 +1076,11 @@ collections:
             widget: "object"
             fields:
               - { label: "Heading", name: "heading", widget: "string" }
-              - { label: "Heading — orange part", name: "accent", widget: "string", required: false }
+              - { label: "Heading — highlighted part", name: "accent", widget: "string", required: false, hint: "The second part of the heading, drawn with a highlighter-style underline (in the soft-fill colour from “Colours & theme”). Leave empty for a plain heading." }
               - { label: "Subtitle", name: "sub", widget: "text", required: false }
               - { label: "Button text", name: "ctaText", widget: "string", required: false }
-              - { label: "Button link", name: "ctaLink", widget: "string", required: false, hint: "e.g. /#brands or /about/" }
+              - { label: "Button link", name: "ctaLink", widget: "string", required: false, pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the button goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage. The button only appears when it has text; if you leave this empty it links to the homepage." }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "📝 Text section"
             name: "text"
             widget: "object"
@@ -601,16 +1088,18 @@ collections:
               - { label: "Small label above heading", name: "kicker", widget: "string", required: false }
               - { label: "Heading", name: "heading", widget: "string", required: false }
               - { label: "Text", name: "body", widget: "markdown" }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "🖼️ Image + text"
             name: "imageText"
             widget: "object"
             fields:
-              - { label: "Image", name: "image", widget: "image" }
+              - { label: "Image", name: "image", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The picture shown beside the text. Upload a picture or pick one from the library — web addresses are not accepted." }
               - { label: "Image description (accessibility)", name: "alt", widget: "string" }
               - { label: "Caption under image", name: "caption", widget: "string", required: false }
               - { label: "Heading", name: "heading", widget: "string", required: false }
               - { label: "Text", name: "body", widget: "markdown" }
               - { label: "Image on the right?", name: "imageRight", widget: "boolean", default: false }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "🔢 Number cards"
             name: "stats"
             widget: "object"
@@ -622,14 +1111,16 @@ collections:
                 fields:
                   - { label: "Big number (e.g. 11% or 20+)", name: "number", widget: "string" }
                   - { label: "Label underneath", name: "label", widget: "string" }
-          - label: "📣 Big orange banner"
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
+          - label: "📣 Big call-to-action banner"
             name: "banner"
             widget: "object"
             fields:
               - { label: "Title", name: "title", widget: "string" }
               - { label: "Text", name: "text", widget: "text", required: false }
               - { label: "Button text", name: "buttonText", widget: "string", required: false }
-              - { label: "Button link", name: "buttonLink", widget: "string", required: false }
+              - { label: "Button link", name: "buttonLink", widget: "string", required: false, pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the button goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage. The button only appears when it has text; if you leave this empty it links to the homepage." }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
           - label: "❓ Questions & answers"
             name: "faq"
             widget: "object"
@@ -641,6 +1132,7 @@ collections:
                 fields:
                   - { label: "Question", name: "q", widget: "string" }
                   - { label: "Answer", name: "a", widget: "text" }
+              - { label: "Link anchor (optional)", name: "anchor", widget: "string", required: false, pattern: ["^(?!(?:adbar|bbudget|bcompany|bemail|bmsg|bname|brandform|brands|brands-title|btiming|btnreset|btnscan|btnverify|citychips|citydetail|cta|faq|faq-title|hero|herostamp|how|how-title|identvideo|locations|locations-title|machinescreen|machineslot|machinestage|machinestamp|manifesto|mappins|marquee|marqueepause|model|model-title|navlinks|nemail|notifyform|pack|partners|partners-title|phonescreen|pinlive|pinshadow|pinsoon|problem|problem-title|progress|stepper|top|vemail|venueform|venues|venues-title|vision|vision-title|vmsg|vname|vtype|vvenue|year)$)(?!faq-panel-)[a-z0-9-]+$", "Lowercase letters, numbers and dashes only, and not a name the site already uses (like faq or brands) — e.g. our-story"], hint: "Gives this block its own link — the anchor “our-story” lets visitors open this page at …/#our-story and land straight on it." }
 
   # ---------------------------------------------------------------
   # Direct channel to Claude: publishing an entry commits it to the

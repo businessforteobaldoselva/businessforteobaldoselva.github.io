@@ -27,8 +27,11 @@
                   <feDropShadow dx="0" dy="1.4" stdDeviation="1.6" flood-color="#1C3110" flood-opacity="0.35"/>
                 </filter>
               </defs>
-              {%- if locations.mapImage %}
-              <image href="/{{ locations.mapImage }}" x="0" y="0" width="765" height="1024" />
+              {%- set mapIm = locations.mapImage | imageInfo %}
+              {%- if mapIm.src %}
+              {%- set mapSrc = mapIm.src if mapIm.src.startsWith("/") else "/" + mapIm.src %}
+              {%- set mapBox = (locations.svgViewBox | default("")).split(" ") %}
+              <image href="{{ mapSrc }}" x="0" y="0" width="{{ mapBox[2] or mapIm.width }}" height="{{ mapBox[3] or mapIm.height }}" />
               {%- else %}
               <path class="uk-neighbor" d="{{ locations.neighborPath }}"/>
               <path class="uk-land" d="{{ locations.landPath }}"/>
@@ -36,16 +39,16 @@
               <g id="mapPins" aria-hidden="true"></g>
             </svg>
             <div class="map-legend" aria-hidden="true">
-              <span><span class="dot live"></span>Pilot city</span>
-              <span><span class="dot soon"></span>On the roadmap</span>
+              <span><span class="dot live"></span>{{ locations.labels.legendLive }}</span>
+              <span><span class="dot soon"></span>{{ locations.labels.legendSoon }}</span>
             </div>
           </div>
 
           <div class="reveal">
-            <div class="city-chips" id="cityChips" role="group" aria-label="Choose a city to see its status"></div>
+            <div class="city-chips" id="cityChips" role="group" aria-label="{{ locations.labels.cityPickerAriaLabel }}"></div>
             <div class="city-detail" id="cityDetail" aria-live="polite"></div>
             <div class="loc-types">
-              <p class="loc-types-title">The kinds of places we're targeting first:</p>
+              <p class="loc-types-title">{{ locations.placeTypesTitle }}</p>
               <div class="chip-row">
                 {%- for pt in locations.placeTypes %}
                 <span class="chip">{{ ic.emojiIcon(pt.emoji) }} {{ pt.label }}</span>

@@ -1,0 +1,4 @@
+{
+  "_comment": "Problems check-previews finds in cms/previews.js that already existed when the guard was added. New ones fail; an entry whose problem has been fixed must be removed (it fails as unused). kind live-html: text typed into the CMS reaches the preview as live HTML (an element other than <br>, or an on* handler). kind undefined-text: a half-filled entry makes the preview print the word undefined. Currently empty: every known issue was fixed in Phase 1.",
+  "entries": []
+}

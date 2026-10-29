@@ -1,0 +1,23 @@
+      /* ---------- Launch-notify mini form ---------- */
+      var NOTIFY_COPY = {{ { success: vision.notify.success, subject: vision.notify.mailtoSubject } | dump | replace("<", "\\u003c") | safe }};
+      var notifyForm = document.getElementById("notifyForm");
+      if (notifyForm) {
+        notifyForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (!notifyForm.checkValidity()) { notifyForm.reportValidity(); return; }
+          fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(new FormData(notifyForm)).toString(),
+          }).then(function (r) {
+            if (!r.ok) { throw new Error("HTTP " + r.status); }
+            var ok = document.createElement("p");
+            ok.className = "form-success";
+            ok.setAttribute("role", "status");
+            ok.textContent = NOTIFY_COPY.success;
+            notifyForm.replaceWith(ok);
+          }).catch(function () {
+            window.location.href = "mailto:" + CONTACT + "?subject=" + encodeURIComponent(NOTIFY_COPY.subject);
+          });
+        });
+      }

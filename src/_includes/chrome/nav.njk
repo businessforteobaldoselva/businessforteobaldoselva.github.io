@@ -1,0 +1,26 @@
+{#- The top bar, shared by the homepage (index.njk) and every other page (page.njk).
+    Homepage (chromeHome set): logo, mobile menu button and the editable menu from
+    src/_data/nav.json. Other pages: logo plus a single "back to the main site"
+    button. -#}
+{%- set logoHref = "#top" if chromeHome else "/" -%}
+<header>
+    <div class="container nav">
+      {% include "chrome/logo.njk" %}
+      {% if chromeHome %}
+      <button class="burger" aria-label="{{ nav.menuLabel }}" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      {% set linkPrefix = "#" %}
+      <ul class="nav-links" id="navLinks">
+        {%- for item in nav.items %}
+        {% include "chrome/link-item.njk" %}
+        {%- endfor %}
+      </ul>
+      {% else %}
+      <ul class="nav-links nav-links--static">
+        {% set item = { "type": "link", "label": nav.backLabel, "url": "/", "button": true } %}
+        {% include "chrome/link-item.njk" %}
+      </ul>
+      {% endif %}
+    </div>
+  </header>

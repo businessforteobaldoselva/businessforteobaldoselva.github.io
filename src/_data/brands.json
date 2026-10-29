@@ -4,8 +4,6 @@
   "subtitle": "Your ad funds something people genuinely need — and reaches them at a moment of full attention. No ad-blockers, no doom-scrolling past. Just gratitude and dwell time.",
   "headerPhoto": {
     "src": "images/tampon-coral.jpg",
-    "width": 900,
-    "height": 1350,
     "alt": "The COVERED dispenser's screen rotating softly between advertising layouts — every free pack is funded by a brand's advertising",
     "caption": "Your brand, at the moment it matters.",
     "video": "images/ad-loop.mp4",
@@ -51,7 +49,80 @@
     "Brand-safe environment",
     "Privacy by design — built to UK GDPR & PECR standards"
   ],
-  "formHeading": "Get the media kit",
-  "formButton": "Request media kit",
-  "formHint": "Goes straight to the team — we usually reply within a couple of days. See our privacy note for how we handle it."
+  "form": {
+    "heading": "Get the media kit",
+    "fields": [
+      {
+        "id": "bName",
+        "name": "name",
+        "label": "Your name",
+        "type": "text",
+        "required": true,
+        "autocomplete": "name",
+        "width": "half",
+        "mail": { "label": "Name" }
+      },
+      {
+        "id": "bCompany",
+        "name": "company",
+        "label": "Company",
+        "type": "text",
+        "required": true,
+        "autocomplete": "organization",
+        "width": "half",
+        "mail": { "label": "Company" }
+      },
+      {
+        "id": "bEmail",
+        "name": "email",
+        "label": "Work email",
+        "type": "email",
+        "required": true,
+        "autocomplete": "email",
+        "width": "half",
+        "mail": { "label": "Email" }
+      },
+      {
+        "id": "bBudget",
+        "name": "budget",
+        "label": "Indicative monthly budget",
+        "type": "select",
+        "required": false,
+        "emptyOption": "Prefer not to say",
+        "options": ["Under £500", "£500 – £2,000", "£2,000 – £5,000", "£5,000+"],
+        "width": "half",
+        "mail": { "label": "Indicative monthly budget", "ifEmpty": "Not specified" }
+      },
+      {
+        "id": "bTiming",
+        "name": "timing",
+        "label": "Preferred campaign timing",
+        "type": "text",
+        "required": false,
+        "placeholder": "e.g. Sept – Dec 2026",
+        "width": "half",
+        "mail": { "label": "Preferred campaign timing", "ifEmpty": "Not specified" }
+      },
+      {
+        "id": "bMsg",
+        "name": "message",
+        "label": "What are you looking to achieve?",
+        "type": "textarea",
+        "required": false,
+        "placeholder": "Campaign goals, timing, locations of interest…",
+        "width": "full",
+        "mail": { "label": "Goals", "ifEmpty": "-" }
+      }
+    ],
+    "button": "Request media kit",
+    "hint": "Goes straight to the team — we usually reply within a couple of days. See our privacy note for how we handle it.",
+    "sending": "Sending…",
+    "success": "Sent — thank you! We'll get back to you within a couple of days.",
+    "mailto": {
+      "subject": "COVERED — Advertising enquiry",
+      "greeting": "Hi COVERED team,",
+      "intro": "Please could you send over the media kit? We're interested in advertising on your dispensers.",
+      "signoff": "Thanks!"
+    }
+  }
 }

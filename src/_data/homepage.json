@@ -6,7 +6,22 @@
     },
     {
       "type": "marquee",
-      "enabled": true
+      "enabled": true,
+      "items": [
+        "Universities",
+        "Train stations",
+        "Stadiums",
+        "Festivals",
+        "Offices",
+        "Shopping centres",
+        "Airports",
+        "Schools",
+        "Community centres"
+      ],
+      "pauseLabel": "Pause scrolling venue list",
+      "screenReaderIntro": "Target venues include",
+      "screenReaderJoiner": "and",
+      "screenReaderEnd": "."
     },
     {
       "type": "problem",
@@ -46,7 +61,14 @@
     },
     {
       "type": "cta",
-      "enabled": true
+      "enabled": true,
+      "ariaLabel": "Get in touch",
+      "videoLabel": "COVERED brand animation: the word 'covered' turns bold letter by letter and a tampon drops in as the full stop",
+      "emailSubject": "COVERED — Hello",
+      "video": {
+        "src": "/videos/covered-ident.mp4",
+        "poster": "/videos/covered-ident-poster.jpg"
+      }
     }
   ]
 }

@@ -1,0 +1,149 @@
+      /* ---------- Locations map ---------- */
+      /* Status tags and the live-pin badge: editable copy from src/_data/locations.json → labels. */
+      var MAP_COPY = {{ (locations.labels or {}) | dump | replace("<", "\\u003c") | safe }};
+      var pinsG = document.getElementById("mapPins");
+      var chipsWrap = document.getElementById("cityChips");
+      var cityDetail = document.getElementById("cityDetail");
+      var SVGNS = "http://www.w3.org/2000/svg";
+      /* When the locations section is disabled the city list is left empty,
+         so every pin/chip/selection step below becomes a no-op. */
+      var CITY_DATA = (pinsG && chipsWrap && cityDetail ? ({{ locations.cities | dump | replace("<", "\\u003c") | safe }} || []) : [])
+        .filter(function (c) { return c && c.id && isFinite(c.x) && isFinite(c.y); });
+
+      function selectCity(id) {
+        var c = null;
+        CITY_DATA.forEach(function (x) { if (x.id === id) { c = x; } });
+        if (!c) { return; }
+        document.querySelectorAll(".map-pin").forEach(function (p) {
+          p.classList.toggle("selected", p.getAttribute("data-city") === id);
+        });
+        document.querySelectorAll(".city-chip").forEach(function (ch) {
+          ch.setAttribute("aria-pressed", ch.getAttribute("data-city") === id ? "true" : "false");
+        });
+        /* Built with DOM APIs (textContent), never innerHTML — name and blurb
+           are free-text CMS fields and must not be parsed as HTML. */
+        var heading = document.createElement("h3");
+        heading.appendChild(document.createTextNode(c.name + " "));
+        var statusTag = document.createElement("span");
+        statusTag.className = "status-tag";
+        statusTag.classList.add(c.live ? "live" : "soon");
+        statusTag.textContent = (c.live ? MAP_COPY.statusLive : MAP_COPY.statusSoon) || "";
+        heading.appendChild(statusTag);
+        var blurbP = document.createElement("p");
+        blurbP.textContent = c.blurb;
+        cityDetail.textContent = "";
+        cityDetail.appendChild(heading);
+        cityDetail.appendChild(blurbP);
+      }
+
+      /* Teardrop marker outline, tip anchored at (x, y), scaled by k. */
+      function pinPath(x, y, k) {
+        return "M" + x + "," + y +
+          " c" + (-7.5 * k) + "," + (-11 * k) + " " + (-11 * k) + "," + (-15 * k) + " " + (-11 * k) + "," + (-21 * k) +
+          " a" + (11 * k) + "," + (11 * k) + " 0 1 1 " + (22 * k) + ",0" +
+          " c0," + (6 * k) + " " + (-3.5 * k) + "," + (10 * k) + " " + (-11 * k) + "," + (21 * k) + " Z";
+      }
+
+      CITY_DATA.forEach(function (c, idx) {
+        var g = document.createElementNS(SVGNS, "g");
+        g.setAttribute("class", "map-pin");
+        if (c.live) { g.classList.add("live"); }
+        g.setAttribute("data-city", c.id);
+        // drop order: roadmap cities first, Exeter lands last
+        g.style.setProperty("--pin-delay", (c.live ? CITY_DATA.length * 0.12 + 0.25 : idx * 0.12) + "s");
+        var scale = c.live ? 1.35 : 1;
+        // Ground shadow: sells the standing-pin look.
+        var shadow = document.createElementNS(SVGNS, "ellipse");
+        shadow.setAttribute("class", "pin-ground");
+        shadow.setAttribute("cx", c.x);
+        shadow.setAttribute("cy", c.y + 1.5);
+        shadow.setAttribute("rx", 8 * scale);
+        shadow.setAttribute("ry", 2.8 * scale);
+        g.appendChild(shadow);
+        if (c.live) {
+          var ring = document.createElementNS(SVGNS, "ellipse");
+          ring.setAttribute("class", "ring");
+          ring.setAttribute("cx", c.x);
+          ring.setAttribute("cy", c.y);
+          ring.setAttribute("rx", 10);
+          ring.setAttribute("ry", 4);
+          g.appendChild(ring);
+        }
+        // Classic teardrop marker, tip anchored at (x, y).
+        var body = document.createElementNS(SVGNS, "path");
+        body.setAttribute("class", "pin-body");
+        body.setAttribute("d", pinPath(c.x, c.y, scale));
+        body.setAttribute("fill", c.live ? "url(#pinLive)" : "url(#pinSoon)");
+        body.setAttribute("filter", "url(#pinShadow)");
+        g.appendChild(body);
+        // Glossy dot in the pin head.
+        var dot = document.createElementNS(SVGNS, "circle");
+        dot.setAttribute("class", "pin-dot");
+        if (c.live) { dot.classList.add("live"); }
+        dot.setAttribute("cx", c.x);
+        dot.setAttribute("cy", c.y - 21 * scale);
+        dot.setAttribute("r", 4.5 * scale);
+        g.appendChild(dot);
+        var hit = document.createElementNS(SVGNS, "circle");
+        hit.setAttribute("cx", c.x);
+        hit.setAttribute("cy", c.y - 14 * scale);
+        hit.setAttribute("r", 24 * scale);
+        hit.setAttribute("fill", "transparent");
+        g.appendChild(hit);
+        g.addEventListener("click", function () { selectCity(c.id); });
+        pinsG.appendChild(g);
+
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "city-chip";
+        chip.setAttribute("data-city", c.id);
+        chip.setAttribute("aria-pressed", "false");
+        chip.textContent = c.name;
+        if (c.live && MAP_COPY.liveBadge) {
+          var liveBadge = document.createElement("span");
+          liveBadge.className = "badge-live";
+          liveBadge.textContent = MAP_COPY.liveBadge;
+          chip.appendChild(document.createTextNode(" "));
+          chip.appendChild(liveBadge);
+        }
+        chip.addEventListener("click", function () { selectCity(c.id); });
+        chipsWrap.appendChild(chip);
+      });
+
+      /* Open on the live pilot city, else the first city in the list. */
+      var startCity = CITY_DATA.filter(function (c) { return c.live; })[0] || CITY_DATA[0];
+      if (startCity) { selectCity(startCity.id); }
+
+      /* pin-drop entrance when the map scrolls into view */
+      var ukMap = document.querySelector(".uk-map");
+      function mapConfetti() {
+        if (reduced || M.confetti === false) { return; }
+        var wrap = document.querySelector(".uk-map-wrap");
+        if (!wrap) { return; }
+        for (var i = 0; i < 14; i++) {
+          var bit = document.createElement("span");
+          bit.className = "confetti-bit";
+          bit.style.left = (40 + Math.random() * 10) + "%";
+          bit.style.top = "82%";
+          bit.style.background = confettiColors[i % confettiColors.length];
+          bit.style.animationDelay = (Math.random() * 0.2) + "s";
+          wrap.appendChild(bit);
+          (function (b) { setTimeout(function () { b.remove(); }, 1800); })(bit);
+        }
+      }
+      /* mapPinDrop off: never add pins-prep (which hides pins), so the pins
+         are simply visible from the start. */
+      if (ukMap && !reduced && M.mapPinDrop !== false && "IntersectionObserver" in window) {
+        ukMap.classList.add("pins-prep");
+        var mapObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              ukMap.classList.add("pins-go");
+              setTimeout(mapConfetti, (CITY_DATA.length * 0.12 + 0.25 + 0.45) * 1000);
+              mapObserver.unobserve(ukMap);
+            }
+          });
+        }, { threshold: 0.35 });
+        mapObserver.observe(ukMap);
+      }
+

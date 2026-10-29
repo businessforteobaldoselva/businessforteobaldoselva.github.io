@@ -1,0 +1,53 @@
+      /* ---------- Footer year ---------- */
+      var yearEl = document.getElementById("year");
+      if (yearEl) { yearEl.textContent = new Date().getFullYear(); }
+
+      /* ---------- Scroll progress ---------- */
+      var progress = document.getElementById("progress");
+      function updateProgress() {
+        if (!progress) { return; }
+        var h = document.documentElement;
+        var max = h.scrollHeight - h.clientHeight;
+        progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+      }
+      if (progress && M.scrollProgress !== false) {
+        window.addEventListener("scroll", updateProgress, { passive: true });
+        window.addEventListener("resize", updateProgress);
+        if ("ResizeObserver" in window) {
+          new ResizeObserver(updateProgress).observe(document.body);
+        }
+        updateProgress();
+      }
+
+      /* ---------- Mobile nav ---------- */
+      var burger = document.querySelector(".burger");
+      var navLinks = document.getElementById("navLinks");
+      if (burger && navLinks) {
+        burger.addEventListener("click", function () {
+          var open = navLinks.classList.toggle("open");
+          burger.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+        navLinks.addEventListener("click", function (e) {
+          if (e.target.tagName === "A") {
+            navLinks.classList.remove("open");
+            burger.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
+
+      /* ---------- Reveal on scroll ---------- */
+      var revealEls = document.querySelectorAll(".reveal");
+      if ("IntersectionObserver" in window && !reduced) {
+        var ro = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              ro.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12 });
+        revealEls.forEach(function (el) { ro.observe(el); });
+      } else {
+        revealEls.forEach(function (el) { el.classList.add("visible"); });
+      }
+

@@ -1,15 +1,21 @@
     <!-- ============ CTA ============ -->
-    <section aria-label="Get in touch">
+    <section{% if sectionData.ariaLabel %} aria-label="{{ sectionData.ariaLabel }}"{% endif %}>
       <div class="container">
         {#- Brand ident: the "covered." sting (Kling generation, local trial).
-            Plays once when it scrolls into view; click/tap replays. -#}
+            Plays once when it scrolls into view; click/tap replays.
+            The video file and its cover picture come from the cta entry in
+            homepage.json (sectionData.video); the picture also supplies the
+            width/height. No video, no ident block. -#}
+        {%- set identSrc = sectionData.video.src | storyVideo %}
+        {%- if identSrc %}
+        {%- set identPoster = sectionData.video.poster | imageInfo -%}
         <div class="ident-video reveal">
           <video id="identVideo"
-                 src="/videos/covered-ident.mp4"
-                 poster="/videos/covered-ident-poster.jpg"
+                 src="{{ identSrc }}"
+                 {% if identPoster.src %}poster="{{ identPoster.src }}"{% endif %}
                  muted playsinline preload="metadata"
-                 width="1280" height="764"
-                 aria-label="COVERED brand animation: the word 'covered' turns bold letter by letter and a tampon drops in as the full stop"></video>
+                 {% if identPoster.width and identPoster.height %}width="{{ identPoster.width }}" height="{{ identPoster.height }}"{% endif %}
+                 {% if sectionData.videoLabel %}aria-label="{{ sectionData.videoLabel }}"{% endif %}></video>
         </div>
         <script>
           (function () {
@@ -36,10 +42,11 @@
             });
           })();
         </script>
+        {%- endif %}
         <div class="cta-banner reveal">
           <h2>{{ site.ctaBannerTitle }}</h2>
           <p>{{ site.ctaBannerText }}</p>
-          <a class="btn btn-light" href="mailto:{{ site.contactEmail }}?subject=COVERED%20—%20Hello">{{ site.ctaBannerButton }}</a>
+          <a class="btn btn-light" href="mailto:{{ site.contactEmail }}{% if sectionData.emailSubject %}?subject={{ sectionData.emailSubject | ctaMailtoSubject }}{% endif %}">{{ site.ctaBannerButton }}</a>
         </div>
       </div>
     </section>

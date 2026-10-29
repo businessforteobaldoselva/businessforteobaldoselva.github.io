@@ -16,34 +16,56 @@
             <h3>{{ step.title }}</h3>
             <p>{{ step.desc }}</p>
           </div>
-          {%- if not loop.last %}<div class="loop-arrow" aria-hidden="true">→</div>{% endif %}
+          {%- if not loop.last %}<div class="loop-arrow" aria-hidden="true">{{ model.loopArrow }}</div>{% endif %}
           {%- endfor %}
         </div>
 
+        {%- if model.belt.words and model.belt.words.length %}
         <div class="conveyor reveal" aria-hidden="true">
           <div class="belt-track">
-            <span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span><span class="belt-pack">4-PACK</span><span class="belt-pack">FREE</span><span class="belt-pack">4-PACK</span><span class="belt-pack">COVERED</span>
+            {% for word in model.belt.words | storyRepeat(model.belt.repeats) %}<span class="belt-pack">{{ word }}</span>{% endfor %}
           </div>
         </div>
+        {%- endif %}
 
         <div class="model-visual reveal">
+          {%- set vsrc = model.video.src | storyVideo %}
+          {%- if vsrc %}
+          {%- set vposter = model.video.poster | imageInfo %}
           <figure class="model-photo">
-            <video class="model-video" src="/images/pack-in-tray.mp4" poster="/images/pack-in-tray-poster.jpg"
-                   muted playsinline preload="metadata" width="1400" height="826" data-autoplay
-                   aria-label="Concept film: the camera glides toward a COVERED dispenser and a wrapped pack waiting in its tray"></video>
+            <video class="model-video" src="{{ vsrc }}"{% if vposter.src %} poster="{{ vposter.src }}"{% endif %}
+                   muted playsinline preload="metadata"{% if vposter.width and vposter.height %} width="{{ vposter.width }}" height="{{ vposter.height }}"{% endif %} data-autoplay
+                   aria-label="{{ model.video.label }}"></video>
           </figure>
+          {%- endif %}
 
-          <aside class="receipt" aria-label="Example receipt: pads £0.00, tampons £0.00, judgement none — total due £0.00, paid in full by advertisers">
-            <p class="r-brand">COVERED<span class="brand-period">.</span></p>
-            <p class="r-meta">Dispenser Nº 001 — Exeter</p>
-            <div class="r-row"><span>Pads (plastic-free)</span><span>£0.00</span></div>
-            <div class="r-row"><span>Tampons (organic)</span><span>£0.00</span></div>
-            <div class="r-row"><span>Judgement</span><span>None</span></div>
-            <div class="r-row r-total"><span>Total due</span><span>£0.00</span></div>
-            <p class="r-paid">Paid in full by brands that get it</p>
+          {#- Every part of the receipt is optional: it shows the parts that are
+              filled in, and with all of them empty it is not rendered at all. -#}
+          {%- set rc = model.receipt or {} %}
+          {%- set rcRows = rc.rows or [] %}
+          {%- if rc.brand or rc.meta or rcRows.length or rc.total.label or rc.total.value or rc.paid or rc.script %}
+          <aside class="receipt"{% if rc.ariaLabel %} aria-label="{{ rc.ariaLabel }}"{% endif %}>
+            {%- if rc.brand %}
+            <p class="r-brand">{{ rc.brand }}<span class="brand-period">.</span></p>
+            {%- endif %}
+            {%- if rc.meta %}
+            <p class="r-meta">{{ rc.meta }}</p>
+            {%- endif %}
+            {%- for row in rcRows %}
+            <div class="r-row"><span>{{ row.label }}</span><span>{{ row.value }}</span></div>
+            {%- endfor %}
+            {%- if rc.total.label or rc.total.value %}
+            <div class="r-row r-total"><span>{{ rc.total.label }}</span><span>{{ rc.total.value }}</span></div>
+            {%- endif %}
+            {%- if rc.paid %}
+            <p class="r-paid">{{ rc.paid }}</p>
+            {%- endif %}
             <div class="r-code" aria-hidden="true"></div>
-            <p class="r-script">We got you covered. Period.</p>
+            {%- if rc.script %}
+            <p class="r-script">{{ rc.script }}</p>
+            {%- endif %}
           </aside>
+          {%- endif %}
         </div>
       </div>
     </section>

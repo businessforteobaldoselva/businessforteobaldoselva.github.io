@@ -1,0 +1,165 @@
+      /* ---------- Interactive demo ---------- */
+      /* All the words on the demo's phone and machine screens come from
+         src/_data/how.json (how.demo), editable in the CMS. */
+      var DEMO_COPY = {{ (how.demo or {}) | dump | replace("<", "\\u003c") | safe }};
+      var phoneScreen = document.getElementById("phoneScreen");
+      var machineScreen = document.getElementById("machineScreen");
+      var machineStamp = document.getElementById("machineStamp");
+      var machineStage = document.getElementById("machineStage");
+      var pack = document.getElementById("pack");
+      var chips = document.querySelectorAll("#stepper .step-chip");
+      /* Theme-driven confetti (accent, grass, lavender, ink) — each value is
+         validated by safeColor, so only a hex colour can reach this script. */
+      var confettiColors = [
+        {{ theme.accent | safeColor("#FC7130") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.grass | safeColor("#6E8B2E") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.lavender | safeColor("#E2F099") | dump | replace("<", "\\u003c") | safe }},
+        {{ theme.ink | safeColor("#2F4D19") | dump | replace("<", "\\u003c") | safe }}
+      ];
+
+      /* Builds one element. Copy only ever goes in through setAttribute /
+         textContent, so editor text can never become markup. */
+      function demoEl(tag, attrs, text) {
+        var node = document.createElement(tag);
+        Object.keys(attrs || {}).forEach(function (name) {
+          node.setAttribute(name, attrs[name] == null ? "" : attrs[name]);
+        });
+        if (text) { node.textContent = text; }
+        return node;
+      }
+      function demoFill(host, nodes) {
+        host.textContent = "";
+        nodes.forEach(function (node) { host.appendChild(node); });
+      }
+
+      function setStep(n) {
+        chips.forEach(function (chip) {
+          var s = parseInt(chip.getAttribute("data-step"), 10);
+          var active = s === n;
+          var done = s < n;
+          chip.classList.toggle("active", active);
+          chip.classList.toggle("done", done);
+          if (active) { chip.setAttribute("aria-current", "step"); } else { chip.removeAttribute("aria-current"); }
+          var marker = chip.querySelector(".sr-state");
+          if (!marker) {
+            marker = document.createElement("span");
+            marker.className = "visually-hidden sr-state";
+            chip.appendChild(marker);
+          }
+          marker.textContent = done && DEMO_COPY.completedWord ? " (" + DEMO_COPY.completedWord + ")" : "";
+        });
+      }
+
+      function machineShowQR() {
+        machineScreen.innerHTML = '<div class="qr" aria-hidden="true"></div>';
+      }
+      function machineShowAd() {
+        var ad = DEMO_COPY.sponsor || {};
+        var live = demoEl("div", { "class": "ad-live" });
+        live.appendChild(demoEl("small", {}, ad.adTag));
+        live.appendChild(demoEl("strong", {}, ad.adText));
+        demoFill(machineScreen, [live]);
+      }
+
+      function confettiBurst() {
+        if (reduced || M.confetti === false) return;
+        // A rain of tiny wrapped packs — the product itself, celebrating.
+        var bands = [confettiColors[0], "#E999A5", confettiColors[1]];
+        for (var i = 0; i < 22; i++) {
+          var bit = document.createElement("span");
+          bit.className = "confetti-bit confetti-pack";
+          bit.style.left = (30 + Math.random() * 40) + "%";
+          bit.style.setProperty("--confetti-band", bands[i % bands.length]);
+          bit.style.animationDelay = (Math.random() * 0.25) + "s";
+          machineStage.appendChild(bit);
+          (function (b) {
+            setTimeout(function () { b.remove(); }, 1800);
+          })(bit);
+        }
+      }
+
+      function renderScan(fromReset) {
+        var c = DEMO_COPY.scan || {};
+        setStep(0);
+        machineShowQR();
+        machineStamp.classList.remove("show");
+        pack.classList.remove("drop");
+        demoFill(phoneScreen, [
+          demoEl("h3", {}, c.title),
+          demoEl("p", {}, c.text),
+          demoEl("button", { "class": "btn btn-primary", "id": "btnScan" }, c.button)
+        ]);
+        var btn = document.getElementById("btnScan");
+        btn.addEventListener("click", renderVerify);
+        if (fromReset === true) { btn.focus(); }
+      }
+
+      function renderVerify() {
+        var c = DEMO_COPY.checkIn || {};
+        setStep(1);
+        demoFill(phoneScreen, [
+          demoEl("h3", {}, c.title),
+          demoEl("p", {}, c.text),
+          demoEl("input", { "class": "p-input", "type": "text", "value": c.exampleEmail, "readonly": "", "tabindex": "-1", "aria-label": c.exampleEmailLabel }),
+          demoEl("button", { "class": "btn btn-primary", "id": "btnVerify" }, c.button)
+        ]);
+        var btn = document.getElementById("btnVerify");
+        btn.addEventListener("click", renderAd);
+        btn.focus();
+      }
+
+      function renderAd() {
+        var c = DEMO_COPY.sponsor || {};
+        var adBox = demoEl("div", { "class": "ad-box" });
+        adBox.appendChild(demoEl("small", {}, c.adTag));
+        adBox.appendChild(demoEl("strong", {}, c.adText));
+        var adProgress = demoEl("div", { "class": "ad-progress", "aria-hidden": "true" });
+        adProgress.appendChild(demoEl("div", { "class": "bar", "id": "adBar" }));
+        setStep(2);
+        machineShowAd();
+        demoFill(phoneScreen, [
+          demoEl("h3", {}, c.title),
+          adBox,
+          adProgress,
+          demoEl("p", {}, c.text)
+        ]);
+        phoneScreen.focus({ preventScroll: true });
+        var bar = document.getElementById("adBar");
+        var advanced = false;
+        function advance() {
+          if (advanced) { return; }
+          advanced = true;
+          renderDone();
+        }
+        if (reduced) {
+          bar.style.width = "100%";
+          setTimeout(advance, 500);
+        } else {
+          // force reflow so the animation always restarts cleanly
+          void bar.offsetWidth;
+          bar.classList.add("run");
+          bar.addEventListener("animationend", advance, { once: true });
+          // fallback: browsers throttle animations in background tabs
+          setTimeout(advance, 3400);
+        }
+      }
+
+      function renderDone() {
+        var c = DEMO_COPY.done || {};
+        setStep(3);
+        pack.classList.add("drop");
+        machineStamp.classList.add("show");
+        confettiBurst();
+        demoFill(phoneScreen, [
+          demoEl("span", { "class": "stamp p-stamp" }, c.stamp),
+          demoEl("h3", {}, c.title),
+          demoEl("p", {}, c.text),
+          demoEl("button", { "class": "btn btn-outline", "id": "btnReset" }, c.button)
+        ]);
+        var btn = document.getElementById("btnReset");
+        btn.addEventListener("click", function () { renderScan(true); });
+        btn.focus({ preventScroll: true });
+      }
+
+      if (phoneScreen && machineScreen && machineStamp && machineStage && pack) { renderScan(false); }
+

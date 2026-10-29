@@ -1,0 +1,132 @@
+      /* ---------- Manifesto: words light up as the visitor scrolls through ---------- */
+      (function () {
+        var man = document.getElementById("manifesto");
+        if (!man) return;
+        // Wrap words; *starred* words become accent when lit.
+        var words = man.textContent.trim().split(/\s+/);
+        man.textContent = "";
+        var spans = words.map(function (w) {
+          var key = w.indexOf("*") !== -1;
+          var clean = w.replace(/\*/g, "");
+          var s = document.createElement("span");
+          s.className = "man-w" + (key ? " man-key" : "");
+          s.textContent = clean;
+          man.appendChild(s);
+          man.appendChild(document.createTextNode(" "));
+          return s;
+        });
+        if (reduced || document.body.classList.contains("motion-off")) {
+          spans.forEach(function (s) { s.classList.add("lit"); });
+          return;
+        }
+        var ticking = false;
+        function update() {
+          ticking = false;
+          var rect = man.getBoundingClientRect();
+          var vh = window.innerHeight;
+          var total = rect.height + vh * 0.5;
+          var p = (vh * 0.85 - rect.top) / total;
+          p = Math.max(0, Math.min(1, p));
+          var lit = Math.round(p * spans.length);
+          for (var i = 0; i < spans.length; i++) {
+            spans[i].classList.toggle("lit", i < lit);
+          }
+        }
+        window.addEventListener("scroll", function () {
+          if (!ticking) { ticking = true; requestAnimationFrame(update); }
+        }, { passive: true });
+        update();
+      })();
+
+      /* ---------- Inline concept films: play while in view (poster-only under
+                    reduced motion or the CMS motion switch) ---------- */
+      (function () {
+        var vids = document.querySelectorAll("video[data-autoplay]");
+        if (!vids.length) return;
+        if (reduced || document.body.classList.contains("motion-off")) return;
+        if (!("IntersectionObserver" in window)) return;
+        var vo = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            var vid = entry.target;
+            if (entry.isIntersecting) {
+              if (!vid.loop) { vid.currentTime = 0; }
+              var pr = vid.play();
+              if (pr && pr.catch) pr.catch(function () {});
+            } else {
+              vid.pause();
+            }
+          });
+        }, { threshold: 0.45 });
+        vids.forEach(function (v) { vo.observe(v); });
+      })();
+
+      /* ---------- Hero stamp ---------- */
+      var heroStamp = document.getElementById("heroStamp");
+      /* heroIntro off: skip word-rise/stamp/shake — the stamp and decorations
+         are visible statically because JS never hides them in that case. */
+      if (!reduced && M.heroIntro !== false) {
+        /* 1. headline words rise in one by one */
+        var heroH1 = document.querySelector(".hero h1");
+        var wordIndex = 0;
+        function splitWords(node) {
+          var parts = node.textContent.split(/(\s+)/);
+          var frag = document.createDocumentFragment();
+          parts.forEach(function (part) {
+            if (!part) { return; }
+            if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+            var s = document.createElement("span");
+            s.className = "w-rise";
+            s.style.animationDelay = (0.05 + wordIndex * 0.04) + "s";
+            s.textContent = part;
+            frag.appendChild(s);
+            wordIndex++;
+          });
+          return frag;
+        }
+        if (heroH1) {
+          Array.prototype.slice.call(heroH1.childNodes).forEach(function (node) {
+            if (node.nodeType === 3) {
+              heroH1.replaceChild(splitWords(node), node);
+            } else if (node.nodeType === 1 && node.tagName !== "BR") {
+              Array.prototype.slice.call(node.childNodes).forEach(function (inner) {
+                if (inner.nodeType === 3) { node.replaceChild(splitWords(inner), inner); }
+              });
+            }
+          });
+        }
+
+        /* 2. stamp slams after the words, with a tiny page shake.
+           Skipped when the scroll-scrub hero is active — there the stamp
+           drop is driven by the scrub, landing with the dispensed pack. */
+        var heroInner = document.querySelector(".hero-inner");
+        if (heroStamp && !document.querySelector(".hero--scrubbing")) {
+          heroStamp.style.opacity = "0";
+          setTimeout(function () {
+            heroStamp.style.opacity = "";
+            heroStamp.classList.add("stamp-in");
+            setTimeout(function () { if (heroInner) { heroInner.classList.add("hero-shake"); } }, 300);
+          }, 700);
+        }
+
+        /* 3. floating packs drift in last */
+        var decos = document.querySelectorAll(".float-deco, .heart-deco");
+        decos.forEach(function (d) { d.style.opacity = "0"; });
+        setTimeout(function () {
+          decos.forEach(function (d) {
+            d.style.transition = "opacity 1s ease";
+            d.style.opacity = "";
+          });
+        }, 1100);
+      }
+
+      /* ---------- Marquee pause ---------- */
+      var marqueePause = document.getElementById("marqueePause");
+      var marqueeEl = marqueePause ? marqueePause.closest(".marquee") : null;
+      if (marqueePause && marqueeEl) {
+        marqueePause.addEventListener("click", function () {
+          var paused = marqueeEl.classList.toggle("paused");
+          marqueePause.setAttribute("aria-pressed", paused ? "true" : "false");
+          marqueePause.textContent = paused ? "▶" : "⏸";
+        });
+      }
+

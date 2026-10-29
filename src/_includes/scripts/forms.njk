@@ -1,0 +1,80 @@
+      /* ---------- Forms → mailto ---------- */
+      var CONTACT = {{ site.contactEmail | dump | replace("<", "\\u003c") | safe }};
+      /* Copy and field lists for the two enquiry forms (brands.json / venues.json -> "form"). */
+      var FORMS_COPY = {
+        brandForm: {{ brands.form | formScript("bf") | dump | replace("<", "\\u003c") | safe }},
+        venueForm: {{ venues.form | formScript("vf") | dump | replace("<", "\\u003c") | safe }}
+      };
+
+      function buildMailto(subject, lines) {
+        return "mailto:" + CONTACT +
+          "?subject=" + encodeURIComponent(subject) +
+          "&body=" + encodeURIComponent(lines.join("\n"));
+      }
+
+      /* E-mail body: greeting, intro, one "Label: value" line per field (long-text
+         fields get their own "Label:" block), sign-off. Works for any field list. */
+      function mailLines(cfg, get) {
+        var lines = [];
+        var gap = function () {
+          if (lines.length && lines[lines.length - 1] !== "") { lines.push(""); }
+        };
+        if (cfg.greeting) { lines.push(cfg.greeting); }
+        if (cfg.intro) { gap(); lines.push(cfg.intro); }
+        gap();
+        cfg.fields.forEach(function (f) {
+          var value = get(f.name) || f.ifEmpty || "";
+          if (f.block) {
+            gap();
+            lines.push(f.label + ":");
+            lines.push(value);
+            gap();
+          } else {
+            lines.push(f.label + ": " + value);
+          }
+        });
+        gap();
+        if (cfg.signoff) { lines.push(cfg.signoff); } else { lines.pop(); }
+        return lines;
+      }
+
+      function hookForm(id) {
+        var form = document.getElementById(id);
+        var cfg = FORMS_COPY[id];
+        if (!form || !cfg) { return; }
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          var data = new FormData(form);
+          var get = function (k) { return (data.get(k) || "").toString().trim(); };
+          var btn = form.querySelector('button[type="submit"]');
+          var label = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = cfg.sending;
+          fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(data).toString(),
+          })
+            .then(function (r) {
+              if (!r.ok) { throw new Error("HTTP " + r.status); }
+              var note = document.createElement("p");
+              note.className = "form-success";
+              note.setAttribute("role", "status");
+              note.textContent = cfg.success;
+              form.replaceWith(note);
+            })
+            .catch(function () {
+              btn.disabled = false;
+              btn.textContent = label;
+              window.location.href = buildMailto(cfg.subject, mailLines(cfg, get));
+            });
+        });
+      }
+
+      hookForm("brandForm");
+      hookForm("venueForm");
+

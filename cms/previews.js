@@ -6,18 +6,17 @@
   "use strict";
 
   // The site stylesheet (built by Eleventy from the same CSS the page inlines)
-  CMS.registerPreviewStyle("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap");
   CMS.registerPreviewStyle("/assets/site.css");
   // Preview-only overrides: no scroll-reveal hiding, no animations, breathing room
   CMS.registerPreviewStyle(
     [
-      "body { background: #1D2452; margin: 0; color: #EAF3FA; }",
+      "body { background: var(--paper); margin: 0; color: var(--ink); }",
       "*, *::before, *::after { animation: none !important; transition: none !important; }",
       ".reveal { opacity: 1 !important; transform: none !important; }",
       ".w-rise { opacity: 1 !important; transform: none !important; }",
       "section { padding: 3rem 0 !important; }",
       ".faq-a { max-height: none !important; }",
-      ".cms-note { font-family: Inter, sans-serif; font-size: 12px; color: #56618A; background: #D9E7F4; border: 1px dashed #b9c5da; border-radius: 8px; padding: 8px 12px; margin: 12px auto; width: min(1120px, 92%); }",
+      ".cms-note { font-family: var(--font-body); font-size: 12px; color: var(--muted); background: var(--paper-2); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; margin: 12px auto; width: min(1120px, 92%); }",
     ].join("\n"),
     { raw: true }
   );
@@ -31,9 +30,25 @@
     var v = entry.getIn(["data", key]);
     return v && v.toJS ? v.toJS() : [];
   }
-  function raw(tag, props, htmlString) {
+  // Mirrors the site's `safeTitle` filter (.eleventy.js): everything an editor
+  // typed is HTML-escaped, then only line breaks (<br>, <br/>, <br />) are turned
+  // back into real ones. Nothing else typed into a heading can become markup.
+  function safeTitleHtml(value) {
+    var s = value === undefined || value === null ? "" : String(value);
+    return s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/&lt;br\s*\/?\s*&gt;/gi, "<br />");
+  }
+  // The ONLY place a preview writes HTML. The string always comes from
+  // safeTitleHtml(), so it can hold nothing but escaped text and <br /> — never
+  // pass anything else here (this admin page shares its origin with the Git
+  // Gateway login, so a script injected into a preview could steal it).
+  function titleEl(tag, props, value) {
     props = props || {};
-    props.dangerouslySetInnerHTML = { __html: htmlString };
+    props.dangerouslySetInnerHTML = { __html: safeTitleHtml(value) };
     return h(tag, props);
   }
   function imgSrc(src) {
@@ -43,13 +58,85 @@
   function note(text) {
     return h("p", { className: "cms-note" }, "ℹ️ " + text);
   }
-  function sectionHead(kicker, titleHtml, subtitle, center) {
+  // `breaks` is true for the headings the site renders with safeTitle (line
+  // breaks allowed) and false for plain-text headings (model, how, FAQ).
+  function sectionHead(kicker, title, subtitle, center, breaks) {
     return h(
       "div",
       { style: center ? { textAlign: "center" } : {} },
       h("span", { className: "kicker" }, kicker),
-      raw("h2", { className: "section-title" }, titleHtml),
+      breaks ? titleEl("h2", { className: "section-title" }, title) : h("h2", { className: "section-title" }, String(title)),
       subtitle ? h("p", { className: "section-sub", style: center ? { margin: "0 auto" } : {} }, subtitle) : null
+    );
+  }
+
+  // ---------- enquiry-form helpers (For Brands + For Venues) ----------
+  var OLD_BRAND_FIELDS = [
+    { label: "Your name", type: "text", required: true },
+    { label: "Company", type: "text", required: true },
+    { label: "Work email", type: "email", required: true },
+    { label: "Indicative monthly budget", type: "select", emptyOption: "Prefer not to say", options: ["Under £500", "£500 – £2,000", "£2,000 – £5,000", "£5,000+"] },
+    { label: "Preferred campaign timing", type: "text", placeholder: "e.g. Sept – Dec 2026" },
+    { label: "What are you looking to achieve?", type: "textarea", placeholder: "Campaign goals, timing, locations of interest…" },
+  ];
+  var OLD_VENUE_FIELDS = [
+    { label: "Your name", type: "text", required: true },
+    { label: "Venue / organisation", type: "text", required: true },
+    { label: "Email", type: "email", required: true },
+    { label: "Venue type", type: "select", options: ["University / school", "Shopping centre / retail", "Stadium / large venue", "Transport hub", "Office / workplace", "Hospitality", "Other"] },
+    { label: "Anything we should know?", type: "textarea", placeholder: "Location, footfall, timelines…" },
+  ];
+  var OLD_FORM_HINT = "Goes straight to the team — we usually reply within a couple of days. See our privacy note for how we handle it.";
+  function formText(e, key, oldKey, fb) {
+    return g(e, ["form", key], oldKey ? g(e, [oldKey], fb) : fb);
+  }
+  function formFieldList(e, fallback) {
+    var v = e.getIn(["data", "form", "fields"]);
+    return v && v.toJS ? v.toJS() : fallback;
+  }
+  function previewField(f, i) {
+    var type = ["text", "email", "tel", "textarea", "select"].indexOf(f.type) >= 0 ? f.type : "text";
+    var choices = (f.options || []).filter(function (o) { return String(o || "").trim(); });
+    // The live form leaves out a question without a label, and a dropdown that has no choices.
+    if (!String(f.label || "").trim()) return null;
+    if (type === "select" && !choices.length && !String(f.emptyOption || "").trim()) return null;
+    var control;
+    if (type === "textarea") {
+      control = h("textarea", { placeholder: f.placeholder || "", readOnly: true });
+    } else if (type === "select") {
+      control = h(
+        "select",
+        {},
+        f.emptyOption ? h("option", { key: "empty" }, f.emptyOption) : null,
+        choices.map(function (o, j) { return h("option", { key: j }, o); })
+      );
+    } else {
+      control = h("input", { type: type, placeholder: f.placeholder || "", readOnly: true });
+    }
+    var full = f.width === "full" || (!f.width && type === "textarea");
+    return h(
+      "div",
+      { className: "field" + (full ? " full" : ""), key: i },
+      h("label", {}, f.label || "", f.required ? h("span", { className: "req" }, " *") : null),
+      control,
+      f.hint ? h("span", { className: "form-hint" }, f.hint) : null
+    );
+  }
+  function enquiryFormPreview(e, oldFields, defHeading, defButton, light) {
+    var fields = formFieldList(e, oldFields);
+    var hint = formText(e, "hint", "formHint", OLD_FORM_HINT);
+    return h(
+      "div",
+      { className: "form-card" + (light ? " light-form" : "") },
+      h("h3", {}, formText(e, "heading", "formHeading", defHeading)),
+      h("div", { className: "form-grid" }, fields.map(previewField)),
+      h(
+        "div",
+        { className: "form-actions" },
+        h("span", { className: "btn btn-primary" }, formText(e, "button", "formButton", defButton)),
+        hint ? h("span", { className: "form-hint" }, hint) : null
+      ),
+      note("After a successful send the visitor sees: " + formText(e, "success", null, "Sent — thank you! We'll get back to you within a couple of days."))
     );
   }
 
@@ -87,6 +174,8 @@
   );
 
   // ---------- Problem ----------
+  // Every value is read the way the live site reads it: a missing value shows
+  // nothing (no invented defaults), so the preview matches what will be published.
   CMS.registerPreviewTemplate(
     "problem",
     createClass({
@@ -94,13 +183,26 @@
         var e = this.props.entry;
         var stats = list(e, "stats");
         var photos = list(e, "photos");
+        var manifesto = g(e, ["manifesto"]);
+        var mSrc = g(e, ["manifestoPhoto", "src"]);
+        var mAlt = g(e, ["manifestoPhoto", "alt"]);
+        var sourceLabel = g(e, ["sourceLabel"]);
+        var sourceText = g(e, ["sourceText"]);
         return h(
           "section",
           {},
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"])),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), false, true),
+            manifesto
+              ? h(
+                  "div",
+                  { className: "manifesto-duo" },
+                  h("p", { className: "manifesto" }, String(manifesto).replace(/\*/g, "")),
+                  mSrc ? h("figure", { className: "manifesto-photo" }, h("img", { src: imgSrc(mSrc), alt: mAlt })) : null
+                )
+              : null,
             h(
               "div",
               { className: "stats-grid" },
@@ -108,19 +210,23 @@
                 return h(
                   "div",
                   { className: "stat-card", key: i },
-                  h("div", { className: "stat-num" }, h("span", {}, String(s.number)), "%"),
+                  h("div", { className: "stat-num" }, h("span", {}, s.number === undefined || s.number === null ? "" : String(s.number)), s.suffix === undefined || s.suffix === null ? "" : s.suffix),
                   h("p", { className: "stat-label" }, s.label)
                 );
               })
             ),
-            h("p", { className: "stats-source" }, "Source: ", h("a", {}, g(e, ["sourceText"])), "."),
+            sourceText ? h("p", { className: "stats-source" }, sourceLabel ? sourceLabel + " " : "", h("a", {}, sourceText), ".") : null,
             h(
               "div",
               { className: "photo-strip" },
               photos.map(function (p, i) {
+                if (!p.src) return null;
+                var tilt = parseFloat(p.tilt);
+                if (isNaN(tilt)) tilt = 0;
+                tilt = Math.max(-10, Math.min(10, tilt));
                 return h(
                   "figure",
-                  { className: "polaroid", key: i, style: { "--tilt": p.tilt || "-2deg" } },
+                  { className: "polaroid", key: i, style: { "--tilt": tilt + "deg" } },
                   h("img", { src: imgSrc(p.src), alt: p.alt || "" }),
                   h("figcaption", {}, p.caption)
                 );
@@ -133,12 +239,35 @@
   );
 
   // ---------- Model ----------
+  // Mirrors model.njk: a missing value shows nothing (no invented defaults), the
+  // film only shows when it has a video file, and the receipt shows whichever of
+  // its parts are filled in (all empty = no receipt).
   CMS.registerPreviewTemplate(
     "model",
     createClass({
       render: function () {
         var e = this.props.entry;
         var steps = list(e, "steps");
+        var arrow = g(e, ["loopArrow"]);
+        var beltNode = e.getIn(["data", "belt", "words"]);
+        var beltWords = beltNode && beltNode.toJS ? beltNode.toJS() : [];
+        var repeats = Math.floor(Number(g(e, ["belt", "repeats"], "")));
+        if (!isFinite(repeats) || repeats < 1) repeats = 1;
+        if (repeats > 12) repeats = 12;
+        var packs = [];
+        for (var r = 0; r < repeats; r++) {
+          beltWords.forEach(function (w, i) {
+            packs.push(h("span", { className: "belt-pack", key: r + "-" + i }, w));
+          });
+        }
+        var poster = g(e, ["video", "poster"]);
+        var videoSrc = g(e, ["video", "src"]);
+        var videoLabel = g(e, ["video", "label"]);
+        var rcNode = e.getIn(["data", "receipt"]);
+        var rc = rcNode && rcNode.toJS ? rcNode.toJS() : {};
+        var rcRows = Array.isArray(rc.rows) ? rc.rows : [];
+        var rcTotal = rc.total || {};
+        var showReceipt = rc.brand || rc.meta || rcRows.length || rcTotal.label || rcTotal.value || rc.paid || rc.script;
         var kids = [];
         steps.forEach(function (s, i) {
           kids.push(
@@ -151,7 +280,7 @@
             )
           );
           if (i < steps.length - 1) {
-            kids.push(h("div", { className: "loop-arrow", key: "a" + i }, "→"));
+            kids.push(h("div", { className: "loop-arrow", key: "a" + i }, arrow));
           }
         });
         return h(
@@ -160,8 +289,37 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
-            h("div", { className: "loop" }, kids)
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true, false),
+            h("div", { className: "loop" }, kids),
+            packs.length ? h("div", { className: "conveyor" }, h("div", { className: "belt-track" }, packs)) : null,
+            h(
+              "div",
+              { className: "model-visual" },
+              videoSrc
+                ? h(
+                    "figure",
+                    { className: "model-photo" },
+                    h("video", { className: "model-video", poster: imgSrc(poster), "aria-label": videoLabel, muted: true, controls: true, preload: "none" })
+                  )
+                : null,
+              showReceipt
+                ? h(
+                    "aside",
+                    { className: "receipt" },
+                    rc.brand ? h("p", { className: "r-brand" }, rc.brand, h("span", { className: "brand-period" }, ".")) : null,
+                    rc.meta ? h("p", { className: "r-meta" }, rc.meta) : null,
+                    rcRows.map(function (row, i) {
+                      return h("div", { className: "r-row", key: "r" + i }, h("span", {}, row.label), h("span", {}, row.value));
+                    }),
+                    rcTotal.label || rcTotal.value
+                      ? h("div", { className: "r-row r-total" }, h("span", {}, rcTotal.label), h("span", {}, rcTotal.value))
+                      : null,
+                    rc.paid ? h("p", { className: "r-paid" }, rc.paid) : null,
+                    h("div", { className: "r-code" }),
+                    rc.script ? h("p", { className: "r-script" }, rc.script) : null
+                  )
+                : null
+            )
           )
         );
       },
@@ -174,17 +332,43 @@
     createClass({
       render: function () {
         var e = this.props.entry;
+        var story = list(e, "story");
+        // Demo text: older entries have no "demo" block yet, so fall back to the original wording.
+        function d(path, fb) {
+          return g(e, ["demo"].concat(path), fb);
+        }
+        var chips = [
+          d(["scan", "chip"], "Scan the QR"),
+          d(["checkIn", "chip"], "Quick check-in"),
+          d(["sponsor", "chip"], "A word from our sponsor"),
+          d(["done", "chip"], "Covered."),
+        ];
         return h(
           "section",
           {},
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true, false),
+            story.length
+              ? h(
+                  "div",
+                  { className: "story-strip", role: "list", "aria-label": g(e, ["storyLabel"], "How COVERED works, in four moments") },
+                  story.map(function (s, i) {
+                    var src = s.src || (s.img ? s.img + ".jpg" : "");
+                    return h(
+                      "figure",
+                      { className: "story-card", role: "listitem", key: i },
+                      src ? h("img", { src: imgSrc(src), alt: s.alt || "" }) : null,
+                      h("figcaption", {}, h("strong", {}, s.title), h("span", {}, s.caption))
+                    );
+                  })
+                )
+              : null,
             h(
               "ol",
-              { className: "stepper" },
-              ["Scan the QR", "Quick check-in", "A word from our sponsor", "Covered."].map(function (label, i) {
+              { className: "stepper", "aria-label": d(["stepperLabel"], "Demo progress") },
+              chips.map(function (label, i) {
                 return h(
                   "li",
                   { className: "step-chip" + (i === 0 ? " active" : ""), key: i },
@@ -193,7 +377,34 @@
                 );
               })
             ),
-            note("The interactive machine demo itself is code — it isn't edited here and stays exactly as it is."),
+            h(
+              "div",
+              { className: "demo-card" },
+              h(
+                "div",
+                { className: "machine-stage" },
+                h(
+                  "div",
+                  { className: "machine", role: "img", "aria-label": d(["machine", "ariaLabel"], "Illustration of a COVERED wall-mounted dispenser") },
+                  h("span", { className: "led" }),
+                  h("div", { className: "m-screen" }, h("div", { className: "qr" })),
+                  h("div", { className: "m-label" }, d(["machine", "label"], "Covered")),
+                  h("div", { className: "m-slot" }, h("div", { className: "pack" }, d(["machine", "packText"], "4-PACK")))
+                )
+              ),
+              h(
+                "div",
+                { className: "phone" },
+                h(
+                  "div",
+                  { className: "p-screen" },
+                  h("h3", {}, d(["scan", "title"], "Need a pad or tampon?")),
+                  h("p", {}, d(["scan", "text"], "Scan the QR code on the machine to get started — it's free.")),
+                  h("button", { className: "btn btn-primary" }, d(["scan", "button"], "Simulate scan"))
+                )
+              )
+            ),
+            note("This shows the first screen of the demo. The other three screens (check-in, sponsor, done) appear when you click through the live demo on the site — their text is edited in “Interactive demo text” on the left."),
             h("p", { className: "demo-note" }, g(e, ["demoNote"]))
           )
         );
@@ -222,7 +433,7 @@
                 "div",
                 {},
                 h("span", { className: "kicker" }, g(e, ["kicker"])),
-                raw("h2", { className: "section-title" }, g(e, ["title"])),
+                titleEl("h2", { className: "section-title" }, g(e, ["title"])),
                 h("p", { className: "section-sub" }, g(e, ["subtitle"]))
               ),
               h(
@@ -249,20 +460,10 @@
               "div",
               { className: "chip-row" },
               chips.map(function (c, i) {
-                return raw("span", { className: "chip", key: i }, c);
+                return h("span", { className: "chip", key: i }, c);
               })
             ),
-            h(
-              "div",
-              { className: "form-card" },
-              h("h3", {}, g(e, ["formHeading"])),
-              h(
-                "div",
-                { className: "form-actions" },
-                h("span", { className: "btn btn-primary" }, g(e, ["formButton"])),
-                h("span", { className: "form-hint" }, g(e, ["formHint"]))
-              )
-            )
+            enquiryFormPreview(e, OLD_BRAND_FIELDS, "Get the media kit", "Request media kit", false)
           )
         );
       },
@@ -282,7 +483,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"])),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), false, true),
             h(
               "div",
               { className: "partner-grid" },
@@ -290,9 +491,9 @@
                 return h(
                   "div",
                   { className: "p-slot" + (s.founding ? " founding" : ""), key: i },
-                  s.founding ? h("span", { className: "stamp", style: { fontSize: "0.95rem", padding: "0.3em 0.7em" } }, "Reserved") : null,
+                  s.founding && g(e, ["reservedStamp"], "Reserved") ? h("span", { className: "stamp", style: { fontSize: "0.95rem", padding: "0.3em 0.7em" } }, g(e, ["reservedStamp"], "Reserved")) : null,
                   h("span", { className: "slot-logo" }, s.logoText),
-                  raw("small", {}, s.category || "")
+                  h("small", {}, s.category || "")
                 );
               })
             ),
@@ -308,11 +509,23 @@
   );
 
   // ---------- Venues ----------
+  // A list card is { icon, title, items }; entries saved before the cards were
+  // editable stored just the list of items.
+  function venueCard(e, key, oldIcon, oldTitle) {
+    var v = e.getIn(["data", key]);
+    v = v && v.toJS ? v.toJS() : v;
+    if (Array.isArray(v)) { return { icon: oldIcon, title: oldTitle, items: v }; }
+    v = v || {};
+    return { icon: v.icon || oldIcon, title: v.title || oldTitle, items: v.items || [] };
+  }
   CMS.registerPreviewTemplate(
     "venues",
     createClass({
       render: function () {
         var e = this.props.entry;
+        var handle = venueCard(e, "weHandle", "🛠️", "We handle");
+        var provide = venueCard(e, "youProvide", "🧩", "You provide");
+        var photos = list(e, "photos");
         return h(
           "section",
           {},
@@ -321,7 +534,7 @@
             { className: "container" },
             h("span", { className: "pilot-ribbon" }, g(e, ["ribbon"])),
             h("span", { className: "kicker", style: { display: "block" } }, g(e, ["kicker"])),
-            raw("h2", { className: "section-title" }, g(e, ["title"])),
+            titleEl("h2", { className: "section-title" }, g(e, ["title"])),
             h("p", { className: "section-sub" }, g(e, ["subtitle"])),
             h(
               "div",
@@ -329,27 +542,31 @@
               h(
                 "div",
                 { className: "list-card" },
-                h("h3", {}, "🛠️ We handle"),
-                h("ul", {}, list(e, "weHandle").map(function (item, i) { return h("li", { key: i }, item); }))
+                h("h3", {}, handle.icon + " " + handle.title),
+                h("ul", {}, handle.items.map(function (item, i) { return h("li", { key: i }, item); }))
               ),
               h(
                 "div",
                 { className: "list-card wants" },
-                h("h3", {}, "🧩 You provide"),
-                h("ul", {}, list(e, "youProvide").map(function (item, i) { return h("li", { key: i }, item); }))
+                h("h3", {}, provide.icon + " " + provide.title),
+                h("ul", {}, provide.items.map(function (item, i) { return h("li", { key: i }, item); }))
               )
             ),
-            h(
-              "div",
-              { className: "form-card light-form" },
-              h("h3", {}, g(e, ["formHeading"])),
-              h(
-                "div",
-                { className: "form-actions" },
-                h("span", { className: "btn btn-primary" }, g(e, ["formButton"])),
-                h("span", { className: "form-hint" }, g(e, ["formHint"]))
-              )
-            )
+            photos.length
+              ? h(
+                  "div",
+                  { className: "photo-strip" },
+                  photos.map(function (ph, i) {
+                    return h(
+                      "figure",
+                      { className: "polaroid", key: i, style: { "--tilt": (parseFloat(ph.tilt) || 0) + "deg" } },
+                      h("img", { src: imgSrc(ph.src), alt: ph.alt || "" }),
+                      h("figcaption", {}, ph.caption || "")
+                    );
+                  })
+                )
+              : null,
+            enquiryFormPreview(e, OLD_VENUE_FIELDS, "Register your interest", "Talk to us about hosting", true)
           )
         );
       },
@@ -357,6 +574,30 @@
   );
 
   // ---------- Locations (map) ----------
+  // The preview shows one city's description at a time, so list what every other
+  // city says when a visitor picks it, and name the parked cities (kept off the map).
+  function cityNotes(e, cities, shown) {
+    var others = cities.filter(function (c) { return c !== shown; });
+    var parked = list(e, "citiesHidden");
+    return h(
+      "div",
+      {},
+      others.length
+        ? h(
+            "details",
+            { className: "cms-note" },
+            h("summary", {}, "ℹ️ What visitors see when they pick each other city"),
+            others.map(function (c, i) {
+              var tag = c.live ? g(e, ["labels", "statusLive"]) : g(e, ["labels", "statusSoon"]);
+              return h("p", { key: i }, (c.name || "") + " — " + tag + " — " + (c.blurb || ""));
+            })
+          )
+        : null,
+      parked.length
+        ? note("Parked cities (kept off the map for now): " + parked.map(function (c) { return c.name || ""; }).join(", "))
+        : null
+    );
+  }
   CMS.registerPreviewTemplate(
     "locations",
     createClass({
@@ -365,13 +606,16 @@
         var cities = list(e, "cities");
         var types = list(e, "placeTypes");
         var live = cities.filter(function (c) { return c.live; })[0] || cities[0] || {};
+        var mapImage = g(e, ["mapImage"]);
+        var viewBox = g(e, ["svgViewBox"], "0 0 765 1024");
+        var box = String(viewBox).split(" ");
         return h(
           "section",
           {},
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), g(e, ["subtitle"]), true, true),
             h(
               "div",
               { className: "loc-grid" },
@@ -380,9 +624,10 @@
                 { className: "uk-map-wrap" },
                 h(
                   "svg",
-                  { className: "uk-map", viewBox: g(e, ["svgViewBox"], "0 0 475 624") },
-                  h("path", { className: "uk-neighbor", d: g(e, ["neighborPath"]) }),
-                  h("path", { className: "uk-land", d: g(e, ["landPath"]) }),
+                  { className: "uk-map", viewBox: viewBox },
+                  mapImage ? h("image", { href: imgSrc(mapImage), x: 0, y: 0, width: box[2], height: box[3] }) : null,
+                  mapImage ? null : h("path", { className: "uk-neighbor", d: g(e, ["neighborPath"]) }),
+                  mapImage ? null : h("path", { className: "uk-land", d: g(e, ["landPath"]) }),
                   h(
                     "g",
                     {},
@@ -392,8 +637,8 @@
                         cx: c.x,
                         cy: c.y,
                         r: c.live ? 7 : 5.5,
-                        fill: c.live ? "#C94D00" : "#fff",
-                        stroke: c.live ? "#C94D00" : "#1D2452",
+                        // live pin = the "button colour"; roadmap pin = white with a dark outline (as the legend)
+                        style: { fill: c.live ? "var(--red-deep)" : "#fff", stroke: c.live ? "var(--red-deep)" : "var(--ink)" },
                         strokeWidth: 2,
                       });
                     })
@@ -402,8 +647,8 @@
                 h(
                   "div",
                   { className: "map-legend" },
-                  h("span", {}, h("span", { className: "dot live" }), "Pilot city"),
-                  h("span", {}, h("span", { className: "dot soon" }), "On the roadmap")
+                  h("span", {}, h("span", { className: "dot live" }), g(e, ["labels", "legendLive"], "Pilot city")),
+                  h("span", {}, h("span", { className: "dot soon" }), g(e, ["labels", "legendSoon"], "On the roadmap"))
                 )
               ),
               h(
@@ -411,13 +656,13 @@
                 {},
                 h(
                   "div",
-                  { className: "city-chips" },
+                  { className: "city-chips", role: "group", "aria-label": g(e, ["labels", "cityPickerAriaLabel"], "Choose a city to see its status") },
                   cities.map(function (c, i) {
                     return h(
                       "button",
                       { className: "city-chip", key: i, "aria-pressed": c.live ? "true" : "false" },
                       c.name,
-                      c.live ? h("span", { className: "badge-live" }, " ● pilot") : null
+                      c.live && g(e, ["labels", "liveBadge"], "● pilot") ? h("span", { className: "badge-live" }, " " + g(e, ["labels", "liveBadge"], "● pilot")) : null
                     );
                   })
                 ),
@@ -429,25 +674,26 @@
                     {},
                     live.name || "",
                     " ",
-                    h("span", { className: "status-tag " + (live.live ? "live" : "soon") }, live.live ? "Pilot — recruiting venues" : "On the roadmap")
+                    h("span", { className: "status-tag " + (live.live ? "live" : "soon") }, live.live ? g(e, ["labels", "statusLive"], "Pilot — recruiting venues") : g(e, ["labels", "statusSoon"], "On the roadmap"))
                   ),
                   h("p", {}, live.blurb || "")
                 ),
                 h(
                   "div",
                   { className: "loc-types" },
-                  h("p", { className: "loc-types-title" }, "The kinds of places we're targeting first:"),
+                  h("p", { className: "loc-types-title" }, g(e, ["placeTypesTitle"], "The kinds of places we're targeting first:")),
                   h(
                     "div",
                     { className: "chip-row" },
                     types.map(function (t, i) {
-                      return h("span", { className: "chip", key: i }, t.emoji + " " + t.label);
+                      return h("span", { className: "chip", key: i }, [t.emoji, t.label].filter(function (x) { return x !== undefined && x !== null && x !== ""; }).join(" "));
                     })
                   ),
                   h("p", { className: "loc-cta" }, h("span", { className: "btn btn-outline" }, g(e, ["ctaButton"])))
                 )
               )
-            )
+            ),
+            cityNotes(e, cities, live)
           )
         );
       },
@@ -468,7 +714,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true, true),
             h(
               "div",
               { className: "timeline" },
@@ -493,8 +739,15 @@
                 chips.map(function (c, i) {
                   return h("span", { className: "chip", key: i }, c);
                 })
+              ),
+              h(
+                "div",
+                { className: "notify-form" },
+                h("input", { type: "email", readOnly: true, placeholder: g(e, ["notify", "placeholder"]), "aria-label": g(e, ["notify", "label"]) }),
+                h("span", { className: "btn btn-primary" }, g(e, ["notify", "button"]))
               )
-            )
+            ),
+            note("After a successful sign-up the visitor sees: " + g(e, ["notify", "success"]))
           )
         );
       },
@@ -514,7 +767,7 @@
           h(
             "div",
             { className: "container" },
-            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true),
+            sectionHead(g(e, ["kicker"]), g(e, ["title"]), null, true, false),
             h(
               "div",
               { className: "faq-list" },
@@ -607,6 +860,49 @@
   );
 
   // ---------- Homepage layout (running order) ----------
+  // Two homepage sections keep their text in the layout entry itself (the ticker
+  // words and the closing banner's extras), so show it under their row.
+  function tickerSentence(s) {
+    var words = (s.items || []).map(function (w) { return String(w).toLowerCase(); });
+    var out = s.screenReaderIntro ? s.screenReaderIntro + " " : "";
+    words.forEach(function (w, i) {
+      out += w;
+      if (i === words.length - 2) out += " " + (s.screenReaderJoiner || "") + " ";
+      else if (i < words.length - 1) out += ", ";
+    });
+    return out + (s.screenReaderEnd || "");
+  }
+  function sectionExtras(s) {
+    if (!s) return null;
+    if (s.type === "marquee") {
+      var words = Array.isArray(s.items) ? s.items : [];
+      if (!words.length) return note("No ticker words — the ticker is not shown on the site.");
+      return h(
+        "div",
+        {},
+        h(
+          "div",
+          { className: "marquee" },
+          h("div", { className: "marquee-track" }, words.map(function (w, j) { return h("span", { key: j }, w); }))
+        ),
+        note("Hidden sentence for screen readers: “" + tickerSentence(s) + "”"),
+        note("Pause button label for screen readers: “" + (s.pauseLabel || "") + "”")
+      );
+    }
+    if (s.type === "cta") {
+      var v = s.video || {};
+      return h(
+        "div",
+        {},
+        note("The banner’s heading, text and button label are edited under “Site-wide”."),
+        note("Brand animation: " + (v.src ? v.src : "none — the animation is hidden") + (v.src && v.poster ? " (cover picture " + v.poster + ")" : "")),
+        note("Animation description for screen readers: “" + (s.videoLabel || "") + "”"),
+        note("Section name for screen readers: “" + (s.ariaLabel || "") + "”"),
+        note("Email subject when the banner button is clicked: “" + (s.emailSubject || "") + "”")
+      );
+    }
+    return null;
+  }
   CMS.registerPreviewTemplate(
     "homepage",
     createClass({
@@ -630,7 +926,7 @@
           textBlock: "📝 Text section (yours)",
           imageTextBlock: "🖼️ Image + text (yours)",
           statsBlock: "🔢 Number cards (yours)",
-          bannerBlock: "📣 Big orange banner (yours)",
+          bannerBlock: "📣 Big call-to-action banner (yours)",
           faqBlock: "❓ Questions & answers (yours)",
         };
         return h(
@@ -641,13 +937,17 @@
             var hidden = s && s.enabled === false;
             var label = names[s && s.type] || (s && s.type ? s.type : "Unknown section");
             return h(
-              "p",
-              {
-                className: "cms-note",
-                key: i,
-                style: hidden ? { opacity: 0.55, textDecoration: "line-through" } : {},
-              },
-              (i + 1) + ". " + label + (hidden ? " — hidden" : "")
+              "div",
+              { key: i },
+              h(
+                "p",
+                {
+                  className: "cms-note",
+                  style: hidden ? { opacity: 0.55, textDecoration: "line-through" } : {},
+                },
+                (i + 1) + ". " + label + (hidden ? " — hidden" : "")
+              ),
+              hidden ? null : sectionExtras(s)
             );
           })
         );
@@ -667,8 +967,13 @@
           note("Browser-tab title: " + g(e, ["pageTitle"])),
           note("Search-engine description: " + g(e, ["metaDescription"])),
           note("Social-share description: " + g(e, ["ogDescription"])),
-          note("Contact email (all forms + footer): " + g(e, ["contactEmail"])),
-          note("Footer: \"" + g(e, ["footerTagline"]) + "\" · Last updated: " + g(e, ["lastUpdated"])),
+          note("Contact email (every “Email us” link, the closing-banner button and the forms’ fallback e-mail): " + g(e, ["contactEmail"])),
+          note("Browser-tab title on other pages: " + g(e, ["subpageTitle"], "{title} — COVERED")),
+          note("Social share picture: " + g(e, ["shareImage"], "none")),
+          note("Updates feed name: " + g(e, ["feedTitle"], "COVERED updates")),
+          note("Search-engine tagline: " + g(e, ["schemaSlogan"])),
+          note("Search-engine description: " + g(e, ["schemaDescription"])),
+          note("Search-engine location: " + g(e, ["schemaPlace"])),
           h(
             "section",
             {},
@@ -684,6 +989,139 @@
               )
             )
           )
+        );
+      },
+    })
+  );
+
+  // ---------- Navigation menu + footer (shared page chrome) ----------
+  function chromeLogo() {
+    return h(
+      "a",
+      { className: "logo", href: "#" },
+      h(
+        "span",
+        { className: "logo-mark" },
+        h(
+          "svg",
+          { viewBox: "0 0 48 48" },
+          h("path", { fill: "#94AB8D", d: "M31 8C36.5 17 44 22.5 44 33A13 13 0 1 1 18 33C18 22.5 25.5 17 31 8Z" }),
+          h("circle", { cx: 15, cy: 15, r: 11, fill: "#F0A35C" })
+        )
+      ),
+      "COVERED",
+      h("span", { className: "logo-dot" }, ".")
+    );
+  }
+  function chromeLinks(items, extraProps) {
+    return (items || []).map(function (it, i) {
+      var props = { href: "#" };
+      if (it && it.button) props.className = "btn btn-primary";
+      if (extraProps) for (var k in extraProps) props[k] = extraProps[k];
+      return h("li", { key: i }, h("a", props, (it && it.label) || ""));
+    });
+  }
+
+  CMS.registerPreviewTemplate(
+    "nav",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        return h(
+          "div",
+          {},
+          h(
+            "header",
+            { style: { position: "static" } },
+            h(
+              "div",
+              { className: "container nav" },
+              chromeLogo(),
+              h(
+                "ul",
+                {
+                  className: "nav-links",
+                  style: { display: "flex", position: "static", maxHeight: "none", flexWrap: "wrap", boxShadow: "none", background: "transparent", padding: 0 },
+                },
+                chromeLinks(list(e, "items"))
+              )
+            )
+          ),
+          note("Skip link (hidden until someone presses Tab): \"" + g(e, ["skipLink"], "Skip to content") + "\""),
+          note("Logo label for screen readers: \"" + g(e, ["homeLabel"], "COVERED home") + "\""),
+          note("Mobile menu button label for screen readers: \"" + g(e, ["menuLabel"], "Toggle menu") + "\""),
+          note("Button on About, Privacy and other pages: \"" + g(e, ["backLabel"], "Back to main site") + "\""),
+          note("Links to sections that are switched off in “Page layout” are left out automatically on the live site.")
+        );
+      },
+    })
+  );
+
+  CMS.registerPreviewTemplate(
+    "footer",
+    createClass({
+      render: function () {
+        var e = this.props.entry;
+        var year = String(new Date().getFullYear());
+        var copyright = String(g(e, ["copyright"], "© {year} COVERED. All rights reserved."));
+        var updated = g(e, ["lastUpdated"], "");
+        var signOff = g(e, ["signOff"], "");
+        var emoji = g(e, ["signOffEmoji"], "");
+        var columns = list(e, "columns");
+        var compact = list(e, "compactLinks");
+        var compactKids = [];
+        compact.forEach(function (it, i) {
+          if (i > 0) compactKids.push(" · ");
+          compactKids.push(h("a", { href: "#", key: i, style: { color: "inherit" } }, (it && it.label) || ""));
+        });
+        return h(
+          "div",
+          {},
+          h(
+            "footer",
+            {},
+            h(
+              "div",
+              { className: "container" },
+              h(
+                "div",
+                { className: "foot-grid" },
+                h("div", { className: "foot-brand" }, chromeLogo(), h("p", {}, g(e, ["tagline"]))),
+                columns.map(function (col, i) {
+                  return h(
+                    "nav",
+                    { className: "foot-col", key: i },
+                    h("p", { className: "foot-head" }, (col && col.heading) || ""),
+                    h("ul", {}, chromeLinks(col && col.links))
+                  );
+                })
+              ),
+              h(
+                "div",
+                { className: "foot-bottom" },
+                h("span", {}, copyright.replace("{year}", year)),
+                updated ? h("span", {}, g(e, ["updatedLabel"], "Last updated:") + " " + updated) : null,
+                signOff ? h("span", { className: "script", style: { fontSize: "1.15rem" } }, signOff) : null,
+                emoji ? h("span", { "aria-hidden": "true" }, emoji) : null
+              )
+            )
+          ),
+          note("Below: the slim footer shown on About, Privacy and other pages."),
+          h(
+            "footer",
+            {},
+            h(
+              "div",
+              { className: "container" },
+              h(
+                "div",
+                { className: "foot-bottom", style: { marginTop: 0, paddingTop: 0, borderTop: "none" } },
+                h("span", {}, copyright.replace("{year} ", "").replace("{year}", "")),
+                h("span", {}, compactKids)
+              )
+            )
+          ),
+          note("Links to sections that are switched off in “Page layout” are left out automatically on the live site.")
         );
       },
     })

@@ -1,0 +1,124 @@
+{
+  "_comment": "Everything check-copy accepts that is NOT traceable to editable data. Every entry needs a reason. Policy (scripts/README.md): UI glyphs, the brand wordmark, composites assembled from several data strings, hidden anti-spam wording, and the text of developer-only noindex pages. Adding copy to code is not an acceptable exception - move it into src/_data and give the CMS a field instead. An entry that matches nothing is an error, so entries cannot outlive the text they excuse.",
+  "excludePages": [
+    { "path": "/og/", "reason": "Internal social-card generator (noindex tool); not part of the public site." },
+    { "path": "/ident/", "reason": "Internal brand-ident animation tool (noindex); not part of the public site." },
+    { "path": "/cms/", "reason": "The Decap CMS shell (passthrough copy of cms/); editor tooling, not site copy." },
+    { "path": "/admin/", "reason": "Operations dashboard (passthrough copy of admin/); internal tool, not site copy." }
+  ],
+  "entries": [
+    {
+      "id": "brand-wordmark",
+      "text": "COVERED",
+      "reason": "The brand wordmark (logo link, og:site_name, schema.org organisation name). A proper name, not translatable copy; the SPEC exempts it together with the inline SVG logo."
+    },
+    {
+      "id": "hero-frame-sequence",
+      "prefix": "/frames/",
+      "kinds": ["media"],
+      "reason": "The scroll-scrub hero plays 145 stills exported from the brand film (src/_includes/sections/hero.njk and scroll.njk point at /frames/desktop and /frames/mobile). They are a generated asset sequence, not a photo an editor picks; a developer re-exports them if the film changes."
+    },
+    {
+      "id": "css-bullet-glyph",
+      "text": "●",
+      "kinds": ["css"],
+      "reason": "Decorative dot the stylesheet draws between ticker words (.marquee span::after). Pure ornament; the words themselves are editable."
+    },
+    {
+      "id": "css-tick-glyph",
+      "text": "✓",
+      "kinds": ["css"],
+      "reason": "Tick bullet the stylesheet draws before each list item (.list-card li::before). Pure ornament; the items are editable."
+    },
+    {
+      "id": "css-arrow-glyph",
+      "text": "→",
+      "kinds": ["css"],
+      "reason": "Arrow the stylesheet draws on buttons and 'wants' list items (.btn-primary::after, .list-card.wants li::before). Pure ornament; the labels are editable."
+    },
+    {
+      "id": "css-watermark-wordmark",
+      "text": "COVERED.",
+      "kinds": ["css"],
+      "reason": "Large faint COVERED. watermark behind the closing banner (.cta-banner::before): the brand wordmark used as a background graphic, exempt like the logo."
+    },
+    {
+      "id": "footer-link-separator",
+      "text": "·",
+      "kinds": ["text"],
+      "reason": "Middle-dot glyph the compact footer template puts between its (editable) links on every page except the homepage - including pages editors add later. Punctuation between links, not words."
+    },
+    {
+      "id": "marquee-pause-glyph",
+      "text": "⏸",
+      "pages": ["/"],
+      "kinds": ["text", "script"],
+      "reason": "Pause icon on the venue-ticker button (the script swaps it with the play icon). Pure UI symbol; the button's spoken name is the editable homepage marquee pauseLabel."
+    },
+    {
+      "id": "marquee-play-glyph",
+      "text": "▶",
+      "pages": ["/"],
+      "kinds": ["script"],
+      "reason": "Play icon the ticker script shows while the ticker is paused. Pure UI symbol; the button's spoken name is the editable homepage marquee pauseLabel."
+    },
+    {
+      "id": "honeypot-label",
+      "text": "Leave this empty:",
+      "pages": ["/"],
+      "kinds": ["text"],
+      "hiddenBy": { "class": "hp-field" },
+      "reason": "Netlify spam-trap label inside <p class=\"hp-field\" aria-hidden=\"true\">: the field is moved off-screen, hidden from assistive technology and unfocusable, so no visitor sees or hears it. Only bots read it, and it must keep reading like a normal field."
+    },
+    {
+      "id": "marquee-screen-reader-sentence",
+      "regex": true,
+      "template": "{{homepage.sections[type=marquee].screenReaderIntro}} (?:{{homepage.sections[type=marquee].items[*]|lower}}(?:, | {{homepage.sections[type=marquee].screenReaderJoiner}} ))*{{homepage.sections[type=marquee].items[*]|lower}}{{homepage.sections[type=marquee].screenReaderEnd}}",
+      "pages": ["/"],
+      "kinds": ["text"],
+      "reason": "Hidden screen-reader sentence the marquee template builds from the intro, the (lower-cased) ticker words, the joiner word and the closing mark - all separate editable strings."
+    },
+    {
+      "id": "footer-last-updated",
+      "template": "{{footer.updatedLabel}} {{footer.lastUpdated}}",
+      "pages": ["/"],
+      "kinds": ["text"],
+      "reason": "The footer prints the editable 'Last updated:' label and the editable date together in one line."
+    },
+    {
+      "id": "scroll-demo-title",
+      "text": "Scroll-scrub dispenser — demo",
+      "pages": ["/scroll/"],
+      "kinds": ["text"],
+      "reason": "Developer demo page for the scroll-scrub component (robots noindex, excluded from collections and the sitemap, not linked from the site). Its explanatory copy lives in src/scroll.njk on purpose; move it into front matter if the page ever goes public."
+    },
+    {
+      "id": "scroll-demo-intro-heading",
+      "text": "Scroll down to scrub the dispenser",
+      "pages": ["/scroll/"],
+      "kinds": ["text"],
+      "reason": "Developer demo page for the scroll-scrub component (noindex, not in the sitemap or the navigation); see scroll-demo-title."
+    },
+    {
+      "id": "scroll-demo-intro-text",
+      "text": "A 145-frame canvas sequence pinned to the viewport. Scroll down to play it forward, scroll back up to reverse — locked to scroll position, no video element.",
+      "pages": ["/scroll/"],
+      "kinds": ["text"],
+      "reason": "Developer demo page for the scroll-scrub component (noindex, not in the sitemap or the navigation); see scroll-demo-title."
+    },
+    {
+      "id": "scroll-demo-outro-heading",
+      "text": "Section released",
+      "pages": ["/scroll/"],
+      "kinds": ["text"],
+      "reason": "Developer demo page for the scroll-scrub component (noindex, not in the sitemap or the navigation); see scroll-demo-title."
+    },
+    {
+      "id": "scroll-demo-outro-text",
+      "text": "Once the sequence finishes, the pin releases and the page scrolls on as normal.",
+      "pages": ["/scroll/"],
+      "kinds": ["text"],
+      "reason": "Developer demo page for the scroll-scrub component (noindex, not in the sitemap or the navigation); see scroll-demo-title."
+    }
+  ]
+}

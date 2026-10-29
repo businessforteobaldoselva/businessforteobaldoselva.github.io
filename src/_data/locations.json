@@ -110,8 +110,17 @@
       "label": "Hospitality"
     }
   ],
+  "placeTypesTitle": "The kinds of places we're targeting first:",
   "ctaButton": "📍 Put your venue on the map",
-  "mapImage": "images/map-uk.webp",
+  "labels": {
+    "legendLive": "Pilot city",
+    "legendSoon": "On the roadmap",
+    "cityPickerAriaLabel": "Choose a city to see its status",
+    "statusLive": "Pilot — recruiting venues",
+    "statusSoon": "On the roadmap",
+    "liveBadge": "● pilot"
+  },
+  "mapImage": "/images/map-uk.webp",
   "citiesHidden": [
     {
       "id": "belfast",

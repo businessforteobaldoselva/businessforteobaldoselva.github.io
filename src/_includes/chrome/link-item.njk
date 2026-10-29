@@ -1,0 +1,21 @@
+{#- One editable link from nav.json / footer.json, rendered as <li><a>…</a></li>.
+    Expects: item (the link), linkPrefix ("#" in the top bar, "/#" in the footer).
+    Optional: linkBare (no <li> wrapper), linkStyle (inline style on the <a>).
+    item.type: "section" (jump to a homepage section; hidden while that section
+    is switched off), "email" (mailto: the site contact email), anything else is
+    a plain link to item.url. Every address goes through safeUrl. -#}
+{%- if item.type == "section" -%}
+  {%- set linkShown = homepage | sectionEnabled(item.section) -%}
+  {%- set linkHref = linkPrefix + item.section -%}
+{%- elif item.type == "email" -%}
+  {%- set linkShown = true -%}
+  {%- set linkHref = ("mailto:" + site.contactEmail) | safeUrl -%}
+{%- else -%}
+  {%- set linkShown = true -%}
+  {%- set linkHref = item.url | safeUrl -%}
+{%- endif -%}
+{%- if linkShown -%}
+  {%- if not linkBare -%}<li>{%- endif -%}
+  <a href="{{ linkHref }}"{% if item.button %} class="btn btn-primary"{% endif %}{% if linkStyle %} style="{{ linkStyle }}"{% endif %}>{{ item.label }}</a>
+  {%- if not linkBare -%}</li>{%- endif -%}
+{%- endif -%}

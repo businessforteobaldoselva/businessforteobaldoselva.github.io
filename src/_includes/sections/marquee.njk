@@ -1,20 +1,14 @@
     <!-- ============ MARQUEE ============ -->
+    {#- Ticker words, the pause-button label and the hidden screen-reader
+        sentence all come from the marquee entry in homepage.json. No words,
+        no ticker: nothing is rendered. -#}
     {%- if sectionData and sectionData.items and sectionData.items.length %}
     <div class="marquee">
-      <button class="marquee-pause" id="marqueePause" aria-label="Pause scrolling venue list" aria-pressed="false">⏸</button>
+      <button class="marquee-pause" id="marqueePause"{% if sectionData.pauseLabel %} aria-label="{{ sectionData.pauseLabel }}"{% endif %} aria-pressed="false">⏸</button>
       <div class="marquee-track" aria-hidden="true">
         {% for item in sectionData.items %}<span>{{ item }}</span>{% endfor %}
         {% for item in sectionData.items %}<span>{{ item }}</span>{% endfor %}
       </div>
     </div>
-    <p class="visually-hidden">Target venues include {% for item in sectionData.items %}{{ item }}{% if loop.revindex == 2 %} and {% elif not loop.last %}, {% endif %}{% endfor %}.</p>
-    {%- else %}
-    <div class="marquee">
-      <button class="marquee-pause" id="marqueePause" aria-label="Pause scrolling venue list" aria-pressed="false">⏸</button>
-      <div class="marquee-track" aria-hidden="true">
-        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
-        <span>Universities</span><span>Train stations</span><span>Stadiums</span><span>Festivals</span><span>Offices</span><span>Shopping centres</span><span>Airports</span><span>Schools</span><span>Community centres</span>
-      </div>
-    </div>
-    <p class="visually-hidden">Target venues include universities, train stations, stadiums, festivals, offices, shopping centres, airports, schools and community centres.</p>
+    <p class="visually-hidden">{% if sectionData.screenReaderIntro %}{{ sectionData.screenReaderIntro }} {% endif %}{% for item in sectionData.items %}{{ item | lower }}{% if loop.revindex == 2 %} {{ sectionData.screenReaderJoiner }} {% elif not loop.last %}, {% endif %}{% endfor %}{{ sectionData.screenReaderEnd }}</p>
     {%- endif %}
