@@ -2,6 +2,10 @@ backend:
   name: git-gateway
   branch: main
 
+# Every save becomes a draft (a GitHub pull request) that someone must move to Ready and Publish.
+# Nothing reaches the live site until it is published; Netlify builds a preview of each draft.
+publish_mode: editorial_workflow
+
 # Enables editing against the local repo when `npm run cms-local` is running
 # (ignored in production — it only activates if the local proxy is detected).
 local_backend: true
@@ -22,6 +26,7 @@ collections:
       - name: "site"
         label: "⚙️ Site-wide (title, contact, CTA)"
         file: "src/_data/site.json"
+        preview_path: "/"
         fields:
           - { label: "Page title (browser tab)", name: "pageTitle", widget: "string" }
           - { label: "Meta description (search engines)", name: "metaDescription", widget: "text" }
@@ -40,6 +45,7 @@ collections:
       - name: "nav"
         label: "🧭 Navigation menu (top bar)"
         file: "src/_data/nav.json"
+        preview_path: "/"
         fields:
           - { label: "Skip link text", name: "skipLink", widget: "string", hint: "A hidden link that appears when someone presses Tab on any page. It lets keyboard and screen-reader users jump straight past the menu to the content." }
           - { label: "Logo link — screen-reader label", name: "homeLabel", widget: "string", hint: "Read aloud by screen readers for the COVERED logo in the top bar and footer. Not visible on the page." }
@@ -92,6 +98,7 @@ collections:
       - name: "footer"
         label: "🦶 Footer (bottom of every page)"
         file: "src/_data/footer.json"
+        preview_path: "/"
         fields:
           - { label: "Tagline under the logo", name: "tagline", widget: "string", hint: "The short sentence under the COVERED logo in the footer of the homepage." }
           - label: "Link columns"
@@ -175,6 +182,7 @@ collections:
       - name: "homepage"
         label: "🧩 Page layout — order, add & hide sections"
         file: "src/_data/homepage.json"
+        preview_path: "/"
         fields:
           - label: "Homepage sections"
             name: "sections"
@@ -341,6 +349,7 @@ collections:
       - name: "theme"
         label: "🎨 Colours & theme"
         file: "src/_data/theme.json"
+        preview_path: "/"
         fields:
           - label: "Page background"
             name: "paper"
@@ -448,6 +457,7 @@ collections:
       - name: "motion"
         label: "🎬 Animations"
         file: "src/_data/motion.json"
+        preview_path: "/"
         fields:
           - label: "Animations on/off"
             name: "enabled"
@@ -516,6 +526,7 @@ collections:
       - name: "hero"
         label: "🏠 Hero (top of page)"
         file: "src/_data/hero.json"
+        preview_path: "/"
         fields:
           - { label: "Badge text", name: "badge", widget: "string", hint: "The small pill with the pulsing dot above the headline." }
           - { label: "Headline — main part", name: "headlineMain", widget: "string", hint: "The big page heading. It runs straight on into the highlighted part below, on the same line." }
@@ -530,6 +541,7 @@ collections:
       - name: "problem"
         label: "📊 The Problem section"
         file: "src/_data/problem.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker (small label above heading)", name: "kicker", widget: "string", hint: "The small label above the heading of the problem section, e.g. “The problem”." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading at the top of the problem section. Type <br /> where you want a line break." }
@@ -571,6 +583,7 @@ collections:
       - name: "model"
         label: "🔁 The Model (Brands pay. You don't.)"
         file: "src/_data/model.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the model section." }
           - { label: "Heading", name: "title", widget: "string", hint: "The big heading of the model section (plain text, no line breaks)." }
@@ -641,6 +654,7 @@ collections:
       - name: "how"
         label: "📱 How It Works (demo section text)"
         file: "src/_data/how.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the “How it works” section." }
           - { label: "Heading", name: "title", widget: "string", hint: "The big heading of the “How it works” section. It also names the section for screen readers." }
@@ -726,6 +740,7 @@ collections:
       - name: "brands"
         label: "📣 For Brands section"
         file: "src/_data/brands.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the For Brands section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the For Brands section. Type <br /> where you want a line break." }
@@ -814,6 +829,7 @@ collections:
       - name: "partners"
         label: "🤝 Partners wall"
         file: "src/_data/partners.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Partners section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Partners section. Type <br /> where you want a new line." }
@@ -835,6 +851,7 @@ collections:
       - name: "venues"
         label: "🏟️ For Venues section"
         file: "src/_data/venues.json"
+        preview_path: "/"
         fields:
           - { label: "Pilot ribbon text", name: "ribbon", widget: "string", hint: "The ribbon above the heading of the For Venues section." }
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading." }
@@ -936,6 +953,7 @@ collections:
       - name: "locations"
         label: "🗺️ Locations / UK map"
         file: "src/_data/locations.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Locations section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Locations section. Type <br /> where you want a new line." }
@@ -1001,6 +1019,7 @@ collections:
       - name: "vision"
         label: "🚀 Vision / roadmap"
         file: "src/_data/vision.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the vision section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the vision section. Type <br /> where you want a line break." }
@@ -1036,6 +1055,7 @@ collections:
       - name: "faq"
         label: "❓ FAQ"
         file: "src/_data/faq.json"
+        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the FAQ heading." }
           - { label: "Heading", name: "title", widget: "string", hint: "The big heading above the list of questions." }
@@ -1059,6 +1079,7 @@ collections:
     folder: "src/pages"
     create: true
     slug: "{{slug}}"
+    preview_path: "{{fields.permalink}}"
     editor:
       preview: true
     fields:
