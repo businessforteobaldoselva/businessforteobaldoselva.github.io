@@ -208,6 +208,7 @@
     {"fg":"--red-deep","bg":["--ink","rgba(255, 248, 236, 0.05)"],"k":"u","kn":1.62,"what":"focus ring","on":"input#bName :focus-visible"},
     {"fg":"--red-deep","bg":["--ink","rgba(255, 248, 236, 0.05)"],"k":"u","kn":1.62,"what":"symbol","on":"span.req"},
     {"fg":"--red-deep","bg":["--paper","rgba(255, 248, 236, 0.92)"],"k":"t","what":"text","on":"a :hover"},
+    {"fg":"--sage","bg":["--ink","rgba(255, 248, 236, 0.04)"],"k":"l","what":"text","on":"span"},
     {"fg":"--sage","bg":["--ink"],"k":"t","what":"text","on":"span.kicker"},
     {"fg":"rgba(255, 248, 236, 0.68)","bg":["--ink-deep"],"k":"t","what":"text","on":"span"},
     {"fg":"rgba(255, 248, 236, 0.68)","bg":["--ink-deep"],"k":"u","what":"symbol","on":"span"},

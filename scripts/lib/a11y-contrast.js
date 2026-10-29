@@ -15,6 +15,11 @@ const VIEWPORTS = [{ w: 1280, h: 800, name: "wide" }, { w: 360, h: 640, name: "n
 const SKIP_TAGS = new Set(["script", "style", "noscript", "template", "head", "title", "meta", "link", "option", "optgroup", "datalist"]);
 const NON_TEXT_INPUT = /^(hidden|checkbox|radio|file|range|color|image|reset|submit|button)$/i;
 
+// the identity of a pairing: text colour, the background stack under it, size class, focus-ring alternative
+function pairKey(fg, bgLayers, kind, altLayers, what) {
+  return fg + " | " + bgLayers.join(" > ") + " | " + kind + (altLayers ? " | alt " + altLayers.join(" > ") : "") + (what === "decorative symbol" ? " | soft" : "") + (what === "focus ring" ? " | ring" : "");
+}
+
 function describe(n) {
   const cls = n.attribs && n.attribs.class ? "." + n.attribs.class.split(/\s+/).filter(Boolean).slice(0, 2).join(".") : "";
   const id = n.attribs && n.attribs.id ? "#" + n.attribs.id : "";
@@ -103,11 +108,12 @@ function analysePage(opts) {
         unresolved.push({ url, where: describe(el), why: "background '" + o.unknown + "' is not a colour this check can read" });
         continue;
       }
-      const altLayers = alt && alt[0] && !alt[0].unknown ? alt[0].layers : null;
-      const key = fg + " | " + o.layers.join(" > ") + " | " + kind + (altLayers ? " | alt " + altLayers.join(" > ") : "") + (what === "decorative symbol" ? " | soft" : "") + (what === "focus ring" ? " | ring" : "");
+      const altLayers = alt && alt[0] && !alt[0].unknown ? (alt[0].layers.length ? alt[0].layers : ["#FFFFFF"]) : null;
+      const bgLayers = o.layers.length ? o.layers : ["#FFFFFF"];
+      const key = pairKey(fg, bgLayers, kind, altLayers, what);
       let p = pairs.get(key);
       if (!p) {
-        p = { key, fg, bg: o.layers.length ? o.layers : ["#FFFFFF"], k: kind, what, alt: altLayers && altLayers.length ? altLayers : altLayers ? ["#FFFFFF"] : undefined, soft: what === "decorative symbol", picture: false, states: new Set(), places: [], pages: new Set(), vps: new Set() };
+        p = { key, fg, bg: bgLayers, k: kind, what, alt: altLayers || undefined, soft: what === "decorative symbol", picture: false, states: new Set(), places: [], pages: new Set(), vps: new Set() };
         pairs.set(key, p);
       }
       if (o.picture) p.picture = true;
@@ -287,4 +293,4 @@ function isInteractive(el) {
   return a.tabindex !== undefined && parseInt(a.tabindex, 10) >= 0;
 }
 
-module.exports = { analysePage, VIEWPORTS, describe };
+module.exports = { analysePage, VIEWPORTS, describe, pairKey };

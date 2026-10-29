@@ -23,11 +23,12 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 const { parseDocument } = require("htmlparser2");
 const yaml = require("js-yaml");
+const vm = require("vm");
 const { runMain, mkTmp, removeTree, strictStale, parseArgs, readJson, readText, exists, listFiles, toPosix, collapse, clip, REPO_ROOT, SCRIPTS_DIR } = require("./lib/util");
-const { eleventyBin } = require("./lib/workspace");
+const { eleventyBin, Workspace } = require("./lib/workspace");
 const { Styler, resolveColor } = require("./lib/a11y-style");
 const { parseSelector, elementKids } = require("./lib/a11y-css");
-const { analysePage } = require("./lib/a11y-contrast");
+const { analysePage, pairKey } = require("./lib/a11y-contrast");
 const { analyseStructure } = require("./lib/a11y-structure");
 const CC = require("../cms/contrast.js");
 
@@ -195,9 +196,15 @@ function whereText(p) {
 }
 
 // ---------------------------------------------------------------- pair table for the CMS
-function pairTable(result, vars, known) {
+function pairTable(maps, vars, known) {
   const themed = [];
-  for (const p of result.pairs.values()) {
+  const seen = new Set();
+  const all = [];
+  for (const m of maps) for (const p of m.values()) if (!seen.has(p.key)) {
+    seen.add(p.key);
+    all.push(p);
+  }
+  for (const p of all) {
     const tokens = [p.fg].concat(p.bg, p.alt || []).filter((l) => l.slice(0, 2) === "--");
     if (!tokens.length) continue;
     const entry = { fg: p.fg, bg: p.bg, k: p.k };
@@ -227,11 +234,46 @@ function currentBlock(text) {
   return { start: a, end: b + MARK_END.length, text: text.slice(a, b + MARK_END.length) };
 }
 
+// The pairs of the site with EVERY optional field, list-item type and yes / no switch turned on (the same
+// throwaway copy check-wiring builds), in two dropdown variants. The CMS table is the union of these and the
+// real site, so an editor who switches a feature off or adds a block the site does not use yet cannot make it
+// "out of date". -> [Map]
+function maximalPairMaps(root, cfg, vars, known) {
+  const { loadSources } = require("./lib/data");
+  const { loadConfig } = require("./lib/cmsconfig");
+  const { IgnoreList } = require("./lib/ignore");
+  const { makePlan, applyPlan } = require("./lib/sentinel");
+  const sources = loadSources(root).sources;
+  const ignoreFile = path.join(SCRIPTS_DIR, "wiring-ignore.json");
+  const ignore = new IgnoreList(exists(ignoreFile) ? readJson(ignoreFile) : {});
+  const plan = makePlan(sources, loadConfig(root), (name, schema, check, injected) => ignore.match(name, schema, check, injected), { switches: true });
+  const maps = [];
+  for (const variant of [0, 1]) {
+    const ws = new Workspace(root, { prefix: "covered-a11y-max-" });
+    try {
+      applyPlan(ws, plan, sources, { variant });
+      const b = ws.build("max");
+      if (!b.ok) throw new Error("the every-option copy of the site does not build:\n" + b.log.split("\n").slice(-8).join("\n"));
+      maps.push(analyseSite(b.out, root, cfg, vars, known).pairs);
+    } finally {
+      ws.cleanup();
+    }
+  }
+  return maps;
+}
+
+// VARS and PAIRS of a cms/contrast.js file (run in a sandbox: it is a plain script)
+function readTable(file) {
+  const box = { module: { exports: {} } };
+  vm.runInNewContext(readText(file), box, { filename: file, timeout: 5000 });
+  return box.module.exports;
+}
+
 // ---------------------------------------------------------------- main
 function main() {
-  const args = parseArgs(process.argv.slice(2), { site: "string", root: "string", max: "number", github: "boolean", writePairs: "boolean", noPairSync: "boolean", strictStale: "boolean", unit: "boolean", listPairs: "boolean" });
+  const args = parseArgs(process.argv.slice(2), { site: "string", root: "string", max: "number", github: "boolean", writePairs: "boolean", noPairSync: "boolean", maximal: "boolean", strictStale: "boolean", unit: "boolean", listPairs: "boolean" });
   if (args.help) {
-    console.log("usage: node scripts/check-a11y.js [--site <built site; default: build the checkout into a temp folder>] [--root <repo root>] [--max <n>] [--github] [--write-pairs] [--no-pair-sync] [--strict-stale] [--unit] [--list-pairs]");
+    console.log("usage: node scripts/check-a11y.js [--site <built site; default: build the checkout into a temp folder>] [--root <repo root>] [--max <n>] [--github] [--write-pairs] [--maximal] [--no-pair-sync] [--strict-stale] [--unit] [--list-pairs]");
     return 0;
   }
   if (args.unit) return require("./lib/a11y-unit").run();
@@ -344,11 +386,14 @@ function run(args, root, siteDir) {
   }
   for (const s of stale) (strict ? errors : warnings).push({ group: "config", rule: "stale", message: s, source: "scripts/a11y-known-issues.json" });
 
-  // ---- the CMS pair table must match what the site really contains
+  // ---- the CMS pair table must know every pairing the site really contains
   const cmsFile = path.join(root, "cms", "contrast.js");
-  const table = pairTable(res, vars, known);
-  const block = pairBlock(table);
+  const siteMaps = [res.pairs];
+  let maxMaps = [];
+  if (args.writePairs || args.maximal) maxMaps = maximalPairMaps(root, cfg, vars, known);
   if (args.writePairs) {
+    const table = pairTable(siteMaps.concat(maxMaps), vars, known);
+    const block = pairBlock(table);
     const text = fs.readFileSync(cmsFile, "utf8");
     const cur = currentBlock(text);
     if (!cur) {
@@ -357,14 +402,28 @@ function run(args, root, siteDir) {
     }
     const eol = text.includes("\r\n") ? "\r\n" : "\n";
     fs.writeFileSync(cmsFile, text.slice(0, cur.start) + block.replace(/\n/g, eol) + text.slice(cur.end));
-    console.log("check-a11y: wrote " + table.pairs.length + " colour pairings to cms/contrast.js");
+    console.log("check-a11y: wrote " + table.pairs.length + " colour pairings to cms/contrast.js (the site, plus the site with every optional field switched on)");
   } else if (!args.noPairSync) {
     if (!exists(cmsFile)) errors.push({ group: "cms", rule: "pair-table", message: "cms/contrast.js is missing", source: "cms/contrast.js" });
     else {
-      const cur = currentBlock(readText(cmsFile));
-      if (!cur) errors.push({ group: "cms", rule: "pair-table", message: "cms/contrast.js has no PAIRS markers", source: "cms/contrast.js" });
-      else if (cur.text.replace(/\r/g, "") !== block) {
-        errors.push({ group: "cms", rule: "pair-table", message: "the colour-pairing table in cms/contrast.js (used by the live contrast report in the CMS) is out of date with the site's stylesheet and templates. Run: node scripts/check-a11y.js --write-pairs", source: "cms/contrast.js" });
+      let table = null;
+      try {
+        table = readTable(cmsFile);
+      } catch (e) {
+        errors.push({ group: "cms", rule: "pair-table", message: "cms/contrast.js does not load: " + e.message, source: "cms/contrast.js" });
+      }
+      if (table) {
+        const known2 = new Set((table.PAIRS || []).map((e) => pairKey(e.fg, e.bg, e.k, e.alt || null, e.what)));
+        const wantVars = JSON.stringify(Object.fromEntries(Object.keys(vars).sort().map((k) => [k, { key: vars[k].key, def: vars[k].def, label: vars[k].label }])));
+        if (JSON.stringify(table.VARS) !== wantVars) errors.push({ group: "cms", rule: "pair-table", message: "the theme colour names / defaults in cms/contrast.js no longer match src/_includes/theme-vars.njk and the CMS labels. Run: node scripts/check-a11y.js --write-pairs", source: "cms/contrast.js" });
+        const missing = [];
+        for (const m of siteMaps.concat(maxMaps)) for (const p of m.values()) {
+          const themed = [p.fg].concat(p.bg, p.alt || []).some((l) => l.slice(0, 2) === "--");
+          if (themed && !known2.has(p.key) && !missing.some((x) => x.key === p.key)) missing.push(p);
+        }
+        if (missing.length) {
+          errors.push({ group: "cms", rule: "pair-table", message: missing.length + " colour pairing" + (missing.length === 1 ? "" : "s") + " in the site's stylesheet and templates " + (missing.length === 1 ? "is" : "are") + " not in the table behind the live contrast report in the CMS (cms/contrast.js), e.g. " + missing.slice(0, 2).map((p) => p.key).join("  /  ") + ". Run: node scripts/check-a11y.js --write-pairs", source: "cms/contrast.js" });
+        }
       }
     }
   }

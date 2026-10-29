@@ -41,7 +41,7 @@ const mark = (ok, label, detail) => {
   } else {
     failed += 1;
     failures.push(label);
-    console.log("  FAIL  " + label + (detail ? "\n" + String(detail).split("\n").slice(0, 25).map((l) => "          " + l).join("\n") : ""));
+    console.log("  FAIL  " + label + (detail ? "\n" + String(detail).split("\n").slice(0, Number(process.env.SELFTEST_TAIL) || 25).map((l) => "          " + l).join("\n") : ""));
   }
 };
 
@@ -56,7 +56,7 @@ function expectRun(label, res, expect) {
   if (res.code !== expect.code) problems.push("exit code " + res.code + ", expected " + expect.code);
   for (const s of expect.has || []) if (!res.out.includes(s)) problems.push("output does not mention: " + s);
   for (const s of expect.hasNot || []) if (res.out.includes(s)) problems.push("output unexpectedly mentions: " + s);
-  mark(problems.length === 0, label, problems.length ? problems.join("\n") + "\n--- output ---\n" + res.out.split("\n").slice(-30).join("\n") : "");
+  mark(problems.length === 0, label, problems.length ? problems.join("\n") + "\n--- output ---\n" + res.out.split("\n").slice(-(Number(process.env.SELFTEST_TAIL) || 30)).join("\n") : "");
 }
 
 // ------------------------------------------------------------------ helpers to break a copy
@@ -97,6 +97,7 @@ const scenarios = [
       expectRun("wiring passes (sentinel build and its switch / dropdown variants)", runGuard("wiring", ws.dir), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir), { code: 0 });
       expectRun("a11y passes (the recorded known issues are listed, nothing new)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["CHECK-A11Y OK", "known issues recorded"] });
+      expectRun("a11y: the CMS contrast table also covers the copy with every optional field and block switched on", runGuard("a11y", ws.dir, ["--site", site, "--maximal"]), { code: 0 });
     },
   },
   {
@@ -144,7 +145,7 @@ const scenarios = [
           '    kicker: "About"',
           '    heading: "Hello"',
           "    body: |-",
-          "      Para one with a [link](/about/).",
+          "      Para one with a link to [our team page](/about/).",
           "",
           "      - bullet one",
           "      - bullet two",
