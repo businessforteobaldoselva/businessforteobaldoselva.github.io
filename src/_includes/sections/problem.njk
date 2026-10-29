@@ -1,3 +1,4 @@
+{% import "picture.njk" as pic %}
     <!-- ============ PROBLEM ============ -->
     <section id="problem" aria-labelledby="problem-title">
       <div class="container">
@@ -15,7 +16,7 @@
           {%- set mim = problem.manifestoPhoto.src | imageInfo %}
           {%- if mim.src %}
           <figure class="manifesto-photo" aria-hidden="false">
-            <picture>{% if mim.webp %}<source type="image/webp" srcset="{% if mim.webp480 %}{{ mim.webp480 }} 480w, {% endif %}{{ mim.webp }} 1200w" sizes="(max-width: 800px) 60vw, 340px" />{% endif %}<img src="{{ mim.src }}"{% if mim.width and mim.height %} width="{{ mim.width }}" height="{{ mim.height }}"{% endif %} loading="lazy" alt="{{ problem.manifestoPhoto.alt }}" /></picture>
+            {{ pic.picture(mim, problem.manifestoPhoto.alt, problem.manifestoPhoto.decorative, "(max-width: 800px) 60vw, 340px") }}
           </figure>
           {%- endif %}
         </div>
@@ -39,8 +40,7 @@
           {%- set im = photo.src | imageInfo %}
           {%- if im.src %}
           <figure class="polaroid reveal" style="--tilt: {{ photo.tilt | storyTilt }}deg;">
-            <picture>{% if im.webp %}<source type="image/webp" srcset="{% if im.webp480 %}{{ im.webp480 }} 480w, {% endif %}{{ im.webp }} 1200w" sizes="(max-width: 780px) 92vw, 420px" />{% endif %}<img src="{{ im.src }}"{% if im.width and im.height %} width="{{ im.width }}" height="{{ im.height }}"{% endif %} loading="lazy"
-                 alt="{{ photo.alt }}" /></picture>
+            {{ pic.picture(im, photo.alt, photo.decorative, "(max-width: 780px) 92vw, 420px") }}
             <figcaption>{{ photo.caption }}</figcaption>
           </figure>
           {%- endif %}

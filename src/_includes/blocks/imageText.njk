@@ -1,9 +1,10 @@
     {%- set blockImg = block.image | imageInfo %}
+    {%- import "picture.njk" as pic %}
     <section{% if block.anchor | safeAnchor %} id="{{ block.anchor | safeAnchor }}"{% endif %}>
       <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; align-items: center;">
         {% if not block.imageRight %}
         <figure class="polaroid" style="--tilt: -2deg; max-width: 420px;">
-          {% if blockImg.src %}<img src="{{ blockImg.src }}" alt="{{ block.alt }}" loading="lazy" />{% endif %}
+          {{ pic.picture(blockImg, block.alt, block.decorative, "(max-width: 780px) 92vw, 420px") }}
           {% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
         </figure>
         {% endif %}
@@ -13,7 +14,7 @@
         </div>
         {% if block.imageRight %}
         <figure class="polaroid" style="--tilt: 2deg; max-width: 420px;">
-          {% if blockImg.src %}<img src="{{ blockImg.src }}" alt="{{ block.alt }}" loading="lazy" />{% endif %}
+          {{ pic.picture(blockImg, block.alt, block.decorative, "(max-width: 780px) 92vw, 420px") }}
           {% if block.caption %}<figcaption>{{ block.caption }}</figcaption>{% endif %}
         </figure>
         {% endif %}
