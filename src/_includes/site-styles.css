@@ -58,12 +58,14 @@
       --tk-display: clamp(3.2rem, 8.5vw, 6.5rem);
       --tk-lh-body: 1.6;
       --tk-lh-heading: 1.1;
-      --tk-lh-title: 0.95;
-      --tk-lh-display: 0.92;
+      --tk-lh-title: 1.04;
+      --tk-lh-display: 1.05;
       --tk-ls-heading: -0.02em;
-      --tk-ls-display: -0.04em;
+      --tk-ls-title: 0.015em;
+      --tk-ls-display: 0.01em;
       --tk-ls-kicker: 0.16em;
-      --tk-fw-display: 400;
+      --tk-fw-display: 600;
+      --tk-fw-title: 600;
       --tk-fw-label: 700;
       --tk-fw-button: 600;
       --tk-section-pad: clamp(6rem, 12vh, 10rem);
@@ -110,7 +112,7 @@
       margin-bottom: 1rem;
     }
 
-    .section-title { font-family: var(--font-display); font-size: var(--tk-title); font-weight: var(--tk-fw-display); letter-spacing: var(--tk-ls-heading); line-height: var(--tk-lh-title); margin-bottom: 1.2rem; }
+    .section-title { font-family: var(--font-display); font-size: var(--tk-title); font-weight: 400; letter-spacing: -0.02em; line-height: 0.95; margin-bottom: 1.2rem; }
     .section-sub { font-size: var(--tk-lead); color: var(--ink-soft); max-width: 58ch; }
 
     /* ---------- Buttons ---------- */
@@ -296,9 +298,9 @@
     .hero h1 {
       font-family: var(--font-display);
       font-size: var(--tk-display);
-      font-weight: var(--tk-fw-display);
-      letter-spacing: var(--tk-ls-display);
-      line-height: var(--tk-lh-display);
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 0.92;
       max-width: 12ch;
       margin: 0;
     }
@@ -1040,12 +1042,12 @@
     }
     h1, h2, .section-title, .cta-banner h2 {
       font-family: var(--font-display);
-      font-weight: 600;
+      font-weight: var(--tk-fw-title);
       text-transform: uppercase;
-      letter-spacing: 0.015em;
+      letter-spacing: var(--tk-ls-title);
     }
-    .section-title { line-height: 1.04; }
-    .hero h1 { font-weight: 600; line-height: 1.05; letter-spacing: 0.01em; max-width: 15ch; }
+    .section-title { line-height: var(--tk-lh-title); }
+    .hero h1 { font-weight: var(--tk-fw-display); line-height: var(--tk-lh-display); letter-spacing: var(--tk-ls-display); max-width: 15ch; }
     .hero h1 .accent {
       color: inherit;
       background: linear-gradient(transparent 58%, var(--sage) 58%);
