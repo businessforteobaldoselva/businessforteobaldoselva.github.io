@@ -9,10 +9,11 @@ problem and exits `1` on any violation (`2` for a usage error such as a missing 
 
 | command | what it proves | time |
 | --- | --- | --- |
-| `npm run check` | runs the id guard and the five guards below, fast ones first | ~45 s |
+| `npm run check` | runs the id guard and the guards below, fast ones first | ~45 s |
 | `npm run check:ids` | the built-in page ids that editor anchors must not reuse are read from the templates, and every CMS anchor pattern lists them all (`lib/reserved-ids.js --check`) | <1 s |
 | `npm run check:cms` | `cms/config.yml` is well formed and **covers every key** of the content | <1 s |
 | `npm run check:previews` | the live previews survive empty / broken / hostile entries | <1 s |
+| `npm run check:tokens` | **design tokens** ("Type & spacing") are bounded, wired to the stylesheet and match the CMS | ~20 s |
 | `npm run check:copy` | **every visible word, picture and outward link on the built site is traceable to editable data** | <1 s |
 | `npm run check:wiring` | **sentinel test**: every editable field really reaches the page, and no word is hard-coded | ~15 s |
 | `npm run check:hostile` | hostile text typed into any field cannot break out of where it is printed | ~20 s |
@@ -148,6 +149,45 @@ static rule bans HTML or code sinks fed from data in the page's own scripts (`in
 a fixed string, `document.write`, `eval`, `setTimeout("…")`, `location` changes that do not start with
 `mailto:`, `/` or `#`). The test fails when the attack string does not reach the pages (a vacuous run).
 
+## check-tokens (design tokens: "Type & spacing")
+
+Founders can change type sizes, line and letter spacing, boldness, fonts, section spacing, page width, card gap,
+corner roundness and shadow strength in the CMS ("🔤 Type & spacing", `src/_data/tokens.json`). The colours stay
+in `theme.json` ("Colours & theme"). The rules that keep this safe:
+
+* **One table, `lib/tokens.js`.** Every token is stored as plain numbers (a type size is three numbers: smallest
+  rem, growth in `vw`, largest rem; the opening headline has a fourth, a `vh` height limit) or one word from a short
+  list (font: `motor` / `openSauce`, weight: 400-700, corners: pill / rounded / soft / square). The table holds the
+  shipped default, the hard min and max, the step and the CSS variable. `lib/eleventy/tokens.js` turns it into
+  the `tokenVars` / `tokenValue` filters; `theme-vars.njk` prints `--tk-*` declarations after the colour block.
+* **A typo can never produce bad CSS.** A number outside its bounds is clamped to the nearest bound; anything that is
+  not a finite number (a string, null, array, object, `NaN`) falls back to the shipped default; an unlisted word falls
+  back to the default; the largest size can never be below the smallest. Nothing from the data is pasted as text:
+  the filter re-prints numbers and looks words up in a fixed table, which is why `tokenVars` may be chained into `| safe`.
+* **The untouched site is unchanged.** The stylesheet declares the shipped defaults once (`TOKENS-BEGIN … TOKENS-END`
+  in `site-styles.css`) and uses `var(--tk-…)` where it used to hold literals; the generated override block restates them.
+  `--radius`, `--text-sm` and `--font-*` now point at tokens, `--shadow` takes its alpha from `shape.shadow`.
+* **Not tokenised (still fixed in the stylesheet):** the pinned-hero sub-lines (`stamp`, `hero-sub` inside `.hero-pin`),
+  button/field padding, the smaller radii (stamp 14px, chips 12px ...), the one-off shadows (button glow, machine,
+  polaroid), `--font-script` / `--font-stamp`, section `max-width`s in `ch`, and every media-query breakpoint.
+
+`npm run check:tokens` (part of `npm run check`, ~20 s; `--static` skips the builds; `--write` regenerates the
+`TOKEN_SPEC` copy inside `cms/previews.js`):
+
+1. **In sync:** every token has a CMS field with exactly the filter's `min` / `max` / `step` / options and a hint, no CMS
+   field is extra, `site-styles.css` defaults equal the table, every `--tk-*` is used by `var()` (no dead token) and every
+   `var(--tk-*)` is declared, the preview carries the current table.
+2. **Bounded:** ~40 hostile token documents (attack strings, template syntax, huge / negative / tiny numbers, objects,
+   arrays, `__proto__`, scalars in place of groups) go through the real filters; every printed declaration is checked
+   against the table independently of the clamping code.
+3. **Built:** the site is built with the shipped data, a hostile `tokens.json`, every number at its lowest and at its
+   highest allowed value (and every choice moved): `assets/site.css` and the home page `<style>` must contain exactly the
+   validated declarations, each token must change the output (it follows its data), `--shadow` follows `shape.shadow`, and
+   no attack text may appear in any output file.
+
+Adding a token: add a row to `lib/tokens.js`, the default to the `TOKENS` block of `site-styles.css`, use `var(--tk-…)`,
+add the field to the "Type & spacing" entry of `cms/config.yml` and `tokens.json`, run `node scripts/check-tokens.js --write`.
+
 ## selftest
 
 `npm run check:selftest` proves the guards still bite (`--unit` = detectors only, `--only <text>` =
@@ -193,11 +233,12 @@ allow-list / ignore entry - with the reason a reviewer needs to agree.
 
 ```
 scripts/
-  check-*.js                  the five guards            selftest.js   the regression proof
+  check-*.js                  the guards                 selftest.js   the regression proof
   copy-allowlist.json         accepted non-data text     wiring-ignore.json   skipped fields
   previews-known-issues.json  known preview problems
   fixtures/                   detector fixtures
   lib/                        parsing, corpus, sentinel, workspace, hostile analysis
+../lib/tokens.js             design-token table (bounds, defaults, CSS)
 ```
 
 Throwaway copies (`lib/workspace.js`) copy everything except `node_modules` (linked) and `frames/`
