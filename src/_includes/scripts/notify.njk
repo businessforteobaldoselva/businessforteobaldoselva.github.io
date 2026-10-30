@@ -17,11 +17,6 @@
             ok.textContent = NOTIFY_COPY.success;
             notifyForm.replaceWith(ok);
           }).catch(function () {
-            if (isPreviewHost()) {
-              var btn = notifyForm.querySelector('button[type="submit"]');
-              previewNote(notifyForm, btn, btn ? btn.textContent : "");
-              return;
-            }
             window.location.href = "mailto:" + CONTACT + "?subject=" + encodeURIComponent(NOTIFY_COPY.subject);
           });
         });
