@@ -6,6 +6,29 @@
         venueForm: {{ venues.form | formScript("vf") | dump | replace("<", "\\u003c") | safe }}
       };
 
+      /* Local previews and the GitHub Pages mirror have no Netlify form
+         handler, so the POST below always fails there. Opening the visitor's
+         mail client in that case is right on the live site, but on a preview
+         it just spams the developer with draft e-mails every time a form is
+         tested — so previews get an inline note instead. */
+      function isPreviewHost() {
+        var h = location.hostname;
+        return h === "localhost" || h === "127.0.0.1" || h === "" ||
+               h === "::1" || /\.local$/.test(h) || /github\.io$/.test(h);
+      }
+
+      function previewNote(form, btn, label) {
+        btn.disabled = false;
+        btn.textContent = label;
+        var old = form.parentNode.querySelector(".form-preview-note");
+        if (old) { old.remove(); }
+        var note = document.createElement("p");
+        note.className = "form-hint form-preview-note";
+        note.setAttribute("role", "status");
+        note.textContent = "Preview only — this form submits for real on coveredaccess.com.";
+        form.insertAdjacentElement("afterend", note);
+      }
+
       function buildMailto(subject, lines) {
         return "mailto:" + CONTACT +
           "?subject=" + encodeURIComponent(subject) +
@@ -68,6 +91,7 @@
               form.replaceWith(note);
             })
             .catch(function () {
+              if (isPreviewHost()) { previewNote(form, btn, label); return; }
               btn.disabled = false;
               btn.textContent = label;
               window.location.href = buildMailto(cfg.subject, mailLines(cfg, get));
