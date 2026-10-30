@@ -362,7 +362,7 @@ const scenarios = [
     name: "accessibility: missing alt text, a skipped heading and an empty link each fail the gate",
     mutate: (ws) => {
       editJson(ws, "src/_data/venues.json", (j) => (j.photos[0].alt = ""));
-      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title"', '<h6 class="section-title" id="faq-title"'));
       edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
       edit(ws, FAQ_TEMPLATE, (t) => t + '\n<a class="guard-test" href="/empty-link-test/"></a>\n');
     },
@@ -408,7 +408,7 @@ const scenarios = [
     mutate: (ws) => {
       editJson(ws, "src/_data/theme.json", (j) => (j.ink = "#FFF8EC"));
       editJson(ws, "src/_data/faq.json", (j) => (j.title = "Q\n::error file=evil.txt::INJECTED"));
-      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title"', '<h6 class="section-title" id="faq-title"'));
       edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
     },
     build: true,

@@ -10,7 +10,7 @@ module.exports = (h) => {
   const PAL = "studio/overlay/ext/palette.js";
   const TOUR = "studio/overlay/ext/tour.js";
   const SVC = "studio/api/services/history.js";
-  const DIFF = "studio/api/services/history-diff.js";
+  const DIFF = "studio/validate/diff.js";
   const RUNBOOK = "docs/STUDIO-RUNBOOK.md";
 
   const scenario = (name, rel, change, has) => ({
@@ -33,9 +33,9 @@ module.exports = (h) => {
     scenario("tour asks h() for a script element", TOUR, h.replaceOnce('var spot = el("div", { class: "csx-spot", "aria-hidden": "true" });', 'var spot = el("script", { class: "csx-spot", "aria-hidden": "true" });'), ["tag is not a literal from the allowed list"]),
     scenario("tour sets an inline style prop through h()", TOUR, h.replaceOnce('var count = el("p", { class: "csx-tour-count" });', 'var count = el("p", { class: "csx-tour-count", style: "color:red" });'), ["prop not allowed by h(): style"]),
     scenario("tour touches localStorage outside try/catch", TOUR, h.replaceOnce("function reducedMotion()", 'function leak() { return window.localStorage.getItem("x"); }\n    function reducedMotion()'), ["localStorage used outside try/catch"]),
-    scenario("restore writes to Git itself", SVC, h.replaceOnce("const res = await drafts.createFromOps({", 'await git.commitFiles({ branch: "main", files: [] });\n    const res = await drafts.createFromOps({'), ["calls a Git write method (commitFiles)"]),
+    scenario("restore writes to Git itself", SVC, h.replaceOnce("const made = await drafts.createFromOps({", 'await git.commitFiles({ branch: "main", files: [] });\n    const made = await drafts.createFromOps({'), ["calls a Git write method (commitFiles)"]),
     scenario("restore stops going through createFromOps", SVC, (t) => t.replace(/drafts\.createFromOps\(/g, "drafts.somethingElse("), ["restore must call drafts.createFromOps"]),
-    scenario("inverse operations lose their expect", DIFF, h.replaceOnce('out.push({ op: "replace", file, path, value: clone(a), expect: clone(b) });', 'out.push({ op: "replace", file, path, value: clone(a) });'), ["has no matching expect"]),
+    scenario("inverse operations lose their expect", DIFF, h.replaceOnce('out.push({ op: "replace", file: o.file, path: o.path, value: o.expect, expect: o.value });', 'out.push({ op: "replace", file: o.file, path: o.path, value: o.expect });'), ["has no matching expect"]),
     scenario("the runbook forgets an environment variable", RUNBOOK, (t) => t.split("GITHUB_APP_PRIVATE_KEY").join("GITHUB_APP_KEY"), ["does not mention environment variable GITHUB_APP_PRIVATE_KEY"]),
   ];
 };

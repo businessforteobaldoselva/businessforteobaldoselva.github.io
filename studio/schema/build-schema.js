@@ -18,7 +18,7 @@ const ROOT_DEFAULT = path.resolve(__dirname, "..", "..");
 
 // The standard link pattern of the CMS ("Button link" fields). lib/rules.js (unit B) exports the same string as
 // LINK_PATTERN_SOURCE; studio/guards/check-schema.js compares them once that file exists.
-const LINK_PATTERN_SOURCE = "^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$";
+const { LINK_PATTERN_SOURCE } = require("../../lib/rules"); // single source of truth, shared with the API validator
 const LIMITS = { string: 20000, markdown: 60000, listItems: 200 };
 const FILE_PATH_RE = /^src\/_data\/([a-z][a-z0-9-]*)\.json$/;
 

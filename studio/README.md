@@ -72,6 +72,20 @@ Recorded here because DESIGN.md must not be edited during the build.
 * The only "Restore" gate in the overlay is role (editor, approver, admin) and the server's `restorable` flag; the server enforces both again.
 * Commands registered by `ext/history.js` onward are captured by wrapping `ui.registerCommand`; see item 3 above.
 
+## Journey (end-to-end, on this machine)
+
+`npm run check:studio-e2e` (full: `node studio/e2e/journey.js`) plays the whole product once, loopback only:
+
+1. copies the working tree into a real git repository that stands in for GitHub (LOCAL git provider keeps branches and pull requests in it);
+2. runs the real API handler on a Node http server with the dev auth stub (`STUDIO_DEV=1`, localhost only) and serves a real `CMS_EDIT=1` build of that repository;
+3. headless Chrome (puppeteer-core) signs in as an editor, edits the hero headline, replaces a photo and its description, hides a section and saves ONE draft;
+4. asserts on the git side that the draft touches exactly the right JSON files and the new picture, that the pull request body is plain English, that the draft branch BUILDS and passes the repository guards (all of them without `--quick`, plus the scope guard), and that publishing lands only those files on main;
+5. as an approver opens History, presses Restore, and asserts the revert draft undoes exactly those files and also builds and passes the guards.
+
+`--quick` runs only check:cms, check:copy and check:images on each draft (it still builds them); `--keep` leaves the temp folder. Without puppeteer-core and Chrome/Edge (`STUDIO_PUPPETEER`, `STUDIO_CHROME`) it prints SKIPPED and exits 0 (`--require-browser` makes that a failure).
+
+It is NOT in CI (`site-checks.yml` is unchanged): puppeteer-core is deliberately not a repository dependency (no heavy dependency for a developer-machine check), and the run takes several minutes because every draft is built and guarded. The browser tests under `studio/tests/overlay` and `studio/tests/ext` follow the same rule: they skip themselves when puppeteer-core or Chrome is missing, so CI runs the node tests and guards only.
+
 ## One-time setup for Teo
 
 See the runbook, Part 2. Summary of DESIGN.md section 17: create the GitHub App (Contents RW, Pull requests RW, Metadata R, plus Checks R and Commit statuses R), protect `main` (checks `Build and guards` and `studio-scope`), create the Supabase project and apply `sql/001_studio_roles.sql` yourself, deploy one API adapter with the environment variables, deploy `login/`, set `STUDIO_API_URL` and `STUDIO_APP_URL` for Deploy Previews, add people, then run the checks and the walkthrough locally before trusting a hosted setup.
