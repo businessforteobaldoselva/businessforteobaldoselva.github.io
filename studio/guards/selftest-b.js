@@ -22,6 +22,7 @@ module.exports = (h) => {
     {
       name: "[studio api] the scope definition lets Studio change package.json",
       mutate(ws) {
+        withScripts(ws); // scope.js shares the Windows-name rule with scripts/lib/image-rules.js
         edit(ws, "studio/validate/scope.js", replaceOnce("const DATA_RE = /^src\\/_data\\/[a-z0-9-]+\\.json$/;", "const DATA_RE = /^(?:src\\/_data\\/[a-z0-9-]+|package)\\.json$/;"));
       },
       run(ws) {
@@ -33,7 +34,7 @@ module.exports = (h) => {
     },
     {
       name: "[studio api] a pull request that renames or deletes data is out of scope",
-      mutate(ws) { ws.write("studio/NOTES-selftest.txt", "x\n"); },
+      mutate(ws) { withScripts(ws); ws.write("studio/NOTES-selftest.txt", "x\n"); },
       run(ws) {
         const f = path.join(ws.dir, "changed2.txt");
         fs.writeFileSync(f, "D\tsrc/_data/hero.json\nA\tsrc/_data/new.json\nM\t.github/workflows/site-checks.yml\nM\tsrc/_data/hero.json\nA\timages/new.jpg\n");

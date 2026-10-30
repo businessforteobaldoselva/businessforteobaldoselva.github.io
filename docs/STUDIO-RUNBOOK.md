@@ -113,6 +113,7 @@ Settings, Branches (or Rules), add a rule for `main`:
 
 * Require a pull request before merging.
 * Require status checks to pass: **Build and guards** and **studio-scope**.
+* Settings, General, Pull Requests: turn on **Allow squash merging**. Studio publishes only by squash merge; with it switched off every Publish answers "not mergeable".
 * Do not allow force pushes or deletion.
 * Do not let the GitHub App bypass the rules (it merges only when the checks are green, like anyone).
 * Optional but wise: CODEOWNERS so that every path outside `src/_data`, `src/pages` and `images` needs your review.
@@ -137,7 +138,7 @@ Set these where the API runs (step 5). Secrets are marked. Names are final; a wr
 | `STUDIO_DEV` | `1` turns on the pretend sign-in. **Never set in production**: it only works on localhost and the API refuses to start if real secrets are also present | no |
 | `STUDIO_BASE_PATH` | route prefix to strip, for example `/api/studio` | no |
 | `STUDIO_ALLOWED_ORIGINS` | comma list of exact origins allowed to call the API: the login page origin, plus `http://localhost:8080` if you want local use | no |
-| `STUDIO_PREVIEW_ORIGIN_TEMPLATE` | your preview address shape, for example `https://deploy-preview-{n}--coveredaccess.netlify.app` (only `{n}` varies) | no |
+| `STUDIO_PREVIEW_ORIGIN_TEMPLATE` | your preview address shape, for example `https://deploy-preview-{n}--coveredaccess.netlify.app` (only `{n}` varies). Not enough on its own: see "Preview addresses" below | no |
 | `STUDIO_ALLOW_NO_ORIGIN` | `1` only for tests and dev | no |
 | `STUDIO_ALLOW_SELF_PUBLISH` | `1` lets a person publish their own draft. Default off; leave it off | no |
 | `STUDIO_MAX_BODY_BYTES` | largest save request, default 6000000 | no |
@@ -159,10 +160,27 @@ For the Netlify site (Deploy Preview context only), also set `STUDIO_API_URL` (t
 
 The API is one portable function with three thin adapters. Pick **one** host:
 
-* **Netlify Function:** `studio/api/adapters/netlify.mjs`. It answers on `/api/studio/*`. Put the settings from step 4 in the Netlify site settings.
-* **Cloudflare Worker:** `studio/api/adapters/cloudflare.mjs`. Put the settings in the Worker's variables and secrets.
+* **Netlify Function:** the entry is `studio/api/deploy/netlify-functions/studio.mjs` (it re-exports `studio/api/adapters/netlify.mjs`). Netlify only finds functions in a folder you name, so add this to `netlify.toml` yourself (Studio never edits it):
+
+  ```
+  [functions]
+    directory = "studio/api/deploy/netlify-functions"
+    node_bundler = "esbuild"
+  ```
+
+  The folder holds only that one file on purpose, so the Node and Cloudflare adapters are never picked up as functions. Netlify bundles the API and the generated schema (`npm run studio:schema` keeps `studio/schema/studio-schema.json` current). It answers on `/api/studio/*`, so set `STUDIO_BASE_PATH` to `/api/studio`. Put the other settings from step 4 in the Netlify site settings.
+* **Cloudflare Worker:** `studio/api/adapters/cloudflare.mjs`. Copy `studio/api/deploy/wrangler.example.toml` to a `wrangler.toml` of your own, fill in the variables, add the secrets with `wrangler secret put`, then `wrangler deploy`. Set `STUDIO_BASE_PATH` to whatever route prefix you give the Worker (empty if it has its own address).
 
 Check it: open `<API address>/v1/preview-config` in a browser. You should see a small JSON with `"apiVersion":1` and no secrets.
+
+#### Preview addresses: who may receive a sign-in
+
+A deploy preview address matches the template for every pull request number, including pull requests opened by strangers on a public repository. Studio therefore never hands a sign-in token to an address on the strength of the template alone. Before the login page posts the token, the API checks that the pull request behind that address is **open and from this repository, not a fork** (`GET /v1/preview-origin`). Do these two things as well, in Netlify (Site configuration, Build and deploy):
+
+1. Under **Deploy Previews**, choose "Any pull request against your production branch" only if fork pull requests are not built, and make sure **"Deploy previews from forks"** (or the equivalent "Do not build pull requests from forks") is **off**. Better still, choose "None" and use branch deploys of this repository's own branches.
+2. Never put secrets (`GITHUB_*`, `SUPABASE_*` keys) in the **Deploy Preview** environment of the website site. Only `STUDIO_API_URL` and `STUDIO_APP_URL` belong there, and they are public.
+
+If a preview address is not trusted, the sign-in window says "This sign-in page can't be opened from there" and no token is sent.
 
 ### 6. Deploy the login page
 

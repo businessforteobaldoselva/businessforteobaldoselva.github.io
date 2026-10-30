@@ -108,8 +108,8 @@ create table if not exists public.studio_audit (
   id        bigint generated always as identity primary key,
   ts        timestamptz not null default now(),
   actor_id  uuid not null,
-  action    text not null check (length(action) <= 40),
-  target    jsonb not null default '{}'::jsonb,
+  action    text not null check (length(action) <= 40 and action ~ '^[a-z][a-z0-9._-]*$'),
+  target    jsonb not null default '{}'::jsonb check (pg_column_size(target) <= 2000),
   outcome   text not null check (outcome in ('ok', 'denied', 'invalid', 'conflict', 'error'))
 );
 
@@ -121,7 +121,11 @@ grant select, insert on public.studio_audit to authenticated;
 
 create policy studio_audit_insert on public.studio_audit
   for insert to authenticated
-  with check (actor_id = (select auth.uid()));
+  with check (
+    actor_id = (select auth.uid())
+    -- only an invited, active person may write audit rows (a signed-in stranger could otherwise fill the table)
+    and exists (select 1 from public.studio_roles r where r.user_id = (select auth.uid()) and r.active)
+  );
 
 create policy studio_audit_select on public.studio_audit
   for select to authenticated

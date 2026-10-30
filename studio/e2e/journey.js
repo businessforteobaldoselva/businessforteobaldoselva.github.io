@@ -50,7 +50,7 @@ const git = (cwd, args, o) => {
 
 // ---------------------------------------------------------------- browser discovery
 function loadPuppeteer() {
-  const c = [process.env.STUDIO_PUPPETEER, "puppeteer-core", "C:/Users/teoba/AppData/Local/Temp/claude/C--Users-teoba-OneDrive-Business/f8189f02-2f0e-4358-b028-5b37c350db18/scratchpad/harness/node_modules/puppeteer-core"].filter(Boolean);
+  const c = [process.env.STUDIO_PUPPETEER, "puppeteer-core"].filter(Boolean);
   for (const p of c) { try { return require(p); } catch (e) { /* next */ } }
   return null;
 }

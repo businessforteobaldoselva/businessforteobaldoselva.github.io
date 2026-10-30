@@ -540,6 +540,26 @@ const scenarios = [
     },
   },
   {
+    name: "pictures that hide a script in a namespaced element or CSS escape, or a GPS position in a PNG's eXIf chunk",
+    mutate: (ws) => {
+      ws.write("images/ns.svg", '<svg xmlns="http://www.w3.org/2000/svg"><h:script xmlns:h="http://www.w3.org/1999/xhtml">alert(1)</h:script></svg>');
+      ws.write("images/esc.svg", '<svg xmlns="http://www.w3.org/2000/svg"><style>rect{fill:\\75rl(https://evil.example/t.png)}</style></svg>');
+      const png1 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+      const tiff = Buffer.concat([Buffer.from("MM", "latin1"), Buffer.from([0, 0x2a, 0, 0, 0, 8, 0, 1, 0x88, 0x25, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])]);
+      const len = Buffer.alloc(4); len.writeUInt32BE(tiff.length);
+      const chunk = Buffer.concat([len, Buffer.from("eXIf", "latin1"), tiff, Buffer.alloc(4)]);
+      const iend = png1.length - 12;
+      ws.write("images/gps.png", Buffer.concat([png1.subarray(0, iend), chunk, png1.subarray(iend)]));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-images refuses all three", runGuard("images", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["images/ns.svg is not a safe SVG", "images/esc.svg is not a safe SVG", "images/gps.png carries the GPS position"],
+      });
+    },
+  },
+  {
     name: "an editor types picture-folder paths (/img/..) into a text field: the build still works and nothing outside the folder is copied",
     mutate: (ws) => editJson(ws, "src/_data/problem.json", (j) => (j.title = "see /img/.. and /img/. and /img/.cache here")),
     build: true,

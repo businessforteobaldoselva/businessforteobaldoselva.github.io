@@ -39,6 +39,7 @@ function validatorCtx(deps, ref, extra) {
     readText: (p) => git.readTextFile(ref, p),
     hasFile: (p) => git.hasFile(ref, p),
     readBytes: (p) => git.readFileBytes(ref, p),
+    listDir: (d) => git.listDir(ref, d),
   }, extra || {});
 }
 

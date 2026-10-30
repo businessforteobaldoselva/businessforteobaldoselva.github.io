@@ -160,7 +160,7 @@ function createGithubGit(opts) {
       if (cmp.status === 200 && cmp.json) { baseSha = cmp.json.merge_base_commit ? cmp.json.merge_base_commit.sha : null; behind = (cmp.json.behind_by || 0) > 0; }
     }
     return {
-      number: p.number, url: p.html_url, state: p.state === "open" ? "open" : "closed", draft: !!p.draft, merged, headRef: p.head.ref, headSha: p.head.sha, baseSha, behindBase: behind,
+      number: p.number, url: p.html_url, fromFork: !!(p.head && p.head.repo && p.base && p.base.repo && p.head.repo.full_name !== p.base.repo.full_name) || !(p.head && p.head.repo), state: p.state === "open" ? "open" : "closed", draft: !!p.draft, merged, headRef: p.head.ref, headSha: p.head.sha, baseSha, behindBase: behind,
       mergeable: merged ? null : typeof p.mergeable === "boolean" ? p.mergeable : null, labels: (p.labels || []).map((l) => l.name).sort(), authorLogin: p.user ? p.user.login : "", title: p.title, body: p.body || "",
       checks: await checksFor(p.head.sha), mergeCommitSha: p.merge_commit_sha || null, createdAt: p.created_at, updatedAt: p.updated_at,
     };

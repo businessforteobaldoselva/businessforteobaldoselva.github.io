@@ -177,7 +177,16 @@
     window.addEventListener("online", function () {
       if (drafts.status().offline) shell.toast("You're back online.", { kind: "info", actionLabel: "Send now", onAction: function () { drafts.save({ retry: true }).catch(function () { /* shown in the panel */ }); } });
     });
-    window.addEventListener("beforeunload", function () { staging.flush(); });
+    // When the browser cannot keep edits on this device (private window, full or blocked storage) say so, and ask before leaving.
+    var keepWarning = null;
+    S.events.on("storage:state", function (d) {
+      if (!d.kept && !keepWarning) keepWarning = shell.toast("Your changes can't be kept on this device, so save a draft before you leave this page.", { kind: "error", sticky: true });
+      else if (d.kept && keepWarning) { keepWarning(); keepWarning = null; }
+    });
+    window.addEventListener("beforeunload", function (e) {
+      staging.flush();
+      if (staging.unsafeToLeave()) { e.preventDefault(); e.returnValue = ""; return ""; }
+    });
     shell.mount(studio);
     window.CoveredStudio = studio;
     S._flushReady(studio);

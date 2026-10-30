@@ -26,6 +26,7 @@ const MUST_BE_OUT = [
   "studio/validate/scope.js", "src/index.njk", "src/_includes/base.njk", "src/_data/../../package.json", "src/_data/x.js",
   "src/_data/x.json.js", "src/_data/sub/x.json", "src/_data/.json", "src/_data/X.json", "src/pages/a.njk", "src/pages/a.md.js",
   "images/x.html", "images/x.js", "images/.hidden", "images/../package.json", "images/a/b.jpg", "assets/app.js", "index.html", "admin/index.html",
+  "images/con.png", "images/NUL.svg", "images/aux.jpg", "images/com1.webp", "images/LPT9.png",
   "../package.json", "/etc/passwd", "src\\_data\\hero.json",
 ];
 const MUST_BE_IN = ["src/_data/hero.json", "src/pages/about.md", "images/story-5-bathroom.jpg", "images/logo.svg"];

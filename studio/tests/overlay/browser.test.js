@@ -14,7 +14,6 @@ const zlib = require("zlib");
 const PPT_CANDIDATES = [
   process.env.STUDIO_PUPPETEER,
   "puppeteer-core",
-  "C:/Users/teoba/AppData/Local/Temp/claude/C--Users-teoba-OneDrive-Business/f8189f02-2f0e-4358-b028-5b37c350db18/scratchpad/harness/node_modules/puppeteer-core",
 ].filter(Boolean);
 const CHROME_CANDIDATES = [process.env.STUDIO_CHROME, "C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe", "/usr/bin/google-chrome", "/usr/bin/chromium"].filter(Boolean);
 

@@ -30,6 +30,7 @@ function createHandler(deps) {
   deps.roleCache = deps.roleCache || new Map();
   deps.drafts = deps.drafts || { createFromOps: (args) => drafts.createFromOps(Object.assign({ deps }, args)) };
   const cors = createCors({ allowedOrigins: config.allowedOrigins, previewTemplate: config.previewOriginTemplate });
+  deps.cors = cors;
   const router = createRouter(allRoutes());
 
   async function handle(request, requestId) {

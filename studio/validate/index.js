@@ -3,7 +3,7 @@
 // the `ctx` readers the Git provider supplies (sync or async), nothing touches fs / path / process.
 //
 //   const r = await validatePatch(ctx, patch)
-//   ctx = { schema, readText(path) -> string|null, hasFile(path) -> bool, readBytes?(path), reservedIds, now,
+//   ctx = { schema, readText(path) -> string|null, hasFile(path) -> bool, readBytes?(path), listDir?(dir) -> [name]|null, reservedIds, now,
 //           limits?, pagePermalinks?: Map<path, permalink>, pagePaths?: object }
 //   r   = { ok, noop, problems, warnings, conflicts, files: Map<path, {before, after, beforeDoc, afterDoc}>,
 //           uploads: [{ path, bytes, mime, existing }], changes: [Change], applied }

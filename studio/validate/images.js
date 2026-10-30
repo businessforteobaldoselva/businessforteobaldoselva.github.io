@@ -59,7 +59,13 @@ async function validateUploads(uploads, ctx, maxBytes) {
     } else {
       if (!sniffed.width || !sniffed.height) { bad("The picture has no readable pixel size.", "Upload the picture again."); continue; }
       if (sniffed.width > MAX_SIDE || sniffed.height > MAX_SIDE) { bad("The picture is " + sniffed.width + " x " + sniffed.height + " pixels; the limit is " + MAX_SIDE + " on each side.", "Resize it before adding it."); continue; }
-      if (sniffed.type === "jpeg" && rules.jpegHasGps(bytes)) { bad("The photo carries the GPS position where it was taken.", "Remove the location data (re-save or export the photo without it) and add it again."); continue; }
+      if (rules.imageHasGps(bytes)) { bad("The photo carries the GPS position where it was taken.", "Remove the location data (re-save or export the photo without it) and add it again."); continue; }
+    }
+    // a name that differs from an existing picture only by letter case cannot live beside it on Windows, macOS or OneDrive
+    if (!(await ctx.hasFile(target)) && ctx.listDir) {
+      const names = (await ctx.listDir("images")) || [];
+      const clash = names.find((n) => n !== name && n.toLowerCase() === name.toLowerCase());
+      if (clash) { bad("A picture called " + clash + " already exists; names that differ only by capital letters cannot be kept together.", "Pick a clearly different file name."); continue; }
     }
     // never overwrite an existing file; identical bytes are an accepted no-op
     let existing = false;

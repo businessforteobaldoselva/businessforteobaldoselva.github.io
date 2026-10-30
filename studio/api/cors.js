@@ -23,9 +23,17 @@ function createCors({ allowedOrigins, previewTemplate }) {
   const exact = new Set(allowedOrigins || []);
   for (const o of exact) if (!isValidOrigin(o)) throw new Error("invalid allowed origin: " + o);
   const re = previewTemplate ? templateToRegExp(previewTemplate) : null;
+  const previewPrefixLen = previewTemplate ? previewTemplate.split("{n}")[0].length : 0;
   const allowed = (origin) => typeof origin === "string" && (exact.has(origin) || (re !== null && re.test(origin)));
+  // the pull request number in a preview address that matches the template (null for exact origins and strangers)
+  const previewNumber = (origin) => {
+    if (typeof origin !== "string" || exact.has(origin) || re === null || !re.test(origin)) return null;
+    const m = /[0-9]{1,6}/.exec(origin.slice(previewPrefixLen));
+    return m ? Number(m[0]) : null;
+  };
   return {
     allowed,
+    previewNumber,
     headers(origin) {
       if (!allowed(origin)) return {};
       return {

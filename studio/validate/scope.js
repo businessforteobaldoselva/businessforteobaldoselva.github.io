@@ -10,6 +10,9 @@ const DATA_RE = /^src\/_data\/[a-z0-9-]+\.json$/;
 const PAGE_RE = /^src\/pages\/[a-z0-9-]+\.md$/;
 const IMAGE_RE = /^images\/[A-Za-z0-9][A-Za-z0-9._-]{0,79}\.(?:jpg|jpeg|png|webp|gif|avif|svg)$/i;
 
+// con, nul, com1 ...: names Windows cannot hold (one definition, shared with the picture rules)
+const { WINDOWS_RESERVED } = require("../../scripts/lib/image-rules");
+
 class ScopeError extends Error {
   constructor(message, path) { super(message); this.name = "ScopeError"; this.path = path; }
 }
@@ -21,7 +24,7 @@ function classify(path) {
   if (path !== path.normalize("NFC")) return null;
   if (DATA_RE.test(path)) return "data";
   if (PAGE_RE.test(path)) return "page";
-  if (IMAGE_RE.test(path) && !/\.\.|\.$/.test(path)) return "image";
+  if (IMAGE_RE.test(path) && !/\.\.|\.$/.test(path) && !WINDOWS_RESERVED.test(path.slice(7).split(".")[0])) return "image";
   return null;
 }
 

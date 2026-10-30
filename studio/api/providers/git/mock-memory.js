@@ -154,7 +154,7 @@ class MemoryRepo {
     }
     const ck = headSha ? this.checksFor(headSha) : { runs: [], statuses: [] };
     return {
-      number: pr.number, url: (urlBase || "https://github.com/" + this.owner + "/" + this.name) + "/pull/" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged,
+      fromFork: !!pr.fromFork, number: pr.number, url: (urlBase || "https://github.com/" + this.owner + "/" + this.name) + "/pull/" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged,
       headRef: pr.headRef, headSha, baseSha: base, behindBase: !pr.merged && !!base && base !== mainSha, mergeable, labels: [...pr.labels].sort(), authorLogin: pr.authorLogin,
       title: pr.title, body: pr.body, checks: summarizeChecks(ck.runs, ck.statuses), mergeCommitSha: pr.mergeSha, createdAt: pr.createdAt, updatedAt: pr.updatedAt,
     };

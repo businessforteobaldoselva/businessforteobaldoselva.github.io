@@ -55,7 +55,9 @@ function stripComments(src) {
 
 const WRITE_RE = /\b(?:fs|fsp|promises)\s*\.\s*(?:writeFile|writeFileSync|appendFile|appendFileSync|mkdir|mkdirSync|mkdtemp|mkdtempSync|rm|rmSync|rmdir|rmdirSync|unlink|unlinkSync|rename|renameSync|copyFile|copyFileSync|cp|cpSync|createWriteStream|symlink|symlinkSync|truncate|truncateSync)\b|\bcreateWriteStream\b/;
 const EXEC_RE = /\beval\s*\(|\bnew\s+Function\s*\(|\bFunction\s*\(\s*["'`]|\bchild_process\b|\brequire\s*\(\s*["'](?:node:)?(?:vm|worker_threads|cluster)["']\s*\)|\bspawnSync?\b|\bexecSync?\b|\bexecFile(?:Sync)?\b|\bfork\s*\(/;
-const HTTP_RE = /\brequire\s*\(\s*["'](?:node:)?https?["']\s*\)|\bXMLHttpRequest\b|\bnet\.connect\b/;
+const HTTP_RE = /\brequire\s*\(\s*["'](?:node:)?(?:https?|net|tls|dgram|http2)["']\s*\)|\bXMLHttpRequest\b|\bnet\.connect\b|(?:^|[^\w$.])fetch\s*\(|\bglobalThis\s*\.\s*fetch\b|\bWebSocket\b|\bEventSource\b|\bnavigator\s*\.\s*sendBeacon\b/;
+// a dynamic import() or a computed require() can load anything, including the modules the rules above look for
+const DYNAMIC_RE = /(?:^|[^\w$.])import\s*\(|\brequire\s*\(\s*[^"'\s)]/;
 const ENV_RE = /\bprocess\s*\.\s*env\b/;
 const SECRET_PATTERNS = [
   [/-----BEGIN (?:RSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----[\s\S]{20,}?-----END/, "a PEM private key"],
@@ -69,7 +71,7 @@ const SECRET_PATTERNS = [
   [/\b(?:secret|token|password|passwd|pepper|apikey|api_key|private_?key)\w*["']?\s*[:=]\s*["'][A-Za-z0-9+\/=_-]{24,}["']/i, "a long literal assigned to a secret-like name"],
 ];
 // test fixtures generate keys at run time; a literal that merely NAMES a variable is fine
-const SECRET_SKIP = [/^studio\/tests\//];
+const SECRET_SKIP = [/^studio\/tests\//, /^scripts\/selftest\.js$/];
 
 function main() {
   const problems = [];
@@ -85,7 +87,10 @@ function main() {
     const src = stripComments(fs.readFileSync(f, "utf8"));
     if (!WRITE_OK.has(r) && WRITE_RE.test(src)) add(r, "writes to the file system (only local-git.js and dev/server.js may)");
     if (!EXEC_OK.has(r) && EXEC_RE.test(src)) add(r, "uses eval / Function / child_process / vm (only local-git.js and dev/server.js may)");
-    if (HTTP_RE.test(src) && !/^studio\/dev\//.test(r) && r !== "studio/api/adapters/node.js") add(r, "makes HTTP calls without the injected fetch");
+    // the documented default (use the platform fetch when none was injected) and a Worker's own `fetch(req, env)` method are fine
+    const httpSrc = src.replace(/\(\.\.\.a\)\s*=>\s*fetch\(\.\.\.a\)/g, "").replace(/\basync\s+fetch\s*\(/g, "async handle(");
+    if (HTTP_RE.test(httpSrc) && !/^studio\/dev\//.test(r) && r !== "studio/api/adapters/node.js") add(r, "makes HTTP calls without the injected fetch (a bare fetch(), sockets and WebSocket are not allowed)");
+    if (DYNAMIC_RE.test(src) && !EXEC_OK.has(r) && !/^studio\/dev\//.test(r) && !/^studio\/api\/adapters\//.test(r)) add(r, "loads code by a dynamic import() or a computed require()");
     if (ENV_RE.test(src) && !ENV_OK.some((re) => re.test(r))) add(r, "reads process.env (configuration must come in as an object: loadConfig(env))");
   }
 
@@ -109,12 +114,21 @@ function main() {
   // secrets: every file of the API, validator, dev tooling, SQL, adapters and the two workflows
   const scan = []
     .concat(walk(path.join(root, "studio"), []).filter((p) => !/studio\/(DESIGN|NOTES)/.test(rel(p)) && /\.(js|mjs|json|sql|md|yml|html)$/.test(p)))
-    .concat(walk(path.join(root, ".github"), []));
+    .concat(walk(path.join(root, ".github"), []))
+    // the rest of the repository too: a token in the site, the CMS, the scripts, the docs or the root files is just as leaked
+    .concat(["src", "cms", "scripts", "lib", "docs", "admin", "design", "requests"].flatMap((d) => walk(path.join(root, d), []).filter((p) => /\.(js|mjs|json|md|yml|yaml|html|njk|toml|txt)$/.test(p))))
+    .concat(fs.readdirSync(root, { withFileTypes: true }).filter((e) => e.isFile() && e.name !== "package-lock.json" && /\.(js|mjs|json|md|yml|yaml|html|toml|txt)$/i.test(e.name)).map((e) => path.join(root, e.name)));
   for (const f of scan) {
     const r = rel(f);
     if (SECRET_SKIP.some((re) => re.test(r))) continue;
     const src = fs.readFileSync(f, "utf8");
-    for (const [re, what] of SECRET_PATTERNS) if (re.test(src)) add(r, "looks like it contains " + what);
+    for (const [re, what] of SECRET_PATTERNS) {
+      if (what === "a JWT") {
+        // a Supabase ANON key is a JWT that is public by design (role "anon"); every other JWT is a leaked credential
+        const all = src.match(new RegExp(re.source, "g")) || [];
+        if (all.some((j) => { try { return JSON.parse(Buffer.from(j.split(".")[1], "base64url").toString("utf8")).role !== "anon"; } catch (e) { return true; } })) add(r, "looks like it contains " + what + " that is not an anon key");
+      } else if (re.test(src)) add(r, "looks like it contains " + what);
+    }
   }
   // no .env files anywhere in studio/
   for (const f of walk(path.join(root, "studio"), [])) if (/(^|\/)\.env/.test(rel(f))) add(rel(f), "an environment file must never be committed");

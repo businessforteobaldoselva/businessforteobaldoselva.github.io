@@ -132,3 +132,33 @@ test("conflict helpers: refs from head pointers, adopting the other person's val
   const ops = plain(st.diff().map((o) => ({ path: o.path, expect: o.expect, value: o.value })));
   assert.deepEqual(ops, [{ path: "/story/0/title", expect: "Theirs", value: "Mine" }]);
 });
+
+test("when the browser cannot keep the edits, staging says so (and says when it can again)", () => {
+  const { st, mem, storage, events } = makeStaging();
+  let works = false;
+  storage.set = (k, v) => { if (works) mem.set(k, v); return works; };
+  st.set("hero.badge", "Edited");
+  st.flush();
+  assert.equal(st.unsafeToLeave(), true, "unsaved edit and no storage: leaving would lose it");
+  assert.deepEqual(events.filter((e) => e[0] === "storage:state").map((e) => e[1].kept), [false]);
+  st.flush();
+  assert.equal(events.filter((e) => e[0] === "storage:state").length, 1, "one warning, not one per write");
+  works = true;
+  st.flush();
+  assert.equal(st.unsafeToLeave(), false);
+  assert.deepEqual(events.filter((e) => e[0] === "storage:state").map((e) => e[1].kept), [false, true]);
+});
+
+test("a throwing storage layer is the same case (private window, quota)", () => {
+  const { S, fx, sc } = makeStaging();
+  const events = [];
+  const boom = { get() { return null; }, set() { return false; }, del() {} };
+  const st = S.stagingLib.create({ files: fx.content.files, schemaClient: sc, storage: boom, storeKey: "k2", emit: (e, d) => events.push([e, d]) });
+  assert.equal(st.unsafeToLeave(), false, "nothing to lose yet");
+  st.set("hero.badge", "Edited");
+  st.flush();
+  assert.equal(st.unsafeToLeave(), true);
+  st.clear();
+  st.flush();
+  assert.equal(st.unsafeToLeave(), false, "nothing unsaved left");
+});

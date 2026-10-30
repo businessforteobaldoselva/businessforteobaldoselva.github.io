@@ -4,8 +4,8 @@ Owns: `studio/overlay/**`, `studio/login/**`, `studio/guards/check-overlay.js`, 
 `studio/tests/overlay/**`, `scripts/check-studio-overlay.js` (thin entry to the guard; `npm run check:studio` already runs the guard).
 
 Run
-- Unit + browser tests: `node --test studio/tests/overlay/*.test.js` (browser tests use puppeteer-core from the session
-  scratchpad and Chrome at `C:/Program Files/Google/Chrome/Application/chrome.exe`; they skip when either is missing).
+- Unit + browser tests: `node --test studio/tests/overlay/*.test.js` (browser tests use puppeteer-core (any place `require` finds it, or STUDIO_PUPPETEER)
+  and Chrome at `C:/Program Files/Google/Chrome/Application/chrome.exe`; they skip when either is missing).
 - Static guard: `node studio/guards/check-overlay.js` (or `node scripts/check-studio-overlay.js`).
 - Dev harness: `node studio/overlay/dev/stub-server.js` then open `http://localhost:8080/?studio=1` (contract-level stub API,
   dev tokens `dev:<role>:<email>`). Unit B's `studio/dev/server.js` replaces it once merged.

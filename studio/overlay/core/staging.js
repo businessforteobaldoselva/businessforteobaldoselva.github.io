@@ -133,11 +133,18 @@
       saveTimer = setTimeout(persistNow, 250);
     }
     function ops0() { return log.filter(function (e) { return !e.saved; }); }
+    // Did the browser actually keep the edits? (private windows and full or blocked storage say no, silently.)
+    var keepFailed = false;
+    function setKept(ok) {
+      if (ok === !keepFailed) return;
+      keepFailed = !ok;
+      emit("storage:state", { kept: ok });
+    }
     function persistNow() {
       if (!storeKey || !opts.storage) return;
-      if (!ops0().length) { opts.storage.del(storeKey); return; }
+      if (!ops0().length) { opts.storage.del(storeKey); setKept(true); return; }
       var ops = log.filter(function (e) { return !e.saved; }).map(function (e) { return U.plain(Object.assign({}, e, { failed: undefined })); });
-      opts.storage.set(storeKey, JSON.stringify({ v: 1, t: Date.now(), ops: ops }));
+      setKept(opts.storage.set(storeKey, JSON.stringify({ v: 1, t: Date.now(), ops: ops })) !== false);
     }
     function idb() {
       return new Promise(function (resolve) {
@@ -433,7 +440,7 @@
       canUndo: function () { var l = log[log.length - 1]; return !!l && !l.saved; }, canRedo: function () { return redoStack.length > 0; },
       get: get, base: getBase, files: function () { return Object.keys(base); }, orderOf: orderOf, isDirty: isDirty, removedItem: removedItem,
       problems: problems, diff: diff, uploadFor: uploadFor, uploads: function () { return Array.from(uploads.values()); },
-      setStoreKey: function (k) { storeKey = k; }, load: load, markSaved: markSaved, refFromPointer: refFromPointer, adoptRemote: adoptRemote, head: function () { return head; }, flush: persistNow, _log: function () { return log; }, _working: function () { return working; }, _base: function () { return base; }, paths: paths,
+      setStoreKey: function (k) { storeKey = k; }, load: load, markSaved: markSaved, refFromPointer: refFromPointer, adoptRemote: adoptRemote, head: function () { return head; }, flush: persistNow, unsafeToLeave: function () { return keepFailed && ops0().length > 0; }, _log: function () { return log; }, _working: function () { return working; }, _base: function () { return base; }, paths: paths,
       droppedOnLoad: function () { return dropped; },
       staleCount: function () { return log.filter(function (e) { return e.stale; }).length; },
     };

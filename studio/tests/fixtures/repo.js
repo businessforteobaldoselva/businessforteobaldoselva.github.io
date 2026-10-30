@@ -32,6 +32,7 @@ function ctxFrom(files, extra) {
     readText: (p) => (files.has(p) ? dec.decode(files.get(p)) : null),
     hasFile: (p) => files.has(p),
     readBytes: (p) => files.get(p) || null,
+    listDir: (d) => { const pre = d.replace(/\/+$/, "") + "/"; const out = []; for (const k of files.keys()) if (k.startsWith(pre) && k.indexOf("/", pre.length) < 0) out.push(k.slice(pre.length)); return out.length ? out.sort() : null; },
     now: () => new Date("2026-10-29T12:00:00Z"),
   }, extra || {});
 }

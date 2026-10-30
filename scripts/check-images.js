@@ -181,7 +181,7 @@ function main() {
 
 // ---- the uploaded files themselves
 // The picture-file rules (SVG hazards, EXIF GPS) live in scripts/lib/image-rules.js, shared with the Studio API.
-const { RASTER, SVG_HAZARDS, jpegHasGps } = require("./lib/image-rules");
+const { RASTER, SVG_HAZARDS, imageHasGps, fileNameOk } = require("./lib/image-rules");
 function walkFiles(dir, out) {
   let list = [];
   try {
@@ -199,6 +199,16 @@ function walkFiles(dir, out) {
 function fileProblems(root, report) {
   const G = "Picture files";
   let n = 0;
+  // names that cannot live together or at all on Windows / macOS / OneDrive checkouts
+  const seen = new Map();
+  for (const file of walkFiles(path.join(root, "images"), [])) {
+    const rel = path.relative(root, file).split(path.sep).join("/");
+    const low = rel.toLowerCase();
+    if (seen.has(low)) report.add(G, rel + " and " + seen.get(low) + " differ only by capital letters", "They cannot both exist in a Windows, macOS or OneDrive copy of the site. Rename one.");
+    else seen.set(low, rel);
+    const base = path.basename(file);
+    if (/\.(jpe?g|png|webp|gif|avif|svg)$/i.test(base) && /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(base) && !fileNameOk(base)) report.add(G, rel + " has a name Windows cannot hold", "Names such as con, nul, aux, prn, com1 or lpt1 break a checkout on Windows. Rename the file.");
+  }
   for (const dirName of ["images", "videos"]) {
     for (const file of walkFiles(path.join(root, dirName), [])) {
       const rel = path.relative(root, file).split(path.sep).join("/");
@@ -214,7 +224,7 @@ function fileProblems(root, report) {
           report.add(G, rel + " is not a usable picture (" + String(e.message).split("\n")[0] + ")", "Upload the picture again. A broken file would be shown as a broken image on the live site.");
           continue;
         }
-        if (/\.jpe?g$/i.test(file) && jpegHasGps(fs.readFileSync(file))) report.add(G, rel + " carries the GPS position where the photo was taken", "The original upload is published as it is and can be downloaded. Remove the location data (re-save / export the photo without it) and upload it again.");
+        if (imageHasGps(new Uint8Array(fs.readFileSync(file)))) report.add(G, rel + " carries the GPS position where the photo was taken", "The original upload is published as it is and can be downloaded. Remove the location data (re-save / export the photo without it) and upload it again.");
       } else if (/\.svg$/i.test(file)) {
         n += 1;
         const text = fs.readFileSync(file, "utf8");

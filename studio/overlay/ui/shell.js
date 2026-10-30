@@ -155,7 +155,7 @@
       t.appendChild(h("button", { type: "button", class: "icon-btn", "aria-label": "Dismiss message", on: { click: gone } }, "×"));
       toasts.appendChild(t);
       S.dom.announce(message);
-      timer = setTimeout(gone, kind === "error" ? 12000 : 6000);
+      if (!o.sticky) timer = setTimeout(gone, kind === "error" ? 12000 : 6000);
       return gone;
     }
 

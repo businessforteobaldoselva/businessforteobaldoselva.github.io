@@ -14,10 +14,18 @@ function neutral(s, max) {
 }
 // plain text for titles and commit messages: GitHub renders those as text, so only control characters and @ are handled
 const plain = (s, max) => {
-  let t = String(s == null ? "" : s).replace(/\s+/g, " ").replace(/[\u0000-\u001f\u007f-\u009f\u2029\u202a-\u202e\u2066-\u2069]/g, " ").trim().replace(/@/g, "@\u200b");
+  let t = String(s == null ? "" : s).replace(/\s+/g, " ").replace(/[\u0000-\u001f\u007f-\u009f\u2029\u202a-\u202e\u2066-\u2069]/g, " ").trim().replace(/@/g, "@\u200b").replace(/#(?=\d)/g, "#\u200b"); // no @mentions, no "#12" issue references or closing keywords
   if (max && t.length > max) t = t.slice(0, max - 1) + "\u2026";
   return t;
 };
+// Editor-typed text that GitHub will render as Markdown (the pull request body): one line, then every Markdown
+// character escaped, links and issue references broken so a hostile editor cannot plant a clickable phishing link, a tracking
+// image, a "owner/repo#1" cross-reference or a "closes #1" keyword. The text still reads the same to a person.
+const md = (s, max) => oneLine(s, max)
+  .replace(/([\\`*_\[\]()!|~#])/g, "\\$1")
+  .replace(/:\/\//g, ":\u200b//")
+  .replace(/\bwww\./gi, "www\u200b.")
+  .replace(/&(?!lt;)/g, "&\u200b");
 const oneLine = (s, max) => neutral(String(s == null ? "" : s).replace(/\s+/g, " ").trim(), max);
 
 function firstName(name) { return oneLine(String(name || "").split(/\s+/)[0] || "someone", 30); }
@@ -39,14 +47,14 @@ function studioLink(u) {
 
 function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, filesCount, revertOf }) {
   const list = (changes || []).slice(0, 80);
-  const lines = list.map((c) => "- " + oneLine(c.label, 100) + ": " + lowerFirst(oneLine(c.summary, 200)));
+  const lines = list.map((c) => "- " + md(c.label, 100) + ": " + lowerFirst(md(c.summary, 200)));
   if ((changes || []).length > list.length) lines.push("- ...and " + (changes.length - list.length) + " more");
   const n = (changes || []).length;
   const m = filesCount === undefined ? new Set((changes || []).map((c) => c.file)).size : filesCount;
   const marker = { authorId, authorName: oneLine(authorName, 60).replace(/>/g, ""), draftId, ops: opsCount === undefined ? n : opsCount, revertOf: revertOf || null };
   const preview = previewUrl ? oneLine(previewUrl, 200) + "  Open in Studio: " + studioLink(oneLine(previewUrl, 200)) : "A preview link appears here when the build finishes.";
   const body = [
-    "**Studio draft by " + oneLine(authorName, 60) + "** - " + n + " change" + (n === 1 ? "" : "s") + " in " + m + " file" + (m === 1 ? "" : "s"),
+    "**Studio draft by " + md(authorName, 60) + "** - " + n + " change" + (n === 1 ? "" : "s") + " in " + m + " file" + (m === 1 ? "" : "s"),
     "",
     "### What changed",
     lines.length ? lines.join("\n") : "- (see the Files tab)",
@@ -80,4 +88,4 @@ function parseMarker(body) {
   return o;
 }
 
-module.exports = { plain, neutral, oneLine, prTitle, commitMessage, prBody, parseMarker, firstName };
+module.exports = { plain, neutral, oneLine, md, prTitle, commitMessage, prBody, parseMarker, firstName };

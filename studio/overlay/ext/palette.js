@@ -306,6 +306,12 @@
         close();
         try {
           if (it.draft) { studio.drafts.setCurrent(it.draft.id); return; }
+          // editing needs a signed-in person: say so and open the sign-in panel instead of doing nothing
+          if (!studio.me && (it.kind === "edit-ref" || it.kind === "toggle-section")) {
+            ui.toast("Sign in to edit this page.", { kind: "info" });
+            callUi("openPanel", "account");
+            return;
+          }
           var res = it.run(studio);
           if (res && typeof res.catch === "function") res.catch(failToast);
         } catch (e) { failToast(e); }

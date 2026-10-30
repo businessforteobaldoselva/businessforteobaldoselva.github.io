@@ -94,6 +94,9 @@ function scanJs(f) {
   walk(ast, (n) => {
     const line = n.loc && n.loc.start.line;
     if (n.type === "MemberExpression") {
+      // el["inner" + "HTML"], el[`innerHTML`], el[k]: a member name built at run time can reach every banned property. Plain
+      // numeric / identifier indexes (list[i], map[key]) stay legal; strings built from literals do not.
+      if (n.computed && (n.property.type === "TemplateLiteral" || (n.property.type === "BinaryExpression" && n.property.operator === "+" && (isStrLit(n.property.left) || isStrLit(n.property.right))))) warn(f.label, line, "computed member name built from text (cannot be checked against the banned list)");
       const name = memberName(n);
       if (name && BANNED_MEMBERS.has(name)) warn(f.label, line, "uses ." + name + " (text must never be parsed as markup)");
       if (name && /^on[a-z]+$/.test(name) && n.object && !f.shared) {
@@ -126,6 +129,17 @@ function scanJs(f) {
         else if (!LITERAL_TAGS.has(a.value.toLowerCase()) && f.rel !== "core/dom.js") warn(f.label, line, "createElement(" + a.value + ") outside the allow-list (use h())");
       }
       if (name === "setAttribute" && isStrLit(n.arguments[0]) && /^on/i.test(n.arguments[0].value)) warn(f.label, line, "setAttribute of an event-handler attribute");
+      // setAttribute / setAttributeNS: the attribute name must be a literal that is not a link, markup or style carrier, except in
+      // core/dom.js, where h() sends href / src through safeHref and refuses on* names before they get here, and ui/inspect.js,
+      // which sets src / href only from U.safeHref() or puts back the value the page itself had
+      if ((name === "setAttribute" || name === "setAttributeNS" || name === "setAttributeNode") && f.rel !== "core/dom.js") {
+        const a0 = n.arguments[name === "setAttributeNS" ? 1 : 0];
+        if (name === "setAttributeNode") warn(f.label, line, "setAttributeNode (use h())");
+        else if (!isStrLit(a0)) {
+          const v = n.arguments[1];
+          if (!(v && v.type === "Literal" && v.value === "")) warn(f.label, line, name + " with an attribute name built at run time (use h())"); // an empty value is a mere flag
+        } else if (f.rel !== "ui/inspect.js" && /^(href|src|srcdoc|xlink:href|formaction|action|style|data|poster|background|ping)$/i.test(a0.value)) warn(f.label, line, name + "(" + a0.value + ") outside core/dom.js (use h(), which checks links)");
+      }
       if (name === "open" && c.type === "MemberExpression" && c.object.type === "Identifier" && c.object.name === "window") {
         calls.open += 1;
         if (f.rel !== "core/auth.js" && f.rel !== "ui/panel-changes.js") warn(f.label, line, "window.open outside core/auth.js (and the PR link in the Changes panel)");

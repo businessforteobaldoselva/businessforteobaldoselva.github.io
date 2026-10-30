@@ -11,7 +11,7 @@
 //   findCommitByTrailer(branch, key, value) -> {sha}|null     getBaseBranch() -> "main"
 //   changedFiles(a, b) -> [path] changed between the merge base of a and b, and b   prUrl(n) -> string       (both added by unit B, see NOTES-api.md)
 //
-// Pr = { number,url,state:"open"|"closed",draft,merged,headRef,headSha,baseSha,behindBase,mergeable,labels,authorLogin,title,body,checks:{state,failing[]},mergeCommitSha }
+// Pr = { fromFork,number,url,state:"open"|"closed",draft,merged,headRef,headSha,baseSha,behindBase,mergeable,labels,authorLogin,title,body,checks:{state,failing[]},mergeCommitSha }
 // Merged item = { number,title,body,mergedAt,mergeSha,parentSha,authorLogin,mergedByLogin,headRef,files:[path],labels }
 
 const { assertInScope, assertStudioBranch, ScopeError } = require("../../../validate/scope");

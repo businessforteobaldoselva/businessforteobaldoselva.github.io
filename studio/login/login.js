@@ -77,7 +77,15 @@
       if (!originAllowed(asked, cfg)) { show("refused"); say("This sign-in page can't be opened from there.", true); return null; }
       targetOrigin = asked;
       if (!cfg.api || !wellFormedOrigin(cfg.api)) { say("Studio sign-in is not set up yet (no service address).", true); return null; }
-      return jsonFetch(cfg.api.replace(/\/+$/, "") + "/v1/preview-config", { credentials: "omit", cache: "no-store" });
+      var api = cfg.api.replace(/\/+$/, "");
+      var exact = Array.isArray(cfg.allowedOrigins) && cfg.allowedOrigins.indexOf(asked) >= 0;
+      // A preview address only gets a token when the service confirms its pull request is open and from THIS repository
+      // (a deploy preview of somebody else's fork is a stranger's code on a matching address).
+      var gate = exact ? Promise.resolve({ allowed: true }) : jsonFetch(api + "/v1/preview-origin?origin=" + encodeURIComponent(asked), { credentials: "omit", cache: "no-store" });
+      return gate.then(function (g) {
+        if (!g || g.allowed !== true) { show("refused"); say("This sign-in page can't be opened from there.", true); return null; }
+        return jsonFetch(api + "/v1/preview-config", { credentials: "omit", cache: "no-store" });
+      });
     }).then(function (p) {
       if (!p) return;
       pc = p;
