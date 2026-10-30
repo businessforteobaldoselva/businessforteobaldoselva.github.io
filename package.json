@@ -24,7 +24,8 @@
     "studio:build-edit": "node studio/markers/build-edit.js",
     "studio:dev": "node studio/dev/server.js",
     "studio:test": "node scripts/check-studio.js --only unit",
-    "studio:e2e": "node studio/tests/e2e/run.js"
+    "studio:e2e": "node studio/tests/e2e/run.js",
+    "check:studio-e2e": "node studio/e2e/journey.js --quick"
   },
   "dependencies": {
     "js-yaml": "4.3.0"

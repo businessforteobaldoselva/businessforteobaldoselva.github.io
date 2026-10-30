@@ -71,6 +71,8 @@ async function newPage(opts) {
   page.__errors = [];
   page.on("pageerror", (e) => page.__errors.push(String(e)));
   page.on("console", (m) => { if (m.type() === "error") page.__errors.push(m.text()); });
+  // the first-run tour has its own tests (studio/tests/ext); here it must not take the keyboard mid-test
+  await page.evaluateOnNewDocument(() => { const g = Storage.prototype.getItem; Storage.prototype.getItem = function (k) { return String(k).indexOf("covered.studio.v1.tour.") === 0 ? "done" : g.call(this, k); }; });
   await page.setViewport(opts.viewport || { width: 1280, height: 900 });
   await page.goto(stub.siteOrigin + (opts.path || "/?studio=1"), { waitUntil: "load" });
   return page;

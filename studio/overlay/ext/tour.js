@@ -191,12 +191,28 @@
 
     ui.registerCommand({ id: "tour.replay", title: "Replay the tour", keywords: ["tour", "onboarding", "welcome", "intro", "tutorial", "learn"], group: "Help", run: function () { S.ext.tour.start({ force: true }); } });
 
+    // true while someone is typing in a page text, a Studio field or an open dialog: the tour must not take the keyboard
+    function editing() {
+      function field(a) { return !!a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
+      var a = document.activeElement;
+      if (field(a)) return true;
+      var sa = a && a.shadowRoot ? a.shadowRoot.activeElement : null;
+      if (field(sa)) return true;
+      return !!(ui.root && ui.root.querySelector && ui.root.querySelector("[role=dialog]"));
+    }
     // First run: once per user, a moment after sign-in, and never while a field is being edited.
     var armed = false;
     function maybeAuto() {
       if (armed || !studio.me || seen()) return;
       armed = true;
-      window.setTimeout(function () { if (!seen() && !active) start(); }, 700);
+      function later(ms) {
+        window.setTimeout(function () {
+          if (seen() || active) return;
+          if (editing()) { later(3000); return; } // never while a field is being edited
+          start();
+        }, ms);
+      }
+      later(700);
     }
     maybeAuto();
     studio.on("auth:change", maybeAuto);

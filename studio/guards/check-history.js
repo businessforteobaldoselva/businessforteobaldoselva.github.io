@@ -53,7 +53,8 @@ function checkOverlayFile(file) {
     return;
   }
   if (!/^\(function \(S\) \{\s*\n\s*"use strict";/.test(src)) fail(where, 'must start with (function (S) { "use strict";');
-  if (!/\}\)\(typeof window !== "undefined" \? window\.__CoveredStudioBoot : null\);\s*$/.test(src)) fail(where, "must end with })(typeof window !== \"undefined\" ? window.__CoveredStudioBoot : null);");
+  // same ending as check-overlay.js requires (these files are browser-only; unit tests give node a stub `window`)
+  if (!/\}\)\(window\.__CoveredStudioBoot\);\s*$/.test(src)) fail(where, "must end with })(window.__CoveredStudioBoot);");
   const at = (n) => where + ":" + (n.loc ? n.loc.start.line : "?");
 
   walk.ancestor(ast, {
