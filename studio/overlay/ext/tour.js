@@ -53,8 +53,6 @@
 
   S.ready(function (studio) {
     var ui = studio.ui;
-    var hostEl = null;
-    var layer = null;
     var session = { seen: false };
     var active = null;
 
@@ -68,18 +66,8 @@
       return ui.h.apply(ui, [tag, props || null].concat(kids));
     }
 
-    function root() {
-      if (ui.root) return ui.root;
-      if (layer) return layer;
-      hostEl = el("div", { id: "covered-studio-tour", "data-studio-ui": "" });
-      document.body.appendChild(hostEl);
-      layer = hostEl.attachShadow({ mode: "open" });
-      try {
-        var css = S.styles && S.styles["ext/ext.css"];
-        if (css && typeof CSSStyleSheet !== "undefined") { var sh = new CSSStyleSheet(); sh.replaceSync(css); layer.adoptedStyleSheets = [sh]; }
-      } catch (e) { /* unstyled fallback */ }
-      return layer;
-    }
+    // the tour lives inside the overlay's own shadow root (ext.css is part of the styles injected into it)
+    function root() { return ui.root; }
 
     function find(sel) {
       var r = ui.root && ui.root.querySelector ? ui.root.querySelector(sel) : null;
@@ -89,11 +77,11 @@
     function getUserId() { return studio.me && studio.me.user ? studio.me.user.id : "anon"; }
     function seen() {
       if (session.seen) return true;
-      try { return window.localStorage.getItem(storageKey(getUserId())) === "done"; } catch (e) { return false; }
+      return S.util.local.get(storageKey(getUserId())) === "done";
     }
     function markSeen() {
       session.seen = true;
-      try { window.localStorage.setItem(storageKey(getUserId()), "done"); } catch (e) { /* no storage: asked again next session */ }
+      S.util.local.set(storageKey(getUserId()), "done"); // no storage: asked again next session
     }
 
     function reducedMotion() { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } }
@@ -213,4 +201,4 @@
     maybeAuto();
     studio.on("auth:change", maybeAuto);
   });
-})(typeof window !== "undefined" ? window.__CoveredStudioBoot : null);
+})(window.__CoveredStudioBoot);

@@ -113,11 +113,11 @@
       if (draft) {
         container.appendChild(h("h3", { class: "sub" }, "Your draft"));
         var dbox = h("div", { class: "draft" });
-        dbox.appendChild(h("p", null, h("strong", null, draft.title || "Draft"), " – " + stateWords(draft)));
+        dbox.appendChild(h("p", null, h("strong", null, draft.title || "Draft"), draft.state ? " – " + stateWords(draft) : ""));
         if (draft.checks) dbox.appendChild(h("p", { class: "hint" }, checksWords(draft.checks)));
         var links = h("p", { class: "links" });
         if (draft.url) links.appendChild(h("a", { href: draft.url, target: "_blank", rel: "noopener noreferrer" }, "Open the pull request"));
-        if (draft.previewUrl) { links.appendChild(document.createTextNode(" · ")); links.appendChild(h("a", { href: draft.previewUrl + "/?studio=1", target: "_blank", rel: "noopener noreferrer" }, "Open the preview in Studio")); }
+        if (draft.previewUrl) { links.appendChild(document.createTextNode(" · ")); links.appendChild(h("a", { href: draft.previewUrl.indexOf("?") >= 0 ? draft.previewUrl + "&studio=1" : draft.previewUrl.replace(/\/+$/, "") + "/?studio=1", target: "_blank", rel: "noopener noreferrer" }, "Open the preview in Studio")); }
         dbox.appendChild(links);
         var row = h("div", { class: "row-btns" });
         row.appendChild(h("button", { type: "button", class: "btn btn-small", on: { click: function () { drafts.refresh().then(function () { studio.ui.toast("Draft status updated.", { kind: "info" }); }, function (e) { studio.ui.toast(e.userMessage || "Could not refresh.", { kind: "error" }); }); } } }, "Refresh status"));

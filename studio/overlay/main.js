@@ -86,6 +86,8 @@
     dialog: shell.dialog,
     focusTrap: S.dom.focusTrap,
     hostWrap: shell.wrap,
+    root: shell.root,
+    listCommands: shell.commands,
     commands: shell.commands,
     panels: shell.panels,
     runCommand: function (id) {

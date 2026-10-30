@@ -39,7 +39,7 @@ const BANNED_TAGS = new Set(["script", "style", "iframe", "link", "object", "emb
 const LITERAL_TAGS = new Set(["div", "canvas", "br", "span", "a", "input"]);
 const OK_HOSTS = /^(localhost|127\.0\.0\.1|(www\.)?example\.(com|test|org)|[a-z0-9-]+\.test|github\.test)$/i;
 const CDN = /(cdn|unpkg|jsdelivr|cdnjs|googleapis|gstatic|jquery|bootstrapcdn|fontawesome|cloudflare|polyfill)/i;
-const BUDGET = { scriptsKiB: 260, cssKiB: 40 };
+const BUDGET = { scriptsKiB: 300, cssKiB: 40 }; // 260 before the History/palette/tour/help modules (unit D, ~65 KiB) were bundled
 
 const problems = [];
 const warn = (file, line, msg) => problems.push(file + (line ? ":" + line : "") + "  " + msg);

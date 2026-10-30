@@ -44,7 +44,7 @@ function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, 
   const n = (changes || []).length;
   const m = filesCount === undefined ? new Set((changes || []).map((c) => c.file)).size : filesCount;
   const marker = { authorId, authorName: oneLine(authorName, 60).replace(/>/g, ""), draftId, ops: opsCount === undefined ? n : opsCount, revertOf: revertOf || null };
-  const preview = previewUrl ? oneLine(previewUrl, 200) + "  Open in Studio: " + oneLine(previewUrl, 200).replace(/\/+$/, "") + "/?studio=1" : "A preview link appears here when the build finishes.";
+  const preview = previewUrl ? oneLine(previewUrl, 200) + "  Open in Studio: " + studioLink(oneLine(previewUrl, 200)) : "A preview link appears here when the build finishes.";
   const body = [
     "**Studio draft by " + oneLine(authorName, 60) + "** - " + n + " change" + (n === 1 ? "" : "s") + " in " + m + " file" + (m === 1 ? "" : "s"),
     "",

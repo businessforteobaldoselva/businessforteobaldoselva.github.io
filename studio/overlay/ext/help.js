@@ -120,4 +120,4 @@
       ui.togglePanel("help");
     });
   });
-})(typeof window !== "undefined" ? window.__CoveredStudioBoot : null);
+})(window.__CoveredStudioBoot);

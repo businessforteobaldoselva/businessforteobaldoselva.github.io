@@ -267,6 +267,7 @@ test("hostile input is only ever text: script tags, huge text, RTL override char
   assert.match(await text(page, "#sub"), /pasted plain text/);
   await page.keyboard.down("Control"); await page.keyboard.press("Enter"); await page.keyboard.up("Control");
   // RTL override and control characters: typed, flagged, not savable
+  await page.$eval("#q0", (e) => e.scrollIntoView({ block: "center" })); // the dock (now with History and Help) can cover the bottom of the viewport
   await page.click("#q0");
   await page.keyboard.type("evil\u202Etxt");
   await page.keyboard.press("Enter");

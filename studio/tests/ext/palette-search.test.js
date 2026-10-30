@@ -1,4 +1,5 @@
 "use strict";
+globalThis.window = globalThis.window || {}; // the ext modules end with })(window.__CoveredStudioBoot); outside a browser it is undefined and they only export their pure parts
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const P = require("../../overlay/ext/palette.js");

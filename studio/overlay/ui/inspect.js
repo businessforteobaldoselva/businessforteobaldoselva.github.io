@@ -101,6 +101,18 @@
           var n = m.el.childNodes[i];
           if (n.nodeType === 3 && n.data.trim()) { o.node = n; o.data = n.data; break; }
         }
+        if (!o.node) {
+          // The words are not a text node any more: site scripts wrap each word in a <span> (the animated hero headline).
+          // The "lead" is everything before the first part that is itself editable; it is swapped for one text node.
+          var lead = [];
+          var anchor = null;
+          for (var j = 0; j < m.el.childNodes.length; j += 1) {
+            var c = m.el.childNodes[j];
+            if (c.nodeType === 1 && (c.hasAttribute("data-cms") || c.querySelector("[data-cms]"))) { anchor = c; break; }
+            lead.push(c);
+          }
+          if (anchor && lead.some(function (x) { return x.textContent.trim(); })) { o.lead = lead; o.anchor = anchor; }
+        }
       }
     }
     var value = studio.staging.get(m.ref);
@@ -110,6 +122,11 @@
       else if (o.nodes) m.el.replaceChildren.apply(m.el, o.nodes);
     } else if (o.node) {
       o.node.data = dirty ? value : o.data;
+    } else if (o.lead) {
+      if (o.replacement && o.replacement.parentNode) o.replacement.parentNode.removeChild(o.replacement);
+      o.lead.forEach(function (x) { if (x.parentNode) x.parentNode.removeChild(x); });
+      if (dirty) { o.replacement = document.createTextNode(value + " "); m.el.insertBefore(o.replacement, o.anchor); }
+      else o.lead.forEach(function (x) { m.el.insertBefore(x, o.anchor); });
     }
   }
   function imageOf(el) { return el.tagName === "IMG" ? el : el.querySelector("img"); }
@@ -403,7 +420,6 @@
     else if (e.key === "Enter" && selected) { e.preventDefault(); openEditor(selected); }
     else if (e.altKey && e.key === "ArrowUp") { e.preventDefault(); moveSel(-1); }
     else if (e.altKey && e.key === "ArrowDown") { e.preventDefault(); moveSel(1); }
-    else if (e.key === "?") { e.preventDefault(); studio.ui.openPanel("help"); }
   }
 
   function init(st, sh) {

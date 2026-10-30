@@ -78,7 +78,8 @@ function createLocalGit(opts) {
     let runs = [];
     if (headSha && opts.checkRunner) {
       pr.checkCache = pr.checkCache || {};
-      if (!pr.checkCache[headSha]) { pr.checkCache[headSha] = await opts.checkRunner(headSha, repoDir); const s = load(); s.prs[pr.number] = pr; save(s); }
+      // like GitHub, a run that has not finished is asked again next time; only finished results are remembered
+      if (!pr.checkCache[headSha] || pr.checkCache[headSha].some((r) => r.status !== "completed")) { pr.checkCache[headSha] = await opts.checkRunner(headSha, repoDir); const s = load(); s.prs[pr.number] = pr; save(s); }
       runs = pr.checkCache[headSha];
     }
     return { number: pr.number, url: "https://example.invalid/pull/" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged, headRef: pr.headRef, headSha, baseSha, behindBase: !pr.merged && !!baseSha && baseSha !== mainSha, mergeable, labels: pr.labels.slice().sort(), authorLogin: pr.authorLogin, title: pr.title, body: pr.body, checks: summarizeChecks(runs, []), mergeCommitSha: pr.mergeSha || null, createdAt: pr.createdAt, updatedAt: pr.updatedAt };

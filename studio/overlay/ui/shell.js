@@ -122,12 +122,12 @@
       clear(dock);
       panelBtns = {};
       badge = h("span", { class: "badge", hidden: true }, "0");
-      editBtn = h("button", { type: "button", class: "pill", "aria-pressed": S.state.mode === "edit" ? "true" : "false", "aria-label": "Edit this page", on: { click: function () { if (studioRef) studioRef.toggleEdit(); } } },
+      editBtn = h("button", { type: "button", class: "pill", "data-tour": "pill", "aria-pressed": S.state.mode === "edit" ? "true" : "false", "aria-label": "Edit this page", on: { click: function () { if (studioRef) studioRef.toggleEdit(); } } },
         h("span", { class: "pill-label" }, S.state.mode === "edit" ? "Editing" : "Edit"), badge);
       dock.appendChild(editBtn);
       if (S.state.mode === "edit") {
         visiblePanels().forEach(function (p) {
-          var b = h("button", { type: "button", class: "dock-btn", "aria-expanded": openId === p.id ? "true" : "false", "aria-label": p.title, title: p.title, on: { click: function () { togglePanel(p.id); } } },
+          var b = h("button", { type: "button", class: "dock-btn", "data-panel-id": p.id, "data-tour": "panel-" + p.id, "aria-expanded": openId === p.id ? "true" : "false", "aria-label": p.title, title: p.title, on: { click: function () { togglePanel(p.id); } } },
             h("span", { class: "dock-glyph", "aria-hidden": "true" }, p.glyph || p.title.charAt(0)), h("span", { class: "dock-text" }, p.title));
           panelBtns[p.id] = b;
           dock.appendChild(b);

@@ -158,18 +158,8 @@
       }
       return ui.h.apply(ui, [tag, props || null].concat(kids));
     }
-    function root() {
-      if (ui.root) return ui.root;
-      if (layer) return layer;
-      var host = el("div", { id: "covered-studio-palette", "data-studio-ui": "" });
-      document.body.appendChild(host);
-      layer = host.attachShadow({ mode: "open" });
-      try {
-        var css = S.styles && S.styles["ext/ext.css"];
-        if (css && typeof CSSStyleSheet !== "undefined") { var sh = new CSSStyleSheet(); sh.replaceSync(css); layer.adoptedStyleSheets = [sh]; }
-      } catch (e) { /* unstyled fallback */ }
-      return layer;
-    }
+    // the palette lives inside the overlay's own shadow root (ext.css is part of the styles injected into it)
+    function root() { return ui.root; }
     function can(name) { var c = studio.me && studio.me.capabilities; return !!(c && c[name]); }
     function callUi(name, a) { try { if (typeof ui[name] === "function") return ui[name](a); } catch (e) { /* ignore */ } }
     function setMode(m) {
@@ -356,4 +346,4 @@
       }
     }, true);
   });
-})(typeof window !== "undefined" ? window.__CoveredStudioBoot : null);
+})(window.__CoveredStudioBoot);
