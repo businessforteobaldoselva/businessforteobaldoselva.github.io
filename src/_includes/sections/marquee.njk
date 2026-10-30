@@ -3,11 +3,11 @@
         sentence all come from the marquee entry in homepage.json. No words,
         no ticker: nothing is rendered. -#}
     {%- if sectionData and sectionData.items and sectionData.items.length %}
-    <div class="marquee">
-      <button class="marquee-pause" id="marqueePause"{% if sectionData.pauseLabel %} aria-label="{{ sectionData.pauseLabel }}"{% endif %} aria-pressed="false">⏸</button>
+    <div class="marquee"{% cms blockRef, blockKind %}>
+      <button class="marquee-pause" id="marqueePause"{% if sectionData.pauseLabel %} aria-label="{{ sectionData.pauseLabel }}"{% endif %} aria-pressed="false"{% cms "motion.marquee", "toggle" %}>⏸</button>
       <div class="marquee-track" aria-hidden="true">
-        {% for item in sectionData.items %}<span>{{ item }}</span>{% endfor %}
-        {% for item in sectionData.items %}<span>{{ item }}</span>{% endfor %}
+        {% for item in sectionData.items %}<span{% cms blockRef + ".items." + loop.index0, "text" %}>{{ item }}</span>{% endfor %}
+        {% for item in sectionData.items %}<span{% cms blockRef + ".items." + loop.index0, "text" %}>{{ item }}</span>{% endfor %}
       </div>
     </div>
     <p class="visually-hidden">{% if sectionData.screenReaderIntro %}{{ sectionData.screenReaderIntro }} {% endif %}{% for item in sectionData.items %}{{ item | lower }}{% if loop.revindex == 2 %} {{ sectionData.screenReaderJoiner }} {% elif not loop.last %}, {% endif %}{% endfor %}{{ sectionData.screenReaderEnd }}</p>

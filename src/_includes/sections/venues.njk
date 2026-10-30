@@ -1,31 +1,31 @@
 {% import "forms/enquiry-form.njk" as ef %}
 {% import "picture.njk" as pic %}
     <!-- ============ FOR VENUES ============ -->
-    <section id="venues" aria-labelledby="venues-title">
+    <section id="venues" aria-labelledby="venues-title"{% cms blockRef, blockKind %}>
       <div class="container">
         <div class="reveal">
-          <span class="pilot-ribbon">{{ venues.ribbon }}</span>
-          <span class="kicker" style="display:block;">{{ venues.kicker }}</span>
-          <h2 class="section-title" id="venues-title">{{ venues.title | safeTitle | safe }}</h2>
-          <p class="section-sub">
+          <span class="pilot-ribbon"{% cms "venues.ribbon", "text" %}>{{ venues.ribbon }}</span>
+          <span class="kicker" style="display:block;"{% cms "venues.kicker", "text" %}>{{ venues.kicker }}</span>
+          <h2 class="section-title" id="venues-title"{% cms "venues.title", "text" %}>{{ venues.title | safeTitle | safe }}</h2>
+          <p class="section-sub"{% cms "venues.subtitle", "longtext" %}>
             {{ venues.subtitle }}
           </p>
         </div>
 
         <div class="cols-2">
           <div class="list-card reveal">
-            <h3>{{ ic.emojiIcon(venues.weHandle.icon) }} {{ venues.weHandle.title }}</h3>
+            <h3{% cms "venues.weHandle.title", "text" %}>{{ ic.emojiIcon(venues.weHandle.icon) }} {{ venues.weHandle.title }}</h3>
             <ul>
               {%- for item in venues.weHandle.items %}
-              <li>{{ item }}</li>
+              <li{% cms "venues.weHandle.items." + loop.index0, "text" %}>{{ item }}</li>
               {%- endfor %}
             </ul>
           </div>
           <div class="list-card wants reveal">
-            <h3>{{ ic.emojiIcon(venues.youProvide.icon) }} {{ venues.youProvide.title }}</h3>
+            <h3{% cms "venues.youProvide.title", "text" %}>{{ ic.emojiIcon(venues.youProvide.icon) }} {{ venues.youProvide.title }}</h3>
             <ul>
               {%- for item in venues.youProvide.items %}
-              <li>{{ item }}</li>
+              <li{% cms "venues.youProvide.items." + loop.index0, "text" %}>{{ item }}</li>
               {%- endfor %}
             </ul>
           </div>
@@ -36,9 +36,9 @@
           {%- for photo in venues.photos %}
           {%- set im = photo.src | imageInfo %}
           {%- if im.src %}
-          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt | safeTilt }};">
-            {{ pic.picture(im, photo.alt, photo.decorative, "(max-width: 780px) 92vw, 420px") }}
-            <figcaption>{{ photo.caption }}</figcaption>
+          <figure class="polaroid reveal" style="--tilt: {{ photo.tilt | safeTilt }};"{% cms "venues.photos." + loop.index0, "item" %}>
+            {{ pic.picture(im, photo.alt, photo.decorative, "(max-width: 780px) 92vw, 420px", false, "venues.photos." + loop.index0 + ".src", "venues.photos." + loop.index0 + ".alt", "venues.photos." + loop.index0 + ".decorative") }}
+            <figcaption{% cms "venues.photos." + loop.index0 + ".caption", "text" %}>{{ photo.caption }}</figcaption>
           </figure>
           {%- endif %}
           {%- endfor %}
@@ -46,7 +46,7 @@
         {%- endif %}
 
         <div class="form-card light-form reveal">
-          <h3>{{ venues.form.heading }}</h3>
+          <h3{% cms "venues.form.heading", "text" %}>{{ venues.form.heading }}</h3>
           {{ ef.enquiryForm("venueForm", "venue-enquiry", venues.form, "vf") }}
         </div>
       </div>

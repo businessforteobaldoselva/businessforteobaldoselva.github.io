@@ -17,7 +17,18 @@
     "check:seo": "node scripts/check-seo.js",
     "check:images": "node scripts/check-images.js",
     "check:selftest": "node scripts/selftest.js",
-    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:tokens && npm run check:copy && npm run check:wiring && npm run check:hostile && npm run check:a11y && npm run check:seo && npm run check:images"
+    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:tokens && npm run check:copy && npm run check:wiring && npm run check:hostile && npm run check:a11y && npm run check:seo && npm run check:images && npm run check:studio-api && npm run check:studio",
+    "check:studio": "node scripts/check-studio.js",
+    "check:studio-api": "node scripts/check-studio-api.js --static",
+    "studio:schema": "node studio/schema/build-schema.js",
+    "studio:build-edit": "node studio/markers/build-edit.js",
+    "studio:dev": "node studio/dev/server.js",
+    "studio:test": "node scripts/check-studio.js --only unit",
+    "studio:e2e": "node studio/tests/e2e/run.js",
+    "check:studio-e2e": "node studio/e2e/journey.js --quick"
+  },
+  "dependencies": {
+    "js-yaml": "4.3.0"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0",
@@ -27,7 +38,6 @@
     "html-minifier-terser": "^7.2.0",
     "htmlparser2": "7.2.0",
     "image-size": "^1.2.1",
-    "js-yaml": "4.3.0",
     "markdown-it": "14.3.3"
   }
 }

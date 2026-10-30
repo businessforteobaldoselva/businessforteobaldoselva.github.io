@@ -1,5 +1,7 @@
 {#- One editable link from nav.json / footer.json, rendered as <li><a>…</a></li>.
     Expects: item (the link), linkPrefix ("#" in the top bar, "/#" in the footer).
+    Studio (edit builds only): linkRef = data reference of the item ("nav.items.2"), or linkLabelRef = reference of a
+    lone label. Both print nothing in a normal build.
     Optional: linkBare (no <li> wrapper), linkStyle (inline style on the <a>).
     item.type: "section" (jump to a homepage section; hidden while that section
     is switched off), "email" (mailto: the site contact email), anything else is
@@ -7,15 +9,18 @@
 {%- if item.type == "section" -%}
   {%- set linkShown = homepage | sectionEnabled(item.section) -%}
   {%- set linkHref = linkPrefix + item.section -%}
+  {%- set linkHasUrl = false -%}
 {%- elif item.type == "email" -%}
   {%- set linkShown = true -%}
   {%- set linkHref = ("mailto:" + site.contactEmail) | safeUrl -%}
+  {%- set linkHasUrl = false -%}
 {%- else -%}
   {%- set linkShown = true -%}
   {%- set linkHref = item.url | safeUrl -%}
+  {%- set linkHasUrl = true -%}
 {%- endif -%}
 {%- if linkShown -%}
   {%- if not linkBare -%}<li>{%- endif -%}
-  <a href="{{ linkHref }}"{% if item.button %} class="btn btn-primary"{% endif %}{% if linkStyle %} style="{{ linkStyle }}"{% endif %}>{{ item.label }}</a>
+  <a href="{{ linkHref }}"{% if item.button %} class="btn btn-primary"{% endif %}{% if linkStyle %} style="{{ linkStyle }}"{% endif %}{% if linkRef %}{% if linkHasUrl %}{% cms linkRef + ".label", "text", { href: linkRef + ".url" } %}{% else %}{% cms linkRef + ".label", "text" %}{% endif %}{% elif linkLabelRef %}{% cms linkLabelRef, "text" %}{% endif %}>{{ item.label }}</a>
   {%- if not linkBare -%}</li>{%- endif -%}
 {%- endif -%}

@@ -362,7 +362,7 @@ const scenarios = [
     name: "accessibility: missing alt text, a skipped heading and an empty link each fail the gate",
     mutate: (ws) => {
       editJson(ws, "src/_data/venues.json", (j) => (j.photos[0].alt = ""));
-      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title"', '<h6 class="section-title" id="faq-title"'));
       edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
       edit(ws, FAQ_TEMPLATE, (t) => t + '\n<a class="guard-test" href="/empty-link-test/"></a>\n');
     },
@@ -408,7 +408,7 @@ const scenarios = [
     mutate: (ws) => {
       editJson(ws, "src/_data/theme.json", (j) => (j.ink = "#FFF8EC"));
       editJson(ws, "src/_data/faq.json", (j) => (j.title = "Q\n::error file=evil.txt::INJECTED"));
-      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title">', '<h6 class="section-title" id="faq-title">'));
+      edit(ws, FAQ_TEMPLATE, replaceOnce('<h2 class="section-title" id="faq-title"', '<h6 class="section-title" id="faq-title"'));
       edit(ws, FAQ_TEMPLATE, replaceOnce("{{ faq.title }}</h2>", "{{ faq.title }}</h6>"));
     },
     build: true,
@@ -536,6 +536,26 @@ const scenarios = [
         code: 1,
         has: ["images/zero.jpg is not a usable picture", "images/corrupt.jpg is not a usable picture", "images/gps.jpg carries the GPS position", "images/evil.svg is not a safe SVG", "images/linky.svg is not a safe SVG"],
         hasNot: ["images/fine.svg"],
+      });
+    },
+  },
+  {
+    name: "pictures that hide a script in a namespaced element or CSS escape, or a GPS position in a PNG's eXIf chunk",
+    mutate: (ws) => {
+      ws.write("images/ns.svg", '<svg xmlns="http://www.w3.org/2000/svg"><h:script xmlns:h="http://www.w3.org/1999/xhtml">alert(1)</h:script></svg>');
+      ws.write("images/esc.svg", '<svg xmlns="http://www.w3.org/2000/svg"><style>rect{fill:\\75rl(https://evil.example/t.png)}</style></svg>');
+      const png1 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+      const tiff = Buffer.concat([Buffer.from("MM", "latin1"), Buffer.from([0, 0x2a, 0, 0, 0, 8, 0, 1, 0x88, 0x25, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])]);
+      const len = Buffer.alloc(4); len.writeUInt32BE(tiff.length);
+      const chunk = Buffer.concat([len, Buffer.from("eXIf", "latin1"), tiff, Buffer.alloc(4)]);
+      const iend = png1.length - 12;
+      ws.write("images/gps.png", Buffer.concat([png1.subarray(0, iend), chunk, png1.subarray(iend)]));
+    },
+    build: true,
+    run(ws, site) {
+      expectRun("check-images refuses all three", runGuard("images", ws.dir, ["--site", site]), {
+        code: 1,
+        has: ["images/ns.svg is not a safe SVG", "images/esc.svg is not a safe SVG", "images/gps.png carries the GPS position"],
       });
     },
   },
@@ -832,6 +852,24 @@ const scenarios = [
     },
   },
 ];
+
+// ------------------------------------------------------------------ Studio scenarios (phase 4)
+// Each Studio unit adds its own scenarios as a NEW file studio/guards/selftest-<unit>.js:
+//   module.exports = (h) => [ { name, mutate(ws), build: true|false, run(ws, siteDir) }, ... ]
+// h = { edit, replaceOnce, editYaml, expectRun, mark, Workspace, runScript(absScript, root, args, env) }.
+// Append-only by directory: nobody edits this block after the scaffold (see studio/DESIGN.md section 15).
+{
+  const studioGuards = path.join(REPO_ROOT, "studio", "guards");
+  const runScript = (script, root, args, env) => {
+    const r = spawnSync(process.execPath, [script, "--root", root].concat(args || []), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, env: Object.assign({}, process.env, env || {}) });
+    return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
+  };
+  if (fs.existsSync(studioGuards)) {
+    for (const f of fs.readdirSync(studioGuards).filter((n) => /^selftest-.*\.js$/.test(n)).sort()) {
+      scenarios.push(...require(path.join(studioGuards, f))({ edit, replaceOnce, editYaml, expectRun, mark, Workspace, runScript }));
+    }
+  }
+}
 
 // ------------------------------------------------------------------ allow-list hygiene (uses the control build)
 function allowListScenarios(ws, site) {

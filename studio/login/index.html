@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Studio sign-in</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1a1a1a; --muted: #454545; --line: #767676; --accent: #1d4ed8; --accent-fg: #ffffff; --bad: #b42318; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1b1f; --fg: #f2f2f2; --muted: #c9c9ce; --line: #8c8c94; --accent: #8ab4ff; --accent-fg: #0b1b3f; --bad: #ffa49c; } }
+  body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 26rem; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 1.4rem; margin: 0 0 8px; }
+  p, label { display: block; margin: 8px 0; }
+  .hint { color: var(--muted); font-size: .9rem; }
+  input { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; box-sizing: border-box; }
+  button { min-height: 44px; padding: 0 18px; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent); color: var(--accent-fg); font: inherit; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  button.plain { background: transparent; color: var(--fg); border-color: var(--line); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  #status[data-bad="1"] { color: var(--bad); font-weight: 600; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main id="studio-login">
+  <h1>COVERED Studio</h1>
+  <p class="hint">Sign in to edit the website. Nothing you change goes live without a second person publishing it.</p>
+  <p id="status" role="status" aria-live="polite">Loading&hellip;</p>
+  <section id="step-email" hidden>
+    <form id="form-email" novalidate>
+      <label for="email">Your email address</label>
+      <input id="email" type="email" autocomplete="email" inputmode="email" required>
+      <button type="submit">Email me a code</button>
+    </form>
+  </section>
+  <section id="step-code" hidden>
+    <form id="form-code" novalidate>
+      <label for="code">The code from your email</label>
+      <input id="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" maxlength="8" required>
+      <button type="submit">Sign in</button>
+      <button type="button" id="back" class="plain">Use a different email</button>
+    </form>
+  </section>
+  <section id="step-done" hidden><p>Done. You can close this window.</p></section>
+  <section id="step-refused" hidden><p>Open Studio from the website preview, using the Edit button.</p></section>
+  <noscript><p>This page needs JavaScript.</p></noscript>
+</main>
+<script src="login.js"></script>
+</body>
+</html>

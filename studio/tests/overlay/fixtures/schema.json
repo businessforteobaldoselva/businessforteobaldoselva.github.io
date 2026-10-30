@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "configSha256": "fixture-sha",
+  "reservedIds": [
+    "adbar",
+    "bbudget"
+  ],
+  "files": {
+    "hero": {
+      "path": "src/_data/hero.json",
+      "kind": "data",
+      "label": "🏠 Hero (top of page)",
+      "collection": "content",
+      "fields": [
+        {
+          "name": "badge",
+          "label": "Badge text",
+          "widget": "string",
+          "required": true
+        },
+        {
+          "name": "headlineMain",
+          "label": "Headline — main part",
+          "widget": "string",
+          "required": true,
+          "pattern": {
+            "source": "^[^<>]*$",
+            "message": "Please don't use < or > in the headline."
+          }
+        },
+        {
+          "name": "headlineAccent",
+          "label": "Headline — highlighted part",
+          "widget": "string",
+          "required": true
+        },
+        {
+          "name": "subhead",
+          "label": "Subheading",
+          "widget": "text",
+          "required": true,
+          "hint": "The paragraph under the stamp."
+        },
+        {
+          "name": "ctaText",
+          "label": "Button text",
+          "widget": "string",
+          "required": true
+        },
+        {
+          "name": "ctaLink",
+          "label": "Button link",
+          "widget": "string",
+          "required": true,
+          "pattern": {
+            "source": "^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$",
+            "message": "Start with / for a page on this site, https:// for another website, # for a spot on the same page, or mailto: for an email."
+          },
+          "x": {
+            "rule": "url"
+          },
+          "hint": "Where the button goes."
+        }
+      ]
+    },
+    "homepage": {
+      "path": "src/_data/homepage.json",
+      "kind": "data",
+      "label": "Homepage layout",
+      "collection": "content",
+      "fields": [
+        {
+          "name": "sections",
+          "label": "Page sections",
+          "widget": "list",
+          "typeKey": "type",
+          "x": {
+            "list": {
+              "reorder": true,
+              "add": true,
+              "remove": false
+            }
+          },
+          "types": [
+            {
+              "name": "hero",
+              "label": "🎬 Hero",
+              "fields": [
+                {
+                  "name": "enabled",
+                  "label": "Show this section",
+                  "widget": "boolean",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "how",
+              "label": "📱 How it works",
+              "fields": [
+                {
+                  "name": "enabled",
+                  "label": "Show this section",
+                  "widget": "boolean",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "faq",
+              "label": "❓ FAQ",
+              "fields": [
+                {
+                  "name": "enabled",
+                  "label": "Show this section",
+                  "widget": "boolean",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "name": "problem",
+              "label": "📊 The problem",
+              "fields": [
+                {
+                  "name": "enabled",
+                  "label": "Show this section",
+                  "widget": "boolean",
+                  "required": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "how": {
+      "path": "src/_data/how.json",
+      "kind": "data",
+      "label": "How it works",
+      "collection": "content",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Heading",
+          "widget": "string",
+          "required": true
+        },
+        {
+          "name": "story",
+          "label": "Story cards",
+          "widget": "list",
+          "label_singular": "card",
+          "min": 1,
+          "max": 8,
+          "fields": [
+            {
+              "name": "title",
+              "label": "Card title",
+              "widget": "string",
+              "required": true
+            },
+            {
+              "name": "image",
+              "label": "Picture",
+              "widget": "image",
+              "required": true,
+              "pattern": {
+                "source": "^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$",
+                "message": "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg)."
+              },
+              "x": {
+                "rule": "image",
+                "imageStyle": "bare-name"
+              }
+            },
+            {
+              "name": "alt",
+              "label": "Picture description",
+              "widget": "text",
+              "required": false
+            },
+            {
+              "name": "decorative",
+              "label": "Decorative picture",
+              "widget": "boolean",
+              "required": false
+            }
+          ]
+        }
+      ]
+    },
+    "faq": {
+      "path": "src/_data/faq.json",
+      "kind": "data",
+      "label": "FAQ",
+      "collection": "content",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Heading",
+          "widget": "string",
+          "required": true
+        },
+        {
+          "name": "items",
+          "label": "Questions",
+          "widget": "list",
+          "label_singular": "question",
+          "fields": [
+            {
+              "name": "q",
+              "label": "Question",
+              "widget": "string",
+              "required": true
+            },
+            {
+              "name": "a",
+              "label": "Answer",
+              "widget": "text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    "problem": {
+      "path": "src/_data/problem.json",
+      "kind": "data",
+      "label": "The problem",
+      "collection": "content",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Heading (line breaks allowed, e.g. <br />)",
+          "widget": "string",
+          "required": true
+        }
+      ]
+    },
+    "theme": {
+      "path": "src/_data/theme.json",
+      "kind": "data",
+      "label": "Colours & theme",
+      "collection": "content",
+      "fields": [
+        {
+          "name": "paper",
+          "label": "Page background",
+          "widget": "color",
+          "required": false,
+          "x": {
+            "rule": "color"
+          }
+        },
+        {
+          "name": "ink",
+          "label": "Main text & dark sections",
+          "widget": "color",
+          "required": false,
+          "x": {
+            "rule": "color"
+          }
+        }
+      ]
+    },
+    "site": {
+      "path": "src/_data/site.json",
+      "kind": "data",
+      "label": "Site",
+      "collection": "content",
+      "fields": [
+        {
+          "name": "pageTitle",
+          "label": "Page title",
+          "widget": "string",
+          "required": true
+        },
+        {
+          "name": "contactEmail",
+          "label": "Contact email",
+          "widget": "string",
+          "required": true
+        },
+        {
+          "name": "metaDescription",
+          "label": "Search description",
+          "widget": "string",
+          "required": true,
+          "hint": "Shown by search engines (not visible on the page)."
+        }
+      ]
+    }
+  },
+  "pages": {
+    "folder": "src/pages",
+    "label": "Pages",
+    "fields": [
+      {
+        "name": "title",
+        "label": "Page title",
+        "widget": "string",
+        "required": true
+      }
+    ],
+    "body": {
+      "name": "_body",
+      "label": "Page text",
+      "widget": "markdown",
+      "required": true
+    }
+  },
+  "limits": {
+    "string": 20000,
+    "markdown": 60000,
+    "listItems": 200
+  }
+}

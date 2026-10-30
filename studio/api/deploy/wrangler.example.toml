@@ -1,0 +1,19 @@
+# Sample Cloudflare Worker configuration for the Studio API. NOTHING here is deployed or applied by Studio's code.
+# Copy to wrangler.toml (outside the website's scope) and run `wrangler deploy` yourself; see docs/STUDIO-RUNBOOK.md, step 5.
+# Secrets never go in this file: use `wrangler secret put GITHUB_APP_PRIVATE_KEY` (and STUDIO_AUDIT_SALT, SUPABASE_JWT_SECRET if hs256).
+name = "covered-studio-api"
+main = "../adapters/cloudflare.mjs"
+compatibility_date = "2026-01-01"
+# the portable handler uses node:crypto for token checks
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+STUDIO_ENV = "production"
+STUDIO_ALLOWED_ORIGINS = "https://studio.example.com"
+STUDIO_PREVIEW_ORIGIN_TEMPLATE = "https://deploy-preview-{n}--coveredaccess.netlify.app"
+GITHUB_REPO = "owner/name"
+GITHUB_BASE_BRANCH = "main"
+GITHUB_APP_ID = "0"
+GITHUB_APP_INSTALLATION_ID = "0"
+SUPABASE_URL = "https://your-project.supabase.co"
+SUPABASE_ANON_KEY = "public-anon-key"

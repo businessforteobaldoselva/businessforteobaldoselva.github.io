@@ -1,9 +1,9 @@
-    <section{% if block.anchor | safeAnchor %} id="{{ block.anchor | safeAnchor }}"{% endif %}>
+    <section{% if block.anchor | safeAnchor %} id="{{ block.anchor | safeAnchor }}"{% endif %}{% cms blockRef, blockKind %}>
       <div class="container">
-        <div class="cta-banner">
-          <h2>{{ block.title }}</h2>
-          {% if block.text %}<p>{{ block.text }}</p>{% endif %}
-          {% if block.buttonText %}<a class="btn btn-light" href="{{ block.buttonLink | safeUrl }}">{{ block.buttonText }}</a>{% endif %}
+        <div class="cta-banner"{% cms "theme.ink", "color", { cssvar: "--ink" } %}>
+          <h2{% cms blockRef + ".title", "text" %}>{{ block.title }}</h2>
+          {% if block.text %}<p{% cms blockRef + ".text", "longtext" %}>{{ block.text }}</p>{% endif %}
+          {% if block.buttonText %}<a class="btn btn-light" href="{{ block.buttonLink | safeUrl }}"{% cms blockRef + ".buttonText", "text", { href: blockRef + ".buttonLink" } %}>{{ block.buttonText }}</a>{% endif %}
         </div>
       </div>
     </section>

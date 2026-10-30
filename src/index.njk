@@ -98,11 +98,11 @@
 {%- if motion.marquee === false %}{% set motionClasses = motionClasses + " no-marquee" %}{% endif %}
 {%- if motion.conveyor === false %}{% set motionClasses = motionClasses + " no-conveyor" %}{% endif %}
 {%- if motion.scrollProgress === false %}{% set motionClasses = motionClasses + " no-progress" %}{% endif %}
-<body{% if motionClasses %} class="{{ motionClasses | trim }}"{% endif %}>
+<body{% if motionClasses %} class="{{ motionClasses | trim }}"{% endif %}{% cms "theme.paper", "color", { cssvar: "--paper" } %}>
 
   {% include "chrome/skip-link.njk" %}
 
-  <div id="progress" role="presentation"></div>
+  <div id="progress" role="presentation"{% cms "motion.scrollProgress", "toggle" %}></div>
 
   {% include "chrome/nav.njk" %}
 
@@ -122,6 +122,8 @@
       {%- if s.enabled !== false %}
         {%- set sectionData = s %}
         {%- set block = s %}
+        {%- set blockRef = "homepage.sections." + loop.index0 %}
+        {%- set blockKind = "section" %}
         {%- if s.type in builtinSections %}
           {%- if s.type not in renderedBuiltins %}
             {%- set _ = renderedBuiltins.push(s.type) %}

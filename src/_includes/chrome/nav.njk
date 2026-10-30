@@ -13,12 +13,14 @@
       {% set linkPrefix = "#" %}
       <ul class="nav-links" id="navLinks">
         {%- for item in nav.items %}
+        {%- set linkRef = "nav.items." + loop.index0 %}
         {% include "chrome/link-item.njk" %}
         {%- endfor %}
       </ul>
       {% else %}
       <ul class="nav-links nav-links--static">
         {% set item = { "type": "link", "label": nav.backLabel, "url": "/", "button": true } %}
+        {% set linkLabelRef = "nav.backLabel" %}
         {% include "chrome/link-item.njk" %}
       </ul>
       {% endif %}

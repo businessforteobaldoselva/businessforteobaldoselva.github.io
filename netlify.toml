@@ -65,3 +65,9 @@
   for = "/img/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Studio overlay only on pull-request previews. Production never sets CMS_EDIT.
+[context.deploy-preview.environment]
+  CMS_EDIT = "1"
+[context.production.environment]
+  CMS_EDIT = ""
