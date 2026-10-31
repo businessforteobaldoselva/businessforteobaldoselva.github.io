@@ -1,0 +1,965 @@
+{
+  "_about": "Executable form of studio/AI-DESIGN.md sections 5.2-5.7. Hand-written, committed by the architect. CORE keeps it valid (shapes.test.js); UI renders every entry in view-model.test.js. Values are illustrative.",
+  "status": {
+    "enabled": {
+      "enabled": true,
+      "reason": null,
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "vision": true,
+      "modes": [
+        "edit",
+        "alt_text",
+        "meta_description",
+        "tone_check"
+      ],
+      "limits": {
+        "instructionChars": 1000,
+        "feedbackChars": 300,
+        "contextRefs": 5,
+        "maxChanges": 40
+      },
+      "usage": {
+        "requestsToday": 3,
+        "requestsLimit": 150,
+        "yourRequestsToday": 1,
+        "yourRequestsLimit": 60,
+        "resetsAt": "2026-11-01T00:00:00.000Z"
+      }
+    },
+    "disabled": {
+      "enabled": false,
+      "reason": "disabled",
+      "provider": "none",
+      "model": null,
+      "vision": false,
+      "modes": [],
+      "limits": {
+        "instructionChars": 1000,
+        "feedbackChars": 300,
+        "contextRefs": 5,
+        "maxChanges": 40
+      },
+      "usage": {
+        "requestsToday": 0,
+        "requestsLimit": 150,
+        "yourRequestsToday": 0,
+        "yourRequestsLimit": 60,
+        "resetsAt": "2026-11-01T00:00:00.000Z"
+      }
+    },
+    "no_key": {
+      "enabled": false,
+      "reason": "no_key",
+      "provider": "none",
+      "model": null,
+      "vision": false,
+      "modes": [],
+      "limits": {
+        "instructionChars": 1000,
+        "feedbackChars": 300,
+        "contextRefs": 5,
+        "maxChanges": 40
+      },
+      "usage": {
+        "requestsToday": 0,
+        "requestsLimit": 150,
+        "yourRequestsToday": 0,
+        "yourRequestsLimit": 60,
+        "resetsAt": "2026-11-01T00:00:00.000Z"
+      }
+    },
+    "budget_exhausted": {
+      "enabled": false,
+      "reason": "budget_exhausted",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "vision": false,
+      "modes": [],
+      "limits": {
+        "instructionChars": 1000,
+        "feedbackChars": 300,
+        "contextRefs": 5,
+        "maxChanges": 40
+      },
+      "usage": {
+        "requestsToday": 150,
+        "requestsLimit": 150,
+        "yourRequestsToday": 12,
+        "yourRequestsLimit": 60,
+        "resetsAt": "2026-11-01T00:00:00.000Z"
+      }
+    }
+  },
+  "proposeRequest": {
+    "idempotencyKey": "6b1d2c3e-4f50-4a61-8b72-9c8d7e6f5a40",
+    "mode": "edit",
+    "instruction": "make the hero shorter and warmer",
+    "context": {
+      "refs": [
+        "hero.headlineMain"
+      ]
+    }
+  },
+  "proposals": {
+    "patch": {
+      "id": "p_7f3k2m9qxa4d",
+      "kind": "patch",
+      "mode": "edit",
+      "summary": "Shorter, friendlier hero headline.",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "instructionHash": "9f2c1a7be03d44aa",
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "changes": [
+        {
+          "id": "c1",
+          "title": "Shorter headline",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/hero.json",
+              "path": "/headlineMain",
+              "value": "Free period products. Covered.",
+              "expect": "Free period products,"
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/hero.json",
+              "path": "/headlineMain",
+              "ref": "hero.headlineMain",
+              "op": "replace",
+              "kind": "text",
+              "label": "Hero > Headline - main part",
+              "before": {
+                "type": "text",
+                "text": "Free period products,",
+                "truncated": false
+              },
+              "after": {
+                "type": "text",
+                "text": "Free period products. Covered.",
+                "truncated": false
+              },
+              "diff": [
+                {
+                  "t": "same",
+                  "s": "Free period "
+                },
+                {
+                  "t": "del",
+                  "s": "products,"
+                },
+                {
+                  "t": "ins",
+                  "s": "products. Covered."
+                }
+              ]
+            }
+          ],
+          "requires": [],
+          "outsideAsk": false,
+          "sensitive": false,
+          "defaultChecked": true
+        },
+        {
+          "id": "c2",
+          "title": "Friendlier second line",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/hero.json",
+              "path": "/headlineAccent",
+              "value": "paid for by ads, not by you.",
+              "expect": "covered by ads — not women."
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/hero.json",
+              "path": "/headlineAccent",
+              "ref": "hero.headlineAccent",
+              "op": "replace",
+              "kind": "text",
+              "label": "Hero > Headline - highlighted part",
+              "before": {
+                "type": "text",
+                "text": "covered by ads — not women.",
+                "truncated": false
+              },
+              "after": {
+                "type": "text",
+                "text": "paid for by ads, not by you.",
+                "truncated": false
+              },
+              "diff": [
+                {
+                  "t": "del",
+                  "s": "covered"
+                },
+                {
+                  "t": "ins",
+                  "s": "paid"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "by"
+                },
+                {
+                  "t": "ins",
+                  "s": "for"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "ads"
+                },
+                {
+                  "t": "ins",
+                  "s": "by"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "—"
+                },
+                {
+                  "t": "ins",
+                  "s": "ads,"
+                },
+                {
+                  "t": "same",
+                  "s": " not "
+                },
+                {
+                  "t": "del",
+                  "s": "women."
+                },
+                {
+                  "t": "ins",
+                  "s": "by you."
+                }
+              ]
+            }
+          ],
+          "requires": [],
+          "outsideAsk": false,
+          "sensitive": false,
+          "defaultChecked": true
+        }
+      ],
+      "skipped": [],
+      "needsCode": null,
+      "question": null,
+      "findings": [],
+      "warnings": [],
+      "usage": {
+        "inTok": 12840,
+        "outTok": 420,
+        "latencyMs": 3900
+      }
+    },
+    "patchTwoChangesWithDependency": {
+      "id": "p_7f3k2m9qxa4d",
+      "kind": "patch",
+      "mode": "edit",
+      "summary": "Add a venue question to the FAQ.",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "instructionHash": "9f2c1a7be03d44aa",
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "changes": [
+        {
+          "id": "c1",
+          "title": "Add the question",
+          "ops": [
+            {
+              "op": "add",
+              "file": "src/_data/faq.json",
+              "path": "/items/-",
+              "value": {
+                "q": "Can I get a dispenser for my venue?",
+                "a": "Yes. Tell us about your venue and we will get back to you."
+              }
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/faq.json",
+              "path": "/items/-",
+              "ref": null,
+              "op": "add",
+              "kind": "list",
+              "label": "FAQ > Questions > Question 8",
+              "before": null,
+              "after": {
+                "type": "fields",
+                "fields": [
+                  {
+                    "label": "Question",
+                    "text": "Can I get a dispenser for my venue?"
+                  },
+                  {
+                    "label": "Answer",
+                    "text": "Yes. Tell us about your venue and we will get back to you."
+                  }
+                ]
+              },
+              "diff": null
+            }
+          ],
+          "requires": [],
+          "outsideAsk": false,
+          "sensitive": false,
+          "defaultChecked": true
+        },
+        {
+          "id": "c2",
+          "title": "Say how fast we reply",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/faq.json",
+              "path": "/items/7/a",
+              "value": "Yes. Tell us about your venue and we will get back to you within two working days.",
+              "expect": "Yes. Tell us about your venue and we will get back to you."
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/faq.json",
+              "path": "/items/7/a",
+              "ref": "faq.items.7.a",
+              "op": "replace",
+              "kind": "longtext",
+              "label": "FAQ > Questions > Question 8 > Answer",
+              "before": {
+                "type": "text",
+                "text": "Yes. Tell us about your venue and we will get back to you.",
+                "truncated": false
+              },
+              "after": {
+                "type": "text",
+                "text": "Yes. Tell us about your venue and we will get back to you within two working days.",
+                "truncated": false
+              },
+              "diff": [
+                {
+                  "t": "same",
+                  "s": "Yes. Tell us about your venue and we will get back to "
+                },
+                {
+                  "t": "del",
+                  "s": "you."
+                },
+                {
+                  "t": "ins",
+                  "s": "you within two working days."
+                }
+              ]
+            }
+          ],
+          "requires": [
+            "c1"
+          ],
+          "outsideAsk": false,
+          "sensitive": false,
+          "defaultChecked": true
+        }
+      ],
+      "skipped": [],
+      "needsCode": null,
+      "question": null,
+      "findings": [],
+      "warnings": [],
+      "usage": {
+        "inTok": 12840,
+        "outTok": 420,
+        "latencyMs": 3900
+      }
+    },
+    "patchOutside": {
+      "id": "p_7f3k2m9qxa4d",
+      "kind": "patch",
+      "mode": "edit",
+      "summary": "Warmer hero. One extra change was suggested elsewhere.",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "instructionHash": "9f2c1a7be03d44aa",
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "changes": [
+        {
+          "id": "c1",
+          "title": "Warmer headline",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/hero.json",
+              "path": "/headlineMain",
+              "value": "Free period products. Covered.",
+              "expect": "Free period products,"
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/hero.json",
+              "path": "/headlineMain",
+              "ref": "hero.headlineMain",
+              "op": "replace",
+              "kind": "text",
+              "label": "Hero > Headline - main part",
+              "before": {
+                "type": "text",
+                "text": "Free period products,",
+                "truncated": false
+              },
+              "after": {
+                "type": "text",
+                "text": "Free period products. Covered.",
+                "truncated": false
+              },
+              "diff": [
+                {
+                  "t": "same",
+                  "s": "Free period "
+                },
+                {
+                  "t": "del",
+                  "s": "products,"
+                },
+                {
+                  "t": "ins",
+                  "s": "products. Covered."
+                }
+              ]
+            }
+          ],
+          "requires": [],
+          "outsideAsk": false,
+          "sensitive": false,
+          "defaultChecked": true
+        },
+        {
+          "id": "c2",
+          "title": "Change the contact email",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/site.json",
+              "path": "/contactEmail",
+              "value": "hello@example.com",
+              "expect": "hello@coveredaccess.com"
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/site.json",
+              "path": "/contactEmail",
+              "ref": "site.contactEmail",
+              "op": "replace",
+              "kind": "text",
+              "label": "Site-wide > Contact email",
+              "before": {
+                "type": "text",
+                "text": "hello@coveredaccess.com",
+                "truncated": false
+              },
+              "after": {
+                "type": "text",
+                "text": "hello@example.com",
+                "truncated": false
+              },
+              "diff": [
+                {
+                  "t": "del",
+                  "s": "hello@coveredaccess.com"
+                },
+                {
+                  "t": "ins",
+                  "s": "hello@example.com"
+                }
+              ]
+            }
+          ],
+          "requires": [],
+          "outsideAsk": true,
+          "sensitive": true,
+          "defaultChecked": false
+        }
+      ],
+      "skipped": [],
+      "needsCode": null,
+      "question": null,
+      "findings": [],
+      "warnings": [
+        {
+          "code": "injection_suspected",
+          "message": "Some page text looks like instructions to an assistant. It was treated as ordinary text.",
+          "refs": [
+            "faq.items.3.a"
+          ]
+        }
+      ],
+      "usage": {
+        "inTok": 12840,
+        "outTok": 420,
+        "latencyMs": 3900
+      }
+    },
+    "needs_code": {
+      "id": "p_7f3k2m9qxa4d",
+      "kind": "needs_code",
+      "mode": "edit",
+      "summary": "This needs a developer change.",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "instructionHash": "9f2c1a7be03d44aa",
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "changes": [],
+      "skipped": [],
+      "needsCode": {
+        "reason": "Autoplay and parallax change how the page is built, not its words or settings.",
+        "request": {
+          "title": "Make the hero video autoplay with a parallax effect",
+          "body": "The hero video should start playing by itself and move slightly slower than the page when scrolling.",
+          "where": "Hero",
+          "priority": "Whenever"
+        }
+      },
+      "question": null,
+      "findings": [],
+      "warnings": [],
+      "usage": {
+        "inTok": 12840,
+        "outTok": 420,
+        "latencyMs": 3900
+      }
+    },
+    "clarify": {
+      "id": "p_7f3k2m9qxa4d",
+      "kind": "clarify",
+      "mode": "edit",
+      "summary": "Which venue do you mean?",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "instructionHash": "9f2c1a7be03d44aa",
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "changes": [],
+      "skipped": [],
+      "needsCode": null,
+      "question": "The site lists cities, not individual venues. Do you want to mention the venue in the Bristol text?",
+      "findings": [],
+      "warnings": [],
+      "usage": {
+        "inTok": 12840,
+        "outTok": 420,
+        "latencyMs": 3900
+      }
+    },
+    "tone": {
+      "id": "p_7f3k2m9qxa4d",
+      "kind": "tone",
+      "mode": "tone_check",
+      "summary": "One line sounds like an advert.",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "instructionHash": "9f2c1a7be03d44aa",
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "changes": [
+        {
+          "id": "c1",
+          "title": "Calmer vision heading",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/vision.json",
+              "path": "/title",
+              "value": "Period care that is already paid for.",
+              "expect": "Unlock the future of period care today!"
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/vision.json",
+              "path": "/title",
+              "ref": "vision.title",
+              "op": "replace",
+              "kind": "text",
+              "label": "Vision > Heading",
+              "before": {
+                "type": "text",
+                "text": "Unlock the future of period care today!",
+                "truncated": false
+              },
+              "after": {
+                "type": "text",
+                "text": "Period care that is already paid for.",
+                "truncated": false
+              },
+              "diff": [
+                {
+                  "t": "del",
+                  "s": "Unlock"
+                },
+                {
+                  "t": "ins",
+                  "s": "Period"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "the"
+                },
+                {
+                  "t": "ins",
+                  "s": "care"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "future"
+                },
+                {
+                  "t": "ins",
+                  "s": "that"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "of"
+                },
+                {
+                  "t": "ins",
+                  "s": "is"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "period"
+                },
+                {
+                  "t": "ins",
+                  "s": "already"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "care"
+                },
+                {
+                  "t": "ins",
+                  "s": "paid"
+                },
+                {
+                  "t": "same",
+                  "s": " "
+                },
+                {
+                  "t": "del",
+                  "s": "today!"
+                },
+                {
+                  "t": "ins",
+                  "s": "for."
+                }
+              ]
+            }
+          ],
+          "requires": [],
+          "outsideAsk": false,
+          "sensitive": false,
+          "defaultChecked": true
+        }
+      ],
+      "skipped": [],
+      "needsCode": null,
+      "question": null,
+      "findings": [
+        {
+          "id": "f1",
+          "ref": "vision.title",
+          "label": "Vision > Heading",
+          "quote": "Unlock the future",
+          "issue": "Hype wording. COVERED states things plainly.",
+          "suggestion": "Period care that is already paid for.",
+          "changeId": "c1"
+        }
+      ],
+      "warnings": [],
+      "usage": {
+        "inTok": 12840,
+        "outTok": 420,
+        "latencyMs": 3900
+      }
+    },
+    "alt": {
+      "id": "p_7f3k2m9qxa4d",
+      "kind": "patch",
+      "mode": "alt_text",
+      "summary": "Picture description for step 1.",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "instructionHash": "9f2c1a7be03d44aa",
+      "model": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "changes": [
+        {
+          "id": "c1",
+          "title": "Describe the picture",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/how.json",
+              "path": "/story/0/alt",
+              "value": "A COVERED dispenser wall-mounted in a tiled bathroom, with a hand taking a pad from the tray.",
+              "expect": ""
+            }
+          ],
+          "deltas": [
+            {
+              "file": "src/_data/how.json",
+              "path": "/story/0/alt",
+              "ref": "how.story.0.alt",
+              "op": "replace",
+              "kind": "text",
+              "label": "How it works > Story step 1 > Picture description",
+              "before": {
+                "type": "text",
+                "text": "",
+                "truncated": false
+              },
+              "after": {
+                "type": "text",
+                "text": "A COVERED dispenser wall-mounted in a tiled bathroom, with a hand taking a pad from the tray.",
+                "truncated": false
+              },
+              "diff": [
+                {
+                  "t": "ins",
+                  "s": "A COVERED dispenser wall-mounted in a tiled bathroom, with a hand taking a pad from the tray."
+                }
+              ]
+            }
+          ],
+          "requires": [],
+          "outsideAsk": false,
+          "sensitive": false,
+          "defaultChecked": true
+        }
+      ],
+      "skipped": [],
+      "needsCode": null,
+      "question": null,
+      "findings": [],
+      "warnings": [],
+      "usage": {
+        "inTok": 12840,
+        "outTok": 420,
+        "latencyMs": 3900
+      }
+    }
+  },
+  "acceptRequest": {
+    "idempotencyKey": "0c9b8a77-1d2e-4f3a-9b4c-5d6e7f8091a2",
+    "proposal": {
+      "id": "p_7f3k2m9qxa4d",
+      "instructionHash": "9f2c1a7be03d44aa",
+      "instructionPreview": "make the hero shorter and warmer",
+      "base": {
+        "sha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+        "draftId": null,
+        "headSha": null
+      },
+      "model": "claude-sonnet-5-5",
+      "changes": [
+        {
+          "id": "c1",
+          "title": "Shorter headline",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/hero.json",
+              "path": "/headlineMain",
+              "value": "Free period products. Covered.",
+              "expect": "Free period products,"
+            }
+          ]
+        },
+        {
+          "id": "c2",
+          "title": "Friendlier second line",
+          "ops": [
+            {
+              "op": "replace",
+              "file": "src/_data/hero.json",
+              "path": "/headlineAccent",
+              "value": "paid for by ads, not by you.",
+              "expect": "covered by ads — not women."
+            }
+          ]
+        }
+      ]
+    },
+    "accept": [
+      "c1"
+    ],
+    "title": "Warmer hero"
+  },
+  "acceptResponse": {
+    "draft": {
+      "id": "u7k2m9qa--warmer-hero",
+      "number": 57,
+      "url": "https://github.com/example/site/pull/57",
+      "previewUrl": null,
+      "title": "Warmer hero",
+      "state": "draft",
+      "branch": "studio/u7k2m9qa/warmer-hero",
+      "headSha": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+      "baseSha": "3f9c2a7be0d44aa1c5e6f7081928374655647382",
+      "behindMain": false,
+      "mergeable": null,
+      "author": {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "name": "Molly"
+      },
+      "createdAt": "2026-10-31T10:00:00.000Z",
+      "updatedAt": "2026-10-31T10:00:00.000Z",
+      "checks": {
+        "state": "pending",
+        "failing": []
+      },
+      "canPublish": false,
+      "isMine": true
+    },
+    "changes": [
+      {
+        "file": "src/_data/hero.json",
+        "path": "/headlineMain",
+        "op": "replace",
+        "label": "Hero > Headline - main part",
+        "summary": "Changed the text from “Free period products,” to “Free period products. Covered.”",
+        "kind": "text"
+      }
+    ],
+    "replayed": false,
+    "warnings": [],
+    "ai": {
+      "proposalId": "p_7f3k2m9qxa4d",
+      "accepted": 1,
+      "total": 2
+    }
+  },
+  "errors": {
+    "ai_disabled": {
+      "error": {
+        "code": "ai_disabled",
+        "message": "AI help is switched off.",
+        "details": {}
+      },
+      "requestId": "11111111-2222-4333-8444-555555555555"
+    },
+    "ai_budget_exhausted": {
+      "error": {
+        "code": "ai_budget_exhausted",
+        "message": "Today's AI allowance is used up.",
+        "details": {
+          "resetsAt": "2026-11-01T00:00:00.000Z"
+        }
+      },
+      "requestId": "11111111-2222-4333-8444-555555555555"
+    },
+    "ai_unavailable": {
+      "error": {
+        "code": "ai_unavailable",
+        "message": "The AI service did not answer.",
+        "details": {}
+      },
+      "requestId": "11111111-2222-4333-8444-555555555555"
+    },
+    "ai_bad_output": {
+      "error": {
+        "code": "ai_bad_output",
+        "message": "The AI gave an answer Studio could not safely use. Nothing was changed.",
+        "details": {
+          "violations": [
+            {
+              "code": "path_outside_allowlist",
+              "where": "ops/1"
+            }
+          ]
+        }
+      },
+      "requestId": "11111111-2222-4333-8444-555555555555"
+    },
+    "selection_incomplete": {
+      "error": {
+        "code": "validation_failed",
+        "message": "Some changes cannot be saved. Nothing was saved.",
+        "details": {
+          "problems": [
+            {
+              "code": "type",
+              "file": "",
+              "path": "/accept",
+              "message": "Change 2 also needs change 1."
+            }
+          ]
+        }
+      },
+      "requestId": "11111111-2222-4333-8444-555555555555"
+    }
+  }
+}
