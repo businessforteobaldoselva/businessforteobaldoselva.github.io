@@ -39,7 +39,7 @@ const BANNED_TAGS = new Set(["script", "style", "iframe", "link", "object", "emb
 const LITERAL_TAGS = new Set(["div", "canvas", "br", "span", "a", "input"]);
 const OK_HOSTS = /^(localhost|127\.0\.0\.1|(www\.)?example\.(com|test|org)|[a-z0-9-]+\.test|github\.test)$/i;
 const CDN = /(cdn|unpkg|jsdelivr|cdnjs|googleapis|gstatic|jquery|bootstrapcdn|fontawesome|cloudflare|polyfill)/i;
-const BUDGET = { scriptsKiB: 300, cssKiB: 40 }; // 260 before the History/palette/tour/help modules (unit D, ~65 KiB) were bundled
+const BUDGET = { scriptsKiB: 330, cssKiB: 48 }; // 260 before History/palette/tour/help (unit D, ~65 KiB); Phase 5 "Describe a change" panel (AI-DESIGN 1.2, at most 330 / 48)
 
 const problems = [];
 const warn = (file, line, msg) => problems.push(file + (line ? ":" + line : "") + "  " + msg);

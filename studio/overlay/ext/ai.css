@@ -1,0 +1,135 @@
+/* Studio "Describe a change" panel (studio/AI-DESIGN.md 14). Lives inside the overlay's shadow root.
+   Own fixed colours (light and dark); every text/background pair is checked by studio/guards/check-ai-overlay.js with
+   cms/contrast.js. Bidirectional text (Welsh, Arabic, Hebrew...) is handled with unicode-bidi: plaintext, not markup. */
+.csx-ai {
+  --csx-bg: #ffffff;
+  --csx-fg: #1d2a24;
+  --csx-muted: #4a5a52;
+  --csx-line: #cfd8d3;
+  --csx-edge: #66756d;
+  --csx-accent: #1f5c43;
+  --csx-accent-fg: #ffffff;
+  --csx-soft: #eef3f0;
+  --csx-danger: #a12020;
+  --csx-danger-bg: #fdf0ef;
+  --csx-focus: #0b57d0;
+  --csx-ins-bg: #d6f0e1;
+  --csx-del-bg: #f9d9d9;
+  --csx-warn-fg: #5c3a00;
+  --csx-warn-bg: #fff3d6;
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--csx-fg);
+  container-type: inline-size;
+  padding: 4px 2px 16px;
+}
+@media (prefers-color-scheme: dark) {
+  .csx-ai {
+    --csx-bg: #17201b;
+    --csx-fg: #e9f0ec;
+    --csx-muted: #b2c2b9;
+    --csx-line: #35453c;
+    --csx-edge: #8da096;
+    --csx-accent: #8fd3b0;
+    --csx-accent-fg: #0f1a14;
+    --csx-soft: #22302a;
+    --csx-danger: #ff9d9d;
+    --csx-danger-bg: #381a1a;
+    --csx-focus: #8ab4ff;
+    --csx-ins-bg: #1d4a33;
+    --csx-del-bg: #5a2828;
+    --csx-warn-fg: #ffd89a;
+    --csx-warn-bg: #3a2b0a;
+  }
+}
+
+.csx-ai-h { margin: 0 0 6px; font-size: 16px; line-height: 1.3; }
+.csx-ai-h:focus { outline: none; }
+.csx-ai-h:focus-visible { outline: 3px solid var(--csx-focus); outline-offset: 2px; }
+.csx-ai-p, .csx-intro, .csx-ai-summary, .csx-ai-question, .csx-ai-issue, .csx-ai-suggest { margin: 0 0 10px; overflow-wrap: anywhere; }
+.csx-ai-summary, .csx-ai-question { font-weight: 600; }
+.csx-ai .csx-muted { color: var(--csx-muted); font-size: 13px; margin: 0 0 8px; overflow-wrap: anywhere; }
+.csx-ai-lab { display: block; margin: 10px 0 4px; font-weight: 600; }
+.csx-ai label { overflow-wrap: anywhere; }
+
+.csx-ai textarea { display: block; width: 100%; box-sizing: border-box; font: inherit; color: var(--csx-fg); background: var(--csx-bg); border: 1px solid var(--csx-edge); border-radius: 8px; padding: 8px 10px; resize: vertical; unicode-bidi: plaintext; }
+.csx-ai textarea[readonly] { background: var(--csx-soft); }
+.csx-ai textarea:focus-visible, .csx-ai input[type="checkbox"]:focus-visible { outline: 3px solid var(--csx-focus); outline-offset: 2px; }
+.csx-ai input[type="checkbox"] { width: 18px; height: 18px; margin: 0 6px 0 0; accent-color: var(--csx-accent); flex: none; }
+.csx-ai-counter { text-align: right; }
+
+.csx-ai .csx-btn { font: inherit; font-weight: 600; cursor: pointer; border: 1px solid var(--csx-accent); background: var(--csx-accent); color: var(--csx-accent-fg); border-radius: 8px; padding: 7px 14px; min-height: 36px; }
+.csx-ai .csx-btn:disabled { opacity: .55; cursor: default; }
+.csx-ai .csx-btn-quiet { background: transparent; color: var(--csx-accent); }
+.csx-ai .csx-link { font: inherit; background: none; border: 0; padding: 0; color: var(--csx-accent); text-decoration: underline; cursor: pointer; }
+.csx-ai .csx-btn:focus-visible, .csx-ai .csx-link:focus-visible, .csx-ai-mode:focus-visible, .csx-ai-ex:focus-visible, .csx-ai-x:focus-visible, .csx-ai-link:focus-visible, .csx-ai a:focus-visible { outline: 3px solid var(--csx-focus); outline-offset: 2px; }
+.csx-ai-big { min-height: 40px; }
+.csx-ai a.csx-btn { display: inline-flex; align-items: center; text-decoration: none; }
+.csx-ai-footbtns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+
+/* modes, chips, examples */
+.csx-ai-modes { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.csx-ai-mode, .csx-ai-ex { font: inherit; cursor: pointer; border: 1px solid var(--csx-edge); background: var(--csx-bg); color: var(--csx-fg); border-radius: 99px; padding: 4px 12px; min-height: 32px; }
+.csx-ai-mode[aria-pressed="true"] { background: var(--csx-accent); color: var(--csx-accent-fg); border-color: var(--csx-accent); font-weight: 650; }
+.csx-ai-ex { font-size: 13px; padding: 3px 10px; text-align: left; }
+.csx-ai-examples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0; }
+.csx-ai-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0; }
+.csx-ai-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--csx-soft); border: 1px solid var(--csx-line); border-radius: 99px; padding: 2px 4px 2px 10px; max-width: 100%; overflow-wrap: anywhere; unicode-bidi: plaintext; }
+.csx-ai-x { font: inherit; cursor: pointer; background: transparent; border: 0; color: var(--csx-fg); border-radius: 99px; min-width: 28px; min-height: 28px; }
+.csx-ai-scope { display: flex; align-items: flex-start; margin: 8px 0; }
+
+/* cards */
+.csx-ai-card { border: 1px solid var(--csx-line); border-radius: 10px; padding: 10px 12px; margin: 0 0 10px; background: var(--csx-bg); }
+.csx-ai-card-bad { border-color: var(--csx-danger); background: var(--csx-danger-bg); }
+.csx-ai-card:focus { outline: none; }
+.csx-ai-card:focus-visible { outline: 3px solid var(--csx-focus); outline-offset: 2px; }
+.csx-ai-check { display: flex; align-items: flex-start; gap: 4px; cursor: pointer; }
+.csx-ai-check strong { font-weight: 650; unicode-bidi: plaintext; }
+.csx-ai-incl { color: var(--csx-muted); font-size: 13px; }
+.csx-ai-flag { margin: 6px 0; padding: 6px 8px; border-radius: 8px; background: var(--csx-warn-bg); color: var(--csx-warn-fg); font-size: 13px; }
+.csx-ai-badge { display: inline-block; padding: 1px 8px; border-radius: 99px; border: 1px solid currentColor; font-weight: 700; font-size: 12px; margin-right: 4px; }
+.csx-ai-needs { margin: 4px 0 6px; }
+.csx-ai-delta { margin: 8px 0 4px; }
+.csx-ai-label { margin: 0 0 4px; font-size: 13px; font-weight: 650; color: var(--csx-muted); unicode-bidi: plaintext; overflow-wrap: anywhere; }
+.csx-ai-sides { display: grid; grid-template-columns: 1fr; gap: 6px; }
+@container (min-width: 560px) { .csx-ai-sides { grid-template-columns: 1fr 1fr; } }
+.csx-ai-side { border: 1px solid var(--csx-line); border-radius: 8px; padding: 6px 8px; min-width: 0; background: var(--csx-bg); }
+.csx-ai-after { border-color: var(--csx-edge); }
+.csx-ai-sidehead { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--csx-muted); }
+.csx-ai-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; unicode-bidi: plaintext; max-height: 16em; overflow: auto; }
+.csx-ai-ins { background: var(--csx-ins-bg); text-decoration: underline; text-decoration-thickness: 2px; }
+.csx-ai-del { background: var(--csx-del-bg); text-decoration: line-through; text-decoration-thickness: 2px; }
+.csx-ai-fields { margin: 0; padding-left: 18px; overflow-wrap: anywhere; }
+.csx-ai-linktext { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+.csx-ai-show { margin-top: 4px; }
+.csx-ai-probs { margin: 6px 0 0; padding-left: 18px; color: var(--csx-danger); }
+
+/* footer, notes, errors */
+.csx-ai-foot { margin-top: 10px; border-top: 1px solid var(--csx-line); padding-top: 8px; }
+.csx-ai-count { margin: 0 0 2px; font-weight: 650; }
+.csx-ai-note { border: 1px solid var(--csx-line); border-radius: 8px; padding: 8px 10px; margin: 8px 0; background: var(--csx-soft); overflow-wrap: anywhere; }
+.csx-ai-warnbox { background: var(--csx-warn-bg); color: var(--csx-warn-fg); border-color: currentColor; }
+.csx-ai-warnbox .csx-muted { color: inherit; }
+.csx-ai .csx-error { border: 1px solid var(--csx-danger); color: var(--csx-danger); background: var(--csx-danger-bg); border-radius: 10px; padding: 8px 12px; margin: 8px 0; }
+.csx-ai .csx-error p { margin: 2px 0; }
+.csx-ai-ref { color: inherit; opacity: .9; }
+.csx-ai-retry { margin-top: 8px; }
+.csx-ai-skipped { margin: 10px 0; }
+.csx-ai-skipped ul { margin: 0; padding-left: 18px; overflow-wrap: anywhere; }
+.csx-ai-verdict { margin: 0 0 10px; }
+.csx-ai-finding { border-top: 1px solid var(--csx-line); padding-top: 8px; margin-top: 8px; }
+.csx-ai-quote { margin: 4px 0; padding: 4px 10px; border-left: 4px solid var(--csx-edge); background: var(--csx-soft); font-style: italic; overflow-wrap: anywhere; unicode-bidi: plaintext; }
+.csx-ai-reqfield { margin: 8px 0; }
+.csx-ai-reqfield label { display: block; font-weight: 600; margin-bottom: 2px; }
+.csx-ai-links { margin: 8px 0; }
+
+@media (pointer: coarse), (max-width: 759px) {
+  .csx-ai .csx-btn, .csx-ai .csx-link, .csx-ai-mode, .csx-ai-ex, .csx-ai-x { min-height: 44px; min-width: 44px; }
+  .csx-ai input[type="checkbox"] { width: 44px; height: 44px; margin: 0; }
+  .csx-ai-check { min-height: 44px; align-items: center; }
+  .csx-ai .csx-link { display: inline-flex; align-items: center; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .csx-ai * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* The dock holds seven buttons on a 390 px phone and no more. Below 460 px the panel is opened from the Changes panel
+   ("Or describe a change in words") or the command palette instead of a dock button of its own. */
+@media (max-width: 459px) { .dock-btn[data-panel-id="ai"] { display: none; } }
