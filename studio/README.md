@@ -72,6 +72,51 @@ Recorded here because DESIGN.md must not be edited during the build.
 * The only "Restore" gate in the overlay is role (editor, approver, admin) and the server's `restorable` flag; the server enforces both again.
 * Commands registered by `ext/history.js` onward are captured by wrapping `ui.registerCommand`; see item 3 above.
 
+## Phase 5 (UI): "Describe a change"
+
+The AI panel in the overlay (`studio/AI-DESIGN.md` section 14). It is a client of three routes that the CORE unit builds
+(`GET /v1/ai/status`, `POST /v1/ai/propose`, `POST /v1/ai/accept`). Asking for a suggestion writes nothing; saving it goes through
+the same server pipeline as a hand-made patch.
+
+Owns (nothing else was touched except where noted in `studio/NOTES-ai-ui.md`):
+
+| file | what |
+|---|---|
+| `studio/overlay/ext/ai-view.js` | PURE view model: one reducer (signedOut, loadingStatus, off, idle, working, result, saving, saved, error), default ticks, closure toggling, fixed plain-English copy, error code to copy, Delta to render plan, request bodies. No DOM, no network, no timers. Tested under node. |
+| `studio/overlay/ext/ai.js` | the panel `ai` and four palette commands. Text nodes only (`h()` children), every server call through `studio.api`. |
+| `studio/overlay/ext/ai.css` | styles inside the shadow root (own tokens, light and dark, contrast checked) |
+| `studio/overlay/dev/ai-demo.js` | the deterministic demo and test double of the three routes (not the real validator) |
+| `studio/guards/check-ai-overlay.js`, `selftest-ai-ui.js` | the guard and 20 selftest expectations (each guard rule is broken on purpose) |
+| `studio/tests/ai-ui/` | view-model, panel-flow, a11y-dom, no-html, abuse and real-browser tests, plus `harness/` (a tiny DOM, a host stub, a fake of the routes built from `tests/fixtures/ai-proposals.sample.json`) |
+
+Run it:
+
+```
+node studio/overlay/dev/stub-server.js --ai     # fixture page + API stub + the AI demo: http://127.0.0.1:8080/?studio=1, sign in as Molly
+npm run studio:test                              # all guards and unit tests (includes studio/tests/ai-ui)
+node scripts/selftest.js --only "studio AI UI"  # break each guard rule on purpose and watch it fail
+STUDIO_PUPPETEER=<path to puppeteer-core> node --test studio/tests/ai-ui/browser.test.js   # real Chrome, keyboard only
+```
+
+In the demo, instruction keywords pick a canned scenario: plain text gives a three-change hero edit; "contact email" adds a
+flagged change; "faq ... add" gives two dependent changes; "translate / welsh" gives the FAQ in Welsh; "code / font / autoplay"
+gives the needs-code card; "make it better" gives a question. The Alt text, Meta description and Tone check tabs have scenarios too.
+Test hooks: `stub.ai.status = "disabled" | "no_key" | "budget_exhausted"`, `stub.ai.next = <proposal>` (returned once), `stub.ai.delayMs`.
+Once the CORE unit is merged the same panel talks to the real service: `STUDIO_AI_ENABLED=1 STUDIO_AI_PROVIDER=replay STUDIO_DEV=1 npm run studio:dev`.
+
+What the panel guarantees (and the tests prove):
+
+* The person sees BEFORE and AFTER for every change, with a non-colour cue (underline, strikethrough, and "[added]" / "[removed]" for screen readers). The BEFORE text comes from the server, never from the model.
+* Changes flagged "outside what you asked about" or "changes where visitors go" start unticked, whatever the server says. Ticking a change ticks what it needs; unticking it unticks what needs it.
+* Save sends exactly `{idempotencyKey, proposal:{id, instructionHash, instructionPreview, base, model, changes:[{id,title,ops}]}, accept:[ids], title}`. The ops go back exactly as received.
+* Every string from the model or the server reaches the page as a text node: the test DOM throws on `innerHTML`, 12 hostile payloads (markup, script, `javascript:` links, forged envelope tags, bidi overrides, control characters, template syntax, `__proto__`, emoji) are put into every text field of every kind of proposal, and megabyte-sized strings and thousands of changes are cut.
+* Errors show fixed copy and never the server's words. The kill switch and the daily allowance end in a plain "AI help is switched off" screen; the rest of Studio keeps working.
+* "This needs a developer change" never writes anything: it drafts a request with Copy and an Open Ask Claude link.
+
+## Deviations (UI, Phase 5)
+
+See `studio/NOTES-ai-ui.md`.
+
 ## Journey (end-to-end, on this machine)
 
 `npm run check:studio-e2e` (full: `node studio/e2e/journey.js`) plays the whole product once, loopback only:
