@@ -426,7 +426,7 @@
       case "rate_limited": {
         var n = Number(err.retryAfter) || Number(err.details && err.details.retryAfter) || 30;
         n = Math.max(1, Math.min(3600, Math.round(n)));
-        info.message = n > 120 ? COPY.rate_limited_min.replace("{n}", String(Math.ceil(n / 60))) : COPY.rate_limited.replace("{n}", String(n));
+        info.message = n > 120 ? COPY.rate_limited_min.replace("{n}", String(Math.ceil(n / 60))) : n === 1 ? COPY.rate_limited.replace("{n} seconds", "1 second") : COPY.rate_limited.replace("{n}", String(n));
         info.actions = ["retry", "back"];
         break;
       }
@@ -549,7 +549,7 @@
         return n;
       }
       case "cancel": if (n.phase === "working") { n.phase = "idle"; n.error = null; n.note = COPY.cancelled; } return n;
-      case "discard": n.phase = n.status && n.status.enabled ? "idle" : "off"; n.proposal = null; n.view = null; n.checked = {}; n.error = null; n.problems = null; n.retryOf = null; n.note = ""; return n;
+      case "discard": if (n.phase === "saving" || n.phase === "working") return n; n.phase = n.status && n.status.enabled ? "idle" : "off"; n.proposal = null; n.view = null; n.checked = {}; n.error = null; n.problems = null; n.retryOf = null; n.note = ""; return n;
       case "toggle": {
         if (n.phase !== "result" || !n.view) return n;
         var r = toggle(n.view.changes, n.checked, a.id, !!a.on);
