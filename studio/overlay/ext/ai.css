@@ -83,7 +83,8 @@
 .csx-ai-card:focus { outline: none; }
 .csx-ai-card:focus-visible { outline: 3px solid var(--csx-focus); outline-offset: 2px; }
 .csx-ai-check { display: flex; align-items: flex-start; gap: 4px; cursor: pointer; }
-.csx-ai-check strong { font-weight: 650; unicode-bidi: plaintext; }
+.csx-ai-check strong { font-weight: 650; unicode-bidi: plaintext; flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; } /* a long unbroken title wraps instead of squeezing the word Include */
+.csx-ai-incl { flex: none; white-space: nowrap; }
 .csx-ai-incl { color: var(--csx-muted); font-size: 13px; }
 .csx-ai-flag { margin: 6px 0; padding: 6px 8px; border-radius: 8px; background: var(--csx-warn-bg); color: var(--csx-warn-fg); font-size: 13px; }
 .csx-ai-badge { display: inline-block; padding: 1px 8px; border-radius: 99px; border: 1px solid currentColor; font-weight: 700; font-size: 12px; margin-right: 4px; }

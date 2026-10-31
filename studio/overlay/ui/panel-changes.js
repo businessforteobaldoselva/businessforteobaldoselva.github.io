@@ -144,7 +144,7 @@
       }, function (err) {
         if (err.code === "client_invalid" || err.code === "empty") studio.ui.toast(err.userMessage, { kind: "error" });
         else if (err.code === "unauthorized") { studio.ui.toast(err.userMessage, { kind: "error" }); studio.ui.openPanel("account"); }
-        else if (err.code === "rate_limited") studio.ui.toast("Too many saves in a row. Try again in " + (err.retryAfter || 30) + " seconds.", { kind: "error" });
+        else if (err.code === "rate_limited") studio.ui.toast("Too many saves in a row. Try again in " + ((err.details && err.details.retryAfterSec) || err.retryAfter || 30) + " seconds.", { kind: "error" });
         else if (err.code !== "offline") studio.ui.toast(err.userMessage || err.message, { kind: "error" });
         paint();
       });

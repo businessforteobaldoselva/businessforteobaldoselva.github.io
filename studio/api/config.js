@@ -58,6 +58,11 @@ function loadConfig(env) {
   const preview = e.STUDIO_PREVIEW_URL_TEMPLATE || "";
   if (preview && (!/^https?:\/\/[^\s]*\{pr\}[^\s]*$/.test(preview) || (!preview.startsWith("https://") && !LOCAL_ORIGIN.test(preview.replace(/^(http:\/\/[^/]+).*$/, "$1"))))) throw new ConfigError("STUDIO_PREVIEW_URL_TEMPLATE must be an https URL containing {pr}");
 
+  // with AI help on, the audit trail holds a hash of each instruction; without a secret salt that hash is a plain SHA-256 and short
+  // instructions can be guessed from it
+  const aiCfg = loadAiConfig(e);
+  if (production && aiCfg.enabled && !e.STUDIO_AUDIT_SALT) throw new ConfigError("STUDIO_AUDIT_SALT is required when AI help is switched on (it keeps instruction hashes in the log from being guessed)");
+
   return {
     env: studioEnv,
     production,
@@ -75,7 +80,7 @@ function loadConfig(env) {
     baseBranch: e.GITHUB_BASE_BRANCH || "main",
     github: m ? { owner: m[1], repo: m[2], appId: e.GITHUB_APP_ID || "", installationId: e.GITHUB_APP_INSTALLATION_ID || "" } : null,
     supabase: { url: e.SUPABASE_URL || "", anonKey: e.SUPABASE_ANON_KEY || "", jwtMode },
-    ai: loadAiConfig(e), // plain numbers and flags only: the AI key is never part of the configuration
+    ai: aiCfg, // plain numbers and flags only: the AI key is never part of the configuration
   };
 }
 

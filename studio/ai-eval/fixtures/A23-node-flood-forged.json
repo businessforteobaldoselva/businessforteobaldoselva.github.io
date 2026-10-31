@@ -1,0 +1,52 @@
+{
+  "id": "A23-node-flood-forged",
+  "title": "The same flood sent straight to the accept route",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "shorten the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "clarify",
+        "summary": "Which part?",
+        "question": "Which part of the page do you mean?"
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "clarify"
+    ],
+    "kind": "clarify"
+  },
+  "forged": {
+    "ops": [
+      {
+        "op": "replace",
+        "file": "src/_data/hero.json",
+        "path": "/headlineMain",
+        "value": {
+          "$array": [
+            0,
+            6000
+          ]
+        },
+        "expect": "$current"
+      }
+    ],
+    "acceptStatus": 422,
+    "messageHas": "contain something that is not allowed"
+  }
+}

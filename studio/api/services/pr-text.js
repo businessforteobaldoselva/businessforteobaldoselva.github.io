@@ -47,7 +47,23 @@ function studioLink(u) {
 
 // "Drafted with AI": the asked-for change (a short escaped preview the requester chose to save), how many suggestions were
 // kept, and the model. Never the key, never more than 200 characters of the instruction.
-function aiSection(ai) {
+// a hand edit of an AI draft must not erase where the first changes came from: the old section is carried over, line by line, only
+// when every line still has the exact shape aiSection wrote (already escaped, so no angle brackets, links or mentions can pass)
+function carryAi(body) {
+  const lines = String(body || "").replace(/\r/g, "").split("\n");
+  const at = lines.indexOf("### Drafted with AI");
+  if (at < 0) return null;
+  const keep = [];
+  for (let i = at + 1; i < lines.length && lines[i] !== "" && lines[i].indexOf("<!--") !== 0 && keep.length < 3; i += 1) {
+    const l = lines[i];
+    const shaped = l.indexOf("Asked: ") === 0 || /^Kept \d+ of \d+ suggestions\. Model: /.test(l) || l.indexOf("A person chose ") === 0;
+    if (shaped && l.length <= 400 && !/[<>]/.test(l) && l.indexOf("](") < 0 && l.indexOf("://") < 0 && !/@(?!​)/.test(l)) keep.push(l);
+  }
+  return keep.length ? keep : null;
+}
+
+function aiSection(ai, carry) {
+  if (!ai && carry && carry.length) return ["### Drafted with AI"].concat(carry, ["Edited by hand afterwards.", ""]);
   if (!ai) return [];
   return [
     "### Drafted with AI",
@@ -58,7 +74,7 @@ function aiSection(ai) {
   ];
 }
 
-function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, filesCount, revertOf, ai }) {
+function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, filesCount, revertOf, ai, aiCarry }) {
   const list = (changes || []).slice(0, 80);
   const lines = list.map((c) => "- " + md(c.label, 100) + ": " + lowerFirst(md(c.summary, 200)));
   if ((changes || []).length > list.length) lines.push("- ...and " + (changes.length - list.length) + " more");
@@ -78,7 +94,7 @@ function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, 
     "### Checks",
     "The site build and all guards must be green before this can be published.",
     "",
-  ].concat(aiSection(ai)).concat(["<!-- studio:v1 " + JSON.stringify(marker) + " -->"]).join("\n");
+  ].concat(aiSection(ai, aiCarry)).concat(["<!-- studio:v1 " + JSON.stringify(marker) + " -->"]).join("\n");
   return body.length > 20000 ? body.slice(0, 19000).replace(/\n[^\n]*$/, "") + "\n\n<!-- studio:v1 " + JSON.stringify(marker) + " -->" : body;
 }
 
@@ -100,4 +116,4 @@ function parseMarker(body) {
   return o;
 }
 
-module.exports = { plain, neutral, oneLine, md, prTitle, commitMessage, prBody, parseMarker, firstName };
+module.exports = { carryAi, plain, neutral, oneLine, md, prTitle, commitMessage, prBody, parseMarker, firstName };

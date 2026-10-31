@@ -65,3 +65,11 @@ test("AI help is off for a deployment that sets nothing: loadConfig stays valid 
   const s = await k.call("editor", "GET", "/v1/ai/status");
   assert.deepEqual([s.json.enabled, s.json.reason], [false, "no_key"]);
 });
+
+test("in production, AI help needs a secret audit salt (instruction hashes must not be guessable)", () => {
+  const prod = { STUDIO_ENV: "production", GITHUB_REPO: "covered/website", STUDIO_ALLOWED_ORIGINS: "https://example.org", SUPABASE_URL: "https://x.supabase.co", SUPABASE_ANON_KEY: "anon", GITHUB_APP_ID: "1", GITHUB_APP_INSTALLATION_ID: "2", GITHUB_APP_PRIVATE_KEY: "pem" };
+  const on = Object.assign({ STUDIO_AI_ENABLED: "1" }, prod);
+  assert.throws(() => loadConfig(on), /STUDIO_AUDIT_SALT is required/);
+  assert.doesNotThrow(() => loadConfig(Object.assign({ STUDIO_AUDIT_SALT: "a-long-random-secret" }, on)));
+  assert.doesNotThrow(() => loadConfig(prod), "with AI switched off nothing new is demanded");
+});

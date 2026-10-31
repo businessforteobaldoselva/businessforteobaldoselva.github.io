@@ -96,7 +96,9 @@ function opViolation(op, ctx, opts) {
   if (kind === "move") {
     const f = A.matchTarget(ctx.allow, op.file, op.from, doc, mopts);
     if (!f.ok) return f.code;
-    if (f.target.template !== m.target.template) return "bad_op_shape";
+    // both ends must sit in the SAME list: same parent pointer. (A separate "same template" check used to follow; it was dead code,
+    // because two items with one parent always have one template, and every cross-list move is stopped here. Proven by A09 / A26
+    // and the exhaustive cross-list test in output-parse.test.js.)
     const pp = (s) => s.slice(0, s.lastIndexOf("/"));
     if (pp(op.from) !== pp(op.path)) return "bad_op_shape";
     return null;

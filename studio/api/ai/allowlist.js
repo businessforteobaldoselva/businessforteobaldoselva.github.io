@@ -225,8 +225,18 @@ function checkAddedValue(allow, file, listTemplate, value) {
   return walkV(itemT, value, 0);
 }
 
+// does a value an op would WRITE send visitors somewhere (a link, an image address, a bare URL, an email address)? Walks nested add values.
+function valueAddsLink(v, depth) {
+  const d = depth || 0;
+  if (typeof v === "string") return policy.LINK_IN_TEXT_RE.test(v);
+  if (d > 10) return true;
+  if (Array.isArray(v)) return v.some((x) => valueAddsLink(x, d + 1));
+  if (v && typeof v === "object") return Object.keys(v).some((k) => valueAddsLink(v[k], d + 1));
+  return false;
+}
+
 function snapshotLines(allow) {
   return allow.targets.map((t) => [t.file, t.template, t.widget, t.rule || "-", t.ops.join("+"), t.sensitive ? "sensitive" : "-", t.modes.join("+")].join(" "));
 }
 
-module.exports = { deriveAllowList, matchTarget, checkAddedValue, templateOf, lookup, snapshotLines, fileKeyOf, KEY, buildable, leafDenial, maxLenOf };
+module.exports = { valueAddsLink, deriveAllowList, matchTarget, checkAddedValue, templateOf, lookup, snapshotLines, fileKeyOf, KEY, buildable, leafDenial, maxLenOf };

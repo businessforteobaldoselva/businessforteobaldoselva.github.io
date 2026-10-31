@@ -189,3 +189,22 @@ test("only an approver publishes, and never their own AI draft; restore undoes i
   await api.call("approver", "POST", "/v1/drafts/" + rs.json.draft.id + "/publish", { expectedHeadSha: s2.json.draft.headSha, idempotencyKey: uuid() });
   assert.equal(dec.decode(api.repo.fileAt("main", HERO)), before, "byte-identical after Restore");
 });
+
+test("a hand edit of an AI draft keeps its 'Drafted with AI' section and label", async () => {
+  const api = await replayApi(REQ, THREE);
+  const p = await propose(api);
+  const r = await accept(api, p, ["c1"], { title: "Warmer hero" });
+  assert.equal(r.status, 201, r.text.slice(0, 300));
+  const hand = await api.call("editor", "POST", "/v1/drafts", { idempotencyKey: uuid(), draftId: r.json.draft.id, expectedHeadSha: r.json.draft.headSha, title: "More", ops: [rep(HERO, "/stamp", "We have you covered.")], uploads: [] });
+  assert.equal(hand.status, 200, hand.text.slice(0, 300));
+  const pr = api.repo.prs.get(r.json.draft.number);
+  assert.match(pr.body, /### Drafted with AI/, "the provenance survived the hand edit");
+  assert.match(pr.body, /Kept 1 of 3 suggestions/);
+  assert.match(pr.body, /Edited by hand afterwards/);
+  assert.ok(pr.labels.has("studio-ai"));
+  assert.ok(text.parseMarker(pr.body), "the authorship marker is intact");
+  const twice = await api.call("editor", "POST", "/v1/drafts", { idempotencyKey: uuid(), draftId: r.json.draft.id, expectedHeadSha: hand.json.draft.headSha, title: "Again", ops: [rep(HERO, "/stamp", "We have you.")], uploads: [] });
+  assert.equal(twice.status, 200);
+  assert.equal((api.repo.prs.get(r.json.draft.number).body.match(/Edited by hand afterwards/g) || []).length, 1, "carried once, not stacked");
+  assert.deepEqual(text.carryAi("### Drafted with AI\nAsked: <img src=x>\nKept 1 of 2 suggestions. Model: m.\n\n"), ["Kept 1 of 2 suggestions. Model: m."], "a line that no longer has the safe shape is dropped");
+});

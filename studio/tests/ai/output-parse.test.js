@@ -72,6 +72,12 @@ const CASES = [
   ["no tool call (prose)", { toolInputs: [], text: "Sure!", stopReason: "end_turn" }, "prose_not_tool"],
   ["two tool calls", { toolInputs: [P(op(rep(HERO, "/badge", "a"))), P(op(rep(HERO, "/badge", "b")))], text: "", stopReason: "tool_use" }, "multiple_tool_calls"],
   ["cut off at max_tokens", tool(P(op(rep(HERO, "/badge", "a"))), { stopReason: "max_tokens" }), "max_tokens"],
+  ["a prototype key nested inside a replace value", tool(P(op(rep(HERO, "/badge", JSON.parse('{"a":{"__proto__":{"x":1}}}'))))), "proto_key"],
+  ["thousands of tiny values (few characters, too many nodes)", tool(P(op(rep(HERO, "/badge", new Array(6000).fill(0))))), "too_large"],
+  ["markup that is never closed", tool(P(op(rep(HERO, "/badge", "a <img src=x onerror=alert(1)")))), "markup_in_value"],
+  ["an opening angle bracket and a letter, no closing one", tool(P(op(rep(HERO, "/badge", "x <a")))), "markup_in_value"],
+  ["a script link inside a markdown body", tool(P(op(rep("src/pages/about.md", "/sections/1/body", "Tap [here](javascript:alert(1)) now")))), "markup_in_value"],
+  ["a data: link inside a markdown body", tool(P(op(rep("src/pages/about.md", "/sections/1/body", "Tap [here](data:text/html;base64,AAAA) now")))), "markup_in_value"],
   ["a tone answer in edit mode", tool({ kind: "tone", summary: "s", overall: "on_brand", findings: [] }), "wrong_kind_for_mode"],
 ];
 
@@ -122,4 +128,41 @@ test("tone: a quote that is not in the current text drops the finding", async ()
   assert.equal(parseModelOutput(mk("Free   period\nproducts"), ctx).findings.length, 1, "whitespace is normalised");
   const bad = parseModelOutput(mk("Free period products", { fix: { title: "t", ops: [rep(".github/x.yml", "/a", "b")] } }), ctx);
   assert.equal(bad.ok, false, "a fix goes through the same gates");
+});
+
+test("the value rules take linear time: one pathological value cannot stall the API", async () => {
+  const { ctx } = await parseCtx("edit");
+  const { markupIn } = require("../../api/ai/output");
+  const policy = require("../../api/ai/policy");
+  const A = require("../../api/ai/allowlist");
+  const nasty = ["<a".repeat(55000), "<br ".repeat(30000), "[".repeat(100000), "]".repeat(100000) + " ", "\n".repeat(100000), "javascript ".repeat(10000), "data ".repeat(20000) + ":", "<br" + " ".repeat(100000), "\n[".repeat(40000), "a".repeat(100000) + "@"];
+  const t0 = Date.now();
+  for (const v of nasty) { markupIn(v, 0); policy.LINK_IN_TEXT_RE.test(v); A.valueAddsLink(v); }
+  const ms = Date.now() - t0;
+  assert.ok(ms < 400, "the value rules took " + ms + " ms on pathological text (a quadratic pattern is back)");
+  const r = parseModelOutput(tool(P(op(rep(HERO, "/badge", "<a".repeat(55000))))), ctx);
+  assert.ok(r.violations.some((v) => v.code === "markup_in_value"));
+});
+
+test("every move between two different lists is refused, however the lists are chosen", async () => {
+  const { ctx, docs } = await parseCtx("edit");
+  const { opViolation } = require("../../api/ai/output");
+  const lists = [];
+  const foot = docs.get("src/_data/footer.json");
+  foot.columns.forEach((c, i) => lists.push(["src/_data/footer.json", "/columns/" + i + "/links", c.links.length]));
+  lists.push(["src/_data/footer.json", "/compactLinks", foot.compactLinks.length]);
+  lists.push(["src/_data/faq.json", "/items", docs.get("src/_data/faq.json").items.length]);
+  lists.push(["src/_data/nav.json", "/items", docs.get("src/_data/nav.json").items.length]);
+  let refused = 0;
+  let allowed = 0;
+  for (const [fa, la, na] of lists) {
+    for (const [fb, lb, nb] of lists) {
+      const same = fa === fb && la === lb;
+      const op = { op: "move", file: fa, from: la + "/0", path: lb + "/" + Math.min(1, nb - 1) };
+      if (fa !== fb) continue; // a move names one file
+      const v = opViolation(op, ctx);
+      if (same) { if (na > 1) { assert.equal(v, null, "a reorder inside " + la + " should be allowed"); allowed += 1; } } else { assert.equal(v, "bad_op_shape", "a move " + la + " -> " + lb + " must be refused"); refused += 1; }
+    }
+  }
+  assert.ok(refused >= 6 && allowed >= 3, "the test covered " + refused + " refusals and " + allowed + " reorders");
 });

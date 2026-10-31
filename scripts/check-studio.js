@@ -35,7 +35,7 @@ if (fs.existsSync(gdir)) {
   }
 }
 const tests = walkTests(path.join(ROOT, "studio", "tests"), []).sort();
-if (tests.length) steps.push({ name: "unit tests (" + tests.length + " files)", args: ["--test", "--test-concurrency=4"].concat(tests) });
+if (tests.length) steps.push({ name: "unit tests (" + tests.length + " files)", args: ["--require", path.join(gdir, "no-network.js"), "--test", "--test-concurrency=4"].concat(tests) });
 
 let failed = 0;
 for (const s of steps) {

@@ -30,7 +30,7 @@ module.exports = (h) => {
       build: false,
       run(ws) {
         h.expectRun("check-ai is green", guard(ws), { code: 0, has: ["check-ai: OK"] });
-        h.expectRun("studio:ai-eval is green", evaluation(ws), { code: 0, has: ["ai-eval (replay) OK", "all adversarial outputs rejected or neutralised", "revertible: 26/26"] });
+        h.expectRun("studio:ai-eval is green", evaluation(ws), { code: 0, has: ["ai-eval (replay) OK", "all adversarial outputs rejected or neutralised", "revertible: 27/27"] });
       },
     },
     broken("the allow-list gains a workflow file", [[A + "allowlist.js", once("  targets.sort(", "  targets.push({ file: \".github/workflows/site-checks.yml\", template: \"/on\", widget: \"string\", rule: null, maxLen: null, ops: [\"replace\"], sensitive: false, modes: [\"edit\"] });\n  targets.sort(")]], "guard", ["D2", "is not a data or page file"]),
@@ -50,7 +50,7 @@ module.exports = (h) => {
     broken("an AI route becomes anonymous", [["studio/api/routes/ai.js", once("method: \"GET\", path: \"/v1/ai/status\", cls: \"read\", minRole: \"editor\",", "method: \"GET\", path: \"/v1/ai/status\", cls: \"read\", anon: true,")]], "guard", ["D1", "anonymous"]),
     broken("the replay provider reaches for the network", [[A + "providers/replay.js", once("const calls = [];", "const calls = [];\n  const probe = () => fetch(\"https://example.invalid/\");")]], "guard", ["S3", "replay"]),
     broken("token counts are renamed so the audit redaction swallows them", [[A + "index.js", once("model: proposal.model, usage, changes: proposal.changes.length", "model: proposal.model, usage: { tokens: usage.inTok, outTok: usage.outTok }, changes: proposal.changes.length")]], "eval", ["lost its token counts"]),
-    broken("the API key is stored in the configuration object", [["studio/api/config.js", once("ai: loadAiConfig(e),", "ai: loadAiConfig(e), aiKey: e.STUDIO_AI_API_KEY,")]], "guard", ["D3", "part of the configuration"]),
+    broken("the API key is stored in the configuration object", [["studio/api/config.js", once("ai: aiCfg,", "ai: aiCfg, aiKey: e.STUDIO_AI_API_KEY,")]], "guard", ["D3", "part of the configuration"]),
     broken("the provider sends the key to another address", [[A + "providers/anthropic.js", once("const ENDPOINT = \"https://api.anthropic.com/v1/messages\";", "const ENDPOINT = \"https://api.example.org/v1/messages\";")]], "guard", ["S4", "D3"]),
     broken("a second web address appears in the AI code", [[A + "prompt.js", once("const PROMPT_VERSION", "const COLLECT = \"https://example.org/collect\";\nconst PROMPT_VERSION")]], "guard", ["S4", "URL literal"]),
     {

@@ -12,6 +12,8 @@
 //   S4  https://api.anthropic.com/v1/messages is the only URL literal in api/ai
 //   S5  no call to a Git write method in api/ai, routes/ai.js or services/ai.js; services/ai.js writes only through drafts.saveDraft
 //   S6  no overlay file holds the key name or the provider host (the browser never sees either)
+//   S7  tests and CI cannot reach the network: the unit-test runner, the API test runner and the replay evaluation all load
+//       guards/no-network.js (a runtime block on every non-loopback connection), and no committed file holds an API key literal
 // DYNAMIC rules (the behaviour, run in memory, no network):
 //   D1  routes: every AI route is signed-in only, has a rate class and needs editor or better
 //   D2  the AI allow-list matches the committed snapshot, and its hard properties hold (data / page files only; never a
@@ -21,6 +23,10 @@
 //   D5  a hostile instruction and hostile page text cannot close the prompt envelope
 //   D6  limits: the (limit+1)th request is refused, and the daily budget refuses at its cap
 //   D7  fixture census and the frozen world still validates against the current schema
+//   D8  one double submit = one model call and one slot in the limits (in-flight requests with the same key are joined)
+//   D9  the schema sent to the model is pinned to the parser: closed objects, same keys, same ops, same caps
+//   D10 the value rules take linear time (a pathological string cannot stall the API)
+//   D11 the no-network preload really blocks a non-loopback connection and still allows loopback
 // Exit 0 only if every rule holds.
 
 const fs = require("fs");
@@ -80,6 +86,14 @@ function staticRules() {
     const t = read(f);
     for (const w of ["STUDIO_AI_API_KEY", "x-api-key", "api.anthropic.com"]) if (t.includes(w)) fail("S6", f + " contains " + w);
   }
+}
+
+function staticNetworkRules() {
+  const need = (file, ok, why) => { if (!exists(file)) fail("S7", file + " is missing"); else if (!ok(read(file).replace(/\r/g, ""))) fail("S7", file + " " + why); };
+  need("scripts/check-studio.js", (t) => t.includes('"--require", path.join(gdir, "no-network.js")'), "no longer loads guards/no-network.js for the unit tests");
+  need("scripts/check-studio-api.js", (t) => t.includes('"--require", path.join(root, "studio", "guards", "no-network.js")'), "no longer loads guards/no-network.js for the API tests");
+  need("studio/ai-eval/run.js", (t) => t.includes('if (!flag("--live")) require(path.join(ROOT, "studio", "guards", "no-network.js"))'), "no longer blocks the network in replay mode");
+  if (!exists("studio/guards/no-network.js")) fail("S7", "studio/guards/no-network.js is missing");
 }
 
 // ---- dynamic ------------------------------------------------------------------------------------------------------------
@@ -223,6 +237,49 @@ async function dynamicRules() {
     if (big.status !== 413) fail("D6", "an over-size body should be 413, got " + big.status);
   }
 
+  // D8 a double submit is ONE model call
+  {
+    const instruction = "make the hero shorter";
+    let calls = 0;
+    const answer = { toolInputs: [{ kind: "clarify", summary: "ok", question: "Which part?" }], usage: { inTok: 100, outTok: 10 }, stopReason: "tool_use" };
+    const slow = { id: "replay", model: "spy", async complete() { calls += 1; await new Promise((r) => setTimeout(r, 40)); return answer; } };
+    const api = makeApi({ env: { STUDIO_AI_ENABLED: "1", STUDIO_AI_PROVIDER: "replay" }, depsOverrides: { aiProvider: slow } });
+    const b = { idempotencyKey: uuid(), mode: "edit", instruction, context: { refs: [] } };
+    const rs = await Promise.all([1, 2, 3, 4, 5].map(() => api.call("editor", "POST", "/v1/ai/propose", b)));
+    if (rs.some((r) => r.status !== 200)) fail("D8", "five identical submits did not all answer 200: " + rs.map((r) => r.status).join());
+    if (calls !== 1) fail("D8", "five identical submits made " + calls + " model calls (each one is billed and takes a slot); they must join the first");
+    const snap = api.deps.ai._budget.snapshot(new Date(api.deps.now()).toISOString().slice(0, 10));
+    if (snap.requests !== 1) fail("D8", "five identical submits used " + snap.requests + " slots of the daily allowance");
+  }
+
+  // D9 the schema told to the model equals what the parser enforces
+  {
+    const T = rq("studio/api/ai/tool-schema");
+    for (const p of T.pinProblems()) fail("D9", p);
+  }
+
+  // D10 linear-time value rules
+  {
+    const out = rq("studio/api/ai/output");
+    const nasty = ["<a".repeat(55000), "<br ".repeat(30000), "[".repeat(100000), "]".repeat(100000) + " ", "\n".repeat(100000), "javascript ".repeat(10000), "data ".repeat(20000) + ":", "<br" + " ".repeat(100000), "\n[".repeat(40000), "a".repeat(100000) + "@"];
+    const t0 = Date.now();
+    for (const v of nasty) { out.markupIn(v, 0); policy.LINK_IN_TEXT_RE.test(v); A.valueAddsLink(v); }
+    const ms = Date.now() - t0;
+    if (ms > 500) fail("D10", "the value rules took " + ms + " ms on pathological text (limit 500): a pattern is quadratic again");
+  }
+
+  // D11 the no-network preload works
+  {
+    const { spawnSync } = require("child_process");
+    const pre = path.join(ROOT, "studio", "guards", "no-network.js");
+    const probe = "const net=require('net');try{net.connect(80,'example.invalid').on('error',()=>{});console.log('REACHED')}catch(e){console.log(e.code)}";
+    const r = spawnSync(process.execPath, ["--require", pre, "-e", probe], { encoding: "utf8", timeout: 20000 });
+    if (!/ENETBLOCKED/.test(r.stdout || "")) fail("D11", "a connection to a non-loopback host was not blocked by guards/no-network.js (" + String((r.stdout || "") + (r.stderr || "")).trim().slice(0, 120) + ")");
+    const loop = "const net=require('net');const s=net.createServer((c)=>c.end('x')).listen(0,'127.0.0.1',()=>{net.connect(s.address().port,'127.0.0.1').on('data',()=>{console.log('LOOPBACK');s.close()}).on('error',(e)=>{console.log('ERR '+e.code);s.close()})})";
+    const l = spawnSync(process.execPath, ["--require", pre, "-e", loop], { encoding: "utf8", timeout: 20000 });
+    if (!/LOOPBACK/.test(l.stdout || "")) fail("D11", "guards/no-network.js also blocks loopback, which the local mock servers of the tests need (" + String(l.stdout || l.stderr).trim().slice(0, 120) + ")");
+  }
+
   // D7 census and world
   {
     const ev = rq("studio/ai-eval/run");
@@ -247,6 +304,7 @@ async function dynamicRules() {
 }
 
 (async () => {
+  try { staticNetworkRules(); } catch (e) { fail("S7", "the network rules crashed: " + (e && e.message)); }
   try { staticRules(); } catch (e) { fail("S0", "the static rules crashed: " + (e && e.stack ? e.stack.split("\n").slice(0, 3).join(" | ") : e)); }
   try { await dynamicRules(); } catch (e) { fail("D0", "the dynamic rules crashed: " + (e && e.stack ? e.stack.split("\n").slice(0, 4).join(" | ") : e)); }
   if (problems.length) {
@@ -254,5 +312,5 @@ async function dynamicRules() {
     for (const p of problems) console.error("  - " + p);
     process.exit(1);
   }
-  console.log("check-ai: OK (static rules S1-S6, dynamic rules D1-D7)");
+  console.log("check-ai: OK (static rules S1-S7, dynamic rules D1-D11)");
 })();

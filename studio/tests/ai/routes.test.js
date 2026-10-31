@@ -188,3 +188,42 @@ test("alt text sends the picture from the repository (never from the browser) un
   assert.ok(seen[1].deadlineAtMs > Date.now() && seen[1].deadlineAtMs <= Date.now() + 25000, "a total deadline is passed to the provider");
   assert.equal(seen[1].maxTokens, 6000);
 });
+
+test("a refusal's wait reaches the panel: the real 429 shape carries the seconds and the browser may read them", async () => {
+  globalThis.window = globalThis.window || {};
+  const V = require("../../overlay/ext/ai-view.js");
+  const api = await replayApi(REQ, GOOD, { env: { STUDIO_AI_USER_PER_10MIN: "1" } });
+  await api.call("editor", "POST", "/v1/ai/propose", body(REQ));
+  const r = await api.call("editor", "POST", "/v1/ai/propose", body(REQ));
+  assert.equal(r.status, 429);
+  const sec = r.json.error.details.retryAfterSec;
+  assert.ok(sec > 120, "a 10 minute window leaves minutes to wait, not the 30 second default");
+  assert.equal(Number(r.headers.get("retry-after")), sec);
+  assert.match(r.headers.get("access-control-expose-headers") || "", /Retry-After/i, "without this the browser hides the header from the overlay");
+  // the overlay's client builds its error from the body (details) and, when it may read it, the header
+  const asClient = { code: r.json.error.code, details: r.json.error.details, retryAfter: 0 };
+  assert.match(V.errorInfo(asClient).message, new RegExp("Try again in " + Math.ceil(sec / 60) + " minutes"));
+});
+
+test("a double submit while the first call is still running makes ONE model call and uses ONE slot", async () => {
+  let calls = 0;
+  let release;
+  const gate = new Promise((res) => { release = res; });
+  const key = await require("../../api/ai/proposal").replayKey("edit", REQ.instruction, "", [], false, "default");
+  const inner = { id: "replay", model: "claude-sonnet-5-5", async complete() { calls += 1; await gate; return GOOD; } };
+  const api = makeApi({ env: AI_ENV, depsOverrides: { aiProvider: inner, aiRecordings: { [key]: GOOD } } });
+  const b = body(REQ);
+  const first = api.call("editor", "POST", "/v1/ai/propose", b);
+  const rest = [1, 2, 3, 4].map(() => api.call("editor", "POST", "/v1/ai/propose", b));
+  await new Promise((r) => setTimeout(r, 30));
+  release();
+  const all = await Promise.all([first].concat(rest));
+  assert.deepEqual(all.map((x) => x.status), [200, 200, 200, 200, 200]);
+  assert.equal(calls, 1, "five identical submits, one model call");
+  assert.equal(new Set(all.map((x) => x.json.proposal.id)).size, 1);
+  assert.equal(api.deps.ai._budget.snapshot(api.deps.now().toISOString().slice(0, 10)).requests, 1, "one slot of the daily allowance");
+  // the same key with another draft or selection is another request, not a replay of the first
+  const other = await api.call("editor", "POST", "/v1/ai/propose", Object.assign({}, b, { context: { refs: ["hero.headlineMain"] } }));
+  assert.equal(other.status, 200);
+  assert.equal(calls, 2, "a different selection with the same key must not be served the first answer");
+});

@@ -280,7 +280,7 @@ for (const [code, status, body, copy] of [
 
 test("propose error rate_limited: says how long to wait", async () => {
   const api = createFakeApi();
-  api.queue.push({ status: 429, error: { error: { code: "rate_limited", message: "Slow down", details: { retryAfter: 42 } }, requestId: "11111111-2222-4333-8444-555555555555" } });
+  api.queue.push({ status: 429, error: { error: { code: "rate_limited", message: "Slow down", details: { retryAfterSec: 42 } }, requestId: "11111111-2222-4333-8444-555555555555" } });
   const h = await open({ api });
   await h.ask("make the hero shorter");
   assert.match(h.text(), /Try again in 42 seconds\./);

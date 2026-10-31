@@ -238,7 +238,7 @@ async function refreshPr(ctx, branch, title, opts) {
   if (!pr) throw new ApiError("not_found", "No such draft.");
   const changes = await changesOf(deps, pr);
   const marker = text.parseMarker(pr.body);
-  const body = text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId: ids.idFromBranch(branch), changes, previewUrl: previewUrlFor(deps, pr.number), opsCount: (marker ? marker.ops : 0) + 1, revertOf: marker ? marker.revertOf : null, ai: o.ai });
+  const body = text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId: ids.idFromBranch(branch), changes, previewUrl: previewUrlFor(deps, pr.number), opsCount: (marker ? marker.ops : 0) + 1, revertOf: marker ? marker.revertOf : null, ai: o.ai, aiCarry: o.ai ? null : text.carryAi(pr.body) });
   return deps.git.updatePr(pr.number, o.ai ? { body, labels: o.labels || [] } : { body });
 }
 

@@ -41,6 +41,8 @@ function createCors({ allowedOrigins, previewTemplate }) {
         Vary: "Origin",
         "Access-Control-Allow-Headers": "Authorization, Content-Type, Idempotency-Key",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        // without this a browser hides Retry-After from the page, and the wait it shows would be a guess
+        "Access-Control-Expose-Headers": "Retry-After",
         "Access-Control-Max-Age": "600",
       };
     },

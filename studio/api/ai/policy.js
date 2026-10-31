@@ -47,7 +47,13 @@ const CAPS = {
 };
 
 // value rules (Gate 1)
-const MARKUP_RE = /<\/?[a-z!?][^>]*>/i;
+// LINEAR on purpose: any "<" that opens a tag, closing tag, comment or declaration is refused, closed by ">" or not. An
+// unbounded "[^>]*>" scan was quadratic on "<a<a<a..." and let one value stall the single-threaded API.
+const MARKUP_RE = /<[\/a-z!?]/i;
+// text that sends a visitor somewhere: a markdown link or image "](", a reference definition "[x]: ...", any scheme or "//host",
+// "www.", an email address. Linear on purpose (no unbounded repeat that starts at every character). A proposal that WRITES any of
+// this is "sensitive": flagged, unticked by default, with a plain-English warning (the markdown fields are not url-rule fields).
+const LINK_IN_TEXT_RE = /\][ \t]*\(|^[ \t]*\[[^\]\n]{1,80}\]:|\b(?:https?|ftp|mailto|tel|sms):|\/\/[^\s\/]|\bwww\.|\S@\S/im;
 // the one tag the site's own titles use for a line break (no attributes): allowed, everything else with angle brackets is not
 const BR_RE = /<br\s*\/?>/gi;
 const SCHEME_RE = /\b(?:javascript|vbscript)\s*:|\bdata\s*:\s*[a-z]+\/[a-z0-9.+-]+\s*[;,]/i;
@@ -56,5 +62,5 @@ const BIDI = require("./chars").BIDI;
 
 module.exports = {
   VALUE_MAX, ALLOWED_WIDGETS, DENIED_RULES, DENIED_FIELD_NAMES, DENIED_FILE_STEMS, SENSITIVE_NAME_RE, META_NAMES, META_PAGE_NAMES,
-  LIST_OPS_OVERRIDE, PAGES_FILE, MODES, BASE_MODES, CAPS, MARKUP_RE, BR_RE, SCHEME_RE, BAD_CHARS, BIDI,
+  LIST_OPS_OVERRIDE, PAGES_FILE, MODES, BASE_MODES, CAPS, MARKUP_RE, LINK_IN_TEXT_RE, BR_RE, SCHEME_RE, BAD_CHARS, BIDI,
 };

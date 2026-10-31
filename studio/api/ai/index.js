@@ -54,6 +54,7 @@ function createAiService(opts) {
   let allowCache = null;
   const allow = () => allowCache || (allowCache = A.deriveAllowList(deps.schema));
   const cache = new Map(); // userKey|idempotencyKey -> { at, sig, proposal }
+  const inflight = new Map(); // userKey|idempotencyKey|sig -> Promise<{ proposal }> of a model call that has not finished yet
   const usageToday = new Map(); // day|userKey -> count
   const today = () => dayKey(deps.now());
   const modes = policy.MODES.slice();
@@ -184,8 +185,21 @@ function createAiService(opts) {
     const day = today();
     const cacheKey = ctx.userKey + "|" + req.idempotencyKey;
     const instrHash = await prop.instructionHash(deps.config.auditSalt, req.mode, req.instruction, req.feedback);
+    // the retry signature covers EVERYTHING that shapes the answer, not just the words: the same key with another draft, page or
+    // selection is a different request and must not be served the earlier proposal (built on the wrong base)
+    const sig = instrHash + "|" + JSON.stringify([req.draftId || null, req.context.refs, req.context.page || null, req.context.scope || null]);
     const hit = cache.get(cacheKey);
-    if (hit && deps.now().getTime() - hit.at < CACHE_MS && hit.sig === instrHash) return { proposal: structuredClone(hit.proposal) };
+    if (hit && deps.now().getTime() - hit.at < CACHE_MS && hit.sig === sig) return { proposal: structuredClone(hit.proposal) };
+    // a double click / double submit while the first call is still running joins it: ONE model call, ONE slot in the limits
+    const flightKey = cacheKey + "|" + sig;
+    const flying = inflight.get(flightKey);
+    if (flying) return flying.then((r) => ({ proposal: structuredClone(r.proposal) }));
+    const run = proposeCall(ctx, req, day, cacheKey, sig, instrHash, t0);
+    inflight.set(flightKey, run);
+    try { return await run; } finally { inflight.delete(flightKey); }
+  }
+
+  async function proposeCall(ctx, req, day, cacheKey, sig, instrHash, t0) {
 
     limit(ctx, "ai:u:" + ctx.userKey, { limit: cfg.userPer10Min, windowMs: 600000 }, "rate_user");
     limit(ctx, "ai:ud:" + ctx.userKey + ":" + day, { limit: cfg.userPerDay, windowMs: 86400000 }, "rate_user_day");
@@ -215,7 +229,7 @@ function createAiService(opts) {
     if (req.mode === "alt_text" && !pack.pairs.length) {
       const pr = finish(Object.assign({ id: await prop.proposalId(ctx.userKey, mainHead, draftHead, []), kind: "clarify", summary: "No pictures to describe.", changes: [], skipped: [], needsCode: null, question: "I could not find a picture that needs a description. Click a picture on the page, then ask again.", findings: [], warnings: req.warnings, usage: { inTok: 0, outTok: 0, latencyMs: 0 } }, common));
       await audit(ctx, "ai.propose", "ok", Object.assign({}, meta, { kind: "clarify", provider: pr.provider, model: pr.model, changes: 0, skipped: 0, codes: ["no_pairs"] }));
-      return remember(cacheKey, instrHash, pr, ctx, day);
+      return remember(cacheKey, sig, pr, ctx, day);
     }
 
     const build = (pk, images) => prompt.buildPrompt({ mode: req.mode, instruction: req.instruction, feedback: req.feedback, refs: req.context.refs, pack: pk, images, nonce: hexNonce() });
@@ -276,7 +290,7 @@ function createAiService(opts) {
     else proposal = await buildChangeProposal(idBase, parsed, { meta, audit: (a, oc, x) => audit(ctx, a, oc, x) });
 
     await audit(ctx, "ai.propose", "ok", Object.assign({}, meta, { kind: proposal.kind, provider: proposal.provider, model: proposal.model, usage, changes: proposal.changes.length, skipped: proposal.skipped.length, codes: proposal.skipped.map((s) => s.code).slice(0, 10) }));
-    return remember(cacheKey, instrHash, proposal, ctx, day);
+    return remember(cacheKey, sig, proposal, ctx, day);
   }
 
   function finish(p) {
@@ -378,7 +392,7 @@ function createAiService(opts) {
         deltas.push(prop.buildDelta(deps.schema, op, a, d, dd));
         const m = A.matchTarget(al, op.file, op.path, docs.get(op.file), { op: op.op });
         // moving things around does not change where visitors go; adding, removing or rewriting a link does
-        if (m.ok && m.target.sensitive && op.op !== "move") sensitive = true;
+        if (op.op !== "move" && ((m.ok && m.target.sensitive) || A.valueAddsLink(op.value))) sensitive = true;
         if (targets.size && !targets.has(op.file)) outside = true;
         at += 1;
       }

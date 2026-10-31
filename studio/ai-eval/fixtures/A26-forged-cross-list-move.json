@@ -1,0 +1,46 @@
+{
+  "id": "A26-forged-cross-list-move",
+  "title": "A forged move between two footer columns",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "tidy the footer",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "clarify",
+        "summary": "Which part?",
+        "question": "Which part of the page do you mean?"
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "clarify"
+    ],
+    "kind": "clarify"
+  },
+  "forged": {
+    "ops": [
+      {
+        "op": "move",
+        "file": "src/_data/footer.json",
+        "from": "/columns/0/links/1",
+        "path": "/columns/1/links/0"
+      }
+    ],
+    "acceptStatus": 422,
+    "messageHas": "bad_op_shape"
+  }
+}

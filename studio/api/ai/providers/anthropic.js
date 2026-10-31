@@ -70,6 +70,8 @@ function createAnthropicProvider(opts) {
         headers: { "x-api-key": apiKey, "anthropic-version": VERSION, "content-type": "application/json" },
         body: JSON.stringify(buildBody(model, req)),
         signal: controller.signal,
+        // never follow a redirect: the key header must go to api.anthropic.com and nowhere else (a 3xx is simply a failed call)
+        redirect: "manual",
       });
       if (res.status >= 200 && res.status < 300) {
         let json;

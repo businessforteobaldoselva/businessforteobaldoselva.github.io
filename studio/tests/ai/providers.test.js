@@ -144,3 +144,9 @@ test("disabled: can never be called successfully", async () => {
   assert.throws(() => assertProvider({ id: "x", model: "m", complete() {} }), /provider.id/);
   assert.throws(() => assertProvider(null), /provider/);
 });
+
+test("the key header never follows a redirect", async () => {
+  const { p, calls } = make([res(200, OK)]);
+  await p.complete(req({}));
+  assert.equal(calls[0].init.redirect, "manual", "a 3xx must not carry x-api-key to another host");
+});

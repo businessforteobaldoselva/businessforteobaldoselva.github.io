@@ -390,7 +390,7 @@
     var code = typeof err.code === "string" ? err.code : "internal";
     var info = { code: code, message: COPY.generic, actions: ["retry", "back"], off: null, requestId: typeof err.requestId === "string" && /^[A-Za-z0-9-]{8,64}$/.test(err.requestId) ? err.requestId : null };
     if (code === "rate_limited") {
-      var n = Math.max(1, Math.min(3600, Math.round(Number(err.retryAfter) || Number(err.details && err.details.retryAfter) || 30)));
+      var n = Math.max(1, Math.min(3600, Math.round(Number(err.details && err.details.retryAfterSec) || Number(err.retryAfter) || 30)));
       info.message = n > 120 ? COPY.rate_limited_min.replace("{n}", String(Math.ceil(n / 60))) : n === 1 ? COPY.rate_limited.replace("{n} seconds", "1 second") : COPY.rate_limited.replace("{n}", String(n));
     } else if (own(ERR, code)) {
       var e = ERR[code];

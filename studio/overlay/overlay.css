@@ -179,6 +179,12 @@ textarea { resize: vertical; }
   .seltool-name { max-width: 100%; flex-basis: 100%; text-align: center; }
   .toasts { bottom: calc(80px + var(--s-kb, 0px)); left: 8px; width: calc(100vw - 16px); }
 }
+/* very narrow phones: the eight dock buttons wrap onto two rows, so the sheets that sit above the dock move up to clear both */
+@media (max-width: 400px) {
+  .panel { bottom: calc(132px + var(--s-kb, 0px)); max-height: min(70vh, calc(var(--s-vvh, 100vh) - 148px)); }
+  .seltool { bottom: calc(140px + var(--s-kb, 0px)); }
+  .toasts { bottom: calc(140px + var(--s-kb, 0px)); }
+}
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

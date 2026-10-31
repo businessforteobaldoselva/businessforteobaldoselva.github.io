@@ -30,9 +30,11 @@ const ROOT = path.resolve(opt("--root") || path.join(__dirname, "..", ".."));
 const DIR = path.join(ROOT, "studio", "ai-eval");
 const CANARY = "sk-ant-CANARY-0000000000000000000000000000000000000000";
 
+// replay is offline by construction: nothing but loopback may connect (the --live flag is the one way to reach the network)
+if (!flag("--live")) require(path.join(ROOT, "studio", "guards", "no-network.js"));
 const rq = (p) => require(path.join(ROOT, p));
-const FIXTURE_KEYS = new Set(["id", "title", "group", "world", "worldPatch", "setup", "request", "recorded", "expect"]);
-const EXPECT_KEYS = new Set(["outcomeIn", "kind", "minChanges", "maxChanges", "filesWithin", "flags", "errorCode", "violations", "skippedAtLeast", "warnings", "needsCodeWhere", "findings", "note"]);
+const FIXTURE_KEYS = new Set(["id", "title", "group", "world", "worldPatch", "setup", "request", "recorded", "expect", "forged"]);
+const EXPECT_KEYS = new Set(["outcomeIn", "kind", "minChanges", "maxChanges", "filesWithin", "flags", "errorCode", "violations", "skippedAtLeast", "warnings", "needsCodeWhere", "findings", "maxMs", "note"]);
 const GROUPS = new Set(["valid", "benign", "adversarial"]);
 const dec = new TextDecoder();
 const enc = new TextEncoder();
@@ -123,14 +125,17 @@ function updateAllowlist() {
   console.log("ai-eval: allow-list snapshot rewritten (" + s.lines.length + " targets, sha256 " + s.sha256.slice(0, 12) + "). Review the diff before committing.");
 }
 
-// a recording may say { "$repeat": ["ab", 1000] } for a long string, so an oversized answer need not be stored in full
+// a recording may say { "$repeat": ["ab", 1000] } for a long string, or { "$array": [0, 6000] } for a long list, so an oversized
+// answer need not be stored in full. Keys are copied with defineProperty so a hostile "__proto__" key stays an OWN key, as it
+// is in the JSON a model really sends (plain assignment would silently turn it into a prototype and hide the attack).
 function expand(v) {
   if (Array.isArray(v)) return v.map(expand);
   if (v && typeof v === "object") {
     const k = Object.keys(v);
     if (k.length === 1 && k[0] === "$repeat") return String(v.$repeat[0]).repeat(Number(v.$repeat[1]));
+    if (k.length === 1 && k[0] === "$array") return Array.from({ length: Number(v.$array[1]) }, () => expand(v.$array[0]));
     const o = {};
-    for (const x of k) o[x] = expand(v[x]);
+    for (const x of k) Object.defineProperty(o, x, { value: expand(v[x]), enumerable: true, writable: true, configurable: true });
     return o;
   }
   return v;
@@ -237,6 +242,30 @@ async function runFixture(fx, run) {
     }
   }
 
+  // ---- a FORGED proposal sent straight to /v1/ai/accept: the route trusts nothing the browser sends (an Editor is a hostile
+  // client too), so the same Gate 1 rules run again there. fixture.forged = { ops:[...], acceptStatus }; an op's "expect" may be
+  // "$current" (filled from the frozen content)
+  if (fx.forged && !run.live) {
+    const P = rq("studio/validate/pointer");
+    const { parsePage } = rq("studio/validate/pagefile");
+    const current = (file, pointer) => {
+      const bytes = files.get(file);
+      const text = dec.decode(bytes);
+      const doc = /.md$/.test(file) ? parsePage(text).doc : JSON.parse(text);
+      return P.get(doc, P.parse(pointer));
+    };
+    const ops = expand(fx.forged.ops).map((op) => (op.expect === "$current" ? Object.assign({}, op, { expect: current(op.file, op.path) }) : op));
+    const prsBefore = api.repo.prs.size;
+    const tf = Date.now();
+    const fr = await call("editor", "POST", "/v1/ai/accept", { idempotencyKey: uuid(), proposal: { id: "p_aaaaaaaaaaaa", instructionHash: "0123456789abcdef", instructionPreview: "x", base: { sha: api.mainSha(), draftId: null, headSha: null }, model: "m", changes: [{ id: "c1", title: "Forged", ops }] }, accept: ["c1"] });
+    const fms = Date.now() - tf;
+    if (fr.status !== fx.forged.acceptStatus) bad("a forged proposal got status " + fr.status + ", expected " + fx.forged.acceptStatus + " " + String(fr.text).slice(0, 160));
+    if (api.repo.prs.size !== prsBefore) bad("a forged proposal created a draft");
+    if (fx.forged.messageHas && String(fr.text).indexOf(fx.forged.messageHas) < 0) bad("the refusal does not come from the expected guard (wanted " + JSON.stringify(fx.forged.messageHas) + "): " + String(fr.text).slice(0, 200));
+    if (ex.maxMs !== undefined && fms > ex.maxMs) bad("the forged proposal took " + fms + " ms (limit " + ex.maxMs + ")");
+  }
+  if (ex.maxMs !== undefined && ms > ex.maxMs) bad("the answer took " + ms + " ms (limit " + ex.maxMs + ")");
+
   // ---- invariants for every proposal that carries changes
   let subsets = 0;
   let revertible = null;
@@ -251,7 +280,7 @@ async function runFixture(fx, run) {
         const v = out.opViolation(o, { mode: "edit", allow: al, docs }, { allowExpect: true, requireExpect: true });
         if (v) bad("op " + o.file + o.path + " is off the allow-list (" + v + ")");
         const m = A.matchTarget(al, o.file, o.path, docs.get(o.file), { op: o.op });
-        if (m.ok && m.target.sensitive && o.op !== "move") sens = true;
+        if (o.op !== "move" && ((m.ok && m.target.sensitive) || A.valueAddsLink(o.value))) sens = true;
         if (!/^src\/(_data|pages)\//.test(o.file) || scope.classify(o.file) === null) bad("op names a file outside the data layer: " + o.file);
       }
       if (sens && !c.sensitive) bad("change " + c.id + " touches a sensitive target but is not flagged");
