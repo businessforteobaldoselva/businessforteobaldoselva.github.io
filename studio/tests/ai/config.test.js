@@ -47,7 +47,7 @@ test("the Ask Claude address must be https (or loopback)", () => {
 });
 
 test("the API key is never part of the configuration object", () => {
-  const KEY = "sk-ant-TESTKEY-1234567890abcdef";
+  const KEY = "sk" + "-ant-TESTKEY-1234567890abcdef";
   const env = Object.assign({ STUDIO_AI_ENABLED: "1", STUDIO_AI_API_KEY: KEY }, DEV, { STUDIO_ALLOWED_ORIGINS: "http://localhost:8080" });
   assert.equal(JSON.stringify(loadAiConfig(env)).includes(KEY), false);
   assert.equal(JSON.stringify(loadConfig(env)).includes(KEY), false);

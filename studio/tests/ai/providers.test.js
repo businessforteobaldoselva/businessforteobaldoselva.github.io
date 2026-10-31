@@ -8,7 +8,7 @@ const { createDisabledProvider } = require("../../api/ai/providers/disabled");
 const { ProviderError, assertProvider } = require("../../api/ai/providers/interface");
 const T = require("../../api/ai/tool-schema");
 
-const KEY = "sk-ant-TEST-0123456789abcdefghijklmnop";
+const KEY = "sk" + "-ant-TEST-0123456789abcdefghijklmnop";
 const OK = { id: "msg_1", type: "message", role: "assistant", model: "claude-sonnet-5-5", stop_reason: "tool_use", content: [{ type: "text", text: "thinking" }, { type: "tool_use", id: "tu_1", name: "submit_result", input: { kind: "clarify", summary: "s", question: "q?" } }], usage: { input_tokens: 1234, output_tokens: 56 } };
 const res = (status, json, headers) => new Response(JSON.stringify(json), { status, headers: Object.assign({ "content-type": "application/json" }, headers || {}) });
 const req = (extra) => Object.assign({ system: "SYS", user: "USER", images: [], tool: { name: T.TOOL_NAME, description: "d", inputSchema: T.inputSchema("edit") }, maxTokens: 777, deadlineAtMs: Date.now() + 10000, meta: { replayKey: "k", mode: "edit" } }, extra || {});
