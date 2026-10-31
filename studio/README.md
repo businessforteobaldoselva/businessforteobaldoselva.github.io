@@ -131,6 +131,10 @@ See `studio/NOTES-ai-ui.md`.
 
 It is NOT in CI (`site-checks.yml` is unchanged): puppeteer-core is deliberately not a repository dependency (no heavy dependency for a developer-machine check), and the run takes several minutes because every draft is built and guarded. The browser tests under `studio/tests/overlay` and `studio/tests/ext` follow the same rule: they skip themselves when puppeteer-core or Chrome is missing, so CI runs the node tests and guards only.
 
+### AI journey (Phase 5)
+
+`npm run studio:ai-journey` (`node studio/e2e/ai-journey.js [--quick] [--keep]`) is the same set-up with "Describe a change" switched on and the AI provider replaced by recorded answers (no key, no network). In headless Chrome: Molly asks "make the hero shorter and warmer", sees Before and After for three changes, unticks one and saves; the draft branch must hold exactly the two accepted ops and nothing else, build, and pass every repository guard plus studio-scope; an Editor is refused when publishing, Amelia publishes; History > Restore puts the old data back exactly. Then the discard path (nothing written), the needs-code path (a ready-to-send Ask Claude request, nothing saved) and two hostile model outputs (markup in a value; a CI workflow as the target), each a plain refusal with no draft and no change to main. Like the journey above it is not in CI and skips without puppeteer-core and Chrome.
+
 ## One-time setup for Teo
 
 See the runbook, Part 2. Summary of DESIGN.md section 17: create the GitHub App (Contents RW, Pull requests RW, Metadata R, plus Checks R and Commit statuses R), protect `main` (checks `Build and guards` and `studio-scope`), create the Supabase project and apply `sql/001_studio_roles.sql` yourself, deploy one API adapter with the environment variables, deploy `login/`, set `STUDIO_API_URL` and `STUDIO_APP_URL` for Deploy Previews, add people, then run the checks and the walkthrough locally before trusting a hosted setup.
