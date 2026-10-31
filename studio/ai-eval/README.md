@@ -6,7 +6,7 @@
 valid patch fixtures: 25 of 25 pass (>= 20 required)
 adversarial fixtures: 33 (>= 14 required)
 all adversarial outputs rejected or neutralised
-revertible: 25/25
+revertible: 26/26
 ```
 
 ## What is in the folder

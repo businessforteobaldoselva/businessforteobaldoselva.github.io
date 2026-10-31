@@ -309,7 +309,7 @@ async function runFixture(fx, run) {
       const changed = await api.git.changedFiles(d.baseSha, d.headSha);
       for (const f of changed) if (["data", "page"].indexOf(scope.classify(f)) < 0) bad("the draft changes a file outside the data layer: " + f);
       if (!changed.length) bad("the draft changed nothing");
-      if (!draftId) {
+      {
         const sub = await call("editor", "POST", "/v1/drafts/" + d.id + "/submit", { idempotencyKey: uuid() });
         const pub = await call("approver", "POST", "/v1/drafts/" + d.id + "/publish", { expectedHeadSha: sub.json && sub.json.draft ? sub.json.draft.headSha : "", idempotencyKey: uuid() });
         if (pub.status !== 200) bad("publish failed: " + pub.status + " " + String(pub.text).slice(0, 200));

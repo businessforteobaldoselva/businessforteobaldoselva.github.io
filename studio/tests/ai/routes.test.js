@@ -164,3 +164,27 @@ test("retry and feedback: a second try carries the person's note as data", async
   const r = await api.call("editor", "POST", "/v1/ai/propose", body(REQ, { feedback: "shorter please", retryOf: "p_abcdefghijkl" }));
   assert.equal(r.status, 200, r.text.slice(0, 300));
 });
+
+test("alt text sends the picture from the repository (never from the browser) unless vision is off", async () => {
+  const seen = [];
+  const spy = { id: "replay", model: "spy", async complete(req) { seen.push(req); return { toolInputs: [{ kind: "clarify", summary: "s", question: "q?" }], text: "", usage: { inTok: 1, outTok: 1 }, stopReason: "tool_use", model: "spy" }; } };
+  const { snapshot } = require("../fixtures/repo");
+  const files = snapshot();
+  files.set("images/story-1-spot.jpg", new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3]));
+  const ask = (env) => {
+    const api = makeApi({ files: new Map(files), env: Object.assign({}, AI_ENV, env || {}), depsOverrides: { aiProvider: spy } });
+    return api.call("editor", "POST", "/v1/ai/propose", { idempotencyKey: uuid(), mode: "alt_text", context: { refs: ["how.story.0.src"] } });
+  };
+  const r = await ask();
+  assert.equal(r.status, 200, r.text.slice(0, 300));
+  assert.equal(seen[0].images.length, 1);
+  assert.equal(seen[0].images[0].mediaType, "image/jpeg");
+  assert.equal(Buffer.from(seen[0].images[0].dataBase64, "base64").length, 11);
+  assert.match(seen[0].user, /"pictures":\[\{"n":1,"ref":"how\.story\.0\.alt"/);
+  assert.equal(seen[0].tool.name, "submit_result");
+  assert.equal(seen[0].tool.inputSchema.properties.kind.enum.indexOf("needs_code"), -1, "alt text mode cannot ask for code");
+  await ask({ STUDIO_AI_VISION: "0" });
+  assert.equal(seen[1].images.length, 0);
+  assert.ok(seen[1].deadlineAtMs > Date.now() && seen[1].deadlineAtMs <= Date.now() + 25000, "a total deadline is passed to the provider");
+  assert.equal(seen[1].maxTokens, 6000);
+});

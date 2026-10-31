@@ -30,7 +30,7 @@ module.exports = (h) => {
       build: false,
       run(ws) {
         h.expectRun("check-ai is green", guard(ws), { code: 0, has: ["check-ai: OK"] });
-        h.expectRun("studio:ai-eval is green", evaluation(ws), { code: 0, has: ["ai-eval (replay) OK", "all adversarial outputs rejected or neutralised", "revertible: 25/25"] });
+        h.expectRun("studio:ai-eval is green", evaluation(ws), { code: 0, has: ["ai-eval (replay) OK", "all adversarial outputs rejected or neutralised", "revertible: 26/26"] });
       },
     },
     broken("the allow-list gains a workflow file", [[A + "allowlist.js", once("  targets.sort(", "  targets.push({ file: \".github/workflows/site-checks.yml\", template: \"/on\", widget: \"string\", rule: null, maxLen: null, ops: [\"replace\"], sensitive: false, modes: [\"edit\"] });\n  targets.sort(")]], "guard", ["D2", "is not a data or page file"]),
