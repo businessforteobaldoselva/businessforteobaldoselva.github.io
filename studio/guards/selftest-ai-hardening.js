@@ -79,7 +79,7 @@ module.exports = (h) => {
 
     // lows
     broken("the key header may follow a redirect to another host", [[A + "providers/anthropic.js", once("        redirect: \"manual\",\n", "")]], unit("providers.test.js"), ["a 3xx must not carry x-api-key"]),
-    broken("AI help may run in production without a secret audit salt", [["studio/api/config.js", once("if (production && aiCfg.enabled && !e.STUDIO_AUDIT_SALT) throw", "if (false) throw")]], unit("config.test.js"), ["STUDIO_AUDIT_SALT"]),
+    broken("AI help may run in production without a secret audit salt", [["studio/api/config.js", once("if (production && aiCfg.enabled && !e.STUDIO_AUDIT_SALT) throw", "if (false) throw")]], unit("config.test.js"), ["secret audit salt"]),
     broken("a hand edit of an AI draft erases its provenance", [["studio/api/services/drafts.js", once("aiCarry: o.ai ? null : text.carryAi(pr.body) });", "aiCarry: null });")]], unit("accept-flow.test.js"), ["the provenance survived the hand edit"]),
 
     // 8 no network in tests
