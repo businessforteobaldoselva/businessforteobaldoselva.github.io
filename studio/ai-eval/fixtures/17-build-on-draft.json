@@ -1,0 +1,65 @@
+{
+  "id": "17-build-on-draft",
+  "title": "Build on an existing draft",
+  "group": "valid",
+  "world": "default",
+  "setup": {
+    "ops": [
+      {
+        "op": "replace",
+        "file": "src/_data/hero.json",
+        "path": "/badge",
+        "value": "Pilot launching in Exeter"
+      }
+    ]
+  },
+  "request": {
+    "mode": "edit",
+    "instruction": "now make the hero introduction shorter",
+    "context": {
+      "refs": []
+    },
+    "draft": true
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A shorter hero introduction.",
+        "changes": [
+          {
+            "title": "Shorter introduction",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/subhead",
+                "value": "Smart dispensers with free, plastic-free period products, where people need them. No cost. No card. No catch."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/hero.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

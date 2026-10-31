@@ -1,0 +1,25 @@
+{
+  "id": "A17-provider-down",
+  "title": "The provider fails",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "throw": {
+      "code": "unavailable",
+      "status": 503
+    }
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_unavailable"
+    ],
+    "errorCode": "ai_unavailable"
+  }
+}

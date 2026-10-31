@@ -1,0 +1,76 @@
+{
+  "id": "01-hero-shorter-warmer",
+  "title": "Make the hero shorter and warmer",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "make the hero shorter and warmer",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A shorter, friendlier hero.",
+        "changes": [
+          {
+            "title": "Shorter headline",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Period products, free."
+              }
+            ]
+          },
+          {
+            "title": "Friendlier second line",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineAccent",
+                "value": "paid for by ads, not by you."
+              }
+            ]
+          },
+          {
+            "title": "Shorter intro",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/subhead",
+                "value": "Smart dispensers with free, plastic-free period products, where you need them. No cost. No card. No catch."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 3,
+    "maxChanges": 3,
+    "filesWithin": [
+      "src/_data/hero.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

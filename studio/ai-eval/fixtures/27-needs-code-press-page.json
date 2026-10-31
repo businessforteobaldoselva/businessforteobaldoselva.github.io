@@ -1,0 +1,41 @@
+{
+  "id": "27-needs-code-press-page",
+  "title": "Add a press page",
+  "group": "benign",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "add a press page with a list of articles",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "needs_code",
+        "summary": "A new page needs a developer.",
+        "reason": "Studio changes words and settings on existing pages; it cannot create a page.",
+        "request": {
+          "title": "Add a press page",
+          "body": "A new Press page linked from the footer, with a list of articles (title, outlet, date, link).",
+          "where": "Whole site",
+          "priority": "Whenever"
+        }
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "needs_code"
+    ],
+    "kind": "needs_code",
+    "needsCodeWhere": true
+  }
+}

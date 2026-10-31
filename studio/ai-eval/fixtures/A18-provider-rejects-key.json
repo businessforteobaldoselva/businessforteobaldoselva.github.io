@@ -1,0 +1,25 @@
+{
+  "id": "A18-provider-rejects-key",
+  "title": "The provider rejects the key",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "throw": {
+      "code": "auth",
+      "status": 401
+    }
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_unavailable"
+    ],
+    "errorCode": "ai_unavailable"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "id": "05-show-hidden-section",
+  "title": "Show a hidden section",
+  "group": "valid",
+  "world": "default",
+  "worldPatch": [
+    {
+      "file": "src/_data/homepage.json",
+      "path": "/sections/7/enabled",
+      "value": false
+    }
+  ],
+  "request": {
+    "mode": "edit",
+    "instruction": "show the venues section on the homepage again",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "The venues section is shown again.",
+        "changes": [
+          {
+            "title": "Show venues",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/homepage.json",
+                "path": "/sections/7/enabled",
+                "value": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/homepage.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

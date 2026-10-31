@@ -1,0 +1,54 @@
+{
+  "id": "06-theme-colour",
+  "title": "Change a theme colour",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "in the colours and theme, make the accent colour a deeper orange, #E5650F",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A deeper accent orange.",
+        "changes": [
+          {
+            "title": "Deeper accent colour",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/theme.json",
+                "path": "/accent",
+                "value": "#E5650F"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/theme.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

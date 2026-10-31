@@ -1,0 +1,116 @@
+{
+  "id": "18-rename-word-across-files",
+  "title": "Rename a word across files",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "in the hero and the FAQ say biodegradable instead of plastic-free",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Replaced plastic-free by biodegradable.",
+        "changes": [
+          {
+            "title": "Say biodegradable 1",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/subhead",
+                "value": "Smart dispensers stocked with free, biodegradable period products, in the places people actually need them. No cost. No card. No catch. Brands fund it; everyone benefits."
+              }
+            ]
+          },
+          {
+            "title": "Say biodegradable 2",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/0/a",
+                "value": "COVERED is a UK social enterprise that installs smart dispensers giving out free, biodegradable period products. The service is funded entirely by brands advertising on the dispensers' 32-inch screens — users pay nothing, venues host for free, and advertisers fund the products. The first pilot launches in Exeter."
+              }
+            ]
+          },
+          {
+            "title": "Say biodegradable 3",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/2/a",
+                "value": "High-quality, biodegradable and biodegradable pads and tampons, dispensed in convenient 4-packs. Good for you, better for the planet."
+              }
+            ]
+          },
+          {
+            "title": "Say biodegradable 4",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/site.json",
+                "path": "/metaDescription",
+                "value": "COVERED puts smart dispensers full of free, biodegradable period products in the places people actually need them — funded entirely by advertising. We got you covered."
+              }
+            ]
+          },
+          {
+            "title": "Say biodegradable 5",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/site.json",
+                "path": "/schemaDescription",
+                "value": "COVERED is a UK social enterprise that installs smart wall-mounted dispensers giving out free, biodegradable period products, funded entirely by brands advertising on the dispensers' 32-inch digital screens."
+              }
+            ]
+          },
+          {
+            "title": "Say biodegradable 6",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/model.json",
+                "path": "/receipt/rows/0/label",
+                "value": "Pads (biodegradable)"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 4,
+    "maxChanges": 6,
+    "filesWithin": [
+      "src/_data/hero.json",
+      "src/_data/faq.json",
+      "src/_data/site.json",
+      "src/_data/model.json"
+    ],
+    "flags": {
+      "outsideAsk": [
+        "c4",
+        "c5",
+        "c6"
+      ],
+      "sensitive": []
+    }
+  }
+}

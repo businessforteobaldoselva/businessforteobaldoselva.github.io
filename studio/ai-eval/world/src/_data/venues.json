@@ -1,0 +1,123 @@
+{
+  "ribbon": "📍 Now recruiting Exeter pilot venues — 6–8 weeks, zero cost",
+  "kicker": "For venues",
+  "title": "Host a unit. Zero cost.<br />Zero hassle. Full credit.",
+  "subtitle": "We supply, install, stock and maintain the dispenser. You provide a wall and a plug socket. Your visitors get looked after — and you get the wellbeing story to tell.",
+  "weHandle": {
+    "icon": "🛠️",
+    "title": "We handle",
+    "items": [
+      "Dispenser, screen and safe, tidy installation",
+      "Initial stock plus regular restocking",
+      "Maintenance, uptime and issue resolution",
+      "Brand-safe ad policy — no adult, gambling or political ads",
+      "A monthly impact report you can share"
+    ]
+  },
+  "youProvide": {
+    "icon": "🧩",
+    "title": "You provide",
+    "items": [
+      "A visible wall space near or inside the toilets",
+      "Access to a standard plug socket — the screen's electricity (pennies a day) is the only cost",
+      "A named facilities contact",
+      "That's genuinely it — no rent, no fees, no admin"
+    ]
+  },
+  "photos": [
+    {
+      "src": "images/venue-pub.jpg",
+      "alt": "A COVERED dispenser mounted on dark wood panelling in a British pub corridor",
+      "decorative": false,
+      "caption": "At home in the local.",
+      "tilt": -2
+    },
+    {
+      "src": "images/venue-station.jpg",
+      "alt": "A COVERED dispenser in a busy railway station concourse, departures board glowing behind blurred commuters",
+      "decorative": false,
+      "caption": "There for the rush hour.",
+      "tilt": 1.2
+    },
+    {
+      "src": "images/venue-gym.jpg",
+      "alt": "A COVERED dispenser in a modern gym changing area beside lockers",
+      "decorative": false,
+      "caption": "Right by the lockers.",
+      "tilt": -1.5
+    }
+  ],
+  "form": {
+    "heading": "Register your interest",
+    "fields": [
+      {
+        "id": "vName",
+        "name": "name",
+        "label": "Your name",
+        "type": "text",
+        "required": true,
+        "autocomplete": "name",
+        "width": "half",
+        "mail": { "label": "Name" }
+      },
+      {
+        "id": "vVenue",
+        "name": "venue",
+        "label": "Venue / organisation",
+        "type": "text",
+        "required": true,
+        "autocomplete": "organization",
+        "width": "half",
+        "mail": { "label": "Venue" }
+      },
+      {
+        "id": "vEmail",
+        "name": "email",
+        "label": "Email",
+        "type": "email",
+        "required": true,
+        "autocomplete": "email",
+        "width": "half",
+        "mail": { "label": "Email" }
+      },
+      {
+        "id": "vType",
+        "name": "type",
+        "label": "Venue type",
+        "type": "select",
+        "required": false,
+        "options": [
+          "University / school",
+          "Shopping centre / retail",
+          "Stadium / large venue",
+          "Transport hub",
+          "Office / workplace",
+          "Hospitality",
+          "Other"
+        ],
+        "width": "half",
+        "mail": { "label": "Venue type" }
+      },
+      {
+        "id": "vMsg",
+        "name": "message",
+        "label": "Anything we should know?",
+        "type": "textarea",
+        "required": false,
+        "placeholder": "Location, footfall, timelines…",
+        "width": "full",
+        "mail": { "label": "Notes", "ifEmpty": "-" }
+      }
+    ],
+    "button": "Talk to us about hosting",
+    "hint": "Goes straight to the team — we usually reply within a couple of days. See our privacy note for how we handle it.",
+    "sending": "Sending…",
+    "success": "Sent — thank you! We'll get back to you within a couple of days.",
+    "mailto": {
+      "subject": "COVERED — Venue hosting enquiry",
+      "greeting": "Hi COVERED team,",
+      "intro": "We're interested in hosting a dispenser.",
+      "signoff": "Thanks!"
+    }
+  }
+}

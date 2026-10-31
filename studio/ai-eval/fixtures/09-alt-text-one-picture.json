@@ -1,0 +1,55 @@
+{
+  "id": "09-alt-text-one-picture",
+  "title": "Alt text for one selected picture",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "alt_text",
+    "context": {
+      "refs": [
+        "how.story.0.src"
+      ]
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A description for the first how-it-works picture.",
+        "changes": [
+          {
+            "title": "Describe the dispenser picture",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/how.json",
+                "path": "/story/0/alt",
+                "value": "A COVERED dispenser fixed to a tiled bathroom wall, with a hand taking a pack from its tray."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/how.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

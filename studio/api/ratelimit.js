@@ -38,6 +38,9 @@ const LIMITS = {
   publish: { limit: 10, windowMs: 600000 },
   restore: { limit: 10, windowMs: 3600000 },
   admin: { limit: 30, windowMs: 600000 },
+  // outer bound for the AI route class; the AI service enforces the configured per-user / per-day / global limits itself
+  ai: { limit: 30, windowMs: 600000 },
+  aiDay: { limit: 60, windowMs: 86400000 },
 };
 
 module.exports = { createLimiter, LIMITS };

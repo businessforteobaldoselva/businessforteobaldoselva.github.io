@@ -45,7 +45,20 @@ function studioLink(u) {
   try { const x = new URL(u); x.searchParams.set("studio", "1"); return oneLine(x.toString(), 250); } catch (e) { return oneLine(u, 200); }
 }
 
-function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, filesCount, revertOf }) {
+// "Drafted with AI": the asked-for change (a short escaped preview the requester chose to save), how many suggestions were
+// kept, and the model. Never the key, never more than 200 characters of the instruction.
+function aiSection(ai) {
+  if (!ai) return [];
+  return [
+    "### Drafted with AI",
+    "Asked: " + md(ai.instructionPreview || "(no description)", 200),
+    "Kept " + (Number.isInteger(ai.accepted) ? ai.accepted : 0) + " of " + (Number.isInteger(ai.total) ? ai.total : 0) + " suggestions. Model: " + md(ai.model || "unknown", 80) + ".",
+    "A person chose these changes and the same checks apply as for any draft.",
+    "",
+  ];
+}
+
+function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, filesCount, revertOf, ai }) {
   const list = (changes || []).slice(0, 80);
   const lines = list.map((c) => "- " + md(c.label, 100) + ": " + lowerFirst(md(c.summary, 200)));
   if ((changes || []).length > list.length) lines.push("- ...and " + (changes.length - list.length) + " more");
@@ -65,8 +78,7 @@ function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, 
     "### Checks",
     "The site build and all guards must be green before this can be published.",
     "",
-    "<!-- studio:v1 " + JSON.stringify(marker) + " -->",
-  ].join("\n");
+  ].concat(aiSection(ai)).concat(["<!-- studio:v1 " + JSON.stringify(marker) + " -->"]).join("\n");
   return body.length > 20000 ? body.slice(0, 19000).replace(/\n[^\n]*$/, "") + "\n\n<!-- studio:v1 " + JSON.stringify(marker) + " -->" : body;
 }
 

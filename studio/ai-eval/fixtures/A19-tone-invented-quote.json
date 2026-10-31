@@ -1,0 +1,56 @@
+{
+  "id": "A19-tone-invented-quote",
+  "title": "A tone finding quotes text that is not there",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "tone_check",
+    "instruction": "check the hero against our voice",
+    "context": {
+      "refs": [
+        "hero.headlineMain"
+      ]
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "tone",
+        "summary": "Off brand.",
+        "overall": "off_brand",
+        "findings": [
+          {
+            "path": "hero.headlineMain",
+            "quote": "Buy now and save 50 percent!",
+            "issue": "Salesy.",
+            "suggestion": "Say it plainly.",
+            "fix": {
+              "title": "Plainer",
+              "ops": [
+                {
+                  "op": "replace",
+                  "file": "src/_data/hero.json",
+                  "path": "/headlineMain",
+                  "value": "Free period products."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "tone"
+    ],
+    "kind": "tone",
+    "findings": 0
+  }
+}

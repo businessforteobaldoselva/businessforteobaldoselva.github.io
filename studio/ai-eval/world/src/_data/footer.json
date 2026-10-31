@@ -1,0 +1,37 @@
+{
+  "tagline": "Free period products, paid for by advertising. We got you covered.",
+  "columns": [
+    {
+      "heading": "Explore",
+      "ariaLabel": "Footer — explore",
+      "links": [
+        { "type": "section", "label": "The problem", "section": "problem" },
+        { "type": "section", "label": "How it works", "section": "how" },
+        { "type": "section", "label": "Locations", "section": "locations" },
+        { "type": "section", "label": "FAQ", "section": "faq" },
+        { "type": "link", "label": "About", "url": "/about/" },
+        { "type": "link", "label": "Privacy", "url": "/privacy/" }
+      ]
+    },
+    {
+      "heading": "Partner",
+      "ariaLabel": "Footer — partner",
+      "links": [
+        { "type": "section", "label": "Advertise with us", "section": "brands" },
+        { "type": "section", "label": "Partner wall", "section": "partners" },
+        { "type": "section", "label": "Host a dispenser", "section": "venues" },
+        { "type": "email", "label": "Contact" }
+      ]
+    }
+  ],
+  "copyright": "© {year} COVERED. All rights reserved.",
+  "updatedLabel": "Last updated:",
+  "lastUpdated": "6 July 2026",
+  "signOff": "Built in the open, from Exeter",
+  "signOffEmoji": "💛",
+  "compactLinks": [
+    { "type": "link", "label": "Privacy", "url": "/privacy/" },
+    { "type": "link", "label": "About", "url": "/about/" },
+    { "type": "link", "label": "coveredaccess.com", "url": "/" }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "A12-redirects-file",
+  "title": "The redirects file",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "send old links to our new site",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "Redirect",
+            "ops": [
+              {
+                "op": "add",
+                "file": "src/_data/redirects.json",
+                "path": "/items/-",
+                "value": {
+                  "from": "/a/",
+                  "to": "https://evil.example/"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "path_outside_allowlist"
+    ]
+  }
+}

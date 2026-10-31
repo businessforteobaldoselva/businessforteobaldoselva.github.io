@@ -1,0 +1,32 @@
+# Phase 5 CORE: deviations from `studio/AI-DESIGN.md` and decisions where the contract was silent
+
+The integrator folds these back into the design. Each says what the contract says, what was done, and why.
+
+## Deviations
+
+1. **`overall` on a tone Proposal (5.4).** The contract's tone answer has an `overall` verdict (on_brand, mostly, off_brand) and 14.4 shows it, but the Proposal shape has no field for it. A tone proposal now carries an extra optional key `overall`; it is absent on every other kind. `shapes.js` allows it only there. The sample file is unchanged and still validates.
+2. **Proposal and accept ids are checked as `p_[a-z0-9]{12}`, not base32.** The shared sample uses `p_7f3k2m9qxa4d`, which contains a `9`. Real ids are base32 (`a-z2-7`); validators accept both so the sample stays valid.
+3. **Default `STUDIO_AI_DAILY_TOKENS` is 3,000,000, not 400,000.** The contract assumed about 12,000 input tokens a request. The real editable content of the site, sent whole, is about 88,000 characters (roughly 25,000 tokens, tone check about 30,000), and the budget reserves an estimate before the call, so 400,000 would allow about 11 requests a day against a request cap of 150. 3,000,000 allows about 100 full-size requests. The runbook explains this and what it costs.
+4. **The prompt content is grouped by file** (`editable: [{file, fields: [{pointer, label, value, ...}]}]`) instead of one flat list, which cut the request from about 144,000 to about 88,000 characters. The meaning is the same.
+5. **Extra denied field names and files (policy.js).** Besides the contract's list: `id`, `type`, `width`, `autocomplete` (identifiers and form-field wiring), `svgViewBox`, `landPath`, `neighborPath` (map geometry, 9,000 characters of path data that would also have filled the prompt), and the data files `tokens` and `motion` (typography, spacing, animation settings: styling, so "change the font" is answered `needs_code`). City ids and form field types were otherwise writable. Anything here can be removed from `policy.js` and the snapshot regenerated.
+6. **Only `move` is allowed on the sections lists** (homepage and pages); items are hidden with their "show" switch, never removed, and typed lists never gain items. The contract said "structural ops only" for lists and "hide/show" for sections; this makes the removal impossible rather than merely unlikely.
+7. **`<br />` in values.** The contract's markup rule rejects `/<\/?[a-z!?][^>]*>/i`. Several titles on the site contain `<br />` as a line break (for example "One pin down.<br />A whole map to go."), so a rewrite that keeps the title would be refused. `<br>`, `<br/>` and `<br />` (no attributes) are removed before the markup test; every other tag is still refused. The prompt tells the model to keep an existing `<br />` exactly.
+8. **A length rule in Gate 2 (`too_long`).** The Phase 4 validator has no maximum for most text fields, so a model could write a 5,000 character headline. The AI layer adds its own cap: the schema's maximum where there is one, otherwise 3,000 characters for text and 6,000 for markdown. A longer value drops that change with a plain reason.
+9. **`LIMITS.ai` is an outer bound (30 per 10 minutes) and the configured per-person, per-day and global limits are enforced inside the AI service.** `handler.js` looks limits up by route class in a static table; the configured numbers (`STUDIO_AI_USER_PER_10MIN` and so on) cannot live there. Both apply. `LIMITS.aiDay` exists for symmetry and is not used by the handler.
+10. **Audit outcomes use the existing set** (`ok`, `denied`, `invalid`, `conflict`, `error`) because the optional `studio_audit` table constrains `outcome`. A proposal that was a clarify or a code request is `ok` with `ai.kind`; an answer refused by Gate 1 is `invalid` (action `ai.rejected`).
+11. **`sensitive` is not set by a plain `move`.** Moving a section does not change where visitors go; adding, removing or rewriting a link target does. (Lists that contain link fields were otherwise all "sensitive", including a section reorder.)
+12. **`outsideAsk` target words** also match short values in the content: an instruction that says "Bristol" targets the file that holds a value "Bristol" (so "add a venue called X in Bristol" is not marked outside what you asked about because the change is in the locations file). Common filler words are ignored and words shorter than 5 letters are not matched to values.
+13. **`accept` response status.** 201 for a new draft, 200 when it updates a draft or replays an earlier save, as for `POST /v1/drafts`.
+14. **Dev server.** `STUDIO_AI_ENABLED=1 npm run studio:dev` uses the replay stand-in without needing `STUDIO_AI_PROVIDER` or `STUDIO_DEV` typed by hand; `STUDIO_AI_PROVIDER=anthropic` with `STUDIO_AI_API_KEY` in your shell uses the real service. Sample requests are listed by `studio/ai-eval/recordings.js`.
+15. **The Ask Claude address** (`STUDIO_ASK_CLAUDE_URL`) is validated and kept in the configuration (`config.ai.askClaudeUrl`) but nothing in the API serves it yet; the overlay derives it from the site origin. It is there so the UI unit, or the integrator, can expose it in `GET /v1/ai/status` later without a settings change.
+
+## Decisions where the contract was silent
+
+* A `patch` answer with zero changes becomes a `clarify` proposal ("I did not find anything to change for that...") rather than an error.
+* Alt text with no picture to describe answers `clarify` without calling the model (no cost, no audit of a model call).
+* `GET /v1/ai/status` returns `provider: "none"` and `model: null` when off, and `modes: []`, so the panel can show one plain explanation.
+* `propose` idempotency is keyed on person and key and only replays when the request text hash is the same.
+* A ref in `context.refs` that parses but names a file the schema does not know is dropped with a `ref_ignored` warning; a ref to an unknown field of a known file is kept (it only widens focus, never reach).
+* The injection scan marks changes as outside the request only when they touch a sensitive target (it never removes content, because that would let content hide edits).
+* `studio/tests/fixtures/harness.js` gained one optional `depsOverrides` argument so tests can pass a provider, recordings, a fetch or a budget to `buildDeps`; nothing else in it changed.
+* Existing Phase 4 files were edited only additively: `errors.js`, `audit.js`, `ratelimit.js`, `handler.js`, `config.js`, `services/drafts.js`, `services/pr-text.js`, `dev/server.js`, `package.json`.

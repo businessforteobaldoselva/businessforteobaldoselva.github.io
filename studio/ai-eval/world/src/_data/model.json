@@ -1,0 +1,50 @@
+{
+  "kicker": "The model",
+  "title": "Brands pay. You don't.",
+  "subtitle": "A self-sustaining loop where advertising funds free access to essential products — no charity box, no coin slot.",
+  "steps": [
+    { "emoji": "📣", "title": "Brands buy ad space", "desc": "Partners advertise on our 32-inch HD screens and product packaging, reaching a highly relevant audience." },
+    { "emoji": "💷", "title": "Ad revenue funds products", "desc": "Every campaign pays for the supply, stocking and maintenance of free period products." },
+    { "emoji": "💛", "title": "Products reach people, free", "desc": "Plastic-free, biodegradable pads and tampons — available exactly when and where they're needed." }
+  ],
+  "loopArrow": "→",
+  "belt": {
+    "words": [
+      "4-PACK",
+      "FREE",
+      "4-PACK",
+      "COVERED"
+    ],
+    "repeats": 4
+  },
+  "video": {
+    "src": "/images/pack-in-tray.mp4",
+    "poster": "/images/pack-in-tray-poster.jpg",
+    "label": "Concept film: the camera glides toward a COVERED dispenser and a wrapped pack waiting in its tray"
+  },
+  "receipt": {
+    "ariaLabel": "Example receipt: pads £0.00, tampons £0.00, judgement none — total due £0.00, paid in full by advertisers",
+    "brand": "COVERED",
+    "meta": "Dispenser Nº 001 — Exeter",
+    "rows": [
+      {
+        "label": "Pads (plastic-free)",
+        "value": "£0.00"
+      },
+      {
+        "label": "Tampons (organic)",
+        "value": "£0.00"
+      },
+      {
+        "label": "Judgement",
+        "value": "None"
+      }
+    ],
+    "total": {
+      "label": "Total due",
+      "value": "£0.00"
+    },
+    "paid": "Paid in full by brands that get it",
+    "script": "We got you covered. Period."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "kicker": "The problem",
+  "title": "Period poverty is real —<br />and it's happening here.",
+  "subtitle": "In the UK today, more than one in ten women and people who menstruate struggled to afford period products in the last year. Behind that number are impossible choices no one should have to make.",
+  "manifesto": "A period can start in a lecture, on a shift, halfway through a match. What happens next shouldn't depend on the coins in your pocket. So we're putting the answer on the wall — *free*, for everyone, no questions asked. *Period.*",
+  "manifestoPhoto": {
+    "src": "/images/story-3-get.jpg",
+    "alt": "A wrapped pack with an orange band waiting in the COVERED dispenser tray — the answer on the wall",
+    "decorative": false
+  },
+  "stats": [
+    {
+      "number": 11,
+      "suffix": "%",
+      "label": "struggled to afford period products for themselves or a dependent in the last year"
+    },
+    {
+      "number": 64,
+      "suffix": "%",
+      "label": "of those had to prioritise buying food instead"
+    },
+    {
+      "number": 36,
+      "suffix": "%",
+      "label": "of those wore single-use pads or tampons for longer, risking infection"
+    },
+    {
+      "number": 22,
+      "suffix": "%",
+      "label": "of those stayed at home as a result — shut out of work, school and daily life"
+    }
+  ],
+  "sourceLabel": "Source:",
+  "sourceText": "ActionAid UK period poverty polling",
+  "sourceUrl": "https://www.actionaid.org.uk/latest-news/new-uk-period-poverty-poll-one-10-struggle-afford-period-products",
+  "photos": [
+    {
+      "src": "images/story-4-perks.jpg",
+      "alt": "A woman relaxing on a sofa smiling at her phone — no one should have to sit life out",
+      "decorative": false,
+      "caption": "No one should have to sit life out.",
+      "tilt": -3
+    },
+    {
+      "src": "images/flatlay-products.jpg",
+      "alt": "Plastic-free pads and a tampon in paper wrappers on a warm peach background — the products COVERED dispenses free",
+      "decorative": false,
+      "caption": "Plastic-free. Biodegradable. Free.",
+      "tilt": 2
+    },
+    {
+      "src": "images/venue-campus.jpg",
+      "alt": "A COVERED dispenser in a bright university corridor — the high-footfall venues where dispensers live",
+      "decorative": false,
+      "caption": "Right where people actually are.",
+      "tilt": -1.5
+    }
+  ]
+}

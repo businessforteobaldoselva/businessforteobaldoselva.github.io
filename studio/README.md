@@ -89,3 +89,13 @@ It is NOT in CI (`site-checks.yml` is unchanged): puppeteer-core is deliberately
 ## One-time setup for Teo
 
 See the runbook, Part 2. Summary of DESIGN.md section 17: create the GitHub App (Contents RW, Pull requests RW, Metadata R, plus Checks R and Commit statuses R), protect `main` (checks `Build and guards` and `studio-scope`), create the Supabase project and apply `sql/001_studio_roles.sql` yourself, deploy one API adapter with the environment variables, deploy `login/`, set `STUDIO_API_URL` and `STUDIO_APP_URL` for Deploy Previews, add people, then run the checks and the walkthrough locally before trusting a hosted setup.
+
+## Phase 5 (CORE): AI help, server side
+
+"Describe a change": a model proposes a JSON patch, Studio treats it as hostile input, shows BEFORE/AFTER, and the person saves some or all of it as an ordinary draft. Data only: it can never change code, templates, configuration, CI or pictures. Default OFF (`STUDIO_AI_ENABLED`).
+
+* Map, commands and how to add a fixture: `studio/AI-README.md`. Contract: `studio/AI-DESIGN.md`. Deviations: `studio/NOTES-ai-core.md`.
+* Threat model: `studio/THREAT-MODEL.md`, section "AI layer". Runbook for Teo (key, cost, switches): `docs/STUDIO-RUNBOOK.md`, step 4b.
+* `npm run studio:ai-eval` (part of `npm run check`): 63 recorded model answers, 25 valid patches and 33 hostile or failing ones, through the real API; every valid one is undone by History > Restore byte for byte.
+* `studio/guards/check-ai.js` (part of `check:studio`) and 19 scenarios in `studio/guards/selftest-ai-core.js` that break it on purpose.
+* Try it on your machine without a key: `STUDIO_AI_ENABLED=1 npm run studio:dev` (a replay stand-in that knows the sample requests).

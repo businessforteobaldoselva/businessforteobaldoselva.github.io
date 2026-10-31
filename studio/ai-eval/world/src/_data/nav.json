@@ -1,0 +1,15 @@
+{
+  "skipLink": "Skip to content",
+  "homeLabel": "COVERED home",
+  "menuLabel": "Toggle menu",
+  "backLabel": "Back to main site",
+  "items": [
+    { "type": "section", "label": "How it works", "section": "how" },
+    { "type": "section", "label": "Partners", "section": "partners" },
+    { "type": "section", "label": "For venues", "section": "venues" },
+    { "type": "section", "label": "Locations", "section": "locations" },
+    { "type": "link", "label": "About", "url": "/about/" },
+    { "type": "section", "label": "FAQ", "section": "faq" },
+    { "type": "section", "label": "Advertise with us", "section": "brands", "button": true }
+  ]
+}

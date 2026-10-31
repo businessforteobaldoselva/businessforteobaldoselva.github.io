@@ -1,6 +1,7 @@
 # Sample Cloudflare Worker configuration for the Studio API. NOTHING here is deployed or applied by Studio's code.
 # Copy to wrangler.toml (outside the website's scope) and run `wrangler deploy` yourself; see docs/STUDIO-RUNBOOK.md, step 5.
-# Secrets never go in this file: use `wrangler secret put GITHUB_APP_PRIVATE_KEY` (and STUDIO_AUDIT_SALT, SUPABASE_JWT_SECRET if hs256).
+# Secrets never go in this file: use `wrangler secret put GITHUB_APP_PRIVATE_KEY` (and STUDIO_AUDIT_SALT, SUPABASE_JWT_SECRET if hs256,
+# and STUDIO_AI_API_KEY if you turn AI help on: runbook step 4b). AI help is OFF unless STUDIO_AI_ENABLED is 1.
 name = "covered-studio-api"
 main = "../adapters/cloudflare.mjs"
 compatibility_date = "2026-01-01"
@@ -17,3 +18,6 @@ GITHUB_APP_ID = "0"
 GITHUB_APP_INSTALLATION_ID = "0"
 SUPABASE_URL = "https://your-project.supabase.co"
 SUPABASE_ANON_KEY = "public-anon-key"
+# AI help ("Describe a change") is off by default. To turn it on set the next line to "1" AND add the secret STUDIO_AI_API_KEY.
+# A Worker request has a short CPU budget but a long wall-clock one; keep STUDIO_AI_TIMEOUT_MS below your plan's limit.
+STUDIO_AI_ENABLED = "0"

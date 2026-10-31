@@ -1,0 +1,49 @@
+{
+  "id": "A12-image-field",
+  "title": "A picture field",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "swap the first how-it-works picture",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "Swap",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/how.json",
+                "path": "/story/0/src",
+                "value": "/images/evil.png"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "forbidden_target"
+    ]
+  }
+}
