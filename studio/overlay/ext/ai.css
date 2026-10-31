@@ -122,9 +122,9 @@
 .csx-ai-reqfield label { display: block; font-weight: 600; margin-bottom: 2px; }
 .csx-ai-links { margin: 8px 0; }
 
-@media (pointer: coarse) {
+@media (pointer: coarse), (max-width: 759px) {
   .csx-ai .csx-btn, .csx-ai .csx-link, .csx-ai-mode, .csx-ai-ex, .csx-ai-x { min-height: 44px; min-width: 44px; }
-  .csx-ai input[type="checkbox"] { width: 24px; height: 24px; }
+  .csx-ai input[type="checkbox"] { width: 44px; height: 44px; margin: 0; }
   .csx-ai-check { min-height: 44px; align-items: center; }
   .csx-ai .csx-link { display: inline-flex; align-items: center; justify-content: center; }
 }
