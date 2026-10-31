@@ -28,7 +28,7 @@ function makeApi(opts) {
   const now = () => new Date(t);
   const roles = o.roles || createMemoryRoles(DEV_PEOPLE.concat(o.people || []), now);
   const audit = createAudit({ sinks: [sink], salt: "test", now });
-  const deps = buildDeps(config, env, { git: o.git || git, roles, audit, schema: loadSchema(ROOT), reservedIds: reservedIds(ROOT), now });
+  const deps = buildDeps(config, env, Object.assign({ git: o.git || git, roles, audit, schema: loadSchema(ROOT), reservedIds: reservedIds(ROOT), now }, o.depsOverrides || {}));
   const handler = createHandler(deps);
   async function call(who, method, path, body, headers) {
     const h = Object.assign({ origin: ORIGIN, "x-studio-client-ip": "10.0.0." + (o.ipOctet || 1) }, headers || {});

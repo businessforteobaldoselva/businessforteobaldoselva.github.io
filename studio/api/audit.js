@@ -3,7 +3,7 @@
 // or request bodies; any key that looks secret is redacted from whatever a caller passes. Portable.
 
 const SECRET_KEY = /key|secret|token|authorization|pepper|password|cookie/i;
-const ACTIONS = new Set(["auth.denied", "draft.create", "draft.update", "draft.submit", "draft.publish", "draft.discard", "draft.rebase", "history.restore", "people.upsert", "validation.failed", "rate.limited"]);
+const ACTIONS = new Set(["auth.denied", "draft.create", "draft.update", "draft.submit", "draft.publish", "draft.discard", "draft.rebase", "history.restore", "people.upsert", "validation.failed", "rate.limited", "ai.propose", "ai.accept", "ai.rejected", "ai.denied", "ai.injection_suspected"]);
 
 function redact(v, depth) {
   if (depth > 5) return "[deep]";
