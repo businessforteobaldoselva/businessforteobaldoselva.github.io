@@ -1,0 +1,489 @@
+{
+  "id": "A07-too-many-changes",
+  "title": "Forty-one changes",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "rewrite everything",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "Change 1",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 0"
+              }
+            ]
+          },
+          {
+            "title": "Change 2",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 1"
+              }
+            ]
+          },
+          {
+            "title": "Change 3",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 2"
+              }
+            ]
+          },
+          {
+            "title": "Change 4",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 3"
+              }
+            ]
+          },
+          {
+            "title": "Change 5",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 4"
+              }
+            ]
+          },
+          {
+            "title": "Change 6",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 5"
+              }
+            ]
+          },
+          {
+            "title": "Change 7",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 6"
+              }
+            ]
+          },
+          {
+            "title": "Change 8",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 7"
+              }
+            ]
+          },
+          {
+            "title": "Change 9",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 8"
+              }
+            ]
+          },
+          {
+            "title": "Change 10",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 9"
+              }
+            ]
+          },
+          {
+            "title": "Change 11",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 10"
+              }
+            ]
+          },
+          {
+            "title": "Change 12",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 11"
+              }
+            ]
+          },
+          {
+            "title": "Change 13",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 12"
+              }
+            ]
+          },
+          {
+            "title": "Change 14",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 13"
+              }
+            ]
+          },
+          {
+            "title": "Change 15",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 14"
+              }
+            ]
+          },
+          {
+            "title": "Change 16",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 15"
+              }
+            ]
+          },
+          {
+            "title": "Change 17",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 16"
+              }
+            ]
+          },
+          {
+            "title": "Change 18",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 17"
+              }
+            ]
+          },
+          {
+            "title": "Change 19",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 18"
+              }
+            ]
+          },
+          {
+            "title": "Change 20",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 19"
+              }
+            ]
+          },
+          {
+            "title": "Change 21",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 20"
+              }
+            ]
+          },
+          {
+            "title": "Change 22",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 21"
+              }
+            ]
+          },
+          {
+            "title": "Change 23",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 22"
+              }
+            ]
+          },
+          {
+            "title": "Change 24",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 23"
+              }
+            ]
+          },
+          {
+            "title": "Change 25",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 24"
+              }
+            ]
+          },
+          {
+            "title": "Change 26",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 25"
+              }
+            ]
+          },
+          {
+            "title": "Change 27",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 26"
+              }
+            ]
+          },
+          {
+            "title": "Change 28",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 27"
+              }
+            ]
+          },
+          {
+            "title": "Change 29",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 28"
+              }
+            ]
+          },
+          {
+            "title": "Change 30",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 29"
+              }
+            ]
+          },
+          {
+            "title": "Change 31",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 30"
+              }
+            ]
+          },
+          {
+            "title": "Change 32",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 31"
+              }
+            ]
+          },
+          {
+            "title": "Change 33",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 32"
+              }
+            ]
+          },
+          {
+            "title": "Change 34",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 33"
+              }
+            ]
+          },
+          {
+            "title": "Change 35",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 34"
+              }
+            ]
+          },
+          {
+            "title": "Change 36",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 35"
+              }
+            ]
+          },
+          {
+            "title": "Change 37",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 36"
+              }
+            ]
+          },
+          {
+            "title": "Change 38",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 37"
+              }
+            ]
+          },
+          {
+            "title": "Change 39",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 38"
+              }
+            ]
+          },
+          {
+            "title": "Change 40",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 39"
+              }
+            ]
+          },
+          {
+            "title": "Change 41",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": "Free period products 40"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "too_many"
+    ]
+  }
+}

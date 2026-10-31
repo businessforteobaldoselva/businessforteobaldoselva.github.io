@@ -1,0 +1,54 @@
+{
+  "id": "19-footer-tagline-shorter",
+  "title": "Footer tagline shorter",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "make the footer tagline shorter",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A shorter footer tagline.",
+        "changes": [
+          {
+            "title": "Shorter tagline",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/footer.json",
+                "path": "/tagline",
+                "value": "Free period products, paid for by ads. We got you covered."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/footer.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

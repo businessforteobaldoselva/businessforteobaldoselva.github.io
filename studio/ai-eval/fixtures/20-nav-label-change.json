@@ -1,0 +1,54 @@
+{
+  "id": "20-nav-label-change",
+  "title": "Navigation label change",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "in the nav menu rename Advertise with us to Advertise",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A shorter menu label.",
+        "changes": [
+          {
+            "title": "Rename the menu item",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/nav.json",
+                "path": "/items/6/label",
+                "value": "Advertise"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/nav.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

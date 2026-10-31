@@ -1,0 +1,66 @@
+{
+  "id": "A11-two-tool-calls",
+  "title": "Two tool calls",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "a",
+        "changes": [
+          {
+            "title": "x",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/badge",
+                "value": "A"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "patch",
+        "summary": "b",
+        "changes": [
+          {
+            "title": "y",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/badge",
+                "value": "B"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 20000,
+      "outTok": 80
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "multiple_tool_calls"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "26-needs-code-autoplay-parallax",
+  "title": "Hero video autoplay with parallax",
+  "group": "benign",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "make the hero video autoplay with a parallax effect",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "needs_code",
+        "summary": "This needs a developer change.",
+        "reason": "Autoplay and parallax change how the page is built, not its words or settings.",
+        "request": {
+          "title": "Make the hero video autoplay with a parallax effect",
+          "body": "The hero video should start by itself and move a little slower than the page when scrolling.",
+          "where": "Hero",
+          "priority": "Whenever"
+        }
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "needs_code"
+    ],
+    "kind": "needs_code",
+    "needsCodeWhere": true
+  }
+}

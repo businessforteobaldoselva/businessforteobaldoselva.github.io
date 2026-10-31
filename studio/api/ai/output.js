@@ -54,7 +54,7 @@ function scan(root) {
 
 // does any string inside `v` carry markup or a script scheme? -> null | "markup_in_value"
 function markupIn(v, depth) {
-  if (typeof v === "string") return policy.MARKUP_RE.test(v) || policy.SCHEME_RE.test(v) ? "markup_in_value" : null;
+  if (typeof v === "string") return policy.MARKUP_RE.test(v.replace(policy.BR_RE, " ")) || policy.SCHEME_RE.test(v) ? "markup_in_value" : null;
   if (depth > 10) return "too_large";
   if (Array.isArray(v)) { for (const x of v) { const r = markupIn(x, depth + 1); if (r) return r; } return null; }
   if (v && typeof v === "object") { for (const k of Object.keys(v)) { const r = markupIn(v[k], depth + 1); if (r) return r; } }

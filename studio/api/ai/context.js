@@ -223,7 +223,8 @@ async function loadImages(deps, ref, pack, cfg) {
 }
 
 // ---- who the request is "about" (for the outsideAsk flag, AI-DESIGN 9.4) -------------------------------------------------------
-const words = (s) => String(s || "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3).map((w) => w.replace(/s$/, ""));
+const STOP = new Set(["the", "and", "for", "with", "our", "you", "your", "this", "that", "from", "into", "page", "section", "text", "make", "all", "any", "its", "not", "use", "are", "was", "has", "have", "can", "new", "add"]);
+const words = (s) => String(s || "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3 && !STOP.has(w)).map((w) => w.replace(/s$/, ""));
 
 function targetFiles(allow, docs, req, pack) {
   const t = new Set(filesOfRefs(req.refs, req.page));
@@ -237,7 +238,20 @@ function targetFiles(allow, docs, req, pack) {
       for (const w of words(label)) if (said.has(w)) { t.add(file); break; }
     }
   }
-  if ((req.mode === "alt_text" || req.mode === "meta_description") && pack) for (const f of pack.filesSent) if (!t.size) t.add(f);
+  // short names in the instruction ("Bristol", "Privacy") point at the file that holds them
+  const names = new Set([...said].filter((w) => w.length >= 5));
+  if (names.size) {
+    for (const [file, doc] of docs) {
+      let hit = false;
+      walkFile(allow, file, doc, (ev) => { if (!hit && ev.kind === "leaf" && typeof ev.value === "string" && ev.value.length <= 30 && names.has(ev.value.toLowerCase().trim().replace(/s$/, ""))) hit = true; });
+      if (hit) t.add(file);
+    }
+  }
+  if (req.mode === "meta_description") {
+    // the description of the page asked about: the home page's lives in the site settings
+    if (req.page === "index") { t.delete("src/_data/homepage.json"); t.add("src/_data/site.json"); }
+    if (!t.size && pack) for (const f of pack.filesSent) t.add(f);
+  } else if (req.mode === "alt_text" && pack && !t.size) for (const f of pack.filesSent) t.add(f);
   return t;
 }
 

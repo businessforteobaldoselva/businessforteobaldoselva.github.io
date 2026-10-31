@@ -1,0 +1,49 @@
+{
+  "id": "A03-template-file",
+  "title": "Model edits a template",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "improve the hero template",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "Change src/_includes/sections/hero.njk",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_includes/sections/hero.njk",
+                "path": "/x",
+                "value": "evil"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "path_outside_allowlist"
+    ]
+  }
+}

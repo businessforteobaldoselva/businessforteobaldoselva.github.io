@@ -1,0 +1,34 @@
+{
+  "id": "30-clarify-welsh-emoji",
+  "title": "Instruction in Welsh with an emoji",
+  "group": "benign",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "gwnewch y pennawd yn fyrrach 🙂",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "clarify",
+        "summary": "Which headline do you mean?",
+        "question": "Which headline would you like shorter: the one at the top of the home page, or another?"
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "clarify",
+      "patch"
+    ]
+  }
+}

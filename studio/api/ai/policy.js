@@ -10,8 +10,9 @@ const ALLOWED_WIDGETS = new Set(["string", "text", "markdown", "boolean", "color
 // schema rules (studio-schema.json x.rule) the AI may not write: pictures, link anchors, page addresses, redirects
 const DENIED_RULES = new Set(["image", "anchor", "permalink", "redirect-from", "redirect-to"]);
 
-// field names the AI may not write, wherever they appear
-const DENIED_FIELD_NAMES = new Set(["canonicalUrl", "hideFromSearch", "layout", "lastModified", "sitemapPriority", "sitemapChangefreq", "permalink"]);
+// field names the AI may not write, wherever they appear. Besides the SEO / address fields: identifiers (id), form-field
+// structure (type, width, autocomplete) and the map geometry (svgViewBox, landPath, neighborPath), which are wiring, not words.
+const DENIED_FIELD_NAMES = new Set(["canonicalUrl", "hideFromSearch", "layout", "lastModified", "sitemapPriority", "sitemapChangefreq", "permalink", "id", "type", "width", "autocomplete", "svgViewBox", "landPath", "neighborPath"]);
 
 // data files the AI may not touch at all. redirects: where visitors are sent. tokens and motion: typography, spacing and
 // animation settings, which are styling, so "change the font" is answered as a request for a developer (DEVIATION D1).
@@ -32,6 +33,9 @@ const PAGES_FILE = "src/pages/*.md";
 const MODES = ["edit", "alt_text", "meta_description", "tone_check"];
 const BASE_MODES = ["edit", "tone_check"];
 
+// longest text a model may write into one field when the schema names no limit of its own (markdown bodies get the larger one)
+const VALUE_MAX = { text: 3000, markdown: 6000 };
+
 const CAPS = {
   instruction: 1000, feedback: 300, refs: 5,
   changes: 40, opsPerChange: 20, ops: 120,
@@ -44,11 +48,13 @@ const CAPS = {
 
 // value rules (Gate 1)
 const MARKUP_RE = /<\/?[a-z!?][^>]*>/i;
+// the one tag the site's own titles use for a line break (no attributes): allowed, everything else with angle brackets is not
+const BR_RE = /<br\s*\/?>/gi;
 const SCHEME_RE = /\b(?:javascript|vbscript)\s*:|\bdata\s*:\s*[a-z]+\/[a-z0-9.+-]+\s*[;,]/i;
 const BAD_CHARS = require("./chars").BAD_CHARS;
 const BIDI = require("./chars").BIDI;
 
 module.exports = {
-  ALLOWED_WIDGETS, DENIED_RULES, DENIED_FIELD_NAMES, DENIED_FILE_STEMS, SENSITIVE_NAME_RE, META_NAMES, META_PAGE_NAMES,
-  LIST_OPS_OVERRIDE, PAGES_FILE, MODES, BASE_MODES, CAPS, MARKUP_RE, SCHEME_RE, BAD_CHARS, BIDI,
+  VALUE_MAX, ALLOWED_WIDGETS, DENIED_RULES, DENIED_FIELD_NAMES, DENIED_FILE_STEMS, SENSITIVE_NAME_RE, META_NAMES, META_PAGE_NAMES,
+  LIST_OPS_OVERRIDE, PAGES_FILE, MODES, BASE_MODES, CAPS, MARKUP_RE, BR_RE, SCHEME_RE, BAD_CHARS, BIDI,
 };

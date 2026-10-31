@@ -150,6 +150,17 @@ function createAiService(opts) {
     return Object.assign({}, base, { readText: memo(base.readText), hasFile: memo(base.hasFile), readBytes: memo(base.readBytes), listDir: memo(base.listDir) });
   }
 
+  // a text value longer than its field allows (the schema's own limit, else a generous AI-only cap) -> a plain-English problem or null
+  function lengthProblem(ops, docs, al) {
+    for (const op of ops) {
+      if (typeof op.value !== "string") continue;
+      const m = A.matchTarget(al, op.file, op.path, docs.get(op.file), { op: op.op });
+      const cap = m.ok && m.target.maxLen ? m.target.maxLen : m.ok && m.target.widget === "markdown" ? policy.VALUE_MAX.markdown : policy.VALUE_MAX.text;
+      if (op.value.length > cap) return { code: "too_long", message: "That text is " + op.value.length + " characters long; the limit here is " + cap + "." };
+    }
+    return null;
+  }
+
   const problemText = (p) => String((p && p.message) || "That suggestion could not be used.").replace(/^Change \d+: /, "").slice(0, 300);
 
   // ---- propose --------------------------------------------------------------------------------------------------------------
@@ -290,6 +301,8 @@ function createAiService(opts) {
     for (let i = 0; i < list.length; i += 1) {
       const dep = requires[i].find((j) => bad.has(j));
       if (dep !== undefined) { bad.set(i, { reason: "This depended on another suggestion that could not be used.", code: "depends" }); continue; }
+      const lp = lengthProblem(list[i].ops, docs, al);
+      if (lp) { bad.set(i, { reason: lp.message, code: lp.code }); continue; }
       const idx = [...prop.closure(requires, [i])].sort((a, b) => a - b);
       const r = await dry(idx.flatMap((k) => list[k].ops));
       if (r.conflicts.length) bad.set(i, { reason: "The text changed while it was being drafted.", code: "conflict" });
@@ -354,7 +367,8 @@ function createAiService(opts) {
         ops.push(fin);
         deltas.push(prop.buildDelta(deps.schema, op, a, d, dd));
         const m = A.matchTarget(al, op.file, op.path, docs.get(op.file), { op: op.op });
-        if (m.ok && m.target.sensitive) sensitive = true;
+        // moving things around does not change where visitors go; adding, removing or rewriting a link does
+        if (m.ok && m.target.sensitive && op.op !== "move") sensitive = true;
         if (targets.size && !targets.has(op.file)) outside = true;
         at += 1;
       }

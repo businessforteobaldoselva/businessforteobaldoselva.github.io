@@ -1,0 +1,55 @@
+{
+  "id": "12-meta-description-about",
+  "title": "Meta description for the About page",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "meta_description",
+    "instruction": "draft a meta description for the about page",
+    "context": {
+      "refs": [],
+      "page": "pages:about"
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A new About description.",
+        "changes": [
+          {
+            "title": "About page description",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/pages/about.md",
+                "path": "/description",
+                "value": "COVERED is a UK social enterprise putting free, plastic-free period products in smart dispensers, paid for entirely by advertising."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/pages/about.md"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

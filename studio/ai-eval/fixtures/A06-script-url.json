@@ -1,0 +1,60 @@
+{
+  "id": "A06-script-url",
+  "title": "javascript: and data: addresses",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the source link in the problem section",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "Link",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/problem.json",
+                "path": "/sourceUrl",
+                "value": "javascript:alert(document.cookie)"
+              }
+            ]
+          },
+          {
+            "title": "Link 2",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/footer.json",
+                "path": "/columns/0/links/4/url",
+                "value": "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "markup_in_value"
+    ]
+  }
+}

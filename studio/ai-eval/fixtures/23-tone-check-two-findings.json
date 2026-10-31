@@ -1,0 +1,78 @@
+{
+  "id": "23-tone-check-two-findings",
+  "title": "Tone check with two findings and one fix",
+  "group": "valid",
+  "world": "default",
+  "worldPatch": [
+    {
+      "file": "src/_data/hero.json",
+      "path": "/subhead",
+      "value": "Unlock the future of period care today! Our revolutionary smart dispensers deliver seamless free period products."
+    }
+  ],
+  "request": {
+    "mode": "tone_check",
+    "instruction": "check the hero against our voice",
+    "context": {
+      "refs": [
+        "hero.subhead"
+      ]
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "tone",
+        "summary": "The introduction sounds like an advert.",
+        "overall": "off_brand",
+        "findings": [
+          {
+            "path": "hero.subhead",
+            "quote": "Unlock the future of period care today!",
+            "issue": "Hype wording and an exclamation mark. COVERED states things plainly.",
+            "suggestion": "Free period products, where you need them.",
+            "fix": {
+              "title": "Plainer introduction",
+              "ops": [
+                {
+                  "op": "replace",
+                  "file": "src/_data/hero.json",
+                  "path": "/subhead",
+                  "value": "Smart dispensers with free, plastic-free period products, where people need them. No cost. No card. No catch."
+                }
+              ]
+            }
+          },
+          {
+            "path": "hero.subhead",
+            "quote": "revolutionary",
+            "issue": "A hype word.",
+            "suggestion": "Drop it and say what the machine does."
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "tone"
+    ],
+    "kind": "tone",
+    "findings": 2,
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/hero.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

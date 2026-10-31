@@ -1,0 +1,179 @@
+{
+  "id": "03-translate-faq-welsh",
+  "title": "Translate the FAQ to Welsh",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "translate the FAQ to Welsh",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "The FAQ in Welsh, one change per question.",
+        "changes": [
+          {
+            "title": "Welsh heading",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/kicker",
+                "value": "Cwestiynau"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/title",
+                "value": "Teg iawn, holwch ymlaen."
+              }
+            ]
+          },
+          {
+            "title": "Question 1 in Welsh",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/0/q",
+                "value": "Beth yw COVERED?"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/0/a",
+                "value": "Menter gymdeithasol yn y DU yw COVERED sy'n gosod peiriannau clyfar sy'n rhoi cynhyrchion mislif am ddim, heb blastig. Mae brandiau sy'n hysbysebu ar sgriniau'r peiriannau yn talu am bopeth, felly nid yw defnyddwyr yn talu dim ac mae lleoliadau'n eu cynnal am ddim. Bydd y peilot cyntaf yn dechrau yn Exeter."
+              }
+            ]
+          },
+          {
+            "title": "Question 2 in Welsh",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/1/q",
+                "value": "Ydy e wir yn rhad ac am ddim? Beth yw'r dal?"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/1/a",
+                "value": "Ydy, wir: dim arian mân, dim cardiau, dim tanysgrifiadau. Mae hysbysebwyr yn talu am y lle ar ein sgriniau a'n pecynnau, ac mae hynny'n talu am y cynhyrchion, y peiriannau a'r ail-lenwi. Yr unig \"ddal\" yw neges fer gan noddwr tra bydd y peiriant yn rhoi'r cynnyrch."
+              }
+            ]
+          },
+          {
+            "title": "Question 3 in Welsh",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/2/q",
+                "value": "Pa gynhyrchion mae'r peiriannau'n eu rhoi?"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/2/a",
+                "value": "Padiau a thamponau o ansawdd uchel, heb blastig ac sy'n bioddiraddio, mewn pecynnau o 4. Da i chi, gwell i'r blaned."
+              }
+            ]
+          },
+          {
+            "title": "Question 4 in Welsh",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/3/q",
+                "value": "Pwy sy'n cael defnyddio'r peiriannau?"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/3/a",
+                "value": "Unrhyw un sydd angen cynhyrchion mislif: myfyrwyr, cymudwyr, ymwelwyr, unrhyw un sy'n cael ei ddal yn annisgwyl. Mae terfyn defnydd teg bach bob mis yn cadw stoc i bawb, a ffordd syml o ofyn am fwy os oes angen."
+              }
+            ]
+          },
+          {
+            "title": "Question 5 in Welsh",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/4/q",
+                "value": "Beth sy'n digwydd i'm data?"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/4/a",
+                "value": "Rydyn ni'n adeiladu yn unol â safonau GDPR y DU a PECR o'r dechrau. Mae caniatâd marchnata bob amser yn ddewis ar wahân, heb ei dicio ymlaen llaw, a chi sy'n rheoli eich data bob amser, gan gynnwys yr hawl i'w ddileu. Nid yw ein peilot cyntaf yn casglu unrhyw ddata personol o gwbl."
+              }
+            ]
+          },
+          {
+            "title": "Question 6 in Welsh",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/5/q",
+                "value": "Pa fath o hysbysebion fydd i'w gweld?"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/5/a",
+                "value": "Hysbysebion diogel i frandiau yn unig: harddwch, lles, ffasiwn, bwyd a gwasanaethau i fyfyrwyr. Byth cynnwys i oedolion, gamblo, gwleidyddol nac unrhyw gynnwys sensitif arall. Mae lleoliadau'n cymeradwyo'r amgylchedd y mae eu hymwelwyr yn ei brofi."
+              }
+            ]
+          },
+          {
+            "title": "Question 7 in Welsh",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/6/q",
+                "value": "Hoffwn helpu. Beth alla i ei wneud?"
+              },
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/6/a",
+                "value": "Os ydych chi'n rhedeg lleoliad, cynhaliwch uned. Os ydych chi'n gweithio gyda brand, dywedwch wrth eich tîm marchnata amdanon ni. Ac os ydych chi'n hoffi'r syniad, dilynwch y daith pan fydd ein sianeli'n lansio, a lledaenwch y gair."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 22000,
+      "outTok": 2400
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 8,
+    "maxChanges": 14,
+    "filesWithin": [
+      "src/_data/faq.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

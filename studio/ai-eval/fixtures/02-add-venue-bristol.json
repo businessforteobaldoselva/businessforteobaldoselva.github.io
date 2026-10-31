@@ -1,0 +1,58 @@
+{
+  "id": "02-add-venue-bristol",
+  "title": "Add a venue called The Anchor in Bristol",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "add a venue called The Anchor in Bristol",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Mention The Anchor in the Bristol text.",
+        "changes": [
+          {
+            "title": "Mention The Anchor in Bristol",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/locations.json",
+                "path": "/cities/1/blurb",
+                "value": "The South West's biggest student city, high on the Phase 2 list. First venue in talks: The Anchor."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch",
+      "clarify",
+      "needs_code"
+    ],
+    "kind": "patch",
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/locations.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    },
+    "note": "The site lists cities, not venues: a patch limited to the Bristol text, a clarify or needs_code are all acceptable."
+  }
+}

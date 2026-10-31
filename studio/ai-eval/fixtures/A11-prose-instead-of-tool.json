@@ -1,0 +1,32 @@
+{
+  "id": "A11-prose-instead-of-tool",
+  "title": "The model answers in prose",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [],
+    "text": "Sure! I have changed the hero for you.",
+    "usage": {
+      "inTok": 20000,
+      "outTok": 40
+    },
+    "stopReason": "end_turn",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "prose_not_tool"
+    ]
+  }
+}
