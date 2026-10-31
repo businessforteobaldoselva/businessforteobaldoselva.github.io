@@ -1,0 +1,41 @@
+{
+  "id": "28-needs-code-change-font",
+  "title": "Change the font",
+  "group": "benign",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "change the font of the headlines to something rounder",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "needs_code",
+        "summary": "Fonts are a code change.",
+        "reason": "Typefaces are part of the site's design files, not its content.",
+        "request": {
+          "title": "Change the headline font",
+          "body": "Use a rounder typeface for headlines. Keep body text as it is.",
+          "where": "Typography",
+          "priority": "Whenever"
+        }
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "needs_code"
+    ],
+    "kind": "needs_code",
+    "needsCodeWhere": true
+  }
+}

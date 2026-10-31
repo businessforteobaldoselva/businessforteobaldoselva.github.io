@@ -63,9 +63,27 @@ async function main() {
     STUDIO_ALLOWED_ORIGINS: "http://localhost:" + SITE_PORT + ",http://127.0.0.1:" + SITE_PORT,
     STUDIO_PREVIEW_URL_TEMPLATE: "http://localhost:" + SITE_PORT + "/?draft={pr}", STUDIO_APP_URL: "http://localhost:" + SITE_PORT,
   };
+  // AI help is off unless asked for. STUDIO_AI_ENABLED=1 turns on the REPLAY stand-in (recorded sample answers, no key, no network);
+  // STUDIO_AI_PROVIDER=anthropic with STUDIO_AI_API_KEY in your shell uses the real service.
+  const overrides = {};
+  if (/^(1|true)$/.test(process.env.STUDIO_AI_ENABLED || "")) {
+    env.STUDIO_AI_ENABLED = "1";
+    if (process.env.STUDIO_AI_PROVIDER === "anthropic" && process.env.STUDIO_AI_API_KEY) {
+      env.STUDIO_AI_PROVIDER = "anthropic";
+      env.STUDIO_AI_API_KEY = process.env.STUDIO_AI_API_KEY;
+      if (process.env.STUDIO_AI_MODEL) env.STUDIO_AI_MODEL = process.env.STUDIO_AI_MODEL;
+    } else {
+      env.STUDIO_AI_PROVIDER = "replay";
+      const { loadRecordings, devReplayProvider } = require("../ai-eval/recordings");
+      const { createReplayProvider } = require("../api/ai/providers/replay");
+      const { recordings, samples } = await loadRecordings();
+      overrides.aiProvider = devReplayProvider(createReplayProvider({ recordings }), samples);
+      console.log("studio:dev  AI help: replay stand-in (try: " + samples.filter((s) => s.mode === "edit").slice(0, 3).map((s) => "\"" + s.instruction + "\"").join(", ") + ")");
+    }
+  }
   const config = loadConfig(env);
   const { repo, git } = createMemoryGit({ root: ROOT });
-  const deps = buildDeps(config, env, { git, schema: loadSchema(ROOT), reservedIds: reservedIds(ROOT) });
+  const deps = buildDeps(config, env, Object.assign({ git, schema: loadSchema(ROOT), reservedIds: reservedIds(ROOT) }, overrides));
   const api = createNodeServer(createHandler(deps));
   api.listen(API_PORT, "127.0.0.1", () => console.log("studio:dev  API   http://localhost:" + API_PORT + "   (in-memory Git, dev auth)"));
 

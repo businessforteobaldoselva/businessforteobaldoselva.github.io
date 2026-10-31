@@ -1,0 +1,53 @@
+{
+  "id": "15-remove-faq-question",
+  "title": "Remove an FAQ question",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "remove the FAQ question about data",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "The data question is removed.",
+        "changes": [
+          {
+            "title": "Remove the data question",
+            "ops": [
+              {
+                "op": "remove",
+                "file": "src/_data/faq.json",
+                "path": "/items/4"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/faq.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "id": "A09-unknown-ops",
+  "title": "Operations that do not exist",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "Copy",
+            "ops": [
+              {
+                "op": "copy",
+                "file": "src/_data/hero.json",
+                "from": "/badge",
+                "path": "/stamp"
+              }
+            ]
+          },
+          {
+            "title": "Test",
+            "ops": [
+              {
+                "op": "test",
+                "file": "src/_data/hero.json",
+                "path": "/badge",
+                "value": "x"
+              }
+            ]
+          },
+          {
+            "title": "Eval",
+            "ops": [
+              {
+                "op": "eval",
+                "file": "src/_data/hero.json",
+                "path": "/badge",
+                "value": "1+1"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "unknown_op"
+    ]
+  }
+}

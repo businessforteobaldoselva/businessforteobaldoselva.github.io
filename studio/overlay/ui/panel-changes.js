@@ -36,6 +36,11 @@
         container.appendChild(h("button", { type: "button", class: "btn btn-primary", on: { click: function () { studio.ui.openPanel("account"); } } }, "Go to sign in"));
       }
 
+      // ---- "Describe a change": the AI panel (ext/ai.js) has no dock button on very narrow screens, so it is offered here too
+      if (me && studio.ui.panels && studio.ui.panels().some(function (p) { return p.id === "ai"; })) {
+        container.appendChild(h("p", { class: "ai-entry" }, h("button", { type: "button", class: "btn btn-small", "data-ai-entry": "1", on: { click: function () { studio.ui.openPanel("ai"); } } }, "Or describe a change in words")));
+      }
+
       // ---- offline / base moved banners
       if (status.offline) {
         container.appendChild(h("div", { class: "banner banner-warn", role: "status" }, h("p", null, "Saved on this device. It will be sent when you are back online."),
@@ -139,7 +144,7 @@
       }, function (err) {
         if (err.code === "client_invalid" || err.code === "empty") studio.ui.toast(err.userMessage, { kind: "error" });
         else if (err.code === "unauthorized") { studio.ui.toast(err.userMessage, { kind: "error" }); studio.ui.openPanel("account"); }
-        else if (err.code === "rate_limited") studio.ui.toast("Too many saves in a row. Try again in " + (err.retryAfter || 30) + " seconds.", { kind: "error" });
+        else if (err.code === "rate_limited") studio.ui.toast("Too many saves in a row. Try again in " + ((err.details && err.details.retryAfterSec) || err.retryAfter || 30) + " seconds.", { kind: "error" });
         else if (err.code !== "offline") studio.ui.toast(err.userMessage || err.message, { kind: "error" });
         paint();
       });

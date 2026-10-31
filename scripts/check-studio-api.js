@@ -68,9 +68,15 @@ const SECRET_PATTERNS = [
   [/\bnfp_[A-Za-z0-9]{30,}\b/, "a Netlify token"],
   [/\bAKIA[0-9A-Z]{16}\b/, "an AWS key id"],
   [/\bxox[abpr]-[A-Za-z0-9-]{20,}\b/, "a Slack token"],
+  // an Anthropic API key literal. Named canaries and test keys (sk-ant-CANARY..., sk-ant-TEST...) are the only ones allowed to exist,
+  // and only in tests, guards and the eval harness; a real key is sk-ant-api03-... or sk-ant-admin01-...
+  [/\bsk-ant-(?!CANARY|TEST)[A-Za-z0-9_-]{16,}/, "an Anthropic API key"],
+  [/x-api-key["']?\s*[:=]\s*["'][A-Za-z0-9_-]{16,}["']/i, "an x-api-key header with a literal value"],
   [/\b(?:secret|token|password|passwd|pepper|apikey|api_key|private_?key)\w*["']?\s*[:=]\s*["'][A-Za-z0-9+\/=_-]{24,}["']/i, "a long literal assigned to a secret-like name"],
 ];
 // test fixtures generate keys at run time; a literal that merely NAMES a variable is fine
+// (tests, guards and the selftest are still scanned for the patterns in SECRET_EVERYWHERE: an API key literal is never fixture material)
+const SECRET_EVERYWHERE = new Set(["an Anthropic API key", "an x-api-key header with a literal value"]);
 const SECRET_SKIP = [/^studio\/tests\//, /^scripts\/selftest\.js$/];
 
 function main() {
@@ -120,9 +126,10 @@ function main() {
     .concat(fs.readdirSync(root, { withFileTypes: true }).filter((e) => e.isFile() && e.name !== "package-lock.json" && /\.(js|mjs|json|md|yml|yaml|html|toml|txt)$/i.test(e.name)).map((e) => path.join(root, e.name)));
   for (const f of scan) {
     const r = rel(f);
-    if (SECRET_SKIP.some((re) => re.test(r))) continue;
+    const skip = SECRET_SKIP.some((re) => re.test(r));
     const src = fs.readFileSync(f, "utf8");
     for (const [re, what] of SECRET_PATTERNS) {
+      if (skip && !SECRET_EVERYWHERE.has(what)) continue;
       if (what === "a JWT") {
         // a Supabase ANON key is a JWT that is public by design (role "anon"); every other JWT is a leaked credential
         const all = src.match(new RegExp(re.source, "g")) || [];
@@ -153,7 +160,7 @@ function main() {
   if (STATIC_ONLY) return 0;
 
   const tests = walk(path.join(root, "studio", "tests", "api"), []).filter((p) => /\.test\.js$/.test(p)).sort();
-  const r = spawnSync(process.execPath, ["--test", "--test-concurrency=4"].concat(tests), { cwd: root, stdio: "inherit" });
+  const r = spawnSync(process.execPath, ["--require", path.join(root, "studio", "guards", "no-network.js"), "--test", "--test-concurrency=4"].concat(tests), { cwd: root, stdio: "inherit" });
   return r.status === 0 ? 0 : 1;
 }
 

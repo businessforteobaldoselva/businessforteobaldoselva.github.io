@@ -1,0 +1,49 @@
+{
+  "id": "A11-max-tokens",
+  "title": "The answer was cut off",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "a",
+        "changes": [
+          {
+            "title": "x",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/badge",
+                "value": "A"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 20000,
+      "outTok": 6000
+    },
+    "stopReason": "max_tokens",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "max_tokens"
+    ]
+  }
+}

@@ -51,6 +51,30 @@ You change the website on the page itself. Your changes are saved as a **draft**
 
 If someone changed the same thing since, Studio tells you and offers to undo only the parts that are still the same.
 
+### Describe a change (AI help)
+
+This only appears when a Studio admin has switched AI help on. If you open **Describe a change** and it says AI help is switched off, everything else in Studio works as usual and you can carry on editing by hand.
+
+1. Open **Describe a change** (the sparkle button, or press **Ctrl/Cmd + K** and type `describe`). On a very small phone screen it is the link **Or describe a change in words** at the top of **Changes**.
+2. Say what you want in your own words: "make the hero shorter and warmer", "translate the FAQ to Welsh", "add a question about venues to the FAQ". If you clicked something on the page first, the panel says **About: ...** and the suggestion stays on that part. Press the small x to remove it.
+3. Press **Suggest changes** (or Ctrl/Cmd + Enter). It usually takes 5 to 20 seconds, longer for a translation. You can **Cancel**.
+4. Read the suggestion. Every change is a card with a **Before** and an **After**: removed words are struck through and added words are underlined (and read out as "[removed]" and "[added]" to a screen reader). **Nothing is saved yet.**
+5. Tick the ones you want. **Select all**, **Select none** and **Discard** do what they say. Some changes go together (for example a new FAQ question and its answer): ticking one ticks the other, and Studio tells you.
+6. Press **Save N changes as a draft**. It becomes a normal draft, exactly like one you made by hand: send it for review, an approver publishes it. **Nothing goes live until an approver publishes it.**
+
+If you change your mind: **Discard** before saving; discard the draft in **Changes** after saving; or, once it is live, use **History** and **Restore**. Every AI draft can be undone in one click, like any other change.
+
+What the yellow notes mean:
+
+* **Outside what you asked about:** the change is on a part of the site you did not mention. It starts unticked. Look at it before you tick it.
+* **Changes where visitors go (link or email):** links and email addresses decide where people end up. It starts unticked. Only tick it if you are sure.
+* **Some page text reads like an instruction:** text on the site tells the AI what to do. Studio treated it as plain text, but look at every change carefully.
+* **Left out:** the AI suggested something Studio could not use (too long, not allowed). It is listed with the reason and nothing was saved for it.
+
+Other things on the same panel: **Alt text** writes the short description of a picture for people who cannot see it; **Meta description** drafts the line people see under the page title in search results (70 to 160 characters is best); **Tone check** points out wording that does not sound like COVERED and never changes anything by itself (use "Use this wording" on a finding to tick a fix).
+
+**When AI help says "This needs a developer change":** AI help only changes words, picture settings and colours. For anything about how the site works or looks (a new page, a font, an animation) it drafts a request for you. Press **Copy request**, then **Open Ask Claude** and paste it there. Nothing is sent for you.
+
 ### Shortcuts worth knowing
 
 | Keys | What it does |
@@ -58,6 +82,7 @@ If someone changed the same thing since, Studio tells you and offers to undo onl
 | Ctrl/Cmd + K | Search for anything you can do ("hide partners", "change the logo", "history") |
 | E | Switch editing on and off |
 | Ctrl/Cmd + S | Save draft |
+| Ctrl/Cmd + Enter | In Describe a change: ask for suggestions |
 | Ctrl/Cmd + Z | Undo your last change |
 | ? | Help |
 | Esc | Close what is open |
@@ -70,6 +95,7 @@ The first time you sign in, a short tour shows you around. You can replay it fro
 * **Review:** an approver looking at your draft.
 * **Publish:** make the draft live.
 * **Restore:** undo a change that is already live (it makes a new draft first).
+* **Suggestion:** what AI help proposes. It is only a proposal until you save it as a draft.
 
 ---
 
@@ -153,8 +179,58 @@ Set these where the API runs (step 5). Secrets are marked. Names are final; a wr
 | `SUPABASE_ANON_KEY` | the public anon key | no |
 | `STUDIO_JWT_MODE` | `jwks` (default, recommended) or `hs256` | no |
 | `SUPABASE_JWT_SECRET` | only for `hs256` | yes |
+| `STUDIO_AI_ENABLED` | `1` turns on AI help ("Describe a change"). Default off. See 4b | no |
+| `STUDIO_AI_API_KEY` | your Anthropic key, only if you turn AI help on. See 4b | yes |
+| `STUDIO_AI_MODEL` | model name for AI help, default `claude-sonnet-5-5`. More settings in 4b | no |
 
 For the Netlify site (Deploy Preview context only), also set `STUDIO_API_URL` (the API's address) and `STUDIO_APP_URL` (the login page's address). They must start with `https://` (or be localhost). If they are missing, the overlay says it is not configured and tells you why.
+
+### 4b. AI settings: "Describe a change" (optional, off by default)
+
+What it is: a text box in Studio. A founder types "make the hero shorter and warmer" or "translate the FAQ to Welsh". A model suggests changes, Studio shows each one as BEFORE and AFTER, and the person saves all, some or none of them as an ordinary draft. Everything after that (preview, checks, a second person publishing, History and Restore) is exactly as for a hand-made edit.
+
+What it can **never** do, and why you can rely on it: the model's answer is treated like text from a stranger. Studio only accepts changes to words, switches and colours in `src/_data/` and `src/pages/` that the content editor already offers. It cannot touch code, templates, styles, configuration, workflows, `package.json`, pictures, redirects or page addresses; an answer that tries is thrown away whole. This is enforced by code and by the same checks as a hand-made edit, not by asking the model nicely. If a request needs code, the model says so and Studio offers a ready-to-send note for **Ask Claude** (nothing is filed for you).
+
+**Settings.** Set these where the API runs (same place as step 4). Only the first two are needed.
+
+| Name | Default | What it is | Secret |
+|---|---|---|:-:|
+| `STUDIO_AI_ENABLED` | off | `1` or `true` turns AI help on. Anything else (or unset) is OFF. This is the kill switch. | no |
+| `STUDIO_AI_API_KEY` | none | Your Anthropic API key. Without it, AI help says "not connected yet" and Studio works as before. | **yes** |
+| `STUDIO_AI_MODEL` | `claude-sonnet-5-5` | the model name sent to Anthropic | no |
+| `STUDIO_AI_MAX_OUTPUT_TOKENS` | 6000 | longest answer allowed (512 to 16000) | no |
+| `STUDIO_AI_TIMEOUT_MS` | 25000 | the longest one request may take, retries included (3000 to 60000). If your host stops functions earlier than this (some stop at 10 or 26 seconds), set this a little lower than the host's limit. A long job such as "translate the FAQ" can take 15 seconds or more. | no |
+| `STUDIO_AI_VISION` | on | `0` stops pictures being sent to the model. Alt text is then written from file names and nearby words only. | no |
+| `STUDIO_AI_USER_PER_10MIN` | 8 | requests one person may make per 10 minutes | no |
+| `STUDIO_AI_USER_PER_DAY` | 60 | requests one person may make per day (UTC) | no |
+| `STUDIO_AI_GLOBAL_PER_HOUR` | 100 | requests everybody together may make per hour | no |
+| `STUDIO_AI_DAILY_REQUESTS` | 150 | model calls per UTC day, in total | no |
+| `STUDIO_AI_DAILY_TOKENS` | 3000000 | estimated tokens (input plus output) per UTC day, in total | no |
+| `STUDIO_AI_MAX_BODY_BYTES` | 16000 | largest request from the browser | no |
+| `STUDIO_AI_MAX_INPUT_CHARS` | 120000 | largest amount of site text sent in one request (the whole site is about 90,000 today) | no |
+| `STUDIO_ASK_CLAUDE_URL` | derived | the address of the "Ask Claude" new-request page in the content editor, if it is not `<site>/admin/#/collections/requests/new` | no |
+
+The daily limits are counted **in memory by each running copy of the API**. On a host that starts several copies at once, every copy counts alone, so the real ceiling is the limit times the number of copies. The spend limit you set in the Anthropic console (step 1 below) is the real ceiling; the numbers here are a second, softer one. `studio/sql/002_studio_ai.sql` is an optional, never-applied way to share one counter.
+
+**Turn it on safely (five steps, about ten minutes).**
+
+1. In the Anthropic console (console.anthropic.com), create an API key for COVERED only, and set a **monthly spend limit** on the account or workspace first (for example the amount you are happy to lose in a bad month). The key is shown once: copy it.
+2. On the API host, add `STUDIO_AI_API_KEY` as a **secret** (the same place as `GITHUB_APP_PRIVATE_KEY`). Never put it in the website, in a file in the repository, in Netlify's site settings, or in a chat.
+3. Add `STUDIO_AI_ENABLED` = `1` on the API host and restart or redeploy it.
+4. Open Studio, then **Describe a change**. It should say AI help is on and show today's allowance. If it says "not connected yet", the key is missing; if it says "switched off", `STUDIO_AI_ENABLED` is not `1`.
+5. Once, on your own computer: `STUDIO_AI_API_KEY=... npm run studio:ai-eval -- --live` (PowerShell: `$env:STUDIO_AI_API_KEY="..."; npm run studio:ai-eval -- --live`). It asks the real model the same questions as the sample requests, against a copy of the site in memory, and checks every answer with the same rules. Nothing on the live site or on GitHub is touched. Read the output. It uses at most 60 requests (about the price of one busy day) and it never prints the key.
+
+**What it costs.** You pay Anthropic for the text sent and received (tokens). A request sends the editable text of the whole site, about 90,000 characters, which is roughly 25,000 tokens, and gets back 300 to 3,000 tokens (a Welsh translation of the FAQ is at the top of that range). Studio does not know Anthropic's current prices and does not state them: look up the price per million tokens of your model on the Anthropic pricing page and compute `requests x (25,000 x input price + 2,000 x output price) / 1,000,000`. Illustration only, with made-up prices of 3 and 15 dollars per million tokens: one request is about 10 pence, ten a day is about a pound, and the hard daily stop at the default 150 requests would be about 15 pounds on a day someone hammers it. The spend limit from step 1 is what actually protects you. If cost matters, lower `STUDIO_AI_DAILY_REQUESTS`, or choose a smaller model with `STUDIO_AI_MODEL`.
+
+**Switch it off, at once.** Set `STUDIO_AI_ENABLED` to `0` (or delete it) and restart or redeploy the API. The panel then says "AI help is switched off", the model is never called, and nothing else in Studio changes. Drafts already saved stay as they are.
+
+**Rotate the key.** Create a new key in the Anthropic console, replace `STUDIO_AI_API_KEY` on the API host, redeploy, delete the old key in the console. If you think it leaked, delete the old key first.
+
+**What leaves the site.** Each request sends Anthropic the editable text of the site (words, labels, current values: the same words anyone can read on the live site, plus text on draft pages) and the person's instruction. In alt-text mode it also sends the one picture being described (from the repository, never from the browser), unless `STUDIO_AI_VISION=0`. It never sends passwords, keys, the email addresses of the people using Studio, code, or settings. Check Anthropic's data-retention terms for the account you use and decide whether you are happy with them.
+
+**Review once before you turn it on.** The voice the model is told to write in is in `studio/api/ai/brand-voice.js` (taken from `CANON.md`, `BRIEF.md` and the site copy), and what counts as "where visitors go" (so it is flagged and unticked by default) is in `studio/api/ai/policy.js`. Read both and change them if they are wrong.
+
+**If AI help misbehaves.** Everything it does ends up as a normal draft pull request. Discard the draft, or after publishing use History, Restore. The audit log (the host's log, lines starting `studioAudit`) shows who asked, when, how many tokens, what the outcome was and a hash of the request, but never the request text or the key.
 
 ### 5. Deploy the API (one adapter)
 
@@ -205,6 +281,7 @@ Add each founder in Studio (Admin, People) or in `studio_roles`: email, display 
 3. Sign in as an approver (a different person). Wait for green checks. Publish. The change is on the live site. History shows the row.
 4. Press Restore on it. A new draft appears. Publish it. The site is back.
 5. Look at the pull request's file list each time: only paths in `src/_data/`, `src/pages/` and `images/` should ever appear.
+6. If you turned AI help on (4b): run `npm run studio:ai-eval` (it is part of `npm run check`: 20+ sample requests give valid patches, 14+ hostile answers are all refused, every AI draft is undone by Restore) and, once, `npm run studio:ai-eval -- --live` with your key. In Studio, ask for a small change, untick one part, save, and look at the pull request: it carries the label `studio-ai`, a "Drafted with AI" section, and only data and page files.
 
 ### When it breaks
 
@@ -228,6 +305,7 @@ Add each founder in Studio (Admin, People) or in `studio_roles`: email, display 
 * **Stop one person:** set `active` to false in `studio_roles`.
 * **Undo a bad publish:** History, Restore, then an approver publishes. If Studio itself is down, revert the pull request on GitHub as usual.
 * **Rotate a leaked GitHub App key:** generate a new private key in the app settings, replace `GITHUB_APP_PRIVATE_KEY`, delete the old key.
+* **Stop AI help right now:** set `STUDIO_AI_ENABLED` to `0` (or remove it) on the API host and redeploy. The panel says AI help is switched off and the model is never called. Studio itself carries on. To also cut the money tap, delete the key in the Anthropic console.
 * The live site never depends on Studio. If Studio is broken, switch the API host off and nothing public changes.
 
 ### Where things are

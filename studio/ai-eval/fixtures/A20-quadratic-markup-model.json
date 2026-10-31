@@ -1,0 +1,55 @@
+{
+  "id": "A20-quadratic-markup-model",
+  "title": "One huge value of '<a' repeated: must be refused quickly",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "make the hero more exciting",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "Spam",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/hero.json",
+                "path": "/headlineMain",
+                "value": {
+                  "$repeat": [
+                    "<a",
+                    55000
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "markup_in_value"
+    ],
+    "maxMs": 1500
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "id": "25-two-dependent-changes",
+  "title": "Add an FAQ then edit its answer",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "add an FAQ for venues and say how quickly we reply",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A venue question that says how fast we reply.",
+        "changes": [
+          {
+            "title": "Add the venue question",
+            "ops": [
+              {
+                "op": "add",
+                "file": "src/_data/faq.json",
+                "path": "/items/-",
+                "value": {
+                  "q": "Can my venue get a dispenser?",
+                  "a": "Yes. Tell us about your venue and we will get back to you."
+                }
+              }
+            ]
+          },
+          {
+            "title": "Say how fast we reply",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/faq.json",
+                "path": "/items/7/a",
+                "value": "Yes. Tell us about your venue and we will get back to you within two working days."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 2,
+    "maxChanges": 2,
+    "filesWithin": [
+      "src/_data/faq.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "kicker": "How it works",
+  "title": "Scan. Check in. Watch. Covered.",
+  "subtitle": "Try it yourself — tap through the full experience we're building, right here.",
+  "demoNote": "During the Exeter pilot it's even simpler — take what you need, no scan required. Longer term, a gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more.",
+  "storyLabel": "How COVERED works, in four moments",
+  "story": [
+    {
+      "src": "/images/story-1-spot.jpg",
+      "title": "Spot it.",
+      "caption": "Machines live where you already are.",
+      "alt": "A COVERED dispenser wall-mounted in a warm tiled bathroom",
+      "decorative": false
+    },
+    {
+      "src": "/images/story-2-scan.jpg",
+      "title": "Scan and join.",
+      "caption": "A few taps. You're in.",
+      "alt": "A hand scanning the QR code on the dispenser's screen with a phone",
+      "decorative": false
+    },
+    {
+      "src": "/images/story-3-get.jpg",
+      "title": "Take what you need.",
+      "caption": "Dispensed. Free, obviously.",
+      "alt": "Close-up of a wrapped pack with an orange band sitting in the dispenser tray",
+      "decorative": false
+    },
+    {
+      "src": "/images/story-4-perks.jpg",
+      "title": "Perks incoming.",
+      "caption": "Brand treats land in your inbox.",
+      "alt": "A woman relaxing on a sofa, smiling at her phone",
+      "decorative": false
+    }
+  ],
+  "demo": {
+    "stepperLabel": "Demo progress",
+    "completedWord": "completed",
+    "machine": {
+      "ariaLabel": "Illustration of a COVERED wall-mounted dispenser",
+      "label": "Covered",
+      "packText": "4-PACK",
+      "stamp": "Covered."
+    },
+    "scan": {
+      "chip": "Scan the QR",
+      "title": "Need a pad or tampon?",
+      "text": "Scan the QR code on the machine to get started — it's free.",
+      "button": "Simulate scan"
+    },
+    "checkIn": {
+      "chip": "Quick check-in",
+      "title": "Quick check-in",
+      "text": "A phone number or email keeps things fair — never spam.",
+      "exampleEmail": "you@example.com",
+      "exampleEmailLabel": "Example email address",
+      "button": "Check in →"
+    },
+    "sponsor": {
+      "chip": "A word from our sponsor",
+      "title": "A word from our sponsor",
+      "adTag": "Sponsored",
+      "adText": "Your brand, here 👋",
+      "text": "This short moment pays for the product. Nice one, sponsors."
+    },
+    "done": {
+      "chip": "Covered.",
+      "stamp": "Covered.",
+      "title": "You're all set",
+      "text": "Grab your pack from the tray below. That's it — no cost, no card, no catch.",
+      "button": "Run the demo again"
+    }
+  }
+}

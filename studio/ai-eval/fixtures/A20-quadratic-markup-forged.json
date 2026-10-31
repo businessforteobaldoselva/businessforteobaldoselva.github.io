@@ -1,0 +1,53 @@
+{
+  "id": "A20-quadratic-markup-forged",
+  "title": "The same value sent straight to the accept route",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "tidy the hero",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "clarify",
+        "summary": "Which part?",
+        "question": "Which part of the page do you mean?"
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "maxMs": 1500,
+    "outcomeIn": [
+      "clarify"
+    ],
+    "kind": "clarify"
+  },
+  "forged": {
+    "ops": [
+      {
+        "op": "replace",
+        "file": "src/_data/hero.json",
+        "path": "/headlineMain",
+        "value": {
+          "$repeat": [
+            "<a",
+            55000
+          ]
+        },
+        "expect": "$current"
+      }
+    ],
+    "acceptStatus": 422,
+    "messageHas": "markup_in_value"
+  }
+}

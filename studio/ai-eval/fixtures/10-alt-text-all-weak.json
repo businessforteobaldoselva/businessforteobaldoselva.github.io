@@ -1,0 +1,77 @@
+{
+  "id": "10-alt-text-all-weak",
+  "title": "Alt text for every picture with a weak description",
+  "group": "valid",
+  "world": "default",
+  "worldPatch": [
+    {
+      "file": "src/_data/how.json",
+      "path": "/story/1/alt",
+      "value": ""
+    },
+    {
+      "file": "src/_data/how.json",
+      "path": "/story/3/alt",
+      "value": "photo"
+    }
+  ],
+  "request": {
+    "mode": "alt_text",
+    "context": {
+      "refs": [],
+      "scope": "missing"
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Descriptions for two pictures that had none.",
+        "changes": [
+          {
+            "title": "Describe the QR scan picture",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/how.json",
+                "path": "/story/1/alt",
+                "value": "A hand holding a phone up to the QR code on the dispenser's screen."
+              }
+            ]
+          },
+          {
+            "title": "Describe the perks picture",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/how.json",
+                "path": "/story/3/alt",
+                "value": "A woman relaxing on a sofa and smiling at her phone."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 2,
+    "maxChanges": 2,
+    "filesWithin": [
+      "src/_data/how.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

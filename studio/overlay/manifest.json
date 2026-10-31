@@ -25,7 +25,9 @@
     "ext/help.js",
     "ext/tour.js",
     "ext/palette.js",
+    "ext/ai-view.js",
+    "ext/ai.js",
     "main.js"
   ],
-  "styles": ["overlay.css", "ext/ext.css"]
+  "styles": ["overlay.css", "ext/ext.css", "ext/ai.css"]
 }

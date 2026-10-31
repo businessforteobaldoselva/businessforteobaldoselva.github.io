@@ -1,0 +1,55 @@
+{
+  "id": "11-meta-description-homepage",
+  "title": "Meta description for the homepage",
+  "group": "valid",
+  "world": "default",
+  "request": {
+    "mode": "meta_description",
+    "instruction": "draft a meta description for the homepage",
+    "context": {
+      "refs": [],
+      "page": "index"
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "A new homepage description.",
+        "changes": [
+          {
+            "title": "Homepage description",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/site.json",
+                "path": "/metaDescription",
+                "value": "Free, plastic-free period products from smart dispensers in the places you need them, paid for by brand advertising. We got you covered."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "patch"
+    ],
+    "minChanges": 1,
+    "maxChanges": 1,
+    "filesWithin": [
+      "src/_data/site.json"
+    ],
+    "flags": {
+      "outsideAsk": [],
+      "sensitive": []
+    }
+  }
+}

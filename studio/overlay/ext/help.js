@@ -35,6 +35,7 @@
     if (!role) return ["Sign in to see what you can do."];
     lines.push("Change text, pictures, links and colours, and save them as a draft.");
     lines.push("Hide, show and reorder sections.");
+    lines.push("Describe a change in plain words (when AI help is switched on). You see before and after, and choose what to keep.");
     lines.push("Undo a change that has gone live (it becomes a new draft).");
     if (role === "approver" || role === "admin") lines.push("Publish a draft that someone else wrote, once the checks are green.");
     else lines.push("Publishing is done by an approver. Send your draft for review and they will take it from there.");

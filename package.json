@@ -17,7 +17,8 @@
     "check:seo": "node scripts/check-seo.js",
     "check:images": "node scripts/check-images.js",
     "check:selftest": "node scripts/selftest.js",
-    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:tokens && npm run check:copy && npm run check:wiring && npm run check:hostile && npm run check:a11y && npm run check:seo && npm run check:images && npm run check:studio-api && npm run check:studio",
+    "studio:ai-eval": "node studio/ai-eval/run.js",
+    "check": "npm run check:ids && npm run check:cms && npm run check:previews && npm run check:tokens && npm run check:copy && npm run check:wiring && npm run check:hostile && npm run check:a11y && npm run check:seo && npm run check:images && npm run check:studio-api && npm run check:studio && npm run studio:ai-eval",
     "check:studio": "node scripts/check-studio.js",
     "check:studio-api": "node scripts/check-studio-api.js --static",
     "studio:schema": "node studio/schema/build-schema.js",
@@ -25,7 +26,8 @@
     "studio:dev": "node studio/dev/server.js",
     "studio:test": "node scripts/check-studio.js --only unit",
     "studio:e2e": "node studio/tests/e2e/run.js",
-    "check:studio-e2e": "node studio/e2e/journey.js --quick"
+    "check:studio-e2e": "node studio/e2e/journey.js --quick",
+    "studio:ai-journey": "node studio/e2e/ai-journey.js"
   },
   "dependencies": {
     "js-yaml": "4.3.0"

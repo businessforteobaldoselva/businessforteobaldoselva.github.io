@@ -210,16 +210,16 @@ async function saveDraft(ctx, patch, opts) {
   let pr;
   if (hasId) {
     try { await git.commitFiles({ branch, expectedHeadSha: headSha, message, files }); } catch (e) { throw mapGit(e); }
-    pr = await refreshPr(ctx, branch, title, opts);
+    pr = await refreshPr(ctx, branch, title, o);
   } else {
     branch = await freeBranch(ctx, slug, key);
     try {
       await git.createBranch(branch, mainHead);
       await git.commitFiles({ branch, expectedHeadSha: mainHead, message, files });
       const draftId = ids.idFromBranch(branch);
-      const open = await git.openPr({ head: branch, base, title: text.prTitle(title, ctx.user.name), body: text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId, changes: r.changes, previewUrl: null, opsCount: patch.ops.length, revertOf: o.revertOf }), labels: ["studio-draft"].concat(o.labels || []), draft: true });
+      const open = await git.openPr({ head: branch, base, title: text.prTitle(title, ctx.user.name), body: text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId, changes: r.changes, previewUrl: null, opsCount: patch.ops.length, revertOf: o.revertOf, ai: o.ai }), labels: ["studio-draft"].concat(o.labels || []), draft: true });
       pr = open;
-      if (deps.config.previewUrlTemplate) pr = await git.updatePr(open.number, { body: text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId, changes: r.changes, previewUrl: previewUrlFor(deps, open.number), opsCount: patch.ops.length, revertOf: o.revertOf }) });
+      if (deps.config.previewUrlTemplate) pr = await git.updatePr(open.number, { body: text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId, changes: r.changes, previewUrl: previewUrlFor(deps, open.number), opsCount: patch.ops.length, revertOf: o.revertOf, ai: o.ai }) });
     } catch (e) {
       try { await git.deleteBranch(branch); } catch (e2) { /* best effort cleanup of a half-made draft */ }
       throw mapGit(e);
@@ -231,14 +231,15 @@ async function saveDraft(ctx, patch, opts) {
 }
 
 async function refreshPr(ctx, branch, title, opts) {
+  const o = opts || {};
   const deps = ctx.deps;
   const list = await deps.git.listPrs({ headPrefix: branch, state: "open" });
   const pr = list.find((p) => p.headRef === branch);
   if (!pr) throw new ApiError("not_found", "No such draft.");
   const changes = await changesOf(deps, pr);
   const marker = text.parseMarker(pr.body);
-  const body = text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId: ids.idFromBranch(branch), changes, previewUrl: previewUrlFor(deps, pr.number), opsCount: (marker ? marker.ops : 0) + 1, revertOf: marker ? marker.revertOf : null });
-  return deps.git.updatePr(pr.number, { body });
+  const body = text.prBody({ authorName: ctx.user.name, authorId: ctx.user.id, draftId: ids.idFromBranch(branch), changes, previewUrl: previewUrlFor(deps, pr.number), opsCount: (marker ? marker.ops : 0) + 1, revertOf: marker ? marker.revertOf : null, ai: o.ai, aiCarry: o.ai ? null : text.carryAi(pr.body) });
+  return deps.git.updatePr(pr.number, o.ai ? { body, labels: o.labels || [] } : { body });
 }
 
 async function replay(ctx, branch) {

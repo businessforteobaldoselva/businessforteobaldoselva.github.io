@@ -11,6 +11,11 @@ const { createSupabaseRoles } = require("./providers/roles/supabase");
 const { createGithubGit } = require("./providers/git/github");
 const { createLimiter } = require("./ratelimit");
 const { createAudit, consoleSink } = require("./audit");
+const { loadAiConfig } = require("./ai/config");
+const { createAiService } = require("./ai");
+const { createAnthropicProvider } = require("./ai/providers/anthropic");
+const { createReplayProvider } = require("./ai/providers/replay");
+const { createDisabledProvider } = require("./ai/providers/disabled");
 
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 
@@ -53,6 +58,11 @@ function loadConfig(env) {
   const preview = e.STUDIO_PREVIEW_URL_TEMPLATE || "";
   if (preview && (!/^https?:\/\/[^\s]*\{pr\}[^\s]*$/.test(preview) || (!preview.startsWith("https://") && !LOCAL_ORIGIN.test(preview.replace(/^(http:\/\/[^/]+).*$/, "$1"))))) throw new ConfigError("STUDIO_PREVIEW_URL_TEMPLATE must be an https URL containing {pr}");
 
+  // with AI help on, the audit trail holds a hash of each instruction; without a secret salt that hash is a plain SHA-256 and short
+  // instructions can be guessed from it
+  const aiCfg = loadAiConfig(e);
+  if (production && aiCfg.enabled && !e.STUDIO_AUDIT_SALT) throw new ConfigError("STUDIO_AUDIT_SALT is required when AI help is switched on (it keeps instruction hashes in the log from being guessed)");
+
   return {
     env: studioEnv,
     production,
@@ -70,6 +80,7 @@ function loadConfig(env) {
     baseBranch: e.GITHUB_BASE_BRANCH || "main",
     github: m ? { owner: m[1], repo: m[2], appId: e.GITHUB_APP_ID || "", installationId: e.GITHUB_APP_INSTALLATION_ID || "" } : null,
     supabase: { url: e.SUPABASE_URL || "", anonKey: e.SUPABASE_ANON_KEY || "", jwtMode },
+    ai: aiCfg, // plain numbers and flags only: the AI key is never part of the configuration
   };
 }
 
@@ -101,7 +112,21 @@ function buildDeps(config, env, overrides) {
     now, fetch: doFetch,
     randomUUID: o.randomUUID || (() => crypto.randomUUID()),
   };
+  // AI help: the key is read from the environment HERE, once, and goes straight into the provider closure
+  deps.ai = createAiService({ deps, provider: makeAiProvider(config, e, doFetch, o), config: config.ai, budget: o.aiBudget, worldId: o.aiWorldId });
   return deps;
+}
+
+// Which model provider backs AI help. Off (the default) = a provider that can never be called; the real one is only
+// constructed when AI is switched on AND a key is present. `replay` (tests, CI, studio:dev) never touches the network.
+function makeAiProvider(config, env, doFetch, o) {
+  if (o.aiProvider) return o.aiProvider;
+  const c = config.ai;
+  if (!c.enabled) return createDisabledProvider();
+  if (c.provider === "replay") return createReplayProvider({ recordings: o.aiRecordings || {}, model: c.model });
+  const key = env.STUDIO_AI_API_KEY;
+  if (typeof key !== "string" || !key.trim()) return createDisabledProvider();
+  return createAnthropicProvider({ apiKey: key.trim(), model: c.model, fetchFn: doFetch });
 }
 
 // ids the page itself uses: the schema carries the lower-case list; the CMS anchor pattern inside the schema also

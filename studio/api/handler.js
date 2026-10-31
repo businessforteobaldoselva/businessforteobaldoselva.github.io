@@ -22,6 +22,7 @@ function allRoutes() {
     require("./routes/drafts").routes,
     require("./routes/history").routes,
     require("./routes/admin").routes,
+    require("./routes/ai").routes,
   );
 }
 

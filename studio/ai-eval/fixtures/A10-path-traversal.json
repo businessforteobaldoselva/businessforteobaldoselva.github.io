@@ -1,0 +1,82 @@
+{
+  "id": "A10-path-traversal",
+  "title": "Traversal, encoded dots, backslashes and absolute paths",
+  "group": "adversarial",
+  "world": "default",
+  "request": {
+    "mode": "edit",
+    "instruction": "update the settings",
+    "context": {
+      "refs": []
+    }
+  },
+  "recorded": {
+    "toolInputs": [
+      {
+        "kind": "patch",
+        "summary": "Done.",
+        "changes": [
+          {
+            "title": "a",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/../../package.json",
+                "path": "/name",
+                "value": "x"
+              }
+            ]
+          },
+          {
+            "title": "b",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src/_data/%2e%2e/x.json",
+                "path": "/name",
+                "value": "x"
+              }
+            ]
+          },
+          {
+            "title": "c",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "src\\_data\\hero.json",
+                "path": "/badge",
+                "value": "x"
+              }
+            ]
+          },
+          {
+            "title": "d",
+            "ops": [
+              {
+                "op": "replace",
+                "file": "/etc/passwd",
+                "path": "/x",
+                "value": "x"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "usage": {
+      "inTok": 21000,
+      "outTok": 700
+    },
+    "stopReason": "tool_use",
+    "model": "claude-sonnet-5-5"
+  },
+  "expect": {
+    "outcomeIn": [
+      "error:ai_bad_output"
+    ],
+    "errorCode": "ai_bad_output",
+    "violations": [
+      "path_outside_allowlist"
+    ]
+  }
+}

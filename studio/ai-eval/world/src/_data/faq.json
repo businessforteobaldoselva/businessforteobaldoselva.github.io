@@ -1,0 +1,13 @@
+{
+  "kicker": "Questions",
+  "title": "Fair enough — ask away.",
+  "items": [
+    { "q": "What is COVERED?", "a": "COVERED is a UK social enterprise that installs smart dispensers giving out free, plastic-free period products. The service is funded entirely by brands advertising on the dispensers' 32-inch screens — users pay nothing, venues host for free, and advertisers fund the products. The first pilot launches in Exeter." },
+    { "q": "Is it really free? What's the catch?", "a": "Really free — no coins, no cards, no subscriptions. Advertisers pay for the ad space on our screens and packaging, and that revenue covers the products, the machines and the restocking. The only \"catch\" is a short sponsor message while the machine dispenses." },
+    { "q": "What products do the machines dispense?", "a": "High-quality, plastic-free and biodegradable pads and tampons, dispensed in convenient 4-packs. Good for you, better for the planet." },
+    { "q": "Who can use the dispensers?", "a": "Anyone who needs period products — students, commuters, visitors, anyone caught off guard. A gentle monthly fair-use limit keeps stock available for everyone, with a simple way to request more if you need it." },
+    { "q": "What happens with my data?", "a": "We're building to UK GDPR and PECR standards from day one — privacy by design. Marketing consent is always a separate, un-ticked opt-in, and you keep full control of your data, including the right to erasure. Our initial pilot collects no personal data at all." },
+    { "q": "What kind of ads will be shown?", "a": "Brand-safe only. Think beauty, wellness, fashion, food and student services — never adult, gambling, political or otherwise sensitive content. Venues approve the environment their visitors experience." },
+    { "q": "I'd love to help — what can I do?", "a": "If you run a venue, host a unit. If you work with a brand, tell your marketing team about us. And if you just like the idea — follow the journey when our channels launch, and spread the word." }
+  ]
+}
