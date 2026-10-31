@@ -1,18 +1,10 @@
 (function (S) {
   "use strict";
-  // "Describe a change" panel: the PURE view model (studio/AI-DESIGN.md 14). No DOM, no network, no storage, no timers:
-  // a state machine (one reducer), the default-checkbox rules, closure toggling, the fixed plain-English copy, the
-  // mapping of error codes to what a founder reads, and the Rendered/Delta -> render-plan step. ext/ai.js turns the
-  // plans into elements (text nodes only). Everything here is unit-tested under node (studio/tests/ai-ui/).
-  //
-  // Shapes mirrored from AI-DESIGN 5 (the UI never imports the server's validators):
-  //   Proposal { id, kind, mode, summary, base, instructionHash, model, changes[Change], skipped[], needsCode, question,
-  //              findings[], warnings[], usage }   Change { id, title, ops[], deltas[], requires[], outsideAsk, sensitive, defaultChecked }
-  //   Delta { file, path, ref, op, kind, label, before, after, diff }   Rendered { type: text|bool|color|link|fields|order }
-  // Model text is DATA: every string that is shown goes through clean() (control and bidi characters removed, length capped),
-  // and the caller puts it into the page as a text node only.
+  // "Describe a change": the PURE view model (studio/AI-DESIGN.md 14): one reducer, default ticks, closure toggling, fixed
+  // plain-English copy, error-code mapping, Delta -> render plan. No DOM, network, storage or timers; unit-tested under node.
+  // Model text is DATA: every shown string goes through clean() and ext/ai.js puts it into the page as a text node only.
 
-  // ------------------------------------------------------------------ constants
+  // constants
   var LIMITS = { instruction: 1000, feedback: 300, refs: 5, changes: 40, deltas: 20, fields: 20, segments: 400, text: 2000, field: 300, label: 200, summary: 200, title: 80, previewChars: 200 };
   var MODES = ["edit", "alt_text", "meta_description", "tone_check"];
   var MODE_INFO = {
@@ -38,18 +30,18 @@
     ai_bad_output: "The AI gave an answer Studio could not safely use, so nothing was changed. You can ask for another try.",
     too_long: "That request is too long. Keep it under 1,000 characters.",
     bad_request: "That request could not be understood. Change the wording a little and try again.",
-    conflict: "Something on the site changed since this suggestion was made. Nothing was saved. Ask again to get a fresh suggestion.",
-    validation: "Some of these changes cannot be saved yet. They are marked below. Untick them, or ask for another try.",
+    conflict: "Something on the site changed since this suggestion was made. Nothing was saved. Ask again for a fresh one.",
+    validation: "Some changes cannot be saved yet. They are marked below. Untick them, or ask for another try.",
     selection_incomplete: "Some of the ticked changes need another change that is not ticked. Tick it too, or untick them.",
     unauthorized: "Your sign-in has expired. Please sign in again.",
     forbidden: "You do not have permission to do that.",
     offline: "You seem to be offline. Nothing was changed. Try again when you are back online.",
     generic: "Something went wrong. Nothing was changed. Try again in a moment.",
     empty: "No changes were suggested.",
-    emptyHelp: "Try describing it a little differently, or pick the part of the page you mean.",
+    emptyHelp: "Try describing it differently, or pick the part of the page you mean.",
     working0: "Thinking about it… this usually takes 5 to 20 seconds.",
-    working8: "Still working… longer requests, like translations, take a little more time.",
-    working20: "Almost there. If this takes much longer you can cancel and try a smaller part of the page.",
+    working8: "Still working… longer requests, like translations, take more time.",
+    working20: "Almost there. If it takes much longer, cancel and try a smaller part of the page.",
     cancelled: "Cancelled. Nothing was changed.",
     safety: "Nothing goes live until an approver publishes it.",
     savedTitle: "Saved as a draft",
@@ -63,10 +55,7 @@
     clarifyTitle: "One question first",
     toneNone: "Reads like COVERED.",
     leftOut: "Left out",
-    leftOutHelp: "These suggestions could not be used, so they are not in the list above.",
-    siteWide: "Site-wide change",
-    siteWideHelp: "This suggestion touches several parts of the site. Look through each one.",
-    fresh: "Fresh suggestion",
+    leftOutHelp: "These could not be used, so they are not in the list above.",
     notShown: "(not shown)",
     emptyValue: "(empty)",
     nothingBefore: "Nothing here yet",
@@ -78,11 +67,12 @@
   };
   var OVERALL = { on_brand: "On brand", mostly: "Mostly on brand", off_brand: "Off brand" };
 
-  // ------------------------------------------------------------------ text hygiene
+  // text hygiene
   function cc(n) { return String.fromCharCode(n); }
   var CTRL = new RegExp("[" + cc(0) + "-" + cc(8) + cc(11) + cc(12) + cc(14) + "-" + cc(31) + cc(127) + "-" + cc(159) + "]", "g");
   // bidi marks and overrides/isolates, line and paragraph separators, byte-order mark
   var BIDI = new RegExp("[" + cc(0x61c) + cc(0x200e) + cc(0x200f) + cc(0x202a) + "-" + cc(0x202e) + cc(0x2066) + "-" + cc(0x2069) + cc(0x2028) + cc(0x2029) + cc(0xfeff) + "]", "g");
+  var REF = /^[A-Za-z0-9_:.\-]{1,120}$/;
   function isObj(x) { return x !== null && typeof x === "object" && !Array.isArray(x); }
   function arr(x) { return Array.isArray(x) ? x : []; }
   function own(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
@@ -104,7 +94,7 @@
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
   function safeId(x) { return typeof x === "string" && /^[A-Za-z0-9_-]{1,16}$/.test(x) ? x : null; }
 
-  // ------------------------------------------------------------------ Rendered / Delta -> render plans
+  // Rendered / Delta -> render plans
   function renderedPlan(r, deltaKind) {
     if (!isObj(r)) return null;
     switch (r.type) {
@@ -175,63 +165,42 @@
     };
   }
 
-  // ------------------------------------------------------------------ closure (AI-DESIGN 9.3, mirrored for the checkboxes)
-  function requiresMap(changes) {
-    var m = {};
-    changes.forEach(function (c) { m[c.id] = c.requires.slice(); });
-    return m;
-  }
-  // ids -> ids plus everything they transitively require
-  function closure(changes, ids) {
-    var m = requiresMap(changes);
-    var seen = {};
-    var stack = ids.slice();
-    while (stack.length) {
-      var id = stack.pop();
-      if (seen[id] || !own(m, id)) continue;
-      seen[id] = true;
-      m[id].forEach(function (r) { stack.push(r); });
-    }
-    return changes.map(function (c) { return c.id; }).filter(function (id) { return seen[id]; });
-  }
-  // everything that (transitively) needs `id`
-  function dependents(changes, id) {
+  // closure (AI-DESIGN 9.3, mirrored for the checkboxes): what a change needs, transitively (up) or what needs it (down)
+  function related(changes, ids, down) {
     var out = {};
+    ids.forEach(function (id) { out[id] = true; });
     var grew = true;
-    out[id] = true;
     while (grew) {
       grew = false;
       changes.forEach(function (c) {
-        if (!out[c.id] && c.requires.some(function (r) { return out[r]; })) { out[c.id] = true; grew = true; }
+        if (down ? !out[c.id] && c.requires.some(function (r) { return out[r]; }) : out[c.id] && c.requires.some(function (r) { return !out[r]; })) {
+          if (down) out[c.id] = true; else c.requires.forEach(function (r) { out[r] = true; });
+          grew = true;
+        }
       });
     }
-    return changes.map(function (c) { return c.id; }).filter(function (x) { return out[x] && x !== id; });
+    return changes.map(function (c) { return c.id; }).filter(function (id) { return out[id]; });
   }
+  function closure(changes, ids) { return related(changes, ids, false); }
+  function dependents(changes, id) { return related(changes, [id], true).filter(function (x) { return x !== id; }); }
   // A selection nobody could save (a change ticked without something it needs) is repaired by UNticking, never by ticking.
   function normalizeChecked(changes, checked) {
     var next = Object.assign({}, checked);
     var changed = true;
     while (changed) {
       changed = false;
-      changes.forEach(function (c) {
-        if (next[c.id] && c.requires.some(function (r) { return !next[r]; })) { next[c.id] = false; changed = true; }
-      });
+      changes.forEach(function (c) { if (next[c.id] && c.requires.some(function (r) { return !next[r]; })) { next[c.id] = false; changed = true; } });
     }
     return next;
   }
   // -> { checked, alsoOn: [ids switched on because they are needed], alsoOff: [ids switched off because they needed this one] }
   function toggle(changes, checked, id, on) {
     var next = Object.assign({}, checked);
-    var alsoOn = [];
-    var alsoOff = [];
-    if (!own(requiresMap(changes), id)) return { checked: next, alsoOn: alsoOn, alsoOff: alsoOff };
-    if (on) {
-      closure(changes, [id]).forEach(function (x) { if (!next[x]) { next[x] = true; if (x !== id) alsoOn.push(x); } });
-    } else {
-      next[id] = false;
-      dependents(changes, id).forEach(function (x) { if (next[x]) { next[x] = false; alsoOff.push(x); } });
-    }
-    return { checked: next, alsoOn: alsoOn, alsoOff: alsoOff };
+    var res = { checked: next, alsoOn: [], alsoOff: [] };
+    if (!changes.some(function (c) { return c.id === id; })) return res;
+    if (on) closure(changes, [id]).forEach(function (x) { if (!next[x]) { next[x] = true; if (x !== id) res.alsoOn.push(x); } });
+    else { next[id] = false; dependents(changes, id).forEach(function (x) { if (next[x]) { next[x] = false; res.alsoOff.push(x); } }); }
+    return res;
   }
   function selectedIds(view, checked) {
     return view ? view.changes.filter(function (c) { return checked[c.id]; }).map(function (c) { return c.id; }) : [];
@@ -253,7 +222,7 @@
     return parts.join(" ");
   }
 
-  // ------------------------------------------------------------------ proposal -> a safe, cleaned view
+  // proposal -> a safe, cleaned view
   function normalizeChange(c) {
     if (!isObj(c)) return null;
     var id = safeId(c.id);
@@ -262,7 +231,6 @@
       id: id,
       title: oneLine(c.title, LIMITS.title) || "Change",
       deltas: arr(c.deltas).slice(0, LIMITS.deltas).map(deltaPlan),
-      opCount: arr(c.ops).length,
       requires: arr(c.requires).map(safeId).filter(Boolean),
       outsideAsk: c.outsideAsk === true,
       sensitive: c.sensitive === true,
@@ -288,7 +256,6 @@
     });
     var overall = own(OVERALL, p.overall) ? p.overall : null;
     if (kind === "tone" && !overall) overall = !findings.length ? "on_brand" : findings.length <= 2 ? "mostly" : "off_brand";
-    var base = isObj(p.base) ? p.base : {};
     return {
       id: typeof p.id === "string" ? p.id : "",
       kind: kind,
@@ -302,17 +269,9 @@
       findings: findings,
       overall: overall,
       overallText: overall ? OVERALL[overall] : "",
-      draftBase: !!(base && base.draftId),
-      siteWide: filesTouched(p) >= 4,
     };
   }
-  function filesTouched(p) {
-    var f = {};
-    arr(p.changes).forEach(function (c) { if (isObj(c)) arr(c.ops).forEach(function (o) { if (isObj(o) && typeof o.file === "string") f[o.file] = true; }); });
-    return Object.keys(f).length;
-  }
-
-  // ------------------------------------------------------------------ requests
+  // requests
   function cleanRefs(refs) {
     var out = [];
     arr(refs).forEach(function (r) {
@@ -409,7 +368,7 @@
     return "Title: " + nc.title + "\nWhere: " + nc.where + "\nHow soon: " + nc.priority + "\n\n" + nc.body;
   }
 
-  // ------------------------------------------------------------------ errors
+  // errors
   function offReasonOf(s) {
     var r = (s.status && s.status.reason) || s.offReason || "disabled";
     return own(OFF, r) ? r : "disabled";
@@ -417,35 +376,26 @@
   var OFF = { disabled: COPY.off_disabled, no_key: COPY.off_no_key, budget_exhausted: COPY.off_budget_exhausted, unreachable: COPY.off_unreachable };
   function offCopy(reason) { return own(OFF, reason) ? OFF[reason] : COPY.off_disabled; }
 
+  // code -> [copy key, actions, off reason]; rate_limited and bad_request are worked out below
+  var ERR = {
+    ai_disabled: ["off_disabled", [], "disabled"], ai_budget_exhausted: ["off_budget_exhausted", [], "budget_exhausted"],
+    ai_unavailable: ["ai_unavailable", ["retry", "back"]], ai_bad_output: ["ai_bad_output", ["retry", "back"]], offline: ["offline", ["retry", "back"]],
+    bad_request: ["bad_request", ["back"]], payload_too_large: ["too_long", ["back"]], aborted: ["cancelled", ["back"]],
+    conflict: ["conflict", ["askAgain", "back"]], base_moved: ["conflict", ["askAgain", "back"]], draft_moved: ["conflict", ["askAgain", "back"]],
+    validation_failed: ["validation", []], unauthorized: ["unauthorized", ["signin"]], forbidden: ["forbidden", ["back"]], not_invited: ["forbidden", ["back"]],
+  };
   // -> { code, message, actions: ["retry","askAgain","back","signin"], requestId, off: null|"disabled"|"budget_exhausted" }
   function errorInfo(err, ctx) {
-    ctx = ctx || {};
     err = err || {};
     var code = typeof err.code === "string" ? err.code : "internal";
-    var info = { code: code, message: COPY.generic, actions: ["retry", "back"], requestId: typeof err.requestId === "string" && /^[A-Za-z0-9-]{8,64}$/.test(err.requestId) ? err.requestId : null, off: null };
-    switch (code) {
-      case "ai_disabled": info.message = COPY.off_disabled; info.actions = []; info.off = "disabled"; break;
-      case "ai_budget_exhausted": info.message = COPY.off_budget_exhausted; info.actions = []; info.off = "budget_exhausted"; break;
-      case "rate_limited": {
-        var n = Number(err.retryAfter) || Number(err.details && err.details.retryAfter) || 30;
-        n = Math.max(1, Math.min(3600, Math.round(n)));
-        info.message = n > 120 ? COPY.rate_limited_min.replace("{n}", String(Math.ceil(n / 60))) : n === 1 ? COPY.rate_limited.replace("{n} seconds", "1 second") : COPY.rate_limited.replace("{n}", String(n));
-        info.actions = ["retry", "back"];
-        break;
-      }
-      case "ai_unavailable": info.message = COPY.ai_unavailable; break;
-      case "ai_bad_output": info.message = COPY.ai_bad_output; info.actions = ["retry", "back"]; break;
-      case "bad_request":
-      case "payload_too_large":
-        info.message = ctx.instructionLength > LIMITS.instruction || code === "payload_too_large" ? COPY.too_long : COPY.bad_request; info.actions = ["back"]; break;
-      case "conflict": case "base_moved": case "draft_moved":
-        info.message = COPY.conflict; info.actions = ["askAgain", "back"]; break;
-      case "validation_failed": info.message = COPY.validation; info.actions = []; break;
-      case "unauthorized": info.message = COPY.unauthorized; info.actions = ["signin"]; break;
-      case "forbidden": case "not_invited": info.message = COPY.forbidden; info.actions = ["back"]; break;
-      case "offline": info.message = COPY.offline; info.actions = ["retry", "back"]; break;
-      case "aborted": info.message = COPY.cancelled; info.actions = ["back"]; break;
-      default: break;
+    var info = { code: code, message: COPY.generic, actions: ["retry", "back"], off: null, requestId: typeof err.requestId === "string" && /^[A-Za-z0-9-]{8,64}$/.test(err.requestId) ? err.requestId : null };
+    if (code === "rate_limited") {
+      var n = Math.max(1, Math.min(3600, Math.round(Number(err.retryAfter) || Number(err.details && err.details.retryAfter) || 30)));
+      info.message = n > 120 ? COPY.rate_limited_min.replace("{n}", String(Math.ceil(n / 60))) : n === 1 ? COPY.rate_limited.replace("{n} seconds", "1 second") : COPY.rate_limited.replace("{n}", String(n));
+    } else if (own(ERR, code)) {
+      var e = ERR[code];
+      info.message = COPY[e[0]]; info.actions = e[1]; info.off = e[2] || null;
+      if (code === "bad_request" && ctx && ctx.instructionLength > LIMITS.instruction) info.message = COPY.too_long;
     }
     return info;
   }
@@ -472,7 +422,7 @@
     return { byChange: byChange, general: general };
   }
 
-  // ------------------------------------------------------------------ the reducer
+  // the reducer
   function initialState(o) {
     o = o || {};
     return {
@@ -484,6 +434,7 @@
     };
   }
   var BUSY = { working: 1, saving: 1 };
+  function clearResult(n) { n.proposal = null; n.view = null; n.checked = {}; n.error = null; n.problems = null; n.saved = null; n.retryOf = null; n.note = ""; }
   function reduce(s, a) {
     var n = Object.assign({}, s);
     switch (a.type) {
@@ -510,16 +461,15 @@
       case "instruction": n.instruction = typeof a.text === "string" ? a.text.slice(0, LIMITS.instruction + 200) : ""; return n;
       case "feedback": n.feedback = typeof a.text === "string" ? a.text.slice(0, LIMITS.feedback + 100) : ""; return n;
       case "refs": n.refs = cleanRefs(a.refs); return n;
-      case "addRef": n.refs = cleanRefs(n.refs.concat([a.ref])); return n;
       case "replaceRef": n.refs = cleanRefs(a.ref ? [a.ref] : n.refs); return n;
       case "removeRef": n.refs = n.refs.filter(function (r) { return r !== a.ref; }); return n;
       case "scope": n.scopeMissing = !!a.missing; return n;
-      case "reset": {
+      case "reset":
+        clearResult(n);
         n.phase = n.status && n.status.enabled ? "idle" : n.phase === "signedOut" ? "signedOut" : "off";
-        n.proposal = null; n.view = null; n.checked = {}; n.error = null; n.problems = null; n.saved = null; n.retryOf = null; n.feedback = ""; n.key = null; n.note = "";
+        n.feedback = ""; n.key = null;
         if (a.clearInstruction) n.instruction = "";
         return n;
-      }
       case "submit":
         if (n.phase === "idle" ? !canSubmit(n) : !(n.phase === "result" || n.phase === "error")) return n;
         n.phase = "working"; n.key = a.key; n.error = null; n.problems = null; n.note = "";
@@ -552,7 +502,7 @@
         return n;
       }
       case "cancel": if (n.phase === "working") { n.phase = "idle"; n.error = null; n.note = COPY.cancelled; } return n;
-      case "discard": if (n.phase === "saving" || n.phase === "working") return n; n.phase = n.status && n.status.enabled ? "idle" : "off"; n.proposal = null; n.view = null; n.checked = {}; n.error = null; n.problems = null; n.retryOf = null; n.note = ""; return n;
+      case "discard": if (BUSY[n.phase]) return n; clearResult(n); n.phase = n.status && n.status.enabled ? "idle" : "off"; return n;
       case "toggle": {
         if (n.phase !== "result" || !n.view) return n;
         var r = toggle(n.view.changes, n.checked, a.id, !!a.on);
@@ -575,8 +525,6 @@
     }
   }
 
-  function overallClass(o) { return o === "on_brand" ? "ok" : o === "mostly" ? "warn" : "bad"; }
-
   var api = {
     LIMITS: LIMITS, MODES: MODES, MODE_INFO: MODE_INFO, EXAMPLES: EXAMPLES, COPY: COPY, FLAGS: FLAGS, OVERALL: OVERALL,
     clean: clean, oneLine: oneLine, renderedPlan: renderedPlan, diffOk: diffOk, sideRuns: sideRuns, deltaPlan: deltaPlan,
@@ -584,7 +532,7 @@
     normalizeProposal: normalizeProposal, cleanRefs: cleanRefs, buildProposeBody: buildProposeBody, buildAcceptBody: buildAcceptBody,
     canSubmit: canSubmit, submitHint: submitHint, counterText: counterText, saveLabel: saveLabel, countText: countText, workingMessage: workingMessage, metaGuidance: metaGuidance,
     pageKey: pageKey, askClaudeUrl: askClaudeUrl, requestText: requestText, offReasonOf: offReasonOf, offCopy: offCopy, errorInfo: errorInfo, problemMap: problemMap,
-    initialState: initialState, reduce: reduce, overallClass: overallClass,
+    initialState: initialState, reduce: reduce,
   };
   if (typeof module === "object" && module && module.exports) module.exports = api;
   if (S) { S.ext = S.ext || {}; S.ext.aiView = api; }

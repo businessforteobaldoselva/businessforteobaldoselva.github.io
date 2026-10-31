@@ -1,16 +1,13 @@
 (function (S) {
   "use strict";
-  // "Describe a change" panel (studio/AI-DESIGN.md 14). Browser only; the logic lives in ext/ai-view.js (pure, tested).
-  // Rules: written against window.CoveredStudio only; every call to the server goes through studio.api (no network
-  // primitive here); every string that came from the server or the model reaches the page as a text node through h()
-  // children or textContent, never as markup; a suggestion is a PROPOSAL until the person saves it as a draft, and the
-  // draft goes through the same server pipeline as a hand-made one (POST /v1/ai/accept).
+  // "Describe a change" panel (studio/AI-DESIGN.md 14). Browser only; logic lives in ext/ai-view.js (pure, tested). Written
+  // against window.CoveredStudio only: server calls go through studio.api, server and model text reaches the page only as
+  // text nodes (h() children), and a suggestion is a PROPOSAL until saved as a draft through the normal server pipeline.
   S.ready(function (studio) {
     var V = S.ext && S.ext.aiView;
     if (!V) return;
     var ui = studio.ui;
     var C = V.COPY;
-    var DRAFT_KEY = "covered.studio.ai.draft";
     var inst = null;
 
     function el(tag, props) {
@@ -25,25 +22,13 @@
     function uuid() { return studio.util.uuid(); }
     function isEditor() { return !!studio.me; }
 
-    function labelOf(ref) {
-      try { var l = studio.schema.label(ref); if (l) return V.oneLine(l, 80); } catch (e) { /* fall back to the ref */ }
-      return V.oneLine(ref, 80);
-    }
-    function selectedRef() {
-      try { var m = studio.inspect && studio.inspect.selected && studio.inspect.selected(); return m && m.ref ? m.ref : null; } catch (e) { return null; }
-    }
-    function currentPage() {
-      try {
-        var keys = Object.keys((studio.content && studio.content.files && studio.content.files()) || {});
-        return V.pageKey(window.location.pathname, keys);
-      } catch (e) { return null; }
-    }
-    function currentDraftId() {
-      try { var d = studio.drafts && studio.drafts.current && studio.drafts.current(); return d && d.id && d.state !== "merged" && d.state !== "closed" ? d.id : null; } catch (e) { return null; }
-    }
-    function markerFor(ref) {
-      try { return ref && studio.inspect && studio.inspect.markerForRef ? studio.inspect.markerForRef(ref) : null; } catch (e) { return null; }
-    }
+    // the host may lack a part (older build, other panel): ask, and fall back instead of failing
+    function safe(fn, fallback) { try { var r = fn(); return r == null ? fallback : r; } catch (e) { return fallback; } }
+    function labelOf(ref) { return V.oneLine(safe(function () { return studio.schema.label(ref); }, ref), 80); }
+    function selectedRef() { return safe(function () { var m = studio.inspect.selected(); return m && m.ref; }, null); }
+    function currentPage() { return safe(function () { return V.pageKey(window.location.pathname, Object.keys(studio.content.files() || {})); }, null); }
+    function currentDraftId() { return safe(function () { var d = studio.drafts.current(); return d && d.id && d.state !== "merged" && d.state !== "closed" ? d.id : null; }, null); }
+    function markerFor(ref) { return ref ? safe(function () { return studio.inspect.markerForRef(ref); }, null) : null; }
     // only an absolute http(s) address without a password becomes a link; anything else is not shown as one
     function httpUrl(url) {
       try {
@@ -56,17 +41,15 @@
       if (!u) return null;
       return u.indexOf("?") >= 0 ? u + "&studio=1" : u.replace(/\/+$/, "") + "/?studio=1";
     }
-    function remember(text) { try { if (text) S.util.session.set(DRAFT_KEY, text); else S.util.session.del(DRAFT_KEY); } catch (e) { /* optional */ } }
-    function recall() { try { return S.util.session.get(DRAFT_KEY) || ""; } catch (e) { return ""; } }
 
     function render(container) {
       var first = inst && inst.pendingMode ? inst.pendingMode : null;
       var sel = selectedRef();
-      var state = V.initialState({ signedIn: isEditor(), instruction: recall(), refs: sel ? [sel] : [] });
+      var state = V.initialState({ signedIn: isEditor(), refs: sel ? [sel] : [] });
       if (first && V.MODES.indexOf(first) >= 0) state.mode = first;
       var alive = true;
       var reqSeq = 0;
-      var timers = [];
+      var tick = null;
       var startedAt = 0;
       var focusNext = false;
       var showRetry = false;
@@ -79,13 +62,15 @@
         live.textContent = "";
         setTimeout(function () { if (alive) live.textContent = V.clean(msg, 400); }, 30);
       }
-      function stopTimers() { timers.forEach(function (t) { clearTimeout(t); clearInterval(t); }); timers = []; }
+      function leave(label, act, o) { return btn(label, function () { focusNext = true; dispatch(act); }, o || { quiet: true }); }
+      function refocus() { var t = root.querySelector("#csx-ai-instr"); if (t) t.focus(); }
+      function stopTimers() { clearInterval(tick); tick = null; }
       function dispatch(a, quiet) {
         state = V.reduce(state, a);
         if (!quiet) paint();
       }
 
-      // ---------------------------------------------------------------- calls
+      // calls
       function loadStatus() {
         dispatch({ type: "statusLoading" });
         return studio.api.get("/v1/ai/status").then(function (st) {
@@ -110,27 +95,17 @@
         var body = V.buildProposeBody(state, key, { page: currentPage(), draftId: currentDraftId() });
         var seq = ++reqSeq;
         say(C.working0);
-        var tick = setInterval(function () {
-          if (!alive || state.phase !== "working") return;
-          var sec = Math.round((Date.now() - startedAt) / 1000);
-          var msg = V.workingMessage(sec);
+        tick = setInterval(function () {
+          var msg = V.workingMessage(Math.round((Date.now() - startedAt) / 1000));
           var node = root.querySelector("[data-working-line]");
-          if (node && node.textContent !== msg) { node.textContent = msg; say(msg); }
+          if (alive && state.phase === "working" && node && node.textContent !== msg) { node.textContent = msg; say(msg); }
         }, 1000);
-        timers.push(tick);
+        // the answer of a request that was cancelled or whose panel was closed is ignored
+        function answer(a) { if (!alive || seq !== reqSeq) return false; stopTimers(); focusNext = true; dispatch(a); return true; }
         studio.api.post("/v1/ai/propose", body).then(function (res) {
-          if (!alive || seq !== reqSeq) return;
-          stopTimers();
-          focusNext = true;
-          dispatch({ type: "result", proposal: res && res.proposal });
-          announceResult();
+          if (answer({ type: "result", proposal: res && res.proposal })) announceResult();
         }, function (err) {
-          if (!alive || seq !== reqSeq) return;
-          stopTimers();
-          focusNext = true;
-          dispatch({ type: "fail", error: err });
-          var info = state.error;
-          say(info ? info.message : V.offCopy(V.offReasonOf(state)));
+          if (answer({ type: "fail", error: err })) say(state.error ? state.error.message : V.offCopy(V.offReasonOf(state)));
         });
       }
       function cancel() {
@@ -142,12 +117,8 @@
       }
       function announceResult() {
         var v = state.view;
-        if (!v) return;
-        if (v.kind === "patch" || v.kind === "tone") {
-          var n = v.changes.length;
-          say(v.kind === "tone" && !v.findings.length ? C.toneNone : n ? n + (n === 1 ? " change" : " changes") + " suggested. Review them below before saving." : C.empty);
-        } else if (v.kind === "needs_code") say(C.needsCodeTitle);
-        else say(C.clarifyTitle + ": " + (v.question || ""));
+        var n = v && v.changes.length;
+        say(!v ? "" : v.kind === "needs_code" ? C.needsCodeTitle : v.kind === "clarify" ? C.clarifyTitle + ": " + (v.question || "") : v.kind === "tone" && !v.findings.length ? C.toneNone : n ? n + (n === 1 ? " change" : " changes") + " suggested. Review them below before saving." : C.empty);
       }
 
       function save() {
@@ -162,10 +133,8 @@
         studio.api.post("/v1/ai/accept", body).then(function (res) {
           if (!alive) return;
           focusNext = true;
-          remember("");
           var d = res && res.draft;
-          try { if (d && studio.drafts && studio.drafts.setCurrent) studio.drafts.setCurrent(d); } catch (e) { /* the Changes panel will catch up */ }
-          try { if (studio.drafts && studio.drafts.refresh) studio.drafts.refresh().catch(function () { /* shown in Changes */ }); } catch (e2) { /* ignore */ }
+          safe(function () { if (d) studio.drafts.setCurrent(d); studio.drafts.refresh().catch(function () { /* shown in Changes */ }); });
           dispatch({ type: "saved", saved: { draft: d || null, accepted: res && res.ai ? res.ai.accepted : body.accept.length, total: res && res.ai ? res.ai.total : state.view.changes.length } });
           ui.toast(C.savedToast, { kind: "success" });
           say(C.savedTitle + ". " + C.savedLine);
@@ -177,7 +146,7 @@
         });
       }
 
-      // ---------------------------------------------------------------- small parts
+      // small parts
       function heading(text, level) {
         return el(level || "h3", { class: "csx-ai-h", tabindex: "-1", "data-focus": "1" }, text);
       }
@@ -187,7 +156,6 @@
         return el("button", { type: "button", class: "csx-btn" + (o.quiet ? " csx-btn-quiet" : "") + (o.big ? " csx-ai-big" : ""), disabled: !!o.disabled, "aria-label": o.aria, "data-act": o.act, on: { click: onClick } }, label);
       }
       function badge(text, cls) { return el("span", { class: "csx-badge csx-ai-badge " + (cls || "") }, text); }
-      function noteBlock(text, cls, role) { return el("div", { class: "csx-ai-note " + (cls || ""), role: role || "note" }, text); }
       function errorBlock(info) {
         if (!info) return null;
         return el("div", { class: "csx-error csx-ai-error", role: "alert", "data-error": info.code },
@@ -195,7 +163,7 @@
           info.requestId ? el("p", { class: "csx-muted csx-ai-ref" }, "Reference: " + info.requestId) : null);
       }
 
-      // ---------------------------------------------------------------- rendered values
+      // rendered values
       function sideBody(plan, runs, note, after, delta) {
         if (!plan) return el("p", { class: "csx-muted csx-ai-text" }, note || C.notShown);
         if (runs && plan.type === "text") {
@@ -214,12 +182,8 @@
             return el("ul", { class: "csx-ai-fields" }, plan.fields.map(function (f) {
               return el("li", null, el("strong", null, f.label ? f.label + ": " : ""), f.text);
             }));
-          case "color":
-            return el("p", { class: "csx-ai-text" }, el("strong", null, plan.text));
-          case "link":
-            return el("p", { class: "csx-ai-text csx-ai-linktext" }, plan.text);
           default:
-            return el("p", { class: "csx-ai-text" }, plan.text || "");
+            return el("p", { class: "csx-ai-text" + (plan.type === "link" ? " csx-ai-linktext" : "") }, plan.type === "color" ? el("strong", null, plan.text) : plan.text || "");
         }
       }
       function metaLine(text) {
@@ -236,7 +200,7 @@
           m ? el("button", { type: "button", class: "csx-link csx-ai-show", "aria-label": "Show on the page: " + d.label, on: { click: function () { try { studio.inspect.select(m, { scroll: true }); } catch (e) { /* the element may be gone */ } } } }, "Show on the page") : null);
       }
 
-      // ---------------------------------------------------------------- change card
+      // change card
       function changeCard(c, o) {
         o = o || {};
         var view = state.view;
@@ -258,7 +222,7 @@
           probs ? el("ul", { class: "csx-ai-probs", role: "alert" }, probs.map(function (t) { return el("li", null, t); })) : null);
       }
 
-      // ---------------------------------------------------------------- selection + footer sync (no repaint)
+      // selection + footer sync (no repaint)
       function onToggle(id, on) {
         dispatch({ type: "toggle", id: id, on: on }, true);
         syncSelection();
@@ -306,7 +270,7 @@
         propose({ retryOf: id, feedback: feedback || "" });
       }
 
-      // ---------------------------------------------------------------- screens
+      // screens
       function warningsBlock(v) {
         if (!v.warnings.length) return null;
         return v.warnings.map(function (w) {
@@ -327,13 +291,12 @@
         return el("div", { class: "csx-ai-result", "data-kind": v.kind },
           heading(v.changes.length ? "Suggested changes" : C.empty),
           v.summary ? para(v.summary, "csx-ai-summary") : null,
-          v.siteWide ? noteBlock(C.siteWide + ". " + C.siteWideHelp, "") : null,
           warningsBlock(v),
           state.error && state.phase === "result" ? errorBlock(state.error) : null,
           state.problems && state.problems.general.length ? el("ul", { class: "csx-ai-probs", role: "alert" }, state.problems.general.map(function (t) { return el("li", null, t); })) : null,
           v.changes.length ? v.changes.map(function (c) { return changeCard(c); }) : para(C.emptyHelp, "csx-muted"),
           skippedBlock(v),
-          v.changes.length ? footer() : el("div", { class: "csx-ai-foot" }, btn("Discard", function () { focusNext = true; dispatch({ type: "discard" }); }, { quiet: true }), anotherTry()));
+          v.changes.length ? footer() : el("div", { class: "csx-ai-foot" }, leave("Discard", { type: "discard" }), anotherTry()));
       }
 
       function screenTone(v) {
@@ -358,7 +321,7 @@
           rest,
           warningsBlock(v),
           state.error && state.phase === "result" ? errorBlock(state.error) : null,
-          v.changes.length ? footer() : el("div", { class: "csx-ai-foot" }, btn("Done", function () { focusNext = true; dispatch({ type: "discard" }); }, { quiet: true })));
+          v.changes.length ? footer() : el("div", { class: "csx-ai-foot" }, leave("Done", { type: "discard" })));
       }
 
       function screenNeedsCode(v) {
@@ -397,7 +360,7 @@
           el("div", { class: "csx-ai-footbtns" },
             btn("Copy request", copy, { act: "copy" }),
             ask ? el("a", { class: "csx-btn csx-btn-quiet csx-ai-link", href: ask, target: "_blank", rel: "noopener noreferrer" }, "Open Ask Claude") : null,
-            btn("Done", function () { focusNext = true; dispatch({ type: "discard" }); }, { quiet: true })),
+            leave("Done", { type: "discard" })),
           el("p", { class: "csx-muted", "data-copy-note": "1" }, copyNote || ""));
       }
 
@@ -410,7 +373,7 @@
           ans,
           el("div", { class: "csx-ai-footbtns" },
             btn("Send answer", function () { retry((ans.value || "").trim()); }, { act: "answer" }),
-            btn("Discard", function () { focusNext = true; dispatch({ type: "discard" }); }, { quiet: true })));
+            leave("Discard", { type: "discard" })));
       }
 
       function screenWorking() {
@@ -435,7 +398,7 @@
             canSend ? btn("Send for review", function () {
               studio.drafts.submit().then(function () { ui.toast("Sent for review.", { kind: "success" }); say("Sent for review."); }, function (e) { ui.toast((e && (e.userMessage || e.message)) || C.generic, { kind: "error" }); });
             }, { quiet: true, act: "send-review" }) : null,
-            btn("Describe another change", function () { focusNext = true; dispatch({ type: "reset", clearInstruction: true }); }, { quiet: true, act: "another" })),
+            leave("Describe another change", { type: "reset", clearInstruction: true }, { quiet: true, act: "another" })),
           el("p", { class: "csx-ai-links" },
             pv ? el("a", { href: pv, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Preview") : null,
             pv && httpUrl(d && d.url) ? " · " : null,
@@ -453,7 +416,7 @@
             actions.indexOf("retry") >= 0 ? btn("Try again", function () { propose({ reuseKey: info.code === "offline" }); }, { act: "try-again" }) : null,
             actions.indexOf("askAgain") >= 0 ? btn("Ask again", function () { propose({ instruction: state.lastInstruction }); }, { act: "ask-again" }) : null,
             actions.indexOf("signin") >= 0 ? btn("Sign in", function () { ui.openPanel("account"); }, { act: "sign-in" }) : null,
-            actions.indexOf("back") >= 0 || !actions.length ? btn("Back", function () { focusNext = true; dispatch({ type: "reset" }); }, { quiet: true, act: "back" }) : null));
+            actions.indexOf("back") >= 0 || !actions.length ? leave("Back", { type: "reset" }, { quiet: true, act: "back" }) : null));
       }
 
       function screenOff() {
@@ -475,7 +438,6 @@
           on: {
             input: function (ev) {
               dispatch({ type: "instruction", text: ev.target.value }, true);
-              remember(state.instruction);
               var cnt = root.querySelector("#csx-ai-count");
               if (cnt) cnt.textContent = V.counterText(ev.target.value.length);
               syncSubmit();
@@ -491,7 +453,7 @@
           if (h) h.textContent = V.submitHint(state);
         }
         var modeBtns = V.MODES.map(function (m) {
-          return el("button", { type: "button", class: "csx-ai-mode", "aria-pressed": state.mode === m ? "true" : "false", "data-mode": m, on: { click: function () { focusNext = false; dispatch({ type: "mode", mode: m }); var t = root.querySelector("#csx-ai-instr"); if (t) t.focus(); } } }, V.MODE_INFO[m].tab);
+          return el("button", { type: "button", class: "csx-ai-mode", "aria-pressed": state.mode === m ? "true" : "false", "data-mode": m, on: { click: function () { focusNext = false; dispatch({ type: "mode", mode: m }); refocus(); } } }, V.MODE_INFO[m].tab);
         });
         return el("div", { class: "csx-ai-idle", "data-phase": "idle" },
           heading(info.tab),
@@ -503,7 +465,7 @@
             refs.map(function (r) {
               var lab = labelOf(r);
               return el("span", { class: "csx-ai-chip" }, el("span", null, lab),
-                el("button", { type: "button", class: "csx-ai-x", "aria-label": "Remove " + lab + " from this request", on: { click: function () { focusNext = false; dispatch({ type: "removeRef", ref: r }); var t = root.querySelector("#csx-ai-instr"); if (t) t.focus(); } } }, "×"));
+                el("button", { type: "button", class: "csx-ai-x", "aria-label": "Remove " + lab + " from this request", on: { click: function () { focusNext = false; dispatch({ type: "removeRef", ref: r }); refocus(); } } }, "×"));
             })) : null,
           state.mode === "alt_text" && !refs.length ? el("label", { class: "csx-ai-check csx-ai-scope" }, el("input", { type: "checkbox", checked: state.scopeMissing, on: { change: function (ev) { dispatch({ type: "scope", missing: ev.target.checked }, true); } } }), " Find pictures that have no description or a weak one") : null,
           el("label", { for: "csx-ai-instr", class: "csx-ai-lab" }, info.label),
@@ -511,7 +473,7 @@
           el("p", { class: "csx-muted csx-ai-counter", id: "csx-ai-count" }, V.counterText((state.instruction || "").length)),
           state.mode === "edit" ? el("div", { class: "csx-ai-examples", role: "group", "aria-label": "Examples" },
             el("span", { class: "csx-muted" }, "Or try: "),
-            V.EXAMPLES.map(function (t) { return el("button", { type: "button", class: "csx-ai-ex", on: { click: function () { var area = root.querySelector("#csx-ai-instr"); dispatch({ type: "instruction", text: t }, true); if (area) { area.value = t; area.focus(); } remember(t); var cnt = root.querySelector("#csx-ai-count"); if (cnt) cnt.textContent = V.counterText(t.length); syncSubmit(); } } }, t); })) : null,
+            V.EXAMPLES.map(function (t) { return el("button", { type: "button", class: "csx-ai-ex", on: { click: function () { focusNext = false; dispatch({ type: "instruction", text: t }); refocus(); } } }, t); })) : null,
           el("p", { class: "csx-muted csx-ai-hint", id: "csx-ai-hint", role: "status" }, hint),
           el("div", { class: "csx-ai-footbtns" }, el("button", { type: "button", class: "csx-btn csx-ai-big", "data-act": "submit", disabled: !can, on: { click: function () { propose(); } } }, info.button)));
       }
@@ -541,7 +503,7 @@
         focusNext = false;
       }
 
-      // ---------------------------------------------------------------- wiring
+      // wiring
       var offSel = studio.on("selection", function (d) {
         if (state.phase === "idle" && d && d.ref) { dispatch({ type: "replaceRef", ref: d.ref }); }
       });

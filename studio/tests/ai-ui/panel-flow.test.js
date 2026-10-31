@@ -342,7 +342,7 @@ test("a 422 on save marks the card, keeps every tick, and moves focus to the fir
   assert.equal(bad.getAttribute("data-card"), "c2");
   assert.match(bad.textContent, /That is too long: 90 of 60 characters\./);
   assert.equal(h.document.activeElement, bad);
-  assert.match(h.text(), /Some of these changes cannot be saved yet/);
+  assert.match(h.text(), /Some changes cannot be saved yet/);
   assert.ok(h.qa("input[data-change]").every((c) => c.checked), "ticks survive");
   assert.equal(h.drafts.set.length, 0);
   h.close();
@@ -513,17 +513,6 @@ test("commands open the panel in the right mode with the selection as context", 
   h.commands.find((c) => c.id === "ai.meta").run();
   await h.settle();
   assert.equal(h.must(".csx-ai-mode[aria-pressed='true']").textContent, "Meta description");
-  h.close();
-});
-
-test("an unsent instruction survives closing the panel (session only); sending clears it", async () => {
-  const h = await open();
-  h.type("#csx-ai-instr", "keep this wording");
-  h.close();
-  h.openPanel(); await h.settle();
-  const kept = h.q("#csx-ai-instr").value;
-  // sessionStorage does not exist in this host; the panel must still work (try/catch), so either outcome is fine here
-  assert.ok(kept === "" || kept === "keep this wording");
   h.close();
 });
 
