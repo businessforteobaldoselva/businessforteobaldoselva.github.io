@@ -26,7 +26,8 @@
     "studio:dev": "node studio/dev/server.js",
     "studio:test": "node scripts/check-studio.js --only unit",
     "studio:e2e": "node studio/tests/e2e/run.js",
-    "check:studio-e2e": "node studio/e2e/journey.js --quick"
+    "check:studio-e2e": "node studio/e2e/journey.js --quick",
+    "studio:ai-journey": "node studio/e2e/ai-journey.js"
   },
   "dependencies": {
     "js-yaml": "4.3.0"
