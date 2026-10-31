@@ -63,7 +63,7 @@ function createHost(options) {
   const copied = [];
   const S = load(["core/util.js", "core/events.js", "core/dom.js", "ext/ai-view.js", "ext/ai.js"], {
     document, globals: { navigator: { clipboard: { writeText: (t) => { copied.push(t); return Promise.resolve(); } } }, AbortController, Event: function () {} },
-    window: { location: { origin: options.origin || "http://page.test", pathname: options.pathname || "/", search: "", hash: "" } },
+    window: { location: { origin: options.origin || "https://page.test", pathname: options.pathname || "/", search: "", hash: "" } },
   });
   const api = options.api || createFakeApi();
   const panels = {};
@@ -101,7 +101,7 @@ function createHost(options) {
   host.must = (sel) => { const e = host.q(sel); if (!e) throw new Error("not found: " + sel + "\n--- panel text ---\n" + host.text()); return e; };
   host.text = () => (host.container ? host.container.textContent : "");
   host.type = (sel, value) => { const t = host.must(sel); t.value = value; t.dispatchEvent(ev("input")); return t; };
-  host.settle = async (n) => { for (let i = 0; i < (n || 6); i++) await new Promise((r) => setImmediate(r)); await new Promise((r) => setTimeout(r, 70)); };
+  host.settle = async (n, ms) => { for (let i = 0; i < (n || 6); i++) await new Promise((r) => setImmediate(r)); await new Promise((r) => setTimeout(r, ms === undefined ? 70 : ms)); };
   host.phase = () => { const e = host.q("[data-phase]"); return e ? e.getAttribute("data-phase") : (host.q("[data-kind]") ? host.q("[data-kind]").getAttribute("data-kind") : null); };
   host.live = () => host.qa("[aria-live]").map((e) => e.textContent).join(" | ");
   host.ask = async (instruction) => { host.type("#csx-ai-instr", instruction); host.must("[data-act='submit']").click(); await host.settle(); };
