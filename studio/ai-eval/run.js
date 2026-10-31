@@ -292,6 +292,13 @@ async function runFixture(fx, run) {
     // 3 + 5: accept everything -> only data and page files; publish; History > Restore -> byte-identical
     const strip = { id: p.id, instructionHash: p.instructionHash, instructionPreview: instruction.slice(0, 200), base: p.base, model: p.model, changes: p.changes.map((c) => ({ id: c.id, title: c.title, ops: c.ops })) };
     const all = p.changes.map((c) => c.id);
+    // a selection that leaves out something a change needs is refused by the server (422), never half-applied
+    const needy = p.changes.find((c) => c.requires.length);
+    if (needy) {
+      const lone = await call("editor", "POST", "/v1/ai/accept", { idempotencyKey: uuid(), proposal: strip, accept: [needy.id] });
+      if (lone.status !== 422) bad("accepting " + needy.id + " without what it needs was not refused (" + lone.status + ")");
+      else if (!/also needs/.test(JSON.stringify(lone.json))) bad("the refusal does not say which change is missing");
+    }
     const acc = await call("editor", "POST", "/v1/ai/accept", { idempotencyKey: uuid(), proposal: strip, accept: all });
     if (acc.status !== 201 && acc.status !== 200) bad("accept all failed: " + acc.status + " " + String(acc.text).slice(0, 240));
     else {
@@ -371,6 +378,7 @@ async function runFixture(fx, run) {
   if (instruction.length >= 12 && auditText.indexOf(instruction.slice(0, 40)) >= 0) bad("the instruction text appears in the audit trail");
   const aiAudit = api.audit.entries.filter((e) => e.action === "ai.propose" || e.action === "ai.rejected" || e.action === "ai.denied");
   if (res.status !== 200 && err && err.code !== "ai_unavailable" && !aiAudit.length) bad("a refused answer left no audit entry");
+  for (const e of api.audit.entries.filter((x) => x.action === "ai.propose" && x.outcome !== "error" && x.ai && x.ai.usage)) if (!Number.isInteger(e.ai.usage.inTok) || !Number.isInteger(e.ai.usage.outTok)) bad("the audit entry lost its token counts (inTok / outTok)");
   for (const e of api.audit.entries) if (/^ai\./.test(e.action) && e.ai && e.ai.instrHash !== undefined && !/^[0-9a-f]{16}$/.test(e.ai.instrHash)) bad("the audit entry carries no instruction hash");
 
   return { problems, outcome, changes: p ? p.changes.length : 0, subsets, revertible, ms, note, proposal: p };
