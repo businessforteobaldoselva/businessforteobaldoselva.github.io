@@ -50,6 +50,28 @@ module.exports = (h) => {
     broken("an AI route becomes anonymous", [["studio/api/routes/ai.js", once("method: \"GET\", path: \"/v1/ai/status\", cls: \"read\", minRole: \"editor\",", "method: \"GET\", path: \"/v1/ai/status\", cls: \"read\", anon: true,")]], "guard", ["D1", "anonymous"]),
     broken("the replay provider reaches for the network", [[A + "providers/replay.js", once("const calls = [];", "const calls = [];\n  const probe = () => fetch(\"https://example.invalid/\");")]], "guard", ["S3", "replay"]),
     broken("token counts are renamed so the audit redaction swallows them", [[A + "index.js", once("model: proposal.model, usage, changes: proposal.changes.length", "model: proposal.model, usage: { tokens: usage.inTok, outTok: usage.outTok }, changes: proposal.changes.length")]], "eval", ["lost its token counts"]),
+    broken("the API key is stored in the configuration object", [["studio/api/config.js", once("ai: loadAiConfig(e),", "ai: loadAiConfig(e), aiKey: e.STUDIO_AI_API_KEY,")]], "guard", ["D3", "part of the configuration"]),
+    broken("the provider sends the key to another address", [[A + "providers/anthropic.js", once("const ENDPOINT = \"https://api.anthropic.com/v1/messages\";", "const ENDPOINT = \"https://api.example.org/v1/messages\";")]], "guard", ["S4", "D3"]),
+    broken("a second web address appears in the AI code", [[A + "prompt.js", once("const PROMPT_VERSION", "const COLLECT = \"https://example.org/collect\";\nconst PROMPT_VERSION")]], "guard", ["S4", "URL literal"]),
+    {
+      name: "studio ai: an overlay file names the key",
+      mutate: (ws) => { withScripts(ws); ws.write("studio/overlay/ext/leak.js", "// STUDIO_AI_API_KEY and x-api-key\n"); },
+      build: false,
+      run(ws) { h.expectRun("check-ai catches it", guard(ws), { code: 1, has: ["S6", "STUDIO_AI_API_KEY"] }); },
+    },
+    {
+      name: "studio ai: a template or script names the key",
+      mutate: (ws) => { withScripts(ws); ws.write("lib/leak.js", "module.exports = process.env.STUDIO_AI_API_KEY;\n"); },
+      build: false,
+      run(ws) { h.expectRun("check-ai catches it", guard(ws), { code: 1, has: ["S1", "lib/leak.js"] }); },
+    },
+    broken("the frozen content no longer matches the schema", [["studio/ai-eval/world/src/_data/hero.json", once("\"badge\": \"Pilot launching in Exeter, UK\"", "\"badge\": \"\"")]], "guard", ["D7", "world file"]),
+    {
+      name: "studio ai: too few fixtures",
+      mutate: (ws) => { withScripts(ws); for (const n of ["01", "02", "03", "04", "05", "06"]) for (const f of fs.readdirSync(ws.file("studio/ai-eval/fixtures"))) if (f.startsWith(n + "-")) fs.unlinkSync(ws.file("studio/ai-eval/fixtures/" + f)); },
+      build: false,
+      run(ws) { h.expectRun("check-ai catches it", guard(ws), { code: 1, has: ["D7", "valid patch fixtures"] }); },
+    },
     {
       name: "studio ai: a schema change that moves the AI's reach is caught until a human reviews the snapshot",
       mutate: (ws) => {

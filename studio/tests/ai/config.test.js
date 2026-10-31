@@ -17,7 +17,7 @@ test("defaults match the design and numbers are clamped, not trusted", () => {
   const c = loadAiConfig({});
   assert.equal(c.model, "claude-sonnet-5-5");
   assert.equal(c.provider, "anthropic");
-  assert.deepEqual([c.maxOutputTokens, c.timeoutMs, c.userPer10Min, c.userPerDay, c.globalPerHour, c.dailyRequests, c.dailyTokens, c.maxBodyBytes, c.maxInputChars], [6000, 25000, 8, 60, 100, 150, 400000, 16000, 120000]);
+  assert.deepEqual([c.maxOutputTokens, c.timeoutMs, c.userPer10Min, c.userPerDay, c.globalPerHour, c.dailyRequests, c.dailyTokens, c.maxBodyBytes, c.maxInputChars], [6000, 25000, 8, 60, 100, 150, 3000000, 16000, 120000]);
   assert.equal(c.vision, true);
   const w = loadAiConfig({ STUDIO_AI_MAX_OUTPUT_TOKENS: "99999999", STUDIO_AI_TIMEOUT_MS: "5", STUDIO_AI_VISION: "0" });
   assert.equal(w.maxOutputTokens, 16000);

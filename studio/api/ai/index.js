@@ -143,6 +143,16 @@ function createAiService(opts) {
     }
   }
 
+  // parsed content by commit: a commit never changes, so one read serves every request on it (small, bounded)
+  const docsCache = new Map();
+  async function cachedDocs(ref, al) {
+    if (!docsCache.has(ref)) {
+      if (docsCache.size >= 6) docsCache.delete(docsCache.keys().next().value);
+      docsCache.set(ref, ctxMod.loadDocs(deps, ref, al).catch((e) => { docsCache.delete(ref); throw e; }));
+    }
+    return docsCache.get(ref);
+  }
+
   // validator context with per-request memoised reads
   function memoCtx(ref) {
     const base = drafts.validatorCtx(deps, ref);
@@ -195,7 +205,7 @@ function createAiService(opts) {
     }
 
     const al = allow();
-    const docs = await ctxMod.loadDocs(deps, ref, al);
+    const docs = await cachedDocs(ref, al);
     let pack = ctxMod.buildPack(al, docs, { mode: req.mode, refs: req.context.refs, page: req.context.page, scope: req.context.scope });
     const meta = { mode: req.mode, instrHash };
     const base = { sha: mainHead, draftId: req.draftId || null, headSha: draftHead };
@@ -204,7 +214,7 @@ function createAiService(opts) {
     // alt text with nothing to describe: answer without spending a model call
     if (req.mode === "alt_text" && !pack.pairs.length) {
       const pr = finish(Object.assign({ id: await prop.proposalId(ctx.userKey, mainHead, draftHead, []), kind: "clarify", summary: "No pictures to describe.", changes: [], skipped: [], needsCode: null, question: "I could not find a picture that needs a description. Click a picture on the page, then ask again.", findings: [], warnings: req.warnings, usage: { inTok: 0, outTok: 0, latencyMs: 0 } }, common));
-      await audit(ctx, "ai.propose", "clarify", Object.assign({}, meta, { provider: pr.provider, model: pr.model, changes: 0, skipped: 0, codes: ["no_pairs"] }));
+      await audit(ctx, "ai.propose", "ok", Object.assign({}, meta, { kind: "clarify", provider: pr.provider, model: pr.model, changes: 0, skipped: 0, codes: ["no_pairs"] }));
       return remember(cacheKey, instrHash, pr, ctx, day);
     }
 
@@ -253,7 +263,7 @@ function createAiService(opts) {
     const parsed = out.parseModelOutput(res, { mode: req.mode, allow: al, docs, filesSent: pack.filesSent });
     if (!parsed.ok) {
       const codes = parsed.violations.map((v) => v.code);
-      await audit(ctx, "ai.rejected", "rejected", Object.assign({}, meta, { provider: provider.id, model: common.model, usage, codes: [...new Set(codes)] }));
+      await audit(ctx, "ai.rejected", "invalid", Object.assign({}, meta, { provider: provider.id, model: common.model, usage, codes: [...new Set(codes)] }));
       const long = codes.indexOf("max_tokens") >= 0;
       throw new ApiError("ai_bad_output", long ? COPY.tooLong : COPY.badOutput, { violations: parsed.violations.slice(0, 10).map((v) => ({ code: v.code, where: typeof v.where === "number" ? "ops/" + v.where : String(v.where) })) });
     }
@@ -265,7 +275,7 @@ function createAiService(opts) {
     else if (parsed.kind === "needs_code") proposal = finish(Object.assign({ id: await prop.proposalId(ctx.userKey, mainHead, draftHead, []), kind: "needs_code", summary: parsed.summary, changes: [], skipped: [], needsCode: { reason: parsed.reason, request: parsed.request }, question: null, findings: [], warnings: pack.warnings.concat(req.warnings), usage }, common));
     else proposal = await buildChangeProposal(idBase, parsed, { meta, audit: (a, oc, x) => audit(ctx, a, oc, x) });
 
-    await audit(ctx, "ai.propose", proposal.kind === "needs_code" ? "needs_code" : proposal.kind === "clarify" ? "clarify" : "ok", Object.assign({}, meta, { provider: proposal.provider, model: proposal.model, usage, changes: proposal.changes.length, skipped: proposal.skipped.length, codes: proposal.skipped.map((s) => s.code).slice(0, 10) }));
+    await audit(ctx, "ai.propose", "ok", Object.assign({}, meta, { kind: proposal.kind, provider: proposal.provider, model: proposal.model, usage, changes: proposal.changes.length, skipped: proposal.skipped.length, codes: proposal.skipped.map((s) => s.code).slice(0, 10) }));
     return remember(cacheKey, instrHash, proposal, ctx, day);
   }
 
@@ -331,7 +341,7 @@ function createAiService(opts) {
     if (!union) {
       if (isTone) union = { applied: [], changes: [], files: new Map() };
       else {
-        await io.audit("ai.rejected", "rejected", Object.assign({}, io.meta, { provider: common.provider, model: common.model, usage, codes: ["none_usable"].concat(skipped.map((s) => s.code)).slice(0, 10) }));
+        await io.audit("ai.rejected", "invalid", Object.assign({}, io.meta, { provider: common.provider, model: common.model, usage, codes: ["none_usable"].concat(skipped.map((s) => s.code)).slice(0, 10) }));
         throw new ApiError("ai_bad_output", COPY.nothingUsable, { violations: [{ code: "none_usable", where: "output" }], skipped });
       }
     }

@@ -44,7 +44,7 @@ function loadAiConfig(env) {
     userPerDay: num(e, "STUDIO_AI_USER_PER_DAY", 60, 1, 10000),
     globalPerHour: num(e, "STUDIO_AI_GLOBAL_PER_HOUR", 100, 1, 100000),
     dailyRequests: num(e, "STUDIO_AI_DAILY_REQUESTS", 150, 1, 1000000),
-    dailyTokens: num(e, "STUDIO_AI_DAILY_TOKENS", 400000, 1000, 1000000000),
+    dailyTokens: num(e, "STUDIO_AI_DAILY_TOKENS", 3000000, 1000, 1000000000),
     maxBodyBytes: num(e, "STUDIO_AI_MAX_BODY_BYTES", 16000, 2000, 200000),
     askClaudeUrl: ask,
   };
