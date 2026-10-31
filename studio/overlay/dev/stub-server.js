@@ -5,7 +5,8 @@
 // overlay can be driven and tested on its own. It speaks the contract (routes, error shapes, CORS rules, dev tokens,
 // the `expect` conflict rule) but validates only a little - the server-side validator is unit B's job.
 //
-//   node studio/overlay/dev/stub-server.js [--site-port 8080] [--api-port 8787]
+//   node studio/overlay/dev/stub-server.js [--site-port 8080] [--api-port 8787] [--ai]
+//   --ai adds the deterministic "Describe a change" demo (./ai-demo.js): the three /v1/ai routes with canned suggestions.
 //   then open http://localhost:8080/?studio=1
 //
 // Programmatic: const { start } = require("./stub-server"); const s = await start({ sitePort: 0, apiPort: 0 });
@@ -51,8 +52,10 @@ function start(options) {
     stub.patches.length = 0;
     stub.drafts.clear();
     stub.failNext = null;
+    if (stub.ai) stub.ai.reset();
     for (const k of Object.keys(content.files)) stub.mainDocs[content.files[k].path] = JSON.parse(JSON.stringify(content.files[k].data));
   };
+  if (options.ai) stub.ai = require("./ai-demo").createAiDemo();
   stub.reset();
   let siteOrigin = "";
   let apiOrigin = "";
@@ -83,24 +86,24 @@ function start(options) {
     return { id, number, url: "https://github.test/covered/site/pull/" + number, previewUrl: null, title, state: state || "draft", branch: "studio/" + id.replace("--", "/"), headSha, baseSha, behindMain: false, mergeable: true, author: { id: user.id, name: user.name }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), checks: { state: "pending", failing: [] }, canPublish: false };
   }
 
+  // Ops are applied one after the other on a copy; every `expect` is checked against the copy as it is at that moment
+  // (the real server does the same), so a later op may rely on an earlier one in the same batch.
   function applyOps(docs, ops, uploads) {
     const conflicts = [];
-    for (const op of ops) {
-      if (Object.prototype.hasOwnProperty.call(op, "expect")) {
-        const cur = pointerGet(docs[op.file], op.path);
-        if (!equal(cur, op.expect)) conflicts.push({ file: op.file, path: op.path, expected: op.expect, actual: cur });
-      }
-    }
-    if (conflicts.length) return { conflicts };
     const next = JSON.parse(JSON.stringify(docs));
     for (const op of ops) {
       const doc = next[op.file];
       if (!doc) return { problems: [{ code: "path_forbidden", file: op.file, path: op.path, message: "That file can't be changed." }] };
+      if (Object.prototype.hasOwnProperty.call(op, "expect")) {
+        const cur = pointerGet(doc, op.path);
+        if (!equal(cur, op.expect)) { conflicts.push({ file: op.file, path: op.path, expected: op.expect, actual: cur }); continue; }
+      }
       if (op.op === "replace") { const { parent, key } = pointerParent(doc, op.path); parent[key] = op.value; }
       else if (op.op === "add") { const { parent, key } = pointerParent(doc, op.path); if (Array.isArray(parent)) { if (key === "-") parent.push(op.value); else parent.splice(Number(key), 0, op.value); } else parent[key] = op.value; }
       else if (op.op === "remove") { const { parent, key } = pointerParent(doc, op.path); if (Array.isArray(parent)) parent.splice(Number(key), 1); else delete parent[key]; }
       else if (op.op === "move") { const a = pointerParent(doc, op.from); const item = a.parent.splice(Number(a.key), 1)[0]; const b = pointerParent(doc, op.path); b.parent.splice(Number(b.key), 0, item); }
     }
+    if (conflicts.length) return { conflicts };
     return { docs: next };
   }
 
@@ -113,6 +116,39 @@ function start(options) {
       req.on("error", reject);
     });
   }
+
+  // Create or extend a draft from an already-checked patch body. Shared by POST /v1/drafts and the AI demo's accept route.
+  function commitDraft(user, body) {
+    stub.patches.push(body);
+    const existing = body.draftId ? stub.drafts.get(body.draftId) : null;
+    // replay of the same key
+    for (const d of stub.drafts.values()) if (d.keys.has(body.idempotencyKey)) return { status: 200, body: { draft: d.draft, changes: d.changes, replayed: true, warnings: [] } };
+    if (body.draftId && !existing) return errBody(404, "not_found", "No such draft.");
+    if (existing && existing.draft.headSha !== body.expectedHeadSha) return errBody(409, "draft_moved", "Draft moved.", { headSha: existing.draft.headSha });
+    const docs = existing ? existing.docs : stub.mainDocs;
+    const r = applyOps(docs, body.ops, body.uploads || []);
+    if (r.conflicts) return errBody(409, "conflict", "Changed since.", { items: r.conflicts });
+    if (r.problems) return errBody(422, "validation_failed", "Invalid", { problems: r.problems });
+    for (const u of body.uploads || []) {
+      if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}\.(jpg|jpeg|png|webp|gif|avif|svg)$/.test(u.name) || Buffer.from(u.dataBase64, "base64").length !== u.size) return errBody(422, "validation_failed", "Bad upload", { problems: [{ code: "image", file: "images/" + u.name, path: "", message: "That picture can't be used." }] });
+    }
+    const changes = body.ops.map(describeOp);
+    let record = existing;
+    if (!record) {
+      const id = "u7k2m9q--" + (String(body.title || "draft").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30) || "draft");
+      const number = 57 + stub.drafts.size;
+      record = { draft: makeDraft(id, number, user, body.title || "Studio draft", body.baseSha, HEX40()), docs: null, keys: new Set(), changes: [], uploads: [] };
+      stub.drafts.set(id, record);
+    }
+    record.docs = r.docs;
+    record.draft.headSha = HEX40();
+    record.draft.updatedAt = new Date().toISOString();
+    record.keys.add(body.idempotencyKey);
+    record.changes = record.changes.concat(changes);
+    record.uploads = record.uploads.concat((body.uploads || []).map((u) => u.name));
+    return { status: existing ? 200 : 201, body: { draft: record.draft, changes: changes, replayed: false, warnings: [] } };
+  }
+  const errBody = (status, code, message, details) => ({ status, body: { error: { code, message, details: details || null }, requestId: crypto.randomUUID() } });
 
   const ALLOWED = new Set(["idempotencyKey", "draftId", "baseSha", "expectedHeadSha", "title", "ops", "uploads"]);
   async function api(req, res) {
@@ -137,6 +173,14 @@ function start(options) {
     if (stub.failNext) { const f = stub.failNext; stub.failNext = null; return json(res, f.status, f.body, f.headers); }
     if (url.pathname === "/v1/me") return json(res, 200, { user: { id: user.id, email: user.email, name: user.name }, role: user.role, capabilities: { draft: true, publish: user.role !== "editor", people: user.role === "admin" } });
     if (url.pathname === "/v1/history") return json(res, 200, { items: [], next: null });
+    if (stub.ai && /^\/v1\/ai\//.test(url.pathname)) {
+      const out = await stub.ai.handle({
+        method: req.method, pathname: url.pathname, user,
+        readJson: async () => JSON.parse(await readBody(req, 220000)),
+        docs: () => stub.mainDocs, commit: (body) => commitDraft(user, body),
+      });
+      if (out) return json(res, out.status, out.body, out.headers);
+    }
     if (url.pathname === "/v1/drafts" && req.method === "GET") return json(res, 200, { drafts: Array.from(stub.drafts.values()).map((d) => d.draft) });
     if (url.pathname === "/v1/drafts" && req.method === "POST") {
       if (!/^application\/json/.test(req.headers["content-type"] || "")) return err(res, 415, "unsupported_media_type", "JSON only.");
@@ -149,34 +193,8 @@ function start(options) {
         if (!/^src\/(_data\/[a-z0-9-]+\.json|pages\/[a-z0-9-]+\.md)$/.test(op.file || "")) return err(res, 422, "validation_failed", "Not allowed", { problems: [{ code: "path_forbidden", file: op.file, path: op.path, message: "That file can't be changed from Studio." }] });
         for (const k of Object.keys(op)) if (!["op", "file", "path", "from", "value", "expect"].includes(k)) return err(res, 400, "bad_request", "Unknown op field " + k);
       }
-      stub.patches.push(body);
-      const existing = body.draftId ? stub.drafts.get(body.draftId) : null;
-      // replay of the same key
-      for (const d of stub.drafts.values()) if (d.keys.has(body.idempotencyKey)) return json(res, 200, { draft: d.draft, changes: d.changes, replayed: true, warnings: [] });
-      if (body.draftId && !existing) return err(res, 404, "not_found", "No such draft.");
-      if (existing && existing.draft.headSha !== body.expectedHeadSha) return err(res, 409, "draft_moved", "Draft moved.", { headSha: existing.draft.headSha });
-      const docs = existing ? existing.docs : stub.mainDocs;
-      const r = applyOps(docs, body.ops, body.uploads || []);
-      if (r.conflicts) return err(res, 409, "conflict", "Changed since.", { items: r.conflicts });
-      if (r.problems) return err(res, 422, "validation_failed", "Invalid", { problems: r.problems });
-      for (const u of body.uploads || []) {
-        if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}\.(jpg|jpeg|png|webp|gif|avif|svg)$/.test(u.name) || Buffer.from(u.dataBase64, "base64").length !== u.size) return err(res, 422, "validation_failed", "Bad upload", { problems: [{ code: "image", file: "images/" + u.name, path: "", message: "That picture can't be used." }] });
-      }
-      const changes = body.ops.map(describeOp);
-      let record = existing;
-      if (!record) {
-        const id = "u7k2m9q--" + (String(body.title || "draft").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30) || "draft");
-        const number = 57 + stub.drafts.size;
-        record = { draft: makeDraft(id, number, user, body.title || "Studio draft", body.baseSha, HEX40()), docs: null, keys: new Set(), changes: [], uploads: [] };
-        stub.drafts.set(id, record);
-      }
-      record.docs = r.docs;
-      record.draft.headSha = HEX40();
-      record.draft.updatedAt = new Date().toISOString();
-      record.keys.add(body.idempotencyKey);
-      record.changes = record.changes.concat(changes);
-      record.uploads = record.uploads.concat((body.uploads || []).map((u) => u.name));
-      return json(res, existing ? 200 : 201, { draft: record.draft, changes: changes, replayed: false, warnings: [] });
+      const out = commitDraft(user, body);
+      return json(res, out.status, out.body);
     }
     const m = /^\/v1\/drafts\/([^/]+)(?:\/(submit|publish|rebase))?$/.exec(url.pathname);
     if (m) {
@@ -242,7 +260,7 @@ module.exports = { start, ROOT };
 if (require.main === module) {
   const a = process.argv.slice(2);
   const val = (n, d) => { const i = a.indexOf(n); return i >= 0 ? Number(a[i + 1]) : d; };
-  start({ sitePort: val("--site-port", 8080), apiPort: val("--api-port", 8787) }).then((s) => {
+  start({ sitePort: val("--site-port", 8080), apiPort: val("--api-port", 8787), ai: a.includes("--ai") }).then((s) => {
     console.log("overlay stub: site " + s.siteOrigin + "/?studio=1   api " + s.apiOrigin + "   (dev sign-in as Molly / Amelia / Teo)");
   });
 }

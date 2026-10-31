@@ -129,3 +129,7 @@
   .csx-ai .csx-link { display: inline-flex; align-items: center; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .csx-ai * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* The dock holds seven buttons on a 390 px phone and no more. Below 460 px the panel is opened from the Changes panel
+   ("Or describe a change in words") or the command palette instead of a dock button of its own. */
+@media (max-width: 459px) { .dock-btn[data-panel-id="ai"] { display: none; } }

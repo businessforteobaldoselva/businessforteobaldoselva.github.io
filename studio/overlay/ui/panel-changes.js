@@ -36,6 +36,11 @@
         container.appendChild(h("button", { type: "button", class: "btn btn-primary", on: { click: function () { studio.ui.openPanel("account"); } } }, "Go to sign in"));
       }
 
+      // ---- "Describe a change": the AI panel (ext/ai.js) has no dock button on very narrow screens, so it is offered here too
+      if (me && studio.ui.panels && studio.ui.panels().some(function (p) { return p.id === "ai"; })) {
+        container.appendChild(h("p", { class: "ai-entry" }, h("button", { type: "button", class: "btn btn-small", "data-ai-entry": "1", on: { click: function () { studio.ui.openPanel("ai"); } } }, "Or describe a change in words")));
+      }
+
       // ---- offline / base moved banners
       if (status.offline) {
         container.appendChild(h("div", { class: "banner banner-warn", role: "status" }, h("p", null, "Saved on this device. It will be sent when you are back online."),
