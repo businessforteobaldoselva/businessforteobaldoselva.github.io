@@ -147,8 +147,8 @@
       }
 
       // small parts
-      function heading(text, level) {
-        return el(level || "h3", { class: "csx-ai-h", tabindex: "-1", "data-focus": "1" }, text);
+      function heading(text) {
+        return el("h3", { class: "csx-ai-h", tabindex: "-1", "data-focus": "1" }, text);
       }
       function para(text, cls) { return el("p", { class: cls || "csx-ai-p" }, text); }
       function btn(label, onClick, o) {

@@ -51,6 +51,30 @@ You change the website on the page itself. Your changes are saved as a **draft**
 
 If someone changed the same thing since, Studio tells you and offers to undo only the parts that are still the same.
 
+### Describe a change (AI help)
+
+This only appears when a Studio admin has switched AI help on. If you open **Describe a change** and it says AI help is switched off, everything else in Studio works as usual and you can carry on editing by hand.
+
+1. Open **Describe a change** (the sparkle button, or press **Ctrl/Cmd + K** and type `describe`). On a very small phone screen it is the link **Or describe a change in words** at the top of **Changes**.
+2. Say what you want in your own words: "make the hero shorter and warmer", "translate the FAQ to Welsh", "add a question about venues to the FAQ". If you clicked something on the page first, the panel says **About: ...** and the suggestion stays on that part. Press the small x to remove it.
+3. Press **Suggest changes** (or Ctrl/Cmd + Enter). It usually takes 5 to 20 seconds, longer for a translation. You can **Cancel**.
+4. Read the suggestion. Every change is a card with a **Before** and an **After**: removed words are struck through and added words are underlined (and read out as "[removed]" and "[added]" to a screen reader). **Nothing is saved yet.**
+5. Tick the ones you want. **Select all**, **Select none** and **Discard** do what they say. Some changes go together (for example a new FAQ question and its answer): ticking one ticks the other, and Studio tells you.
+6. Press **Save N changes as a draft**. It becomes a normal draft, exactly like one you made by hand: send it for review, an approver publishes it. **Nothing goes live until an approver publishes it.**
+
+If you change your mind: **Discard** before saving; discard the draft in **Changes** after saving; or, once it is live, use **History** and **Restore**. Every AI draft can be undone in one click, like any other change.
+
+What the yellow notes mean:
+
+* **Outside what you asked about:** the change is on a part of the site you did not mention. It starts unticked. Look at it before you tick it.
+* **Changes where visitors go (link or email):** links and email addresses decide where people end up. It starts unticked. Only tick it if you are sure.
+* **Some page text reads like an instruction:** text on the site tells the AI what to do. Studio treated it as plain text, but look at every change carefully.
+* **Left out:** the AI suggested something Studio could not use (too long, not allowed). It is listed with the reason and nothing was saved for it.
+
+Other things on the same panel: **Alt text** writes the short description of a picture for people who cannot see it; **Meta description** drafts the line people see under the page title in search results (70 to 160 characters is best); **Tone check** points out wording that does not sound like COVERED and never changes anything by itself (use "Use this wording" on a finding to tick a fix).
+
+**When AI help says "This needs a developer change":** AI help only changes words, picture settings and colours. For anything about how the site works or looks (a new page, a font, an animation) it drafts a request for you. Press **Copy request**, then **Open Ask Claude** and paste it there. Nothing is sent for you.
+
 ### Shortcuts worth knowing
 
 | Keys | What it does |
@@ -58,6 +82,7 @@ If someone changed the same thing since, Studio tells you and offers to undo onl
 | Ctrl/Cmd + K | Search for anything you can do ("hide partners", "change the logo", "history") |
 | E | Switch editing on and off |
 | Ctrl/Cmd + S | Save draft |
+| Ctrl/Cmd + Enter | In Describe a change: ask for suggestions |
 | Ctrl/Cmd + Z | Undo your last change |
 | ? | Help |
 | Esc | Close what is open |
@@ -70,6 +95,7 @@ The first time you sign in, a short tour shows you around. You can replay it fro
 * **Review:** an approver looking at your draft.
 * **Publish:** make the draft live.
 * **Restore:** undo a change that is already live (it makes a new draft first).
+* **Suggestion:** what AI help proposes. It is only a proposal until you save it as a draft.
 
 ---
 
