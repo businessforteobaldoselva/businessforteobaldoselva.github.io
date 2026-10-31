@@ -44,9 +44,17 @@
     function markerFor(ref) {
       try { return ref && studio.inspect && studio.inspect.markerForRef ? studio.inspect.markerForRef(ref) : null; } catch (e) { return null; }
     }
+    // only an absolute http(s) address without a password becomes a link; anything else is not shown as one
+    function httpUrl(url) {
+      try {
+        var x = new URL(url);
+        return (x.protocol === "https:" || x.protocol === "http:") && !x.username && !x.password ? x.href : null;
+      } catch (e) { return null; }
+    }
     function previewLink(url) {
-      if (typeof url !== "string" || !url) return null;
-      return url.indexOf("?") >= 0 ? url + "&studio=1" : url.replace(/\/+$/, "") + "/?studio=1";
+      var u = httpUrl(url);
+      if (!u) return null;
+      return u.indexOf("?") >= 0 ? u + "&studio=1" : u.replace(/\/+$/, "") + "/?studio=1";
     }
     function remember(text) { try { if (text) S.util.session.set(DRAFT_KEY, text); else S.util.session.del(DRAFT_KEY); } catch (e) { /* optional */ } }
     function recall() { try { return S.util.session.get(DRAFT_KEY) || ""; } catch (e) { return ""; } }
@@ -430,8 +438,8 @@
             btn("Describe another change", function () { focusNext = true; dispatch({ type: "reset", clearInstruction: true }); }, { quiet: true, act: "another" })),
           el("p", { class: "csx-ai-links" },
             pv ? el("a", { href: pv, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Preview") : null,
-            pv && d && d.url ? " · " : null,
-            d && d.url ? el("a", { href: d.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Open the pull request") : null),
+            pv && httpUrl(d && d.url) ? " · " : null,
+            httpUrl(d && d.url) ? el("a", { href: httpUrl(d.url), target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Open the pull request") : null),
           para(C.undoLine, "csx-muted"));
       }
 

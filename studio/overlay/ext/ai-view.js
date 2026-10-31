@@ -410,7 +410,10 @@
   }
 
   // ------------------------------------------------------------------ errors
-  function offReasonOf(s) { return (s.status && s.status.reason) || s.offReason || "disabled"; }
+  function offReasonOf(s) {
+    var r = (s.status && s.status.reason) || s.offReason || "disabled";
+    return own(OFF, r) ? r : "disabled";
+  }
   var OFF = { disabled: COPY.off_disabled, no_key: COPY.off_no_key, budget_exhausted: COPY.off_budget_exhausted, unreachable: COPY.off_unreachable };
   function offCopy(reason) { return own(OFF, reason) ? OFF[reason] : COPY.off_disabled; }
 

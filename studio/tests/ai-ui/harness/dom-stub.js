@@ -43,8 +43,8 @@ function parseSelector(sel) {
 function parseCompound(s) {
   const c = { tag: null, id: null, classes: [], attrs: [] };
   let i = 0;
-  const m0 = /^[a-zA-Z][a-zA-Z0-9-]*/.exec(s);
-  if (m0) { c.tag = m0[0].toLowerCase(); i = m0[0].length; }
+  const m0 = /^(?:[a-zA-Z][a-zA-Z0-9-]*|\*)/.exec(s);
+  if (m0) { c.tag = m0[0] === "*" ? null : m0[0].toLowerCase(); i = m0[0].length; }
   while (i < s.length) {
     if (s[i] === "#") { const m = /^#([\w-]+)/.exec(s.slice(i)); c.id = m[1]; i += m[0].length; }
     else if (s[i] === ".") { const m = /^\.([\w-]+)/.exec(s.slice(i)); c.classes.push(m[1]); i += m[0].length; }
