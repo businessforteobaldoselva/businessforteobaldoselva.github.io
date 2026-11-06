@@ -135,7 +135,7 @@ GitHub: Settings, Developer settings, GitHub Apps, New GitHub App.
 
 ### 2. Protect `main` on GitHub
 
-Settings, Branches (or Rules), add a rule for `main`:
+Settings, Rules, Rulesets (done: ruleset `Covered studio main`, active, empty bypass list), a rule for `main`:
 
 * Require a pull request before merging.
 * Require status checks to pass: **Build and guards** and **studio-scope**.
@@ -267,7 +267,7 @@ That address is `STUDIO_APP_URL`.
 ### 7. Turn on preview builds with the overlay
 
 * `netlify.toml` already sets `CMS_EDIT=1` for Deploy Previews and forces it empty for Production. Studio markers and the overlay exist **only** in builds where `CMS_EDIT=1`; the live site is byte-for-byte what it was. The parity check proves it.
-* Confirm Deploy Previews are built for pull requests opened by the GitHub App, and fix the 401 on preview addresses that you saw earlier (they should open for signed-in team members). Until that works, keep using `npm run studio:dev`.
+* Confirm Deploy Previews are built for pull requests opened by the GitHub App. While the site is private, previews (and the live site) sit behind Netlify's visitor login on purpose, so anyone opening a preview must be signed in to the Netlify team. That is expected, not a fault. Before the public launch, switch that protection off for Production only; Production builds never contain the overlay (`CMS_EDIT` is empty there).
 * **Never** set `CMS_EDIT` on Production.
 
 ### 8. People
@@ -297,7 +297,7 @@ Add each founder in Studio (Admin, People) or in `studio_roles`: email, display 
 | Publish is greyed out with "checks not green" | The site build or a guard failed on the draft | Open the pull request, read the failing check. Fix in a new save, or discard the draft |
 | Publish says "not your own draft" | The four-eyes rule | Ask the other approver |
 | Restore says nothing left to undo | Everything that change touched was edited again since | Nothing to do; make a normal edit instead |
-| Preview shows 401 | Netlify password protection on previews | Phase 0 item: allow signed-in team members, or use `npm run studio:dev` |
+| Preview shows a Netlify login or 401 | Visitor protection is on while the site is private (intended) | Sign in to the Netlify team in that browser; to test without Netlify access use `npm run studio:dev` |
 
 ### Emergency switches
 
