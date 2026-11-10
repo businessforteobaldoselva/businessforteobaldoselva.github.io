@@ -152,7 +152,9 @@ This is what makes Studio safe even if everything else failed: nothing reaches `
 2. Add the Studio login page's address to the redirect URLs (step 6).
 3. Note the **Project URL** and the **anon (public) key**. If you choose the shared-secret mode, note the JWT secret too. Never use the service-role key anywhere in Studio; Studio does not need it.
 4. Open `studio/sql/001_studio_roles.sql`. **Read it first**, then paste it into the Supabase SQL editor and run it yourself. Claude and the Studio code never run it. It creates the roles table, locks it down, and creates the audit table.
-5. At the bottom of the file there is a commented-out line that adds the first admin. Put in your email, un-comment it, run it. You are now the admin; add the others from Studio (Admin, People) or with the same kind of line.
+5. **Create the sign-in account too.** With sign-ups off (step 1) the login page only sends a code to an email that already exists in Supabase: Authentication, Users, Add user. Add each person there (the same lowercase email as in `studio_roles`; tick auto-confirm; any password is fine because Studio only uses one-time codes). A `studio_roles` row alone is not enough: without the Authentication user the code request is refused.
+6. Supabase's built-in email sender is rate-limited and its template cannot be edited without your own SMTP. Test the first sign-in; if the code email never arrives or shows only a link, set up SMTP (Authentication, Emails, SMTP Settings).
+7. At the bottom of the file there is a commented-out line that adds the first admin. Put in your email, un-comment it, run it. You are now the admin; add the others from Studio (Admin, People) or with the same kind of line.
 
 ### 4. Settings (environment variables)
 
