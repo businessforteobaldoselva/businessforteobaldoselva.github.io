@@ -59,7 +59,7 @@ test("the token request asks only for the documented least-privilege permissions
   const p = await githubProvider({ fetch: async (url, init) => { if (/access_tokens/.test(String(url))) seen.push(JSON.parse(init.body)); return fetch(url, init); } });
   try {
     await p.git.getHead("main");
-    assert.deepEqual(seen[0].permissions, { contents: "write", pull_requests: "write", issues: "write", checks: "read", statuses: "read", metadata: "read" });
+    assert.deepEqual(seen[0].permissions, { contents: "write", pull_requests: "write", checks: "read", statuses: "read", metadata: "read" });
   } finally { await p.close(); }
 });
 
