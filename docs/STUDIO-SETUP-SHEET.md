@@ -27,3 +27,14 @@ Login page `config.json` (copy `studio/login/config.example.json` next to `index
 Leave `STUDIO_DEV`, `STUDIO_ALLOW_NO_ORIGIN` and `STUDIO_ALLOW_SELF_PUBLISH` unset. Leave `STUDIO_AI_ENABLED` at `0` until runbook step 4b.
 
 Check after deploying: `<API address>/v1/preview-config` returns a small JSON with `"apiVersion":1` and no secrets.
+
+## Live values (set 2026-11-10; none are secret)
+
+| What | Value |
+|---|---|
+| API (Cloudflare Worker `covered-studio-api`) | `https://covered-studio-api.covered-website.workers.dev` |
+| Login page (Cloudflare Worker static site `covered-studio`) | `https://covered-studio.covered-website.workers.dev` |
+| GitHub App | `covered-access-studio`, App ID 5549366, Installation ID 177063583 |
+| Supabase project | `irkzuzctzyncyzvngjiz` (Frankfurt) |
+| Netlify (Deploy Preview only) | `STUDIO_API_URL`, `STUDIO_APP_URL` = the two addresses above |
+| Secrets held only in Cloudflare | `GITHUB_APP_PRIVATE_KEY`, `STUDIO_AUDIT_SALT` |
