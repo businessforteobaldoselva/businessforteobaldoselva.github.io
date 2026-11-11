@@ -123,9 +123,9 @@
     return String(s == null ? "" : s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f‪-‮⁦-⁩]/g, "·");
   }
 
-  // The only fetch outside the API client: the preview build's own content snapshot (same origin).
+  // The only fetch outside the API client: the preview build's own content snapshot (same origin; send cookies so a private preview behind Netlify login still serves it).
   function fetchOwnJson(url) {
-    return fetch(url, { credentials: "omit", cache: "no-store" }).then(function (r) {
+    return fetch(url, { credentials: "same-origin", cache: "no-store" }).then(function (r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.json();
     });
