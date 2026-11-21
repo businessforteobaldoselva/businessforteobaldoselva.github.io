@@ -130,7 +130,7 @@
       email = $("email").value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Type your email address.", true); return; }
       say("Sending a code…");
-      sb("/otp", { email: email, create_user: false }).then(function () { show("code"); say("We emailed " + email + ". Click the link in that email and this window finishes by itself. If the email shows a code instead, type it below."); waitForLink(); }, function () { say("We could not send the email. Check the address (only invited people can sign in).", true); });
+      sb("/otp", { email: email, create_user: false }).then(function () { show("code"); say("We emailed " + email + ". Click the link in that email and this window finishes by itself. If the email shows a code instead, type it below."); waitForLink(); }, function (err) { say(err && err.status === 429 ? "Too many sign-in emails were sent in the last hour. Wait a while and try again, or ask Teo to set up the email service." : "We could not send the email. Check the address (only invited people can sign in).", true); });
     });
     $("form-code").addEventListener("submit", function (e) {
       e.preventDefault();

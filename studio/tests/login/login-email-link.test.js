@@ -85,3 +85,15 @@ test("the waiting window finishes the sign-in when the other tab stores the toke
   assert.equal(f.posted[0][1], "https://p.example", "only to the origin that passed the checks");
   assert.equal(f.posted[0][0].accessToken, "a.b.c");
 });
+
+test("a rate-limited email request says so instead of blaming the address", async () => {
+  const f = fakeWin("");
+  const real = f.win.fetch;
+  f.win.fetch = async (url, init) => (String(url).endsWith("/auth/v1/otp") ? { ok: false, status: 429, text: async () => JSON.stringify({ msg: "email rate limit exceeded" }) } : real(url, init));
+  login.boot(f.win);
+  await tick(); await tick(); await tick(); await tick();
+  f.ids.email.value = "teo@example.com";
+  f.ids["form-email"].fire("submit");
+  await tick(); await tick(); await tick();
+  assert.match(f.ids.status.textContent, /Too many sign-in emails/);
+});
