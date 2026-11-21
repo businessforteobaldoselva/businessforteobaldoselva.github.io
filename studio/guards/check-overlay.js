@@ -40,6 +40,7 @@ const LITERAL_TAGS = new Set(["div", "canvas", "br", "span", "a", "input"]);
 const OK_HOSTS = /^(localhost|127\.0\.0\.1|(www\.)?example\.(com|test|org)|[a-z0-9-]+\.test|github\.test)$/i;
 const CDN = /(cdn|unpkg|jsdelivr|cdnjs|googleapis|gstatic|jquery|bootstrapcdn|fontawesome|cloudflare|polyfill)/i;
 const BUDGET = { scriptsKiB: 330, cssKiB: 48 }; // 260 before History/palette/tour/help (unit D, ~65 KiB); Phase 5 "Describe a change" panel (AI-DESIGN 1.2, at most 330 / 48)
+const LOGIN_KIB = 16; // the login page is a separate static site, budgeted apart from the overlay
 
 const problems = [];
 const warn = (file, line, msg) => problems.push(file + (line ? ":" + line : "") + "  " + msg);
@@ -168,11 +169,13 @@ function scanJs(f) {
 }
 
 let totalScriptBytes = 0;
+let loginBytes = 0;
 const seenFetch = {};
 for (const f of files) {
   const r = scanJs(f);
   if (!f.shared) {
-    totalScriptBytes += Buffer.byteLength(r.text);
+    // the login page is its own static site (not shipped in previews): it has its own budget, below
+    if (f.rel === "login/login.js") loginBytes += Buffer.byteLength(r.text); else totalScriptBytes += Buffer.byteLength(r.text);
     seenFetch[f.rel] = r.calls.fetch;
     if (f.rel !== "login/login.js" && !/^\s*(\/\*[\s\S]*?\*\/\s*)?\(function \(S\) \{\s*\n\s*"use strict";/.test(r.text)) warn(f.label, 1, 'must be an IIFE over window.__CoveredStudioBoot starting with (function (S) { "use strict";');
     if (f.rel !== "login/login.js" && !/\}\)\(window\.__CoveredStudioBoot\);\s*$/.test(r.text)) warn(f.label, 0, "must end with })(window.__CoveredStudioBoot);");
@@ -203,6 +206,7 @@ for (const f of files) {
 
 // ---------------------------------------------------------------- size
 if (totalScriptBytes / 1024 > BUDGET.scriptsKiB) warn("studio/overlay", 0, "scripts are " + (totalScriptBytes / 1024).toFixed(1) + " KiB, budget " + BUDGET.scriptsKiB + " KiB");
+if (loginBytes / 1024 > LOGIN_KIB) warn("studio/login", 0, "login script is " + (loginBytes / 1024).toFixed(1) + " KiB, budget " + LOGIN_KIB + " KiB");
 let cssBytes = 0;
 styles.forEach((rel) => { cssBytes += Buffer.byteLength(read(path.join(OVERLAY, rel))); });
 if (cssBytes / 1024 > BUDGET.cssKiB) warn("studio/overlay", 0, "styles are " + (cssBytes / 1024).toFixed(1) + " KiB, budget " + BUDGET.cssKiB + " KiB");
