@@ -283,8 +283,25 @@ export default async function mount(root, ctx) {
   // Create / edit form in a modal, with a live preview.
   // `ad` is null for create, or the existing row for edit.
   // ---------------------------------------------------------------------------
-  function openForm(ad) {
+  // ---------------------------------------------------------------------------
+  // Advertisers (QR-PLATFORM-PLAN.md D10). Migration 17 makes the advertiser an
+  // entity so QR codes and ads share one owner. Until 17 is applied this read
+  // fails and the form keeps the old free-text input, exactly as before — and
+  // never sends advertiser_id, which would be rejected as an unknown column.
+  // ---------------------------------------------------------------------------
+  async function fetchAdvertisers() {
+    try {
+      const { data, error } = await supabase.from('advertisers').select('id,name,status').order('name');
+      if (error) return null;
+      return (data || []).filter((a) => a.status !== 'archived');
+    } catch { return null; }
+  }
+  const normName = (v) => String(v || '').trim().toLowerCase();
+
+  async function openForm(ad) {
     const isEdit = !!ad;
+    const advertiserList = await fetchAdvertisers();   // null = migration 17 not applied
+    if (destroyed) return;
 
     // Working copy of the fields the form owns. For a new ad we seed sensible
     // defaults that match the DB defaults (duration 5, active true).
@@ -298,8 +315,14 @@ export default async function mount(root, ctx) {
       image_url: ad?.image_url ?? '',
       duration_seconds: ui.clampInt(ad?.duration_seconds, 2, 30, 5),
       advertiser: ad?.advertiser ?? '',
+      advertiser_id: ad?.advertiser_id ?? '',   // '' = none, '__new' = create from newAdvertiser
+      newAdvertiser: '',
       active: ad?.active ?? true,
     };
+    if (advertiserList && !model.advertiser_id && model.advertiser) {
+      const hit = advertiserList.find((a) => normName(a.name) === normName(model.advertiser));
+      if (hit) model.advertiser_id = hit.id;
+    }
 
     // --- Live preview --------------------------------------------------------
     // adCard validates gradient/colour/image and runs a live countdown; we
@@ -329,10 +352,30 @@ export default async function mount(root, ctx) {
       value: model.name, placeholder: 'Internal name (required)', required: true,
       onInput: (e) => { model.name = e.target.value; },
     });
+    // Legacy free-text input (used only when the advertisers table is not there yet).
     const advertiserInput = ui.input({
       value: model.advertiser, placeholder: 'Advertiser / brand',
       onInput: (e) => { model.advertiser = e.target.value; },
     });
+    // Picker + "Add new…" (used once migration 17 is applied).
+    const newAdvertiserInput = ui.input({
+      value: '', placeholder: 'New advertiser name',
+      onInput: (e) => { model.newAdvertiser = e.target.value; },
+    });
+    const newAdvertiserField = ui.el('div', { style: { display: model.advertiser_id === '__new' ? '' : 'none' } },
+      ui.field('New advertiser name', newAdvertiserInput, { hint: 'Matched ignoring case and spaces, so “Acme” and “acme ” are one advertiser.' }));
+    const advertiserSelect = advertiserList ? ui.select({
+      options: [
+        { value: '', label: '— none —' },
+        ...advertiserList.map((a) => ({ value: a.id, label: a.name })),
+        { value: '__new', label: 'Add new advertiser…' },
+      ],
+      value: model.advertiser_id,
+      onChange: (e) => {
+        model.advertiser_id = e.target.value;
+        newAdvertiserField.style.display = model.advertiser_id === '__new' ? '' : 'none';
+      },
+    }) : null;
     const headlineInput = ui.input({
       value: model.headline, placeholder: 'Big bold headline',
       onInput: (e) => { model.headline = e.target.value; rebuildPreview(); },
@@ -386,7 +429,14 @@ export default async function mount(root, ctx) {
         // Left column: the editable fields.
         ui.el('div', { class: 'ad-form-fields' }, [
           ui.field('Name', nameInput, { hint: 'Required. Shown in this console only.' }),
-          ui.field('Advertiser', advertiserInput),
+          advertiserSelect
+            ? ui.field('Advertiser', advertiserSelect, {
+                hint: (model.advertiser && !model.advertiser_id)
+                  ? `Currently “${model.advertiser}” — not in the advertiser list yet.`
+                  : 'Shared with QR codes and reports.',
+              })
+            : ui.field('Advertiser', advertiserInput),
+          advertiserSelect ? newAdvertiserField : null,
           ui.field('Headline', headlineInput),
           ui.field('Tagline', taglineInput),
           ui.field('CTA text', ctaInput),
@@ -452,6 +502,36 @@ export default async function mount(root, ctx) {
 
       saving = true;
       saveBtn.disabled = true;
+
+      // Resolve the advertiser. With the picker we write BOTH advertiser_id and
+      // the legacy text column for one release, so migration 08's reports
+      // (which read the text) keep working untouched.
+      if (advertiserList) {
+        let chosen = null;
+        if (model.advertiser_id === '__new') {
+          const newName = model.newAdvertiser.trim();
+          if (!newName) {
+            ui.toast('Enter the new advertiser name, or choose one from the list.', 'warn');
+            saving = false; saveBtn.disabled = false;
+            return;
+          }
+          chosen = advertiserList.find((a) => normName(a.name) === normName(newName)) || null;
+          if (!chosen) {
+            const { data: created, error: createErr } = await supabase
+              .from('advertisers').insert({ name: newName, source: 'admin' }).select('id,name').single();
+            if (createErr) {
+              ui.toast(createErr.message || 'Could not create the advertiser.', 'error');
+              saving = false; saveBtn.disabled = false;
+              return;
+            }
+            chosen = created;
+          }
+        } else if (model.advertiser_id) {
+          chosen = advertiserList.find((a) => a.id === model.advertiser_id) || null;
+        }
+        payload.advertiser_id = chosen ? chosen.id : null;
+        payload.advertiser = chosen ? chosen.name : null;
+      }
 
       let error;
       try {

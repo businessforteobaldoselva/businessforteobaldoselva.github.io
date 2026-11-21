@@ -16,7 +16,7 @@ import * as ui from './ui.js';
 import * as auth from './supabase.js';
 import { callAdminApi } from './api.js';
 import * as router from './router.js';
-import { IS_CONFIGURED } from './config.js';
+import { IS_CONFIGURED, ADVERTISER_PORTAL_LIVE } from './config.js';
 
 const appRoot = document.getElementById('app');
 
@@ -39,13 +39,13 @@ const ctx = {
 // -----------------------------------------------------------------------------
 router.register('status',    () => import('./views/status.js'),    { title: 'Status' });
 router.register('ads',       () => import('./views/ads.js'),       { title: 'Ads' });
+router.register('qr',        () => import('./views/qr.js'),        { title: 'QR codes' });
+router.register('advertisers', () => import('./views/advertisers.js'), { title: 'Advertisers' });
 router.register('machines',  () => import('./views/machines.js'),  { title: 'Machines' });
 router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tasks' });
 router.register('analytics', () => import('./views/analytics.js'), { title: 'Analytics' });
 router.register('reports',   () => import('./views/reports.js'),   { title: 'Reports' });
 router.register('data',      () => import('./views/data.js'),      { title: 'Data' });
-  router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tasks' });
-  router.register('reports',   () => import('./views/reports.js'),   { title: 'Reports' });
 
 // Sidebar entry for Tasks, between Machines and Analytics. router.NAV drives
 // the sidebar and is read on every shell render, so splicing here keeps
@@ -56,6 +56,29 @@ if (!router.NAV.some((n) => n.name === 'tasks')) {
     analyticsIdx === -1 ? router.NAV.length : analyticsIdx,
     0,
     { name: 'tasks', label: 'Tasks' },
+  );
+}
+
+// Sidebar entry for QR codes, straight after Ads (a code belongs to an advertiser
+// or a machine). Same splice pattern as Tasks/Reports so router.js stays untouched.
+if (!router.NAV.some((n) => n.name === 'qr')) {
+  const adsIdx = router.NAV.findIndex((n) => n.name === 'ads');
+  router.NAV.splice(
+    adsIdx === -1 ? router.NAV.length : adsIdx + 1,
+    0,
+    { name: 'qr', label: 'QR codes' },
+  );
+}
+
+// Sidebar entry for Advertisers, immediately after QR codes: a brand's
+// dashboard is the other half of the advertiser record the QR tab creates.
+// Same splice pattern as Tasks/QR/Reports so router.js stays untouched.
+if (ADVERTISER_PORTAL_LIVE && !router.NAV.some((n) => n.name === 'advertisers')) {
+  const qrIdx = router.NAV.findIndex((n) => n.name === 'qr');
+  router.NAV.splice(
+    qrIdx === -1 ? router.NAV.length : qrIdx + 1,
+    0,
+    { name: 'advertisers', label: 'Advertisers' },
   );
 }
 

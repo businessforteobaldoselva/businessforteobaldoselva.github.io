@@ -41,3 +41,20 @@ export const IS_CONFIGURED =
   typeof SUPABASE_ANON_KEY === 'string' &&
   SUPABASE_ANON_KEY.length > 20 &&
   !SUPABASE_ANON_KEY.startsWith('PASTE_');
+
+// -----------------------------------------------------------------------------
+// QR codes: the short domain every printed code points at (QR-PLATFORM-PLAN.md D4).
+// A BARE hostname, no scheme and no path, e.g. 'xyz.uk'. Leave it '' until the
+// domain is REGISTERED to the company: while it is empty the QR page can register
+// and preview codes but refuses to produce print files, so a placeholder domain
+// can never end up on a carton. Public value, safe to commit.
+// -----------------------------------------------------------------------------
+export const QR_SHORT_DOMAIN = '';
+
+// -----------------------------------------------------------------------------
+// Advertiser portal (migration 18). Leave false until 18-advertiser-portal.sql is
+// applied to live: until then every fn_admin_advertiser_* RPC returns 404 and the
+// Advertisers tab is a dead tab. Flip to true in the same commit that applies 18.
+// Public value, safe to commit.
+// -----------------------------------------------------------------------------
+export const ADVERTISER_PORTAL_LIVE = false;
