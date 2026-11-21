@@ -37,9 +37,10 @@ jobs:
       - name: Take the guard and the scope definition from main
         run: |
           git fetch --no-tags origin main
-          mkdir -p "$RUNNER_TEMP/guard/studio/guards" "$RUNNER_TEMP/guard/studio/validate"
+          mkdir -p "$RUNNER_TEMP/guard/studio/guards" "$RUNNER_TEMP/guard/studio/validate" "$RUNNER_TEMP/guard/scripts/lib"
           git show origin/main:studio/guards/check-scope.js > "$RUNNER_TEMP/guard/studio/guards/check-scope.js"
           git show origin/main:studio/validate/scope.js > "$RUNNER_TEMP/guard/studio/validate/scope.js"
+          git show origin/main:scripts/lib/image-rules.js > "$RUNNER_TEMP/guard/scripts/lib/image-rules.js"
 
       - name: Only content files changed
         run: node "$RUNNER_TEMP/guard/studio/guards/check-scope.js" --root "$GITHUB_WORKSPACE" --base origin/main --head HEAD

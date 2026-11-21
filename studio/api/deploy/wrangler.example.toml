@@ -21,3 +21,7 @@ SUPABASE_ANON_KEY = "public-anon-key"
 # AI help ("Describe a change") is off by default. To turn it on set the next line to "1" AND add the secret STUDIO_AI_API_KEY.
 # A Worker request has a short CPU budget but a long wall-clock one; keep STUDIO_AI_TIMEOUT_MS below your plan's limit.
 STUDIO_AI_ENABLED = "0"
+
+# Keeps a Supabase free project from pausing after a quiet week (twice a week, Monday and Thursday).
+[triggers]
+crons = ["17 6 * * 1,4"]
