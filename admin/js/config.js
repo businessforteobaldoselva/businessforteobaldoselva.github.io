@@ -52,9 +52,10 @@ export const IS_CONFIGURED =
 export const QR_SHORT_DOMAIN = '';
 
 // -----------------------------------------------------------------------------
-// Advertiser portal (migration 18). Leave false until 18-advertiser-portal.sql is
-// applied to live: until then every fn_admin_advertiser_* RPC returns 404 and the
-// Advertisers tab is a dead tab. Flip to true in the same commit that applies 18.
-// Public value, safe to commit.
+// Advertiser portal (migration 18). APPLIED to live 2026-11-21 and verified: both
+// advertiser tables exist and fn_advertiser_scope / fn_admin_advertiser_* resolve.
+// True reveals the Advertisers tab in the admin sidebar. This does NOT expose
+// anything to any brand: advertiser_dashboard_config.published defaults to false
+// and no row is published yet. Public value, safe to commit.
 // -----------------------------------------------------------------------------
-export const ADVERTISER_PORTAL_LIVE = false;
+export const ADVERTISER_PORTAL_LIVE = true;
