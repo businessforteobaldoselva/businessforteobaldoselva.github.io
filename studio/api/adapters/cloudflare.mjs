@@ -18,7 +18,8 @@ export default {
   async scheduled(_event, env, ctx) {
     const base = String(env.SUPABASE_URL || "").replace(/\/+$/, "");
     if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(base) || !env.SUPABASE_ANON_KEY) return;
-    ctx.waitUntil(fetch(base + "/rest/v1/studio_roles?select=id&limit=1", { headers: { apikey: env.SUPABASE_ANON_KEY } })
+    const doFetch = (...a) => fetch(...a);
+    ctx.waitUntil(doFetch(base + "/rest/v1/studio_roles?select=id&limit=1", { headers: { apikey: env.SUPABASE_ANON_KEY } })
       .then((r) => console.log("supabase keep-alive: HTTP " + r.status), (e) => console.log("supabase keep-alive failed: " + (e && e.message))));
   },
 };
