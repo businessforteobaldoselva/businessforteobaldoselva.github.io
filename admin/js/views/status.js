@@ -85,7 +85,10 @@ export default async function mount(root, ctx) {
     body: ui.el('div', {
       style: { display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' },
     }, [
-      linkBtn('✏️ Open website editor (log in)', WEBSITE_URL + '/cms/', 'primary'),
+      // Studio, not the old Decap /cms/. Root-relative on purpose: the console is
+      // served from the same origin as /studio/, and WEBSITE_URL (the Netlify site)
+      // currently answers 401 on every path.
+      linkBtn('✏️ Open website editor (Studio)', '/studio/login/', 'primary'),
       linkBtn('🌐 View live site', WEBSITE_URL + '/', 'ghost'),
     ]),
   });

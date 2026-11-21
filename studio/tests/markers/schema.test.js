@@ -164,10 +164,11 @@ test("fieldsAt lists the children for generated forms", () => {
   assert.deepEqual(R.fieldsAt(schema, "nope", [], {}), []);
 });
 
-test("the sample content fixture is a consistent subset of the real data", () => {
+test("the sample content fixture only names files the site really has", () => {
+  // Not equal to the live words: an editor changing a headline must never fail CI because a stored sample no longer matches.
   const sample = JSON.parse(fs.readFileSync(path.join(ROOT, "studio", "tests", "fixtures", "content.sample.json"), "utf8"));
   assert.equal(sample.schemaVersion, 1);
-  for (const [k, f] of Object.entries(sample.files)) {
-    assert.deepEqual(f, files[k], k + " drifted from the real data; regenerate the fixture");
+  for (const k of Object.keys(sample.files)) {
+    assert.ok(files[k], k + " is in the sample fixture but is not a data file any more; regenerate the fixture");
   }
 });
