@@ -14,7 +14,7 @@ const iface = require("./interface");
 
 const { GitError, summarizeChecks } = iface;
 const API_VERSION = "2022-11-28";
-const PERMISSIONS = { contents: "write", pull_requests: "write", issues: "write", checks: "read", statuses: "read", metadata: "read" };
+const PERMISSIONS = { contents: "write", pull_requests: "write", checks: "read", statuses: "read", metadata: "read" };
 const LABEL_COLORS = { "studio-draft": "0e8a16", "studio-ready": "fbca04", "studio-revert": "d93f0b" };
 const enc = new TextEncoder();
 const dec = new TextDecoder("utf-8");
