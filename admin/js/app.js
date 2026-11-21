@@ -39,6 +39,7 @@ const ctx = {
 // -----------------------------------------------------------------------------
 router.register('status',    () => import('./views/status.js'),    { title: 'Status' });
 router.register('ads',       () => import('./views/ads.js'),       { title: 'Ads' });
+router.register('qr',        () => import('./views/qr.js'),        { title: 'QR codes' });
 router.register('machines',  () => import('./views/machines.js'),  { title: 'Machines' });
 router.register('tasks',     () => import('./views/tasks.js'),     { title: 'Tasks' });
 router.register('analytics', () => import('./views/analytics.js'), { title: 'Analytics' });
@@ -276,3 +277,14 @@ boot().catch((err) => {
     })
   ));
 });
+
+// Sidebar entry for QR codes, straight after Ads (a code belongs to an advertiser
+// or a machine). Same splice pattern as Tasks/Reports so router.js stays untouched.
+if (!router.NAV.some((n) => n.name === 'qr')) {
+  const adsIdx = router.NAV.findIndex((n) => n.name === 'ads');
+  router.NAV.splice(
+    adsIdx === -1 ? router.NAV.length : adsIdx + 1,
+    0,
+    { name: 'qr', label: 'QR codes' },
+  );
+}
