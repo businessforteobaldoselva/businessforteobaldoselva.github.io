@@ -69,6 +69,23 @@
       win.setTimeout(function () { try { win.close(); } catch (e) { /* ignore */ } }, 400);
     }
 
+    // Landed from the link in the sign-in email (Supabase redirects here with the session in the #fragment, no ?origin=):
+    // keep the refresh token for the Studio window that is waiting (same browser, same origin) and tell the person to go back.
+    var frag = new URLSearchParams((win.location.hash || "").replace(/^#/, ""));
+    if (frag.get("access_token") || frag.get("error_code") || frag.get("error")) {
+      try { win.history.replaceState(null, "", win.location.pathname + win.location.search); } catch (e) { /* ignore */ }
+      var linkRt = frag.get("refresh_token");
+      if (frag.get("access_token") && linkRt && /^[A-Za-z0-9._-]{6,512}$/.test(linkRt)) {
+        store.set(RT, linkRt);
+        show("done");
+        say("You're signed in. Go back to the Studio window: it finishes by itself. You can close this tab.");
+      } else {
+        show("refused");
+        say("That sign-in link has expired or was already used. Go back to Studio and ask for a new one.", true);
+      }
+      return;
+    }
+
     var params = new URLSearchParams(win.location.search);
     var asked = params.get("origin");
 
@@ -96,12 +113,24 @@
       } else { show("email"); say(""); }
     }).catch(function () { say("Could not reach the Studio service. Check your connection and reload.", true); });
 
+    // The link opens another tab on this same origin, which stores the refresh token; pick it up here (one time).
+    var waiting = false;
+    function waitForLink() {
+      if (waiting) return;
+      waiting = true;
+      win.addEventListener("storage", function onStore(ev) {
+        if (ev.key !== RT || !ev.newValue || !/^[A-Za-z0-9._-]{6,512}$/.test(ev.newValue)) return;
+        win.removeEventListener("storage", onStore);
+        say("Signing you in…");
+        sb("/token", { refresh_token: ev.newValue }, "?grant_type=refresh_token").then(deliver, function () { waiting = false; say("That link did not work. Ask for a new one.", true); });
+      });
+    }
     $("form-email").addEventListener("submit", function (e) {
       e.preventDefault();
       email = $("email").value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Type your email address.", true); return; }
       say("Sending a code…");
-      sb("/otp", { email: email, create_user: false }).then(function () { show("code"); say("We sent a code to " + email + ". It can take a minute."); }, function () { say("We could not send a code. Check the address (only invited people can sign in).", true); });
+      sb("/otp", { email: email, create_user: false }).then(function () { show("code"); say("We emailed " + email + ". Click the link in that email and this window finishes by itself. If the email shows a code instead, type it below."); waitForLink(); }, function () { say("We could not send the email. Check the address (only invited people can sign in).", true); });
     });
     $("form-code").addEventListener("submit", function (e) {
       e.preventDefault();

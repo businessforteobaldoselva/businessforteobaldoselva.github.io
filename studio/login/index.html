@@ -31,14 +31,14 @@
     <form id="form-email" novalidate>
       <label for="email">Your email address</label>
       <input id="email" type="email" autocomplete="email" inputmode="email" required>
-      <button type="submit">Email me a code</button>
+      <button type="submit">Email me a sign-in link</button>
     </form>
   </section>
   <section id="step-code" hidden>
     <form id="form-code" novalidate>
-      <label for="code">The code from your email</label>
+      <label for="code">If the email shows a code, type it here</label>
       <input id="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" maxlength="8" required>
-      <button type="submit">Sign in</button>
+      <button type="submit">Sign in with the code</button>
       <button type="button" id="back" class="plain">Use a different email</button>
     </form>
   </section>
