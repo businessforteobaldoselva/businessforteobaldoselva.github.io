@@ -82,7 +82,7 @@ function createLocalGit(opts) {
       if (!pr.checkCache[headSha] || pr.checkCache[headSha].some((r) => r.status !== "completed")) { pr.checkCache[headSha] = await opts.checkRunner(headSha, repoDir); const s = load(); s.prs[pr.number] = pr; save(s); }
       runs = pr.checkCache[headSha];
     }
-    return { number: pr.number, url: "https://example.invalid/pull/" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged, headRef: pr.headRef, headSha, baseSha, behindBase: !pr.merged && !!baseSha && baseSha !== mainSha, mergeable, labels: pr.labels.slice().sort(), authorLogin: pr.authorLogin, title: pr.title, body: pr.body, checks: summarizeChecks(runs, []), mergeCommitSha: pr.mergeSha || null, createdAt: pr.createdAt, updatedAt: pr.updatedAt };
+    return iface.withIdentity({ number: pr.number, url: "https://example.invalid/pull/" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged, headRef: pr.headRef, headSha, baseSha, behindBase: !pr.merged && !!baseSha && baseSha !== mainSha, mergeable, labels: pr.labels.slice().sort(), authorLogin: pr.authorLogin, title: pr.title, body: pr.body, checks: summarizeChecks(runs, []), mergeCommitSha: pr.mergeSha || null, createdAt: pr.createdAt, updatedAt: pr.updatedAt }, pr.baseRef, base);
   };
 
   const item = (pr) => ({ number: pr.number, title: pr.title, body: pr.body, mergedAt: pr.mergedAt, mergeSha: pr.mergeSha, parentSha: pr.parentSha, authorLogin: pr.authorLogin, mergedByLogin: pr.mergedBy || null, headRef: pr.headRef, files: pr.files || [], labels: pr.labels.slice().sort() });
@@ -156,6 +156,12 @@ function createLocalGit(opts) {
       }
       return res;
     },
+    async requestReviewers(n, logins) {
+      if (!load().prs[n]) throw new GitError("not_found", "no such pull request");
+      const list = Array.isArray(logins) ? logins.filter((l) => typeof l === "string" && /^[A-Za-z0-9-]{1,39}$/.test(l)) : [];
+      if (!list.length || list.length !== logins.length) throw new GitError("bad_request", "reviewer logins are not valid");
+      return { requested: list };
+    },
     async markReady(n) { const s = load(); if (!s.prs[n]) throw new GitError("not_found", "no such pull request"); s.prs[n].draft = false; save(s); },
     async closePr(n, comment) {
       const s = load();
@@ -174,7 +180,7 @@ function createLocalGit(opts) {
       if (!pr) throw new GitError("not_found", "no such pull request");
       if (method !== "squash") throw new GitError("bad_request", "only squash merges");
       iface.guardBranchWrite(pr.headRef);
-      if (pr.labels.indexOf("studio-draft") < 0) throw new iface.ScopeError("only Studio drafts can be merged here", pr.headRef);
+      if (!iface.isStudioDraft({ headRef: pr.headRef, baseRef: pr.baseRef, fromFork: false, body: pr.body }, base)) throw new iface.ScopeError("only Studio drafts can be merged here", pr.headRef);
       if (pr.state !== "open" || pr.draft) throw new GitError("not_mergeable", "the pull request is not open and ready");
       const headSha = head(pr.headRef);
       if (sha && headSha !== sha) throw new GitError("sha_mismatch", "Head branch was modified. Review and try the merge again.");

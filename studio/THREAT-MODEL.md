@@ -140,7 +140,23 @@ Scope: `studio/AI-DESIGN.md`. A founder types a request; a model proposes a JSON
 ## Phase 1 additions (one subsection per unit; edit only your own, see studio/PHASE1-DESIGN.md section 2)
 
 ### P1-BACKEND (health route, usage tables, label fallback)
-(not written yet)
+**New inputs and who can call them**
+
+| Input | Who | What it can do | What stops abuse |
+|---|---|---|---|
+| `GET /v1/health` | anyone (no token) | Learn whether Supabase and GitHub answer and whether AI help is on. | The answer is fixed sentences and states: no address, key, error text, version or count. Cached (default 30 s) with ONE shared in-flight check, so a flood costs one upstream call per window; the anonymous IP rate limit still applies; no audit entry (it is polled). The check itself sends only the public key, to the sign-in service's own health address. |
+| `POST /v1/ai/estimate`, `GET /v1/ai/recent` | editor and above | Estimate a request's cost (it builds the prompt, calls no model, reserves and counts nothing); list the caller's own last 20 requests. | Same role and CSRF rules as the other AI routes. Estimate reads Git like propose does but never writes; recent returns only the caller's rows, ids and counters, never instruction text. Rate class `read`. |
+| `studio_ai_*` functions (`003`) | the caller's own JWT, through PostgREST | Count the caller's own usage and read the caller's own recent list. | `security definer`, pinned search path, active-person check on every function, only the caller's rows (`auth.uid()`), tables closed to anon and signed-in users (RLS on, no policies), nothing stored but counters and request ids. Applied by a human; Studio never applies it. |
+| Label write on a pull request | the GitHub App | Add labels. | A failure is logged once and ignored. Labels are not trusted: merge identifies a Studio draft by `studio/` branch + this repository + base branch + Studio's marker. |
+| `requestReviewers` | the API (REVIEW's submit) | Ask GitHub to notify named collaborators. | Logins are validated against GitHub's own pattern inside the provider; at most 10; a refusal never fails a submit; it cannot approve, merge or request itself. |
+
+**What an editor can newly do:** see how healthy the services are, see the cost estimate of their own request and their own recent requests. **What an editor can no longer do:** use up other people's daily suggestions (the per-person cap is enforced in the store, and a shared store makes it hold across API copies); push the global counter past its caps with several API copies when the shared store is on.
+
+**What got safer.** An outage of the sign-in service used to look like "please sign in again" (and counted toward the bad-sign-in limit, so an outage could lock people out); it is now a 503 with a plain sentence and is not counted. A missing "Issues" permission used to make saving a draft report an error (the pull request was already created); it no longer does.
+
+**Failure modes (all fail closed).** Shared usage store unreachable, paused, not set up, or answering strangely: the request is served from the memory store with the same caps (never "unlimited") and one `usage.store_fallback` line is logged per minute. Health check hangs: it is abandoned at `STUDIO_HEALTH_TIMEOUT_MS` and reported as unreachable. A forged marker on a non-`studio/` branch or on a fork is refused by the branch guard and the fork check before the marker is even read.
+
+**Residual risks.** (1) Anyone who can edit a pull request's body on a `studio/` branch in the repository can write a marker; they could already add a label, they already have repository write access, and the pull request still needs CI, `studio-scope` and a second person. (2) The health route tells an anonymous caller when a service is down; that is the same thing the login page needs to show a founder, and it reveals nothing about the configuration. (3) The memory counters are per API copy: with the shared store off, the real ceiling is the limit times the number of copies (the runbook says so).
 
 ### P1-REVIEW (board, review screen, reviewer notification)
 (not written yet)

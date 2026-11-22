@@ -51,6 +51,12 @@
     var pc = null;
     var targetOrigin = null;
     var email = "";
+    var apiBase = null;
+    // Plain sentences for "the sign-in service is down" (PHASE1-DESIGN 4.2). Fixed text: nothing a server sends is ever shown.
+    var DOWN = "Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute.";
+    var PAUSED = "Sign-in is paused because the Studio database has been idle. An admin can wake it from the Supabase dashboard (Restore project).";
+    // a network failure (no status) or a 5xx is the service being down; a 4xx is the person's mistake (wrong code, unknown email)
+    function isDown(err) { return !err || !err.status || err.status >= 500; }
 
     function say(msg, bad) { status.textContent = msg; status.setAttribute("data-bad", bad ? "1" : "0"); }
     function show(name) { Object.keys(steps).forEach(function (k) { steps[k].hidden = k !== name; }); var f = steps[name].querySelector("input,button"); if (f) f.focus(); }
@@ -59,6 +65,18 @@
     }
     function sb(path, body, query) {
       return jsonFetch(pc.auth.supabaseUrl.replace(/\/+$/, "") + "/auth/v1" + path + (query || ""), { method: "POST", headers: { "Content-Type": "application/json", apikey: pc.auth.supabaseAnonKey }, body: JSON.stringify(body), credentials: "omit", cache: "no-store" });
+    }
+    // Best effort, 2 seconds: ask the API how the sign-in service is. Resolves to a message to show, or null (all fine OR unknown).
+    function healthMessage() {
+      if (!apiBase) return Promise.resolve(null);
+      var timer = new Promise(function (res) { win.setTimeout(function () { res(null); }, 2000); });
+      var ask = win.fetch(apiBase + "/v1/health", { credentials: "omit", cache: "no-store" }).then(function (r) {
+        return r.ok ? r.json() : null;
+      }).then(function (h) {
+        var st = h && h.services && h.services.auth && h.services.auth.state;
+        return st === "paused" ? PAUSED : st === "unreachable" ? DOWN : null;
+      }).catch(function () { return null; });
+      return Promise.race([ask, timer]);
     }
     function deliver(session) {
       if (session.refresh_token) store.set(RT, session.refresh_token);
@@ -95,6 +113,7 @@
       targetOrigin = asked;
       if (!cfg.api || !wellFormedOrigin(cfg.api)) { say("Studio sign-in is not set up yet (no service address).", true); return null; }
       var api = cfg.api.replace(/\/+$/, "");
+      apiBase = api;
       var exact = Array.isArray(cfg.allowedOrigins) && cfg.allowedOrigins.indexOf(asked) >= 0;
       // A preview address only gets a token when the service confirms its pull request is open and from THIS repository
       // (a deploy preview of somebody else's fork is a stranger's code on a matching address).
@@ -109,7 +128,7 @@
       if (!pc.auth || pc.auth.mode !== "supabase" || !pc.auth.supabaseUrl || !pc.auth.supabaseAnonKey) { say("Studio sign-in is not set up yet.", true); return; }
       var rt = store.get(RT);
       if (rt) {
-        sb("/token", { refresh_token: rt }, "?grant_type=refresh_token").then(deliver, function () { store.del(RT); show("email"); say(""); });
+        sb("/token", { refresh_token: rt }, "?grant_type=refresh_token").then(deliver, function (err) { if (isDown(err)) { show("email"); say(DOWN, true); return; } store.del(RT); show("email"); say(""); });
       } else { show("email"); say(""); }
     }).catch(function () { say("Could not reach the Studio service. Check your connection and reload.", true); });
 
@@ -130,14 +149,18 @@
       email = $("email").value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Type your email address.", true); return; }
       say("Sending a code…");
-      sb("/otp", { email: email, create_user: false }).then(function () { show("code"); say("We emailed " + email + ". Click the link in that email and this window finishes by itself. If the email shows a code instead, type it below."); waitForLink(); }, function (err) { say(err && err.status === 429 ? "Too many sign-in emails were sent in the last hour. Wait a while and try again, or ask Teo to set up the email service." : "We could not send the email. Check the address (only invited people can sign in).", true); });
+      healthMessage().then(function (down) {
+        if (down) { say(down, true); return null; }
+        return sb("/otp", { email: email, create_user: false });
+      }).then(function (sent) {
+        if (sent === null) return; show("code"); say("We emailed " + email + ". Click the link in that email and this window finishes by itself. If the email shows a code instead, type it below."); waitForLink(); }, function (err) { if (isDown(err)) { say(DOWN, true); return; } say(err && err.status === 429 ? "Too many sign-in emails were sent in the last hour. Wait a while and try again, or ask Teo to set up the email service." : "We could not send the email. Check the address (only invited people can sign in).", true); });
     });
     $("form-code").addEventListener("submit", function (e) {
       e.preventDefault();
       var code = $("code").value.replace(/\s+/g, "");
       if (!/^[0-9]{6,8}$/.test(code)) { say("The code is 6 to 8 digits.", true); return; }
       say("Checking…");
-      sb("/verify", { type: "email", email: email, token: code }).then(deliver, function () { say("That code didn't work. Check it, or go back and ask for a new one.", true); });
+      sb("/verify", { type: "email", email: email, token: code }).then(deliver, function (err) { if (isDown(err)) { say(DOWN, true); return; } say("That code didn't work. Check it, or go back and ask for a new one.", true); });
     });
     $("back").addEventListener("click", function () { show("email"); say(""); });
   }

@@ -5,7 +5,7 @@ const STATUS = {
   bad_request: 400, unauthorized: 401, not_invited: 403, forbidden: 403, not_found: 404,
   conflict: 409, draft_moved: 409, base_moved: 409, not_ready: 409,
   payload_too_large: 413, unsupported_media_type: 415, validation_failed: 422,
-  rate_limited: 429, upstream_error: 502, internal: 500,
+  rate_limited: 429, upstream_error: 502, internal: 500, service_unavailable: 503,
   ai_disabled: 503, ai_budget_exhausted: 429, ai_unavailable: 502, ai_bad_output: 502,
 };
 

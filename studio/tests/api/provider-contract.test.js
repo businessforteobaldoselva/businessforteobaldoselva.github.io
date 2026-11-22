@@ -9,6 +9,8 @@ const { METHODS } = require("../../api/providers/git/interface");
 
 const BRANCH = "studio/uabcdefg/contract";
 const dec = new TextDecoder();
+// the hidden authorship marker Studio writes at the end of every draft body; merge() identifies a Studio draft by it
+const MARK = '<!-- studio:v1 {"authorId":"11111111-2222-4333-8444-555555555555","authorName":"Molly","draftId":"uabcdefg--contract","ops":1,"revertOf":null} -->';
 
 const kinds = [["memory", memoryProvider], ["github-over-mock", githubProvider]];
 if (hasGit()) kinds.push(["local-git", localProvider]);
@@ -59,7 +61,7 @@ for (const [label, make] of kinds) {
       // ---- pull requests
       await assert.rejects(() => git.openPr({ head: BRANCH, base: "develop", title: "x", body: "", labels: [], draft: true }), (e) => e.name === "ScopeError");
       await assert.rejects(() => git.openPr({ head: "main", base: "main", title: "x", body: "", labels: [], draft: true }), (e) => e.name === "ScopeError");
-      const pr = await git.openPr({ head: BRANCH, base: "main", title: "Studio: Change hero (Molly)", body: "body", labels: ["studio-draft"], draft: true });
+      const pr = await git.openPr({ head: BRANCH, base: "main", title: "Studio: Change hero (Molly)", body: "body\n" + MARK, labels: ["studio-draft"], draft: true });
       assert.equal(pr.headRef, BRANCH);
       assert.equal(pr.headSha, c1.sha);
       assert.equal(pr.draft, true);
@@ -75,8 +77,8 @@ for (const [label, make] of kinds) {
       const listed = await git.listPrs({ headPrefix: BRANCH, state: "open" });
       assert.deepEqual(listed.map((x) => x.number), [pr.number]);
       assert.deepEqual(await git.listPrs({ headPrefix: "studio/uzzzzzzz/", state: "open" }), []);
-      const upd = await git.updatePr(pr.number, { body: "new body", labels: ["studio-ready"] });
-      assert.equal(upd.body, "new body");
+      const upd = await git.updatePr(pr.number, { body: "new body\n" + MARK, labels: ["studio-ready"] });
+      assert.equal(upd.body, "new body\n" + MARK);
       assert.deepEqual(upd.labels, ["studio-draft", "studio-ready"]);
 
       // ---- merge needs the label, a ready PR and the head sha
@@ -107,7 +109,7 @@ for (const [label, make] of kinds) {
       await assert.rejects(() => git.resetBranch(B2, merged.sha, main), (e) => e.code === "head_moved");
       await git.resetBranch(B2, merged.sha, c2.sha);
       assert.equal((await git.getHead(B2)).sha, merged.sha);
-      const pr2 = await git.openPr({ head: B2, base: "main", title: "t", body: "", labels: ["studio-draft"], draft: true });
+      const pr2 = await git.openPr({ head: B2, base: "main", title: "t", body: MARK, labels: ["studio-draft"], draft: true });
       await git.closePr(pr2.number, "Discarded");
       await git.deleteBranch(B2);
       assert.equal(await git.getHead(B2), null);

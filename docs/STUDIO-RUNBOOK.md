@@ -238,7 +238,47 @@ The daily limits are counted **in memory by each running copy of the API**. On a
 
 #### 4c.1 Health line, usage table and sign-in email (BACKEND unit)
 
-(To be written by the BACKEND unit. Settings to document here: `STUDIO_AI_BUDGET_STORE`, `STUDIO_HEALTH_TTL_SECONDS`, `STUDIO_HEALTH_TIMEOUT_MS`. Also: GET /v1/health and what each state means, the AI usage tables in studio/sql/003_studio_ai_usage.sql and the setting that switches to them, the GitHub App Issues permission note, and the SMTP note for sign-in codes.)
+What this adds: a health check anyone (and the sign-in page) can ask, plain messages when the sign-in service is down, labels that can fail without hurting anything, and an optional shared counter for AI use. Nothing here is switched on by merging it: with no new setting, Studio behaves as before, plus the health route and the plain messages.
+
+**New settings** (all optional; set them where `STUDIO_ALLOWED_ORIGINS` is set; a junk value stops the API at start-up with a plain error):
+
+| Setting | Default | What it does |
+|---|---|---|
+| `STUDIO_AI_BUDGET_STORE` | `memory` | Where AI help counts its daily allowance. `memory` = each running copy of the API counts alone (fine for one copy). `supabase` = one shared count in your database; needs `studio/sql/003_studio_ai_usage.sql` applied first (below). Anything else stops the API. |
+| `STUDIO_HEALTH_TTL_SECONDS` | `30` | How long the health answer is remembered, 5 to 300. Keeps people (and the login page) from hammering Supabase and GitHub. |
+| `STUDIO_HEALTH_TIMEOUT_MS` | `3000` | How long each health check waits for Supabase or GitHub before calling it unreachable, 500 to 10000. |
+| `STUDIO_AI_PROVIDER` | `anthropic` | Which model service AI help talks to. Leave it alone. `replay` (canned answers, no network) is refused unless this is a development machine. |
+
+**The health line.** `GET <api>/v1/health` needs no sign-in and shows no address, key, count or error text from anyone else's service. It says whether the sign-in service (Supabase) and GitHub answer, and whether AI help is on. The Help panel and the sign-in page use it.
+
+| State | What it means | What to do |
+|---|---|---|
+| `ok` | Answered normally. | Nothing. |
+| `slow` | Answered, but took over 1.5 seconds. Still counts as working. | Nothing. Note it if it keeps happening. |
+| `paused` | Supabase paused the project because it was idle (the free plan does this after about a week of no use). People cannot sign in. | Supabase dashboard, your project, **Restore project**. It takes a minute or two. The weekly keep-alive (two calls a week from the API host's scheduler, see `studio/api/deploy/wrangler.example.toml`) exists to stop this: if it happened, check that the scheduler is on. |
+| `unreachable` | Supabase or GitHub did not answer in time, or answered with an error. | Wait a minute and look again. If it stays, check status.supabase.com or githubstatus.com, then the API host's logs. People's unsaved edits on the page are safe. |
+| `unknown` (AI only) | The AI service could not be asked. | Does not affect anything else. |
+
+The overall `ok` is false only when sign-in or GitHub is unreachable or paused. AI being off, out of key or out of allowance never makes it false. The answer is kept for `STUDIO_HEALTH_TTL_SECONDS` and one check is shared by everybody who asks at the same moment.
+
+**When sign-in is down.** The API answers `503 service_unavailable` with one plain sentence ("Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute."), the sign-in page shows the same sentence (it asks the health route before it sends a code), and the Account panel shows it instead of a blank screen. A wrong code or a wrong address is not an outage and keeps its own words. An outage is not counted as a failed sign-in, so nobody gets locked out by it.
+
+**Sign-in e-mail.** Supabase's built-in e-mail sender is for testing only: it allows a handful of messages an hour and many mail systems drop it. Before real founders use Studio, set up custom SMTP: Supabase dashboard, **Authentication**, **SMTP Settings**, with a transactional mail service (Resend, Postmark, Brevo, Amazon SES; most have a free tier far above what COVERED needs), a "from" address on your own domain, and the SPF and DKIM records the mail service tells you to add. The e-mail Studio sends contains a sign-in link (and a code), so a person can sign in by clicking the link without typing anything. **Acceptance check (yours, by hand):** from a private window, ask for 20 codes in a row for yourself; 20 codes arrive within 60 seconds. If fewer arrive, the mail service or the DNS records are not right yet. Studio cannot test this for you.
+
+**GitHub labels (the App's "Issues" permission).** Studio puts labels such as `studio-draft` on its pull requests. GitHub treats labels as Issues, so the App needs **Issues: Read and write** for them. If you leave that permission off, **everything still works**: the pull request is created, listed, reviewed and published; it just carries no labels, and one `label.failed` line appears in the log for each save that tried. Studio recognises its own drafts by the hidden marker it writes in each one and by the `studio/` branch name, not by the label. To add the permission later: GitHub, Settings, Developer settings, GitHub Apps, your app, Permissions and events, Repository permissions, Issues: **Read and write**, save, then accept the change on the installation page.
+
+**The shared AI usage counter (optional).** Without it, every running copy of the API counts the day's AI use on its own, so on a host that starts several copies the real daily ceiling is the limit times the number of copies. The counter also does not survive a restart. To make it one shared count (and to keep each person's own count and a short "recent requests" list):
+
+1. Open `studio/sql/003_studio_ai_usage.sql` and read it. It creates two tables and seven functions, all closed to direct access, callable only by signed-in active people, and it stores counters and request ids only (no instruction text, no page content, no names). Studio never applies it for you.
+2. Supabase dashboard, **SQL Editor**, paste it, **Run**. (It builds on `002_studio_ai.sql`, which must already be applied.)
+3. Set `STUDIO_AI_BUDGET_STORE` to `supabase` on the API host and redeploy.
+4. Check: ask for one suggestion, then in the SQL Editor run `select * from studio_ai_usage;`. Today's row shows 1 request.
+
+If the database is down, paused, or the SQL was never applied, AI help keeps working on the memory counters (the daily limits still apply, never "unlimited"), one `usage.store_fallback` line goes to the log and is not repeated for a minute, and the AI panel's usage line says `memory`. To go back for good, set `STUDIO_AI_BUDGET_STORE` to `memory`; the tables simply sit unused (you can delete them in the SQL Editor with `drop table studio_ai_requests, studio_ai_user_usage;` and `drop function` for the seven `studio_ai_*2`, `studio_ai_record`, `studio_ai_attach` and `studio_ai_recent` functions, if you want them gone).
+
+**What counts toward the limits.** A suggestion counts once the person got an answer they could use (a patch, a question back, a "needs a developer" note). If the AI gave an answer Studio had to throw away (unsafe or unusable), the request does **not** count against the person's or the site's daily limit, but the words it used are still counted in the token meter, because the money was spent. A model service that did not answer counts for nothing. Before sending, the AI panel can show an estimate ("About 0.4% of today's AI allowance."); the estimate calls no model and counts nothing.
+
+**After merging this change:** redeploy the API (new routes), and redeploy the sign-in page (`studio/login`) so its new messages are live.
 
 #### 4c.2 Status board and asking for a review (REVIEW unit)
 

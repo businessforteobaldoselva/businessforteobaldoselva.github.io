@@ -154,7 +154,30 @@ See the runbook, Part 2. Summary of DESIGN.md section 17: create the GitHub App 
 Contract: `studio/PHASE1-DESIGN.md`. Each unit writes ONLY under its own heading below (what it built, how to run its tests, Deviations).
 
 ### BACKEND
-(not written yet)
+**What it built** (contract: `studio/PHASE1-DESIGN.md` sections 4 and 10; plan items 3, 4, 17 and the backend half of 11).
+
+* `GET /v1/health` (`api/services/health.js`, `api/routes/health.js`): anonymous, cached 30 s, one shared in-flight check, fixed plain sentences only. `service_unavailable` (503) in `api/errors.js`; the handler uses it for a role lookup that fails and for signing keys that cannot be fetched (a bad token stays 401, and an outage is not counted as a failed sign-in).
+* Sign-in page (`login/login.js`): asks the health route first, shows the fixed sentence in its live region, also on a 5xx or network failure from Supabase.
+* Git provider: labels can fail without failing a pull request (`applyLabels`, `onLabelFailure` -> audit `label.failed`); `Pr.labelsApplied`; merge recognises a Studio draft by identity (`studio/` branch, this repository, aimed at the base branch, Studio's marker) via `providers/git/interface.js` `isStudioDraft`; new method `requestReviewers` on all three providers (GitHub: `POST /pulls/{n}/requested_reviewers`).
+* AI usage: async `BudgetStore` (`api/ai/budget.js` memory + selector; `api/providers/usage/supabase-budget.js` shared), per-person counters, rejected answers give the request back and keep the tokens, `proposal.meter`, `POST /v1/ai/estimate`, `GET /v1/ai/recent`, extra keys in `GET /v1/ai/status.usage`, `studio/sql/003_studio_ai_usage.sql` (for human review).
+* Guard `studio/guards/check-resilience.js` (auto-run by `check:studio`) and 11 selftest scenarios in `studio/guards/selftest-p1-backend.js`.
+
+**Run its tests:** `node --require ./studio/guards/no-network.js --test studio/tests/p1-backend/*.test.js` (also part of `npm run studio:test`), `node studio/guards/check-resilience.js`, `npm run check:selftest` (scenarios "studio p1 backend: ...").
+
+**Items 2 and 3 of the plan (verified).** The content fixture no longer pins live words (`tests/markers/schema.test.js` only checks it names real files) and `studio-scope.yml` copies `scripts/lib/image-rules.js`. Added proofs: `tests/p1-backend/scope-guard-behaviour.test.js` executes the workflow's own "take the guard from main" lines in a throwaway git repository and judges real pull requests; the selftest breaks the workflow's copy line and checks `ci/scope-workflow.test.js` notices; the selftest applies three ordinary publishes (headline, a hidden section, an alt text) to a copy and runs the content-reading tests, with a control that re-pins the fixture and must fail.
+
+**Deviations from the contract** (for the integrator to fold back):
+
+1. `Pr.labelsApplied` is computed from identity when read back: a Studio draft always REPORTS the `studio-draft` label in `Pr.labels` even when GitHub never stored it (so `services/drafts.js`, which finds drafts by that label, keeps working unchanged with no edit by REVIEW). `labelsApplied` is the honest flag. The contract's "label present OR could not be written" is stateless: merge requires the marker, not the label.
+2. The shared usage store lives in `api/providers/usage/supabase-budget.js`, not under `api/ai/`, because `check-ai.js` S3 forbids any network primitive in `api/ai/`. `api/ai/budget.js` keeps the memory store and the fallback selector.
+3. `check-ai.js` (D1 now expects 5 AI routes; D8 reads the async snapshot) and `selftest-ai-core.js` (the "budget reservation removed" anchor) were updated because of the async store. `tests/ai/routes.test.js` was updated the same way.
+4. The per-person daily limit moved from the in-memory rate limiter (`ai:ud:`) into the store (`caps.userRequests`), because the limiter would also count rejected answers. The wording of that refusal is new: "You have used your N AI suggestions for today. They come back at midnight (UTC)." (still 429 `rate_limited` with `Retry-After`).
+5. A rejected proposal's error carries `error.details.meter` (the same `AiMeter` shape, `counted: false`) so the panel can say "This one did not count toward your limit."
+6. `validateStatus` accepts the four new `usage` keys but does not require them (the overlay's offline demo stub predates them); `tests/p1-backend/ai-usage.test.js` requires them from the real API.
+7. `dev/mock-github-server.js` gained `head.repo` / `base.repo`, `state.failLabels`, `state.failReviewers` and the requested-reviewers route; the audit action list gained `label.failed` and `usage.store_fallback`.
+8. `STUDIO_AI_BUDGET_STORE=supabase` is refused together with `STUDIO_DEV=1` (the dev sign-in has no database to call).
+9. The health route's AI line reports THIS instance's counters (no token, so it cannot ask the shared store); with the shared store the AI panel's own status is the authoritative number.
+10. Known limits: if the shared store fails between a reservation and its settlement, that one estimate stays on the shared counter until the day ends (the settlement is applied to the memory counters the call fell back to). `003` was not run against a real PostgreSQL (none is installed here); its logic is modelled by `tests/p1-backend/fake-postgrest.js` and its safety properties are checked as text; a human reads it before applying, as the header says.
 
 ### REVIEW
 (not written yet)
