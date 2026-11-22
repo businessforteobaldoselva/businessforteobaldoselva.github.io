@@ -23,7 +23,7 @@
 //  6. ai.js paints a screen for every state of the state machine.
 //  7. ai.css: no @import / external url() / web font, a :focus-visible rule, reduced motion, dark mode, 44 px coarse-pointer
 //     targets, and every text/background pair of its fixed colours meets WCAG 2.2 in light and dark (cms/contrast.js).
-//  8. Budgets: check-overlay.js may not raise the script budget above 330 KiB or the style budget above 48 KiB.
+//  8. Budgets: check-overlay.js may not raise the script budget above 460 KiB or the style budget above 64 KiB.
 //  9. The founders' runbook has the "Describe a change" section.
 // Exit 0 clean, 1 on any violation. No network, no build.
 
@@ -354,8 +354,8 @@ try {
   const m = /const BUDGET = \{ scriptsKiB: (\d+), cssKiB: (\d+) \}/.exec(co);
   if (!m) fail("studio/guards/check-overlay.js", "BUDGET line not found");
   else {
-    if (Number(m[1]) > 330) fail("studio/guards/check-overlay.js", "the script budget is " + m[1] + " KiB; the Phase 5 design allows at most 330");
-    if (Number(m[2]) > 48) fail("studio/guards/check-overlay.js", "the style budget is " + m[2] + " KiB; the Phase 5 design allows at most 48");
+    if (Number(m[1]) > 460) fail("studio/guards/check-overlay.js", "the script budget is " + m[1] + " KiB; the Phase 1 design allows at most 460");
+    if (Number(m[2]) > 64) fail("studio/guards/check-overlay.js", "the style budget is " + m[2] + " KiB; the Phase 1 design allows at most 64");
   }
 } catch (e) { fail("studio/guards/check-overlay.js", "cannot be read"); }
 

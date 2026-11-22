@@ -1,0 +1,5 @@
+{ "engineVersion": 1, "ranRules": ["alt-missing", "title-length"],
+  "findings": [
+    { "key": "alt-missing|src/_data/how.json|/story/2/imageAlt", "rule": "alt-missing", "severity": "block", "file": "src/_data/how.json", "path": "/story/2/imageAlt", "message": "This picture has no description for people who cannot see it.", "hint": "Describe what is in the picture, or switch on Decorative.", "fix": { "kind": "edit-field" }, "data": null },
+    { "key": "title-length|src/_data/site.json|/pageTitle", "rule": "title-length", "severity": "warn", "file": "src/_data/site.json", "path": "/pageTitle", "message": "The page title is 74 characters; Google usually shows about 60.", "hint": "", "fix": { "kind": "shorten" }, "data": { "length": 74, "max": 60 } } ],
+  "counts": { "block": 1, "warn": 1, "info": 0 } }

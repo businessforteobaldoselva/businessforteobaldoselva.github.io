@@ -48,6 +48,7 @@
 
     var panels = [];
     var commands = [];
+    var paletteSources = [];
     var emptyStates = {};
     var openId = null;
     var cleanup = null;
@@ -69,6 +70,13 @@
       if (!def || !def.id || typeof def.run !== "function") return;
       commands = commands.filter(function (c) { return c.id !== def.id; });
       commands.push(def);
+    }
+    // Phase 1 extension point (studio/PHASE1-DESIGN.md 9.3): a palette source adds dynamic rows to Ctrl/Cmd+K.
+    // def = { id, search(query) -> [{ id, title, hint?, group, run() }] }  (sync, cheap, no network inside search)
+    function registerPaletteSource(def) {
+      if (!def || !def.id || typeof def.search !== "function") return;
+      paletteSources = paletteSources.filter(function (s) { return s.id !== def.id; });
+      paletteSources.push(def);
     }
     function visiblePanels() {
       return panels.filter(function (p) { return !p.minRole || role() >= (ROLE_RANK[p.minRole] || 0); });
@@ -230,7 +238,7 @@
 
     return {
       host: host, root: root, layer: layer, wrap: wrap, mount: mount, buildDock: buildDock, setBadge: setBadge,
-      registerPanel: registerPanel, registerCommand: registerCommand, openPanel: openPanel, closePanel: closePanel, togglePanel: togglePanel, refreshPanel: refreshPanel,
+      registerPanel: registerPanel, registerCommand: registerCommand, registerPaletteSource: registerPaletteSource, paletteSources: function () { return paletteSources; }, openPanel: openPanel, closePanel: closePanel, togglePanel: togglePanel, refreshPanel: refreshPanel,
       toast: toast, dialog: dialog, confirm: confirm, hasDialog: hasDialog, panels: function () { return panels; }, commands: function () { return commands; },
       registerEmptyState: function (id, fn) { emptyStates[id] = fn; }, emptyState: function (id) { return emptyStates[id] || null; },
       currentPanel: function () { return openId; }, panelBody: panelBody, sheetOk: sheetOk,

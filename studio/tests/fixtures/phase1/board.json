@@ -1,0 +1,4 @@
+{ "generatedAt": "2026-11-22T10:00:00Z",
+  "live": { "number": 52, "title": "Make the hero friendlier", "mergedAt": "2026-11-22T09:58:00Z", "sha": "0123456789abcdef0123456789abcdef01234567", "url": "https://github.com/o/r/pull/52", "by": { "name": "Molly" }, "settling": true },
+  "waiting": [ { "id": "u7k2m9qa--summer-edits", "number": 57, "title": "Summer edits", "url": "https://github.com/o/r/pull/57", "reviewLink": "https://deploy-preview-57--x.netlify.app/?studio=1#review=u7k2m9qa--summer-edits", "step": "waiting_for_approval", "stepLabel": "Waiting for approval", "author": { "name": "Amelia" }, "updatedAt": "2026-11-22T09:00:00Z", "changeCount": 3, "mine": false, "canReview": true, "canPublish": true } ],
+  "restored": [], "mine": [], "othersWaiting": 0 }

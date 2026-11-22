@@ -234,6 +234,24 @@ The daily limits are counted **in memory by each running copy of the API**. On a
 
 **If AI help misbehaves.** Everything it does ends up as a normal draft pull request. Discard the draft, or after publishing use History, Restore. The audit log (the host's log, lines starting `studioAudit`) shows who asked, when, how many tokens, what the outcome was and a hash of the request, but never the request text or the key.
 
+### 4c. Phase 1 additions (one subsection per unit; edit ONLY your own, see studio/PHASE1-DESIGN.md section 2)
+
+#### 4c.1 Health line, usage table and sign-in email (BACKEND unit)
+
+(To be written by the BACKEND unit. Settings to document here: `STUDIO_AI_BUDGET_STORE`, `STUDIO_HEALTH_TTL_SECONDS`, `STUDIO_HEALTH_TIMEOUT_MS`. Also: GET /v1/health and what each state means, the AI usage tables in studio/sql/003_studio_ai_usage.sql and the setting that switches to them, the GitHub App Issues permission note, and the SMTP note for sign-in codes.)
+
+#### 4c.2 Status board and asking for a review (REVIEW unit)
+
+(To be written by the REVIEW unit. Settings to document here: `STUDIO_REVIEWERS`, `STUDIO_REVIEW_BASE_URL`, `STUDIO_SITE_URL`, `STUDIO_PREVIEW_EMBED`, `STUDIO_SETTLING_MINUTES`. Also: the reviewer notification settings, the review link, what people without a GitHub account get instead, and the preview-access research result.)
+
+#### 4c.3 Checks, edit-mode legend and AI meter (EDIT unit)
+
+(To be written by the EDIT unit: what "Check my changes" does and does not cover, how a rule is added, and how to read the AI meter.)
+
+#### 4c.4 Decap retired (DECAP unit)
+
+(To be written by the DECAP unit: what was removed, what Teo switches off in Netlify (Identity, Git Gateway), where the old /cms address now goes.)
+
 ### 5. Deploy the API (one adapter)
 
 The API is one portable function with three thin adapters. Pick **one** host:

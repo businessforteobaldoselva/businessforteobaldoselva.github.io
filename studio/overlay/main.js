@@ -79,6 +79,8 @@
     closePanel: shell.closePanel,
     togglePanel: shell.togglePanel,
     registerCommand: shell.registerCommand,
+    registerPaletteSource: shell.registerPaletteSource,
+    paletteSources: shell.paletteSources,
     registerEmptyState: shell.registerEmptyState,
     emptyState: shell.emptyState,
     toast: shell.toast,

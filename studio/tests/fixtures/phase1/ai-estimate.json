@@ -1,0 +1,1 @@
+{ "estimate": { "inputTokens": 5200, "maxOutputTokens": 6000, "estTokens": 11200, "typicalTokens": 8400, "pctOfDay": 0.4, "requestsLeftToday": 140, "yourRequestsLeftToday": 55, "label": "About 0.4% of today's AI allowance.", "wouldFit": true } }

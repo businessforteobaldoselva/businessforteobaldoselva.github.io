@@ -46,7 +46,7 @@ module.exports = (h) => {
     scenario("the panel edits the ops the model proposed", VIEW, rx(/ops: JSON\.parse\(JSON\.stringify\(arr\(c\.ops\)\)\)/, "ops: (c.ops = JSON.parse(JSON.stringify(arr(c.ops))))"), ["the panel must never edit the ops the model proposed"]),
     scenario("a lying diff would be shown (the diff law is not checked)", VIEW, rx(/return joinSegs\(diff, \["same", "del"\]\) === before\.text && joinSegs\(diff, \["same", "ins"\]\) === after\.text;/, "return true;"), ["a diff that does not rebuild the texts must be dropped"]),
     scenario("server error text is shown to the person", VIEW, rx(/info\.message = e\[0\] === "x" \? "" : COPY\[e\[0\]\];|info\.message = COPY\[e\[0\]\];/, "info.message = err.message || COPY[e[0]];"), ["shows the server's own words"]),
-    scenario("the overlay script budget is raised past the design's limit", "studio/guards/check-overlay.js", rx(/scriptsKiB: 330/, "scriptsKiB: 400"), ["the script budget is 400 KiB"]),
+    scenario("the overlay script budget is raised past the design's limit", "studio/guards/check-overlay.js", rx(/scriptsKiB: 460/, "scriptsKiB: 500"), ["the script budget is 500 KiB"]),
     scenario("a colour pair loses contrast (muted text on white)", CSS, rx(/--csx-muted: #4a5a52;/, "--csx-muted: #9aa8a0;"), ["--csx-muted on --csx-bg"]),
     scenario("the manifest lists the panel before its view model", "studio/overlay/manifest.json", (t) => {
       const a = t.replace(/\s*"ext\/ai-view\.js",/, "");
