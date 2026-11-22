@@ -34,12 +34,12 @@ You change the website on the page itself. Your changes are saved as a **draft**
 5. **A picture:** click it, choose a new photo, drag to crop. Studio asks for a short description of the photo (for people who cannot see it). If the picture is only decoration, switch on "decorative".
 6. **Hide a section** (this works on a phone too): open **Sections**, press **Hide** on the section. Hidden sections show as dimmed; they are only hidden on the live site after publishing. Use the arrows to move a section up or down.
 7. Press **Save draft** (or Ctrl/Cmd + S). Studio checks everything and keeps it as a draft. If something is not allowed, it tells you which field and why, and nothing is lost.
-8. Press **Send for review**. Tell your approver.
+8. Press **Send for review**. Studio asks who should look and tells you what was done: if the approver is set up for GitHub they are notified there; otherwise Studio gives you a short message to copy (**Copy link**) or e-mail (**Email it**). Press **Status** at any time to see where your draft is.
 
 ### Publish (approvers)
 
-1. Open the draft. Studio shows what changed in plain English and whether the safety checks are green.
-2. When the checks are green and you are happy, press **Publish**. The site updates in a few minutes.
+1. Open the review link you were sent, or press **Status** and then **Review** on a draft that is waiting. Studio lists every change in plain English, "Look at these carefully" first (links, pictures, hidden sections, contact or legal wording), each with what is live now and what the draft says.
+2. When the safety checks are green and you are happy, press **Approve and publish**, the only publish button, then confirm. The site updates in a few minutes. The button stays off, with the reason in words, if the checks are not green, you wrote the draft yourself, or the draft changed after you opened it (press Refresh).
 3. If the checks are not green, do not publish. Ask the editor to look, or see "When it breaks" below.
 
 ### Undo something that already went live
@@ -242,7 +242,21 @@ The daily limits are counted **in memory by each running copy of the API**. On a
 
 #### 4c.2 Status board and asking for a review (REVIEW unit)
 
-(To be written by the REVIEW unit. Settings to document here: `STUDIO_REVIEWERS`, `STUDIO_REVIEW_BASE_URL`, `STUDIO_SITE_URL`, `STUDIO_PREVIEW_EMBED`, `STUDIO_SETTLING_MINUTES`. Also: the reviewer notification settings, the review link, what people without a GitHub account get instead, and the preview-access research result.)
+The **Status** panel shows what is live (and "Published, the site updates in a few minutes" for ten minutes after a publish), what waits for approval, what was restored recently and your own drafts. Editors see only their own drafts and a count of other people's. The **Review** screen is the plain-English "what will change" list with the one **Approve and publish** button. Both read from GitHub and write nothing; publishing still goes through the same gates: both CI checks green, a second person, the head the approver saw.
+
+Settings (all optional; the API works with every one unset):
+
+| Setting | What it does |
+|---|---|
+| `STUDIO_REVIEWERS` | JSON list of people who can be asked to review, at most 10: `[{"id":"amelia","name":"Amelia","github":"ameliagh","role":"approver"}]`. `github` is their GitHub user name (they must be collaborators on the repository) or `null`. Optional `userId` (their Studio user id) stops them choosing themselves. Logins are never sent to the browser |
+| `STUDIO_REVIEW_BASE_URL` | https address used for review links when a draft has no preview address |
+| `STUDIO_SITE_URL` | https address of the live site (only for the side-by-side links) |
+| `STUDIO_PREVIEW_EMBED` | `1` shows "See the live page / See this draft" links on the review screen. Leave `0` until founders can open previews (see `studio/NOTES-preview-access.md`) |
+| `STUDIO_SETTLING_MINUTES` | how long "Published, the site updates" shows, 1 to 60, default 10 |
+
+Asking for a review: the author picks an approver. With a GitHub login Studio asks GitHub to request their review (they get GitHub's own notification). Without one, or if GitHub refuses or is down, the draft is still sent and the author gets a ready-to-paste message with the review link, a **Copy link** button and an **Email it** button (opens their mail program with no recipient; Studio sends no e-mail itself). The review link is `<address>/?studio=1#review=<draft id>`; opening it signs the person in, then shows the review screen.
+
+Preview access (research only, nothing changed): founders cannot open Netlify previews while the site is unlaunched. `studio/NOTES-preview-access.md` compares the options and recommends one; the decision is Teo's.
 
 #### 4c.3 Checks, edit-mode legend and AI meter (EDIT unit)
 

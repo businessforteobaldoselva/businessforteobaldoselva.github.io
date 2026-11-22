@@ -143,7 +143,11 @@ Scope: `studio/AI-DESIGN.md`. A founder types a request; a model proposes a JSON
 (not written yet)
 
 ### P1-REVIEW (board, review screen, reviewer notification)
-(not written yet)
+New inputs: `reviewerId` on submit (must match `[a-z0-9-]{1,30}` AND an id in the server-side list, else 400); the draft id in the review route (same parser as every draft route); `STUDIO_REVIEWERS` (operator-set, validated at start-up). New outputs: the board, the review list, the approver list, the review link.
+Who can call: board and approvers: any signed-in role. Review: the draft's owner or an approver/admin; anyone else gets the same 404 as for a missing draft. Submit: owner only. No new write route: publishing is still POST /v1/drafts/:id/publish with its gates (CI, studio-scope, second person, head sha, ready state).
+Newly possible for an editor: seeing a COUNT of other people's waiting drafts (never titles or authors); asking GitHub to request a review from a listed approver (the request names only the configured login; an editor cannot supply a login). Nothing is removed.
+Leaks considered: GitHub logins and Studio user ids stay on the server (the approver list carries id, first name, role and how they are told); the audit entry records the reviewer id only. Text from drafts reaches the browser only as text nodes; the review route also swaps `<` and `>` for look-alikes and strips control characters. The review link holds the draft id, not a secret: opening it needs a Studio sign-in, and viewing the draft needs ownership or an approver role. A notification failure never blocks a submit and never shows upstream error text. The board is cached 15 s per role and person; a stale board cannot publish anything (the publish route re-reads the pull request).
+Residual: who can open the Netlify preview is a separate door, see `studio/NOTES-preview-access.md`.
 
 ### P1-EDIT (rule engine, checks panel, palette sources)
 (not written yet)
