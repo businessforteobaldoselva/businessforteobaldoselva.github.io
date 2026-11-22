@@ -397,3 +397,18 @@ Each unit commits often on its own branch off `sl/design`, never pushes or merge
 
 ### 17.1 Definition of done per unit
 Its tests, guards and selftests pass; every new guard fails when broken on purpose; production HTML unchanged (except E1); no new runtime dependency; no `innerHTML`/eval/third-party script; plain-English copy reviewed; keyboard and `aria-live` covered by tests; README heading written (what, how to run, Deviations); runbook subsection written; threat-model subsection written (new inputs, who can call, what an editor can no longer/newly do).
+
+---------------------------------------------------------------------------------------------------
+## 18. Integration notes (the integrator's record)
+
+The units were merged in the order of section 17 (design, DECAP, BACKEND, REVIEW, EDIT). Every unit Deviation is recorded under its own heading in `studio/README.md` and in `studio/NOTES-p1-*.md`; this section lists only what the merge itself had to settle.
+
+* **One runbook conflict** (Part 1 steps 6a, 6b, 7, 8): EDIT's steps 6a/6b/7 and REVIEW's step 8 are both kept.
+* **Draft identity** (`providers/git/interface.js isStudioDraft`): BACKEND recognised a draft by branch + marker; REVIEW also required the marker's draft id to match the branch. The stricter rule is now the single one, so a look-alike PR is never listed, reviewed or merged.
+* **`requestReviewers`** exists on every provider now, so REVIEW's "provider without the method" test removes it explicitly.
+* **Selftest anchor**: `[studio api] publishing ignores the checks` now removes the two `checks` lines of `publishBlockers`.
+* **Ask Claude link**: the AI panel no longer builds `<site>/admin/#/collections/requests/new` (that address belonged to the retired Decap editor). A link shows only when `STUDIO_ASK_CLAUDE_URL` is set; "Copy request" is unchanged.
+* **Phone dock** (up to 459 px): seven buttons and no more. REVIEW's Review panel is opened from Status (no dock button), and Help moves into Account ("Open Help"); Status, Changes, Sections, All fields, History and Account keep their buttons.
+* **Journeys**: `studio/e2e/journey.js` now also plays the Phase 1 steps (legend count, All fields, Check my changes on a broken link, the "Send for review" dialog, the Status board, the review screen and "Approve and publish" in the browser); `ai-journey.js` asserts the cost estimate and the usage meter and uses the review dialog.
+* **`studio/tests/phase1/integration.test.js`**: every new route in its documented shape, and the blocked-then-allowed publish drive-through.
+* **Production output**: byte-identical to `main` except exceptions E1 (the Identity forwarder script in `/index.html`, and `/cms/` is the "editor has moved" page) and the `cms/` files that are no longer published (`config.yml`, `contrast.js`, `redirect-rules.js`, `previews.js`, `custom.css`).
