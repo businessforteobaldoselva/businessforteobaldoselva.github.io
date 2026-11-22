@@ -193,7 +193,7 @@ For the Netlify site (Deploy Preview context only), also set `STUDIO_API_URL` (t
 
 What it is: a text box in Studio. A founder types "make the hero shorter and warmer" or "translate the FAQ to Welsh". A model suggests changes, Studio shows each one as BEFORE and AFTER, and the person saves all, some or none of them as an ordinary draft. Everything after that (preview, checks, a second person publishing, History and Restore) is exactly as for a hand-made edit.
 
-What it can **never** do, and why you can rely on it: the model's answer is treated like text from a stranger. Studio only accepts changes to words, switches and colours in `src/_data/` and `src/pages/` that the content editor already offers. It cannot touch code, templates, styles, configuration, workflows, `package.json`, pictures, redirects or page addresses; an answer that tries is thrown away whole. This is enforced by code and by the same checks as a hand-made edit, not by asking the model nicely. If a request needs code, the model says so and Studio offers a ready-to-send note for **Ask Claude** (nothing is filed for you).
+What it can **never** do, and why you can rely on it: the model's answer is treated like text from a stranger. Studio only accepts changes to words, switches and colours in `src/_data/` and `src/pages/` that Studio already offers. It cannot touch code, templates, styles, configuration, workflows, `package.json`, pictures, redirects or page addresses; an answer that tries is thrown away whole. This is enforced by code and by the same checks as a hand-made edit, not by asking the model nicely. If a request needs code, the model says so and Studio offers a ready-to-send note for **Ask Claude** (nothing is filed for you).
 
 **Settings.** Set these where the API runs (same place as step 4). Only the first two are needed.
 
@@ -212,7 +212,7 @@ What it can **never** do, and why you can rely on it: the model's answer is trea
 | `STUDIO_AI_DAILY_TOKENS` | 3000000 | estimated tokens (input plus output) per UTC day, in total | no |
 | `STUDIO_AI_MAX_BODY_BYTES` | 16000 | largest request from the browser | no |
 | `STUDIO_AI_MAX_INPUT_CHARS` | 120000 | largest amount of site text sent in one request (the whole site is about 90,000 today) | no |
-| `STUDIO_ASK_CLAUDE_URL` | derived | the address of the "Ask Claude" new-request page in the content editor, if it is not `<site>/admin/#/collections/requests/new` | no |
+| `STUDIO_ASK_CLAUDE_URL` | derived | an optional https address for an "Ask Claude" link; with nothing set, Studio shows no such link | no |
 
 The daily limits are counted **in memory by each running copy of the API**. On a host that starts several copies at once, every copy counts alone, so the real ceiling is the limit times the number of copies. The spend limit you set in the Anthropic console (step 1 below) is the real ceiling; the numbers here are a second, softer one. `studio/sql/002_studio_ai.sql` is an optional, never-applied way to share one counter.
 
@@ -271,7 +271,7 @@ The overall `ok` is false only when sign-in or GitHub is unreachable or paused. 
 
 **The shared AI usage counter (optional).** Without it, every running copy of the API counts the day's AI use on its own, so on a host that starts several copies the real daily ceiling is the limit times the number of copies. The counter also does not survive a restart. To make it one shared count (and to keep each person's own count and a short "recent requests" list):
 
-1. Open `studio/sql/003_studio_ai_usage.sql` and read it. It creates two tables and seven functions, all closed to direct access, callable only by signed-in active people, and it stores counters and request ids only (no instruction text, no page content, no names). Studio never applies it for you.
+1. Open `studio/sql/003_studio_ai_usage.sql` and read it. It creates three tables (two of counters, one holding the daily limits that only you can change) and seven functions, all closed to direct access, callable only by signed-in active people, and it stores counters and request ids only (no instruction text, no page content, no names). Studio never applies it for you.
 2. Supabase dashboard, **SQL Editor**, paste it, **Run**. (It builds on `002_studio_ai.sql`, which must already be applied.)
 3. Set `STUDIO_AI_BUDGET_STORE` to `supabase` on the API host and redeploy.
 4. Check: ask for one suggestion, then in the SQL Editor run `select * from studio_ai_usage;`. Today's row shows 1 request.
@@ -412,7 +412,7 @@ Add each founder in Studio (Admin, People) or in `studio_roles`: email, display 
 | Sign-in window opens and closes with no result | The login page does not know this preview address | Check `allowedOrigins` and `previewOriginTemplate` in the login `config.json` and `STUDIO_ALLOWED_ORIGINS` / `STUDIO_PREVIEW_ORIGIN_TEMPLATE` |
 | "You have not been invited" | Email is not in `studio_roles`, or `active` is false | Add or reactivate the person |
 | Every request answers "internal error" | The API refused to start because of a bad combination of settings | Read the host's log: it names the setting (for example `STUDIO_DEV` together with a real key, or a missing `GITHUB_*`) |
-| Save says a field is not allowed | The rules of the site (same as the content editor) refused it | Read the message next to the field and fix that one |
+| Save says a field is not allowed | The rules of the site (the same rules the website's own checks apply) refused it | Read the message next to the field and fix that one |
 | "Someone changed these since you started" | Another draft was published first | Choose Keep mine or Take theirs per item, or Refresh |
 | Publish is greyed out with "checks not green" | The site build or a guard failed on the draft | Open the pull request, read the failing check. Fix in a new save, or discard the draft |
 | Publish says "not your own draft" | The four-eyes rule | Ask the other approver |
@@ -421,7 +421,7 @@ Add each founder in Studio (Admin, People) or in `studio_roles`: email, display 
 
 ### Emergency switches
 
-* **Stop all Studio writes right now:** suspend or uninstall the GitHub App (GitHub, Settings, Applications). The website and its normal content editor keep working; nobody can save a draft.
+* **Stop all Studio writes right now:** suspend or uninstall the GitHub App (GitHub, Settings, Applications). The live website keeps working; nobody can save a draft until the App is allowed again.
 * **Stop one person:** set `active` to false in `studio_roles`.
 * **Undo a bad publish:** History, Restore, then an approver publishes. If Studio itself is down, revert the pull request on GitHub as usual.
 * **Rotate a leaked GitHub App key:** generate a new private key in the app settings, replace `GITHUB_APP_PRIVATE_KEY`, delete the old key.

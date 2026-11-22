@@ -31,7 +31,7 @@ test("all seven functions exist, are security definer, pin the search path and c
 });
 
 test("both tables have row level security and NO policy; nothing is granted to anon; functions only to authenticated", () => {
-  for (const t of ["studio_ai_user_usage", "studio_ai_requests"]) {
+  for (const t of ["studio_ai_user_usage", "studio_ai_requests", "studio_ai_limits"]) {
     assert.match(SQL, new RegExp("alter table public\\." + t + " enable row level security", "i"));
     assert.match(SQL, new RegExp("revoke all on public\\." + t + " from anon, authenticated", "i"));
   }

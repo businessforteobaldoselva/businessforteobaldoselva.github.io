@@ -465,6 +465,8 @@ async function main() {
     const landed = git(lg.repoDir, ["diff", "--name-only", before, mainSha()]).stdout.trim().split("\n").sort();
     assert.deepEqual(landed, touched, "main gained exactly the draft's files");
     assert.equal(JSON.parse(showAt("main", "src/_data/hero.json")).headlineMain, NEW_HEADLINE);
+    const afterPublish = await amelia.evaluate(() => document.getElementById("covered-studio").shadowRoot.textContent);
+    if (/not ready/i.test(afterPublish)) throw new Error("the published review screen still says the draft is not ready");
     step("published: main changed " + landed.join(", ") + " and nothing else");
 
     // ------------------------------------------------------------ 5 History -> Restore -> revert PR (browser, Amelia)

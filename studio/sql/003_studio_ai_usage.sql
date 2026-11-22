@@ -17,6 +17,12 @@
 -- pin their search path, refuse anyone who is not an ACTIVE person in studio_roles (see 001_studio_roles.sql), and only ever touch
 -- the caller's own rows (auth.uid()). They are callable by signed-in people only (never anon).
 --
+-- WHO DECIDES THE LIMITS: the database, not the caller. A signed-in person holds a token and can call these functions directly, so
+-- the numbers they pass are never trusted: the caps are the LOWER of what the API passes and the one-row table studio_ai_limits
+-- (only the owner can edit it, in the SQL Editor); settle2 / release2 can only undo what that same person reserved and has not
+-- yet settled (the "pending" columns), never more; one reservation above max_reservation is refused; a person's recent-requests list
+-- is capped at 200 rows; and the day must be today or next to it (UTC).
+--
 --   studio_ai_reserve2   adds one request and an estimated token count for the day, to the global counter AND the person's counter,
 --                        in ONE transaction: it succeeds only if every cap holds, and it undoes the global step when the person's
 --                        own cap refuses. Lock order is always global, then person, so two calls cannot deadlock.
@@ -32,8 +38,21 @@ create table if not exists public.studio_ai_user_usage (
   user_id  uuid    not null,
   requests integer not null default 0 check (requests >= 0),
   tokens   bigint  not null default 0 check (tokens >= 0),
+  pending_requests integer not null default 0 check (pending_requests >= 0),
+  pending_tokens   bigint  not null default 0 check (pending_tokens >= 0),
   primary key (day, user_id)
 );
+
+-- One row, written only by the owner in the SQL Editor. The API can lower the caps for a request but never raise them above these.
+create table if not exists public.studio_ai_limits (
+  only_row          boolean primary key default true check (only_row),
+  max_requests      integer not null default 150 check (max_requests >= 1),
+  max_tokens        bigint  not null default 3000000 check (max_tokens >= 1),
+  user_max_requests integer not null default 60 check (user_max_requests >= 1),
+  user_max_tokens   bigint  not null default 1000000 check (user_max_tokens >= 1),
+  max_reservation   bigint  not null default 60000 check (max_reservation >= 1)
+);
+insert into public.studio_ai_limits (only_row) values (true) on conflict do nothing;
 
 create table if not exists public.studio_ai_requests (
   id        text primary key check (id ~ '^p_[a-z0-9]{12}$'),
@@ -50,6 +69,8 @@ create index if not exists studio_ai_requests_user_at on public.studio_ai_reques
 
 alter table public.studio_ai_user_usage enable row level security;
 alter table public.studio_ai_requests enable row level security;
+alter table public.studio_ai_limits enable row level security;
+revoke all on public.studio_ai_limits from anon, authenticated;
 -- deliberately no policies: both tables are closed to direct access
 revoke all on public.studio_ai_user_usage from anon, authenticated;
 revoke all on public.studio_ai_requests from anon, authenticated;
@@ -64,36 +85,49 @@ declare
   caller uuid := auth.uid();
   g record;
   u record;
+  lim record;
+  max_requests integer;
+  max_tokens bigint;
+  user_max_requests integer;
+  v_tokens bigint;
 begin
   if caller is null or not exists (select 1 from public.studio_roles r where r.user_id = caller and r.active) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  if p_tokens < 0 or p_max_requests < 1 or p_max_tokens < 1 or p_user_max_requests < 1 then
+  if p_tokens < 0 or p_max_requests < 1 or p_max_tokens < 1 or p_user_max_requests < 1 or abs(p_day - current_date) > 1 then
     raise exception 'bad arguments' using errcode = '22023';
   end if;
+  select l.* into lim from public.studio_ai_limits l where l.only_row;
+  if not found then raise exception 'limits row missing' using errcode = '22023'; end if;
+  -- the caller may only LOWER the caps, never raise them above the owner's row
+  max_requests := least(p_max_requests, lim.max_requests);
+  max_tokens := least(p_max_tokens, lim.max_tokens);
+  user_max_requests := least(p_user_max_requests, lim.user_max_requests);
+  v_tokens := p_tokens;
   insert into public.studio_ai_usage (day) values (p_day) on conflict (day) do nothing;
   insert into public.studio_ai_user_usage (day, user_id) values (p_day, caller) on conflict (day, user_id) do nothing;
 
   -- 1. the global counter (locks its row first)
   update public.studio_ai_usage x
-     set requests = x.requests + 1, tokens = x.tokens + p_tokens
-   where x.day = p_day and x.requests + 1 <= p_max_requests and x.tokens + p_tokens <= p_max_tokens
+     set requests = x.requests + 1, tokens = x.tokens + v_tokens
+   where x.day = p_day and x.requests + 1 <= max_requests and x.tokens + v_tokens <= max_tokens and v_tokens <= lim.max_reservation
   returning x.requests, x.tokens into g;
   if not found then
     select x.requests, x.tokens into g from public.studio_ai_usage x where x.day = p_day;
     select y.requests, y.tokens into u from public.studio_ai_user_usage y where y.day = p_day and y.user_id = caller;
-    return query select false, case when g.requests + 1 > p_max_requests then 'global_requests' else 'global_tokens' end, g.requests, g.tokens, u.requests, u.tokens;
+    return query select false, case when g.requests + 1 > max_requests then 'global_requests' else 'global_tokens' end, g.requests, g.tokens, u.requests, u.tokens;
     return;
   end if;
 
   -- 2. the person's counter; if THEIR cap refuses, undo step 1 in the same transaction
   update public.studio_ai_user_usage y
-     set requests = y.requests + 1, tokens = y.tokens + p_tokens
-   where y.day = p_day and y.user_id = caller and y.requests + 1 <= p_user_max_requests
+     set requests = y.requests + 1, tokens = y.tokens + v_tokens,
+         pending_requests = y.pending_requests + 1, pending_tokens = y.pending_tokens + v_tokens
+   where y.day = p_day and y.user_id = caller and y.requests + 1 <= user_max_requests and y.tokens + v_tokens <= lim.user_max_tokens
   returning y.requests, y.tokens into u;
   if not found then
     update public.studio_ai_usage x
-       set requests = x.requests - 1, tokens = x.tokens - p_tokens
+       set requests = x.requests - 1, tokens = x.tokens - v_tokens
      where x.day = p_day
     returning x.requests, x.tokens into g;
     select y.requests, y.tokens into u from public.studio_ai_user_usage y where y.day = p_day and y.user_id = caller;
@@ -113,15 +147,26 @@ as $$
 declare
   caller uuid := auth.uid();
   give_back integer := case when p_count_request then 0 else 1 end;
+  lim record;
+  u record;
+  reserved bigint;
+  actual bigint;
 begin
   if caller is null or not exists (select 1 from public.studio_roles r where r.user_id = caller and r.active) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
+  select l.* into lim from public.studio_ai_limits l where l.only_row;
+  -- only what THIS person reserved and has not settled yet can be settled: with no pending reservation, nothing happens
+  select y.pending_requests, y.pending_tokens into u from public.studio_ai_user_usage y where y.day = p_day and y.user_id = caller for update;
+  if not found or u.pending_requests < 1 then return; end if;
+  reserved := least(greatest(coalesce(p_reserved, 0), 0), u.pending_tokens);
+  actual := least(greatest(coalesce(p_actual, 0), 0), lim.max_reservation);
   update public.studio_ai_usage x
-     set tokens = greatest(0, x.tokens + p_actual - p_reserved), requests = greatest(0, x.requests - give_back)
+     set tokens = greatest(0, x.tokens + actual - reserved), requests = greatest(0, x.requests - give_back)
    where x.day = p_day;
   update public.studio_ai_user_usage y
-     set tokens = greatest(0, y.tokens + p_actual - p_reserved), requests = greatest(0, y.requests - give_back)
+     set tokens = greatest(0, y.tokens + actual - reserved), requests = greatest(0, y.requests - give_back),
+         pending_requests = y.pending_requests - 1, pending_tokens = y.pending_tokens - reserved
    where y.day = p_day and y.user_id = caller;
 end;
 $$;
@@ -134,15 +179,21 @@ set search_path = public
 as $$
 declare
   caller uuid := auth.uid();
+  u record;
+  amount bigint;
 begin
   if caller is null or not exists (select 1 from public.studio_roles r where r.user_id = caller and r.active) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
+  select y.pending_requests, y.pending_tokens into u from public.studio_ai_user_usage y where y.day = p_day and y.user_id = caller for update;
+  if not found or u.pending_requests < 1 then return; end if;
+  amount := least(greatest(coalesce(p_tokens, 0), 0), u.pending_tokens);
   update public.studio_ai_usage x
-     set tokens = greatest(0, x.tokens - p_tokens), requests = greatest(0, x.requests - 1)
+     set tokens = greatest(0, x.tokens - amount), requests = greatest(0, x.requests - 1)
    where x.day = p_day;
   update public.studio_ai_user_usage y
-     set tokens = greatest(0, y.tokens - p_tokens), requests = greatest(0, y.requests - 1)
+     set tokens = greatest(0, y.tokens - amount), requests = greatest(0, y.requests - 1),
+         pending_requests = y.pending_requests - 1, pending_tokens = y.pending_tokens - amount
    where y.day = p_day and y.user_id = caller;
 end;
 $$;
@@ -187,6 +238,7 @@ begin
   on conflict (id) do update set at = now(), mode = excluded.mode, kind = excluded.kind, tokens = excluded.tokens
   where public.studio_ai_requests.user_id = caller;
   delete from public.studio_ai_requests r where r.user_id = caller and r.at < now() - interval '30 days';
+  delete from public.studio_ai_requests r where r.user_id = caller and r.id in (select q.id from public.studio_ai_requests q where q.user_id = caller order by q.at desc offset 200);
   delete from public.studio_ai_user_usage y where y.user_id = caller and y.day < current_date - 35;
 end;
 $$;

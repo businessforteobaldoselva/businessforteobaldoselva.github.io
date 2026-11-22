@@ -70,6 +70,11 @@
         return api.post("/v1/drafts", patch).then(
           function (res) {
             status.saving = false;
+            if (!res || !res.draft) { // a 200 that is not our API's answer: keep every staged change
+              var bad = S.api.StudioError(502, "upstream_error", "The answer had no draft in it");
+              bad.userMessage = "Your changes were not saved. The publishing service gave an odd answer, so they are still here. Try again in a minute.";
+              status.error = bad; events.emit("draft:status", status); events.emit("error", { error: bad }); throw bad;
+            }
             lastKey = null;
             staging.markSaved();
             setCurrent(res.draft, res.changes);

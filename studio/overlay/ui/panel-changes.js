@@ -1,6 +1,6 @@
 /* COVERED Studio overlay - ui/panel-changes.js
    The Changes panel: everything staged in plain English (old -> new) with per-line Undo, then Save draft,
-   Send for review and Publish, plus the draft's status (checks, preview, pull request). */
+   Send for review and Publish, plus the draft's status (checks, preview, details). */
 (function (S) {
   "use strict";
   var U = S.util;
@@ -121,7 +121,7 @@
         dbox.appendChild(h("p", null, h("strong", null, draft.title || "Draft"), draft.state ? " – " + stateWords(draft) : ""));
         if (draft.checks) dbox.appendChild(h("p", { class: "hint" }, checksWords(draft.checks)));
         var links = h("p", { class: "links" });
-        if (draft.url) links.appendChild(h("a", { href: draft.url, target: "_blank", rel: "noopener noreferrer" }, "Open the pull request"));
+        if (draft.url) links.appendChild(h("a", { href: draft.url, target: "_blank", rel: "noopener noreferrer" }, "See technical details (opens GitHub)"));
         if (draft.previewUrl) { links.appendChild(document.createTextNode(" · ")); links.appendChild(h("a", { href: draft.previewUrl.indexOf("?") >= 0 ? draft.previewUrl + "&studio=1" : draft.previewUrl.replace(/\/+$/, "") + "/?studio=1", target: "_blank", rel: "noopener noreferrer" }, "Open the preview in Studio")); }
         dbox.appendChild(links);
         var row = h("div", { class: "row-btns" });
@@ -167,7 +167,7 @@
       studio.ui.confirm({ title: "Publish to the live site?", body: "Everything in this draft goes live as soon as the site rebuilds.", confirmLabel: "Publish" }).then(function (ok) { if (ok) wrap(drafts.publish(), "Published. The live site updates in a minute or two."); });
     }
     function doDiscardDraft() {
-      studio.ui.confirm({ title: "Discard this draft?", body: "The draft and its pull request are closed. Nothing goes live.", confirmLabel: "Discard draft", danger: true }).then(function (ok) { if (ok) wrap(drafts.discard(), "Draft discarded."); });
+      studio.ui.confirm({ title: "Discard this draft?", body: "The draft is deleted. Nothing goes live.", confirmLabel: "Discard draft", danger: true }).then(function (ok) { if (ok) wrap(drafts.discard(), "Draft discarded."); });
     }
     function discardAll() {
       studio.ui.confirm({ title: "Throw away unsaved changes?", body: "Everything listed here that is not saved to a draft yet will be lost.", confirmLabel: "Discard all", danger: true }).then(function (ok) { if (ok) { staging.clear(); studio.ui.toast("Changes discarded.", { kind: "info" }); } });

@@ -15,28 +15,38 @@ function createFakePostgrest(opts) {
   const users = new Map();
   const requests = new Map();
   const calls = [];
-  const fake = { tokens, fail: null, calls };
+  const fake = { tokens, fail: null, calls, limits: { max_requests: 150, max_tokens: 3000000, user_max_requests: 60, user_max_tokens: 1000000, max_reservation: 60000 } };
   const g = (day) => { let r = global.get(day); if (!r) { r = { requests: 0, tokens: 0 }; global.set(day, r); } return r; };
-  const u = (day, id) => { const k = day + "|" + id; let r = users.get(k); if (!r) { r = { requests: 0, tokens: 0 }; users.set(k, r); } return r; };
+  const u = (day, id) => { const k = day + "|" + id; let r = users.get(k); if (!r) { r = { requests: 0, tokens: 0, pendingN: 0, pendingT: 0 }; users.set(k, r); } return r; };
   const res = (status, body) => ({ ok: status >= 200 && status < 300, status, text: async () => (body === undefined ? "" : JSON.stringify(body)) });
 
   const fns = {
+    // mirrors studio/sql/003: caps are the LOWER of the caller's and the owner's limits row; settle / release only undo a pending reservation
     studio_ai_reserve2(a, me) {
+      const L = fake.limits;
       const G = g(a.p_day); const U = u(a.p_day, me);
       const out = (ok, reason) => [{ ok, reason, g_requests: G.requests, g_tokens: G.tokens, u_requests: U.requests, u_tokens: U.tokens }];
-      if (G.requests + 1 > a.p_max_requests) return out(false, "global_requests");
-      if (G.tokens + a.p_tokens > a.p_max_tokens) return out(false, "global_tokens");
-      if (U.requests + 1 > a.p_user_max_requests) return out(false, "user_requests"); // the real function bumps global then undoes it: same outcome
-      G.requests += 1; G.tokens += a.p_tokens; U.requests += 1; U.tokens += a.p_tokens;
+      const t = a.p_tokens;
+      if (G.requests + 1 > Math.min(a.p_max_requests, L.max_requests)) return out(false, "global_requests");
+      if (G.tokens + t > Math.min(a.p_max_tokens, L.max_tokens) || t > L.max_reservation) return out(false, "global_tokens");
+      if (U.requests + 1 > Math.min(a.p_user_max_requests, L.user_max_requests) || U.tokens + t > L.user_max_tokens) return out(false, "user_requests"); // the real function bumps global then undoes it: same outcome
+      G.requests += 1; G.tokens += t; U.requests += 1; U.tokens += t; U.pendingN += 1; U.pendingT += t;
       return out(true, null);
     },
     studio_ai_settle2(a, me) {
       const G = g(a.p_day); const U = u(a.p_day, me); const give = a.p_count_request ? 0 : 1;
-      for (const X of [G, U]) { X.tokens = Math.max(0, X.tokens + a.p_actual - a.p_reserved); X.requests = Math.max(0, X.requests - give); }
+      if (U.pendingN < 1) return null;
+      const reserved = Math.min(Math.max(a.p_reserved, 0), U.pendingT); const actual = Math.min(Math.max(a.p_actual, 0), fake.limits.max_reservation);
+      for (const X of [G, U]) { X.tokens = Math.max(0, X.tokens + actual - reserved); X.requests = Math.max(0, X.requests - give); }
+      U.pendingN -= 1; U.pendingT -= reserved;
       return null;
     },
     studio_ai_release2(a, me) {
-      for (const X of [g(a.p_day), u(a.p_day, me)]) { X.tokens = Math.max(0, X.tokens - a.p_tokens); X.requests = Math.max(0, X.requests - 1); }
+      const U = u(a.p_day, me);
+      if (U.pendingN < 1) return null;
+      const amount = Math.min(Math.max(a.p_tokens, 0), U.pendingT);
+      for (const X of [g(a.p_day), U]) { X.tokens = Math.max(0, X.tokens - amount); X.requests = Math.max(0, X.requests - 1); }
+      U.pendingN -= 1; U.pendingT -= amount;
       return null;
     },
     studio_ai_snapshot2(a, me) { const G = g(a.p_day); const U = u(a.p_day, me); return [{ g_requests: G.requests, g_tokens: G.tokens, u_requests: U.requests, u_tokens: U.tokens }]; },

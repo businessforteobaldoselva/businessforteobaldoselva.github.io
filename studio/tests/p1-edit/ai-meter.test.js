@@ -166,6 +166,16 @@ test("finish signal: while the page is hidden a toast and a dock dot say it is r
   away.close();
 });
 
+test("finish signal: a failure while the page is hidden never says the suggestion is ready", async () => {
+  const api = createFakeApi();
+  api.queue.push({ status: 502, error: SAMPLE.errors.ai_bad_output });
+  const away = await open({ api });
+  away.document.hidden = true;
+  await away.ask("Make the hero shorter");
+  assert.deepEqual(away.toasts.map((t) => t.message), ["Studio could not finish that request"]);
+  away.close();
+});
+
 test("recent requests: a collapsed list that loads on open, shows rows and an https link, and says so plainly when it cannot load", async () => {
   const h = await open();
   assert.equal(h.api.calls.filter((c) => c.path === "/v1/ai/recent").length, 0, "nothing is fetched until it is opened");
@@ -175,7 +185,7 @@ test("recent requests: a collapsed list that loads on open, shows rows and an ht
   await h.settle();
   assert.equal(h.api.calls.filter((c) => c.path === "/v1/ai/recent").length, 1);
   const list = h.must("[data-recent-list]");
-  assert.match(list.textContent, /22 Nov · Change · 2 of 3 accepted · Open the pull request/);
+  assert.match(list.textContent, /22 Nov · Change · 2 of 3 accepted · See technical details \(opens GitHub\)/);
   assert.match(list.textContent, /22 Nov · Not usable · Not saved/);
   const a = list.querySelector("a");
   assert.equal(a.getAttribute("href"), "https://github.com/o/r/pull/58");

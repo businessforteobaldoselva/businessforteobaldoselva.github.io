@@ -32,7 +32,7 @@ Owns (nothing else was touched except where noted):
 |---|---|
 | `overlay/ext/history.js` | History panel: merged changes, who and when, plain-English lines, Restore with confirmation, conflict handling, empty/loading/error states, pure view model |
 | `overlay/ext/help.js` | Help panel ("?"): quick start, what the words mean, what this role can do, shortcuts, replay tour, build info |
-| `overlay/ext/tour.js` | First-run tour (7 steps), anchored highlights, keyboard operable, remembered per user, replay |
+| `overlay/ext/tour.js` | First-run tour (9 steps), anchored highlights, keyboard operable, remembered per user, replay |
 | `overlay/ext/palette.js` | Ctrl/Cmd+K combobox, fuzzy search, synonyms, generated section/field commands |
 | `overlay/ext/ext.css` | styles for the four (inside the overlay's shadow root) |
 | `api/services/history-diff.js`, `api/services/history.js` | pure `invertDiff`; `createHistoryService({git, drafts, ...}).list/restore` |

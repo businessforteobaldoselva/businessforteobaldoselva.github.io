@@ -80,8 +80,10 @@
             if (timer) clearTimeout(timer);
             var retryAfter = Number(res.headers.get("Retry-After")) || 0;
             return res.text().then(function (txt) {
-              var data = null;
-              try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
+              var data = null, junk = false;
+              try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; junk = true; }
+              // a 2xx that is not JSON is a captive-portal / proxy page, not our API: never report it as success
+              if (res.ok && junk) { var bad = StudioError(502, "upstream_error", "The answer was not understood"); bad.userMessage = humanMessage(bad); throw bad; }
               if (res.ok) { markService(null); return data || {}; }
               var er = data && data.error ? data.error : {};
               var se = StudioError(res.status, er.code || "internal", er.message, er.details, data && data.requestId);

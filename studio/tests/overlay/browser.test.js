@@ -150,7 +150,7 @@ test("headline: click, type, Enter -> staged; the Changes panel says it in plain
   const auth = stub.requests.filter((r) => r.path === "/v1/drafts" && r.method === "POST")[0].auth;
   assert.equal(auth, "Bearer dev:editor:molly@covered.test");
   assert.match(await shadowText(page), /Your draft/);
-  assert.match(await shadowText(page), /pull request/);
+  assert.match(await shadowText(page), /technical details/);
   assert.deepEqual(page.__errors, []);
   await close(page);
 });

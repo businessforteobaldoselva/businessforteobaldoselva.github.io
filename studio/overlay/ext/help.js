@@ -74,7 +74,6 @@
       var parts = [];
       parts.push("Version " + (studio.version || 1));
       if (b.sha) parts.push("build " + String(b.sha).slice(0, 7));
-      if (b.branch) parts.push("branch " + b.branch);
       try { var sh = studio.schema && studio.schema.raw && studio.schema.raw.configSha256; if (sh) parts.push("rules " + String(sh).slice(0, 8)); } catch (e) { /* optional */ }
       return parts.join(" · ");
     }

@@ -119,7 +119,7 @@
           el("div", { class: "csx-actions" },
             r.canReview ? el("button", { type: "button", class: "csx-btn", "aria-label": "Review: " + r.title, on: { click: function () { openReview(r.id); } } }, "Review") : null,
             r.reviewLink ? el("button", { type: "button", class: "csx-btn csx-btn-quiet", "aria-label": "Copy the review link for " + r.title, on: { click: function () { copy(r.reviewLink); } } }, "Copy link") : null,
-            r.url ? el("a", { href: r.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "View on GitHub") : null));
+            r.url ? el("a", { href: r.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "See technical details (opens GitHub)") : null));
       }
 
       function paint() {
@@ -136,7 +136,7 @@
             vm.live ? el("div", { class: "csx-row" },
               el("p", { class: "csx-row-title" }, vm.live.title),
               el("p", { class: "csx-meta" }, vm.live.settling ? vm.live.settlingText : vm.live.text),
-              vm.live.url ? el("a", { href: vm.live.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "View on GitHub") : null)
+              vm.live.url ? el("a", { href: vm.live.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "See technical details (opens GitHub)") : null)
               : el("p", { class: "csx-muted" }, "Nothing has been published through Studio yet.")));
           vm.groups.forEach(function (g) {
             kids.push(el("section", { "aria-label": g.title, "data-group": g.id },

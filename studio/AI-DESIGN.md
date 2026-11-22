@@ -136,7 +136,7 @@ Collision rules: only CORE touches `studio/api/**`, `package.json`, `studio/vali
 | `STUDIO_AI_DAILY_REQUESTS` | 150 | budget: model calls per UTC day |
 | `STUDIO_AI_DAILY_TOKENS` | 400000 | budget: input+output tokens per UTC day (estimated before the call, settled with real usage after) |
 | `STUDIO_AI_MAX_BODY_BYTES` | 16000 | cap for `POST /v1/ai/propose` bodies |
-| `STUDIO_ASK_CLAUDE_URL` | derived | optional `https://` (or localhost) address of the CMS "Ask Claude" new-request page; default `<site origin>/admin/#/collections/requests/new` computed by the overlay. Validated like `STUDIO_PREVIEW_URL_TEMPLATE`. |
+| `STUDIO_ASK_CLAUDE_URL` | derived | optional `https://` (or localhost) address for an "Ask Claude" link; with nothing set the overlay shows no link (the retired editor's address is no longer derived). Validated like `STUDIO_PREVIEW_URL_TEMPLATE`. |
 
 `loadAiConfig(env)` is pure, returns plain numbers/strings/booleans (no key, no function), and throws `ConfigError` only for malformed values or `replay` outside dev. Numbers are clamped, not trusted. The Anthropic host is a constant in `providers/anthropic.js` (`https://api.anthropic.com/v1/messages`); there is deliberately no base-URL setting (a mis-set URL would send the key elsewhere). Tests inject `fetch`.
 

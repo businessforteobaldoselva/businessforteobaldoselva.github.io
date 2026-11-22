@@ -172,12 +172,12 @@
           if (vm.careful.length) kids.push(el("section", { "aria-label": "Look at these carefully" }, el("h3", { class: "csx-day-title" }, "Look at these carefully"), el("ul", { class: "csx-rv-list" }, vm.careful.map(itemEl))));
           if (vm.rest.length) kids.push(el("section", { "aria-label": vm.careful.length ? "Other changes" : "Changes" }, el("h3", { class: "csx-day-title" }, vm.careful.length ? "Other changes" : "Changes"), el("ul", { class: "csx-rv-list" }, vm.rest.map(itemEl))));
           if (!vm.hasChanges) kids.push(el("p", { class: "csx-muted" }, "This draft does not change any website content."));
-          kids.push(el("p", { class: "csx-rv-checks", "data-checks": state.data.gates.checks }, vm.checksText));
-          if (vm.blockers.length) kids.push(el("ul", { class: "csx-rv-blockers", role: "status" }, vm.blockers.map(function (b) { return el("li", null, b); })));
+          if (!vm.published) kids.push(el("p", { class: "csx-rv-checks", "data-checks": state.data.gates.checks }, vm.checksText));
+          if (!vm.published && vm.blockers.length) kids.push(el("ul", { class: "csx-rv-blockers", role: "status" }, vm.blockers.map(function (b) { return el("li", null, b); })));
           kids.push(el("div", { class: "csx-actions" },
             canPublish() && !vm.published ? el("button", { type: "button", class: "csx-btn", "data-approve": "1", disabled: !vm.canApprove || state.approving, on: { click: approve } }, state.approving ? "Publishing…" : "Approve and publish") : null,
             el("button", { type: "button", class: "csx-btn csx-btn-quiet", disabled: state.loading, on: { click: function () { state.notice = ""; load(); } } }, "Refresh"),
-            vm.url ? el("a", { href: vm.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "View on GitHub") : null));
+            vm.url ? el("a", { href: vm.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "See technical details (opens GitHub)") : null));
           if (!canPublish()) kids.push(el("p", { class: "csx-muted" }, "An approver will look at this before it goes live."));
         }
         while (root.firstChild) root.removeChild(root.firstChild);

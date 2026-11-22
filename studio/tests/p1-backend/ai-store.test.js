@@ -184,3 +184,21 @@ test("a programming error in the shared store is NOT swallowed as a fallback", a
   const store = selectStore({ memory: createMemoryBudget(LIMITS), supabase: bad, shared: {}, now: () => new Date(0), log: () => {} });
   await assert.rejects(() => store.reserve({ day: DAY, tokens: 1, userId: "u", caps: CAPS }), TypeError);
 });
+
+test("direct database calls cannot raise the caps, settle more than was reserved, or reset the shared counter", async () => {
+  const fake = createFakePostgrest();
+  const rpc = async (token, fn, args) => JSON.parse(await (await fake.fetch("https://x.supabase.co/rest/v1/rpc/" + fn, { method: "POST", headers: { apikey: "pub", Authorization: "Bearer " + token }, body: JSON.stringify(args) })).text() || "null");
+  // burn: huge caps and a huge amount are refused or clamped by the owner's limits row
+  const big = await rpc("tok-molly", "studio_ai_reserve2", { p_day: DAY, p_tokens: 2900000, p_max_requests: 1, p_max_tokens: 3000000, p_user_max_requests: 1 });
+  assert.equal(big[0].ok, false);
+  for (let i = 0; i < 200; i += 1) await rpc("tok-molly", "studio_ai_reserve2", { p_day: DAY, p_tokens: 60000, p_max_requests: 1e9, p_max_tokens: 1e12, p_user_max_requests: 1e9 });
+  const snap = (await rpc("tok-amelia", "studio_ai_snapshot2", { p_day: DAY }))[0];
+  assert.ok(snap.g_tokens <= 1000000 && snap.g_requests <= 60, "one person cannot push the shared counter past their own limit: " + JSON.stringify(snap));
+  assert.equal((await rpc("tok-amelia", "studio_ai_reserve2", { p_day: DAY, p_tokens: 100, p_max_requests: 1e9, p_max_tokens: 1e12, p_user_max_requests: 1e9 }))[0].ok, true, "everyone else can still use AI");
+  // bypass: settling or releasing far more than was reserved, or with nothing reserved, changes nothing beyond the person's own pending reservation
+  await rpc("tok-amelia", "studio_ai_settle2", { p_day: DAY, p_reserved: 1e12, p_actual: 0, p_count_request: false });
+  await rpc("tok-amelia", "studio_ai_release2", { p_day: DAY, p_tokens: 1e12 });
+  for (let i = 0; i < 50; i += 1) await rpc("tok-amelia", "studio_ai_release2", { p_day: DAY, p_tokens: 1e12 });
+  const after = (await rpc("tok-amelia", "studio_ai_snapshot2", { p_day: DAY }))[0];
+  assert.deepEqual([after.g_tokens, after.g_requests], [snap.g_tokens, snap.g_requests], "Amelia could only undo her own 100-token reservation, never Molly's counters");
+});

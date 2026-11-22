@@ -46,10 +46,16 @@ function checkSql(sql) {
     if (!new RegExp("revoke all on function public\\." + name + "\\([^)]*\\) from public, anon;", "i").test(sql)) out.push(name + " is not revoked from anon");
     if (!new RegExp("grant execute on function public\\." + name + "\\([^)]*\\) to authenticated;", "i").test(sql)) out.push(name + " is not granted to signed-in people");
   }
-  for (const t of ["studio_ai_user_usage", "studio_ai_requests"]) {
+  for (const t of ["studio_ai_user_usage", "studio_ai_requests", "studio_ai_limits"]) {
     if (!new RegExp("alter table public\\." + t + " enable row level security", "i").test(sql)) out.push("row level security is not enabled on " + t);
     if (!new RegExp("revoke all on public\\." + t + " from anon, authenticated", "i").test(sql)) out.push(t + " is not closed to direct access");
   }
+  // the caller must never decide the limits or the amounts: caps are clamped by the owner's row, settle / release act on a pending reservation
+  const fnBody = (n) => { const m = new RegExp("create or replace function public\\." + n + "\\([^)]*\\)[\\s\\S]*?\\n\\$\\$;", "i").exec(sql); return m ? m[0] : ""; };
+  const reserve = fnBody("studio_ai_reserve2");
+  if (!/least\(p_max_requests, lim\.max_requests\)/.test(reserve) || !/least\(p_max_tokens, lim\.max_tokens\)/.test(reserve) || !/least\(p_user_max_requests, lim\.user_max_requests\)/.test(reserve) || !/v_tokens <= lim\.max_reservation/.test(reserve)) out.push("reserve2 must clamp every caller-supplied cap and amount to the studio_ai_limits row");
+  if (/<=\s*p_max_|<=\s*p_user_max_/.test(reserve)) out.push("reserve2 compares against a caller-supplied cap directly");
+  for (const n of ["studio_ai_settle2", "studio_ai_release2"]) if (!/pending_requests < 1 then return/.test(fnBody(n)) || !/least\([^;]*pending_tokens\)/.test(fnBody(n))) out.push(n + " must only undo what the caller reserved (pending_requests / pending_tokens)");
   if (/create policy/i.test(sql)) out.push("a policy exists: the tables must be reachable only through the functions");
   if (/grant\s[^;]*\sto\s[^;]*\banon\b/i.test(sql)) out.push("something is granted to anon");
   if (/grant\s[^;]*\sto\s[^;]*\bpublic\b/i.test(sql)) out.push("something is granted to public");

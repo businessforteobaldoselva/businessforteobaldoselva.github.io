@@ -201,6 +201,10 @@
         dialogStack = dialogStack.filter(function (d) { return d !== api; });
         wrapper.parentNode.removeChild(wrapper);
         if (release) release();
+        // the opener may have been repainted while the dialog was open: never leave the keyboard user with no focus
+        var rn = wrap.getRootNode && wrap.getRootNode();
+        var lost = (rn && rn.host && document.activeElement === rn.host && !rn.activeElement) || document.activeElement === document.body;
+        if (lost) { var back2 = openId ? panelTitle : S.dom.focusables(dock)[0]; if (back2 && back2.focus) back2.focus(); }
         if (o.onClose) o.onClose(result);
       }
       var api = { el: dlg, body: body, foot: foot, close: close, wrapper: wrapper };
@@ -250,6 +254,17 @@
       studioRef = studio;
       document.body.appendChild(host);
       buildDock();
+      // keyboard users: the dock is last in the page's tab order, so offer a first stop that jumps to it (shown only while focused)
+      try {
+        var skip = document.createElement("a");
+        skip.href = "#covered-studio"; skip.setAttribute("data-studio-ui", ""); skip.textContent = "Skip to Studio controls";
+        var hide = "position:fixed;left:-9999px;top:8px;z-index:2147483647;padding:8px 12px;background:#fff;color:#000;border:2px solid #000;font:600 14px/1.2 system-ui,sans-serif;";
+        skip.style.cssText = hide;
+        skip.addEventListener("focus", function () { skip.style.left = "8px"; });
+        skip.addEventListener("blur", function () { skip.style.left = "-9999px"; });
+        skip.addEventListener("click", function (e) { e.preventDefault(); var first = S.dom.focusables(dock)[0]; if (first) first.focus(); });
+        document.body.insertBefore(skip, document.body.firstChild);
+      } catch (e) { /* optional */ }
       trackViewport();
     }
 

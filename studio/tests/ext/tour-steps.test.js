@@ -4,8 +4,8 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const T = require("../../overlay/ext/tour.js");
 
-test("the tour has the 7 contract steps in order, in plain English", () => {
-  assert.deepEqual(T.STEPS.map((s) => s.id), ["welcome", "text", "image", "sections", "save", "history", "palette"]);
+test("the tour has the 9 contract steps in order, in plain English", () => {
+  assert.deepEqual(T.STEPS.map((s) => s.id), ["welcome", "legend", "text", "image", "sections", "save", "review", "history", "palette"]);
   for (const s of T.STEPS) {
     assert.ok(s.title.length > 3 && s.title.length <= 60, s.id);
     assert.ok(s.body.length > 20 && s.body.length <= 260, s.id);

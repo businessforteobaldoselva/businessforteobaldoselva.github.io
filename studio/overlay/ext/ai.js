@@ -115,9 +115,10 @@
           return !(a && root.contains(a));
         } catch (e) { return false; }
       }
-      function finishSignal() {
+      function finishSignal(failed) {
         if (!alive || !lookingAway()) return;
-        ui.toast(C.ready, { kind: "success" });
+        // a failure must not say "ready": neutral words, not the green success toast
+        ui.toast(failed ? "Studio could not finish that request" : C.ready, failed ? { kind: "info" } : { kind: "success" });
         if (typeof ui.setPanelAttention === "function") {
           ui.setPanelAttention("ai", true);
           var clear = function () { ui.setPanelAttention("ai", false); root.removeEventListener("focusin", clear); root.removeEventListener("click", clear); };
@@ -137,7 +138,7 @@
         if (!recent.loaded) return el("p", { class: "csx-muted" }, "Loading…");
         if (!recent.rows.length) return el("p", { class: "csx-muted" }, "Nothing yet.");
         return el("ul", { class: "csx-ai-recentlist" }, recent.rows.map(function (r) {
-          return el("li", null, r.date + " · " + r.kind + " · " + r.accepted, r.url ? [" · ", el("a", { href: httpUrl(r.url), target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Open the pull request")] : null);
+          return el("li", null, r.date + " · " + r.kind + " · " + r.accepted, r.url ? [" · ", el("a", { href: httpUrl(r.url), target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "See technical details (opens GitHub)")] : null);
         }));
       }
       function paintRecent() {
@@ -187,7 +188,7 @@
         studio.api.post("/v1/ai/propose", body).then(function (res) {
           if (answer({ type: "result", proposal: res && res.proposal })) { announceResult(); finishSignal(); }
         }, function (err) {
-          if (answer({ type: "fail", error: err })) { say(state.error ? state.error.message : V.offCopy(V.offReasonOf(state))); finishSignal(); }
+          if (answer({ type: "fail", error: err })) { say(state.error ? state.error.message : V.offCopy(V.offReasonOf(state))); finishSignal(true); }
         });
       }
       function cancel() {
@@ -492,7 +493,7 @@
           el("p", { class: "csx-ai-links" },
             pv ? el("a", { href: pv, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Preview") : null,
             pv && httpUrl(d && d.url) ? " · " : null,
-            httpUrl(d && d.url) ? el("a", { href: httpUrl(d.url), target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Open the pull request") : null),
+            httpUrl(d && d.url) ? el("a", { href: httpUrl(d.url), target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "See technical details (opens GitHub)") : null),
           para(C.undoLine, "csx-muted"));
       }
 

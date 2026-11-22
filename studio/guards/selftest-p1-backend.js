@@ -64,6 +64,9 @@ module.exports = (h) => {
 
     // 003
     broken("003 loses security definer on a function", [["studio/sql/003_studio_ai_usage.sql", rx(/^security definer(?=\r?$)/m, "security invoker")]], ["R2", "is not security definer"]),
+    broken("003 lets the caller set the daily token cap", [["studio/sql/003_studio_ai_usage.sql", once("max_tokens := least(p_max_tokens, lim.max_tokens);", "max_tokens := p_max_tokens;")]], ["R2", "reserve2 must clamp every caller-supplied cap"]),
+    broken("003 lets settle2 undo more than the caller reserved", [["studio/sql/003_studio_ai_usage.sql", once("if not found or u.pending_requests < 1 then return; end if;", "if not found then return; end if;")]], ["R2", "studio_ai_settle2 must only undo what the caller reserved"]),
+    broken("003 leaves the limits table open (no row level security)", [["studio/sql/003_studio_ai_usage.sql", once("alter table public.studio_ai_limits enable row level security;", "")]], ["R2", "row level security is not enabled on studio_ai_limits"]),
     broken("003 gains a policy on a usage table", [["studio/sql/003_studio_ai_usage.sql", (t) => t + "\ncreate policy anyone on public.studio_ai_requests for select using (true);\n"]], ["R2", "a policy exists"]),
     broken("003 grants a function to anon", [["studio/sql/003_studio_ai_usage.sql", once("grant execute on function public.studio_ai_recent(integer) to authenticated;", "grant execute on function public.studio_ai_recent(integer) to authenticated, anon;")]], ["R2", "something is granted to anon"]),
     broken("003 stops checking the caller is an active person in one function", [["studio/sql/003_studio_ai_usage.sql", rx(/^(create or replace function public\.studio_ai_attach[\s\S]*?)studio_roles r where r\.user_id = caller and r\.active/m, "$1studio_roles r where r.user_id = caller")]], ["R2", "studio_ai_attach does not check the caller is an active person"]),
