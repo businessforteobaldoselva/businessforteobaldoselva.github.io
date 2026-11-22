@@ -165,5 +165,5 @@ test("the strip patterns remove only what the contract allows", () => {
 
 test("the passthrough folders are read from .eleventy.js", () => {
   const list = passthroughOf(ROOT);
-  assert.ok(list.includes("admin") && list.includes("cms") && list.includes("images"));
+  assert.ok(list.includes("admin") && list.includes("cms/index.html") && list.includes("images"));
 });

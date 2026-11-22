@@ -47,7 +47,7 @@ Toggles: `#progress` (`motion.scrollProgress`), `.conveyor` (`motion.conveyor`),
 4. **`reservedIds`** is `lib/reserved-ids.js` `.sorted()` (the lower-case ids the CMS anchor patterns list). The reserved *prefix*
    (`faq-panel-`) is not in the schema as the contract has no field for it; it is inside the anchor field's `pattern` (a negative lookahead), which B validates.
 5. **`x.imageStyle`** is derived from the pattern as specified (`bare-name` for all current image fields, because the config patterns
-   accept only a file name). The stored data nevertheless holds `images/x.jpg` or `/images/x.jpg` (Decap prepends `public_folder`).
+   accept only a file name). The stored data nevertheless holds `images/x.jpg` or `/images/x.jpg` (the stored form keeps the `public_folder` prefix).
    B must treat the stored form, not the pattern, as the value form (`safeUrl`-style path under `images/`). I did not touch config.yml.
 6. **Number fields have no marker kind.** The contract's kind list has no `number`, so stat numbers (`problem.stats.N.number`),
    photo tilts, map coordinates and design tokens are Fields-panel-only. (`stats` block numbers are strings and are marked.)

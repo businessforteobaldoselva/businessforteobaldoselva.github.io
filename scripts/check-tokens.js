@@ -2,7 +2,7 @@
 "use strict";
 // check-tokens: the "Type & spacing" design tokens (src/_data/tokens.json) must stay bounded, wired and in sync.
 //
-//   node scripts/check-tokens.js [--root .] [--max 200] [--static] [--write]
+//   node scripts/check-tokens.js [--root .] [--max 200] [--static]
 //
 // An editor (or a stolen editor session) must never be able to break the site through a design token. The token table
 // lives in lib/tokens.js; this guard proves, in three layers:
@@ -10,8 +10,7 @@
 //   1. Static    - every token has a CMS field with exactly the filter's bounds / options / default (and nothing
 //                  extra); the shipped defaults declared in src/_includes/site-styles.css equal the table (so the
 //                  untouched site renders as before); every --tk-* variable is used by the stylesheet through
-//                  var(), and every var(--tk-*) in the stylesheet is declared; cms/previews.js carries a copy of
-//                  the table (regenerate it with --write).
+//                  var(), and every var(--tk-*) in the stylesheet is declared.
 //   2. Filter    - hostile and nonsense values pushed through the REAL Eleventy filters (strings, markup, template
 //                  syntax, NaN-like and huge numbers, objects, arrays, prototype keys) always come out as numbers inside
 //                  the bounds / listed words, checked against the table independently of the code that clamps.
@@ -156,28 +155,6 @@ function staticChecks(root, T, report) {
   const tv = readText(path.join(root, "src", "_includes", "theme-vars.njk"));
   if (!/tokens\s*\|\s*tokenValue\(\s*["']shape\.shadow["']\s*\)/.test(tv)) report.add(S, "theme-vars.njk does not build --shadow from the validated shape.shadow token");
   if (!/\{\{\s*tokens\s*\|\s*tokenVars\s*\|\s*safe\s*\}\}/.test(tv)) report.add(S, "theme-vars.njk does not print the validated tokens (tokens | tokenVars)");
-  // ---- previews copy
-  const pv = fs.readFileSync(path.join(root, "cms", "previews.js"), "utf8");
-  const pm = /\/\* TOKEN-SPEC:BEGIN \*\/\s*var TOKEN_SPEC = ([\s\S]*?);\s*\/\* TOKEN-SPEC:END \*\//.exec(pv);
-  let copy = null;
-  try {
-    copy = pm ? JSON.parse(pm[1]) : null;
-  } catch (e) {
-    /* reported below */
-  }
-  if (!copy) report.add(S, "cms/previews.js has no readable TOKEN_SPEC copy", "Run: node scripts/check-tokens.js --write");
-  else if (JSON.stringify(copy) !== JSON.stringify(JSON.parse(JSON.stringify(T.TOKENS)))) report.add(S, "cms/previews.js TOKEN_SPEC is out of date with lib/tokens.js", "The live preview would use other limits than the site. Run: node scripts/check-tokens.js --write");
-}
-
-function writePreviewSpec(root, T) {
-  const file = path.join(root, "cms", "previews.js");
-  let pv = fs.readFileSync(file, "utf8");
-  const eol = pv.includes("\r\n") ? "\r\n" : "\n";
-  const body = "/* TOKEN-SPEC:BEGIN */" + eol + "  var TOKEN_SPEC = [" + eol + JSON.parse(JSON.stringify(T.TOKENS)).map((t) => "    " + JSON.stringify(t)).join("," + eol) + eol + "  ];" + eol + "  /* TOKEN-SPEC:END */";
-  const re = /\/\* TOKEN-SPEC:BEGIN \*\/[\s\S]*?\/\* TOKEN-SPEC:END \*\//;
-  if (!re.test(pv)) throw new Error("cms/previews.js has no TOKEN-SPEC markers");
-  pv = pv.replace(re, () => body);
-  fs.writeFileSync(file, pv);
 }
 
 // ------------------------------------------------------------------ layer 2
@@ -348,18 +325,14 @@ function buildChecks(root, T, report) {
 }
 
 function main() {
-  const args = parseArgs(process.argv.slice(2), { root: "string", max: "number", static: "boolean", write: "boolean" });
+  const args = parseArgs(process.argv.slice(2), { root: "string", max: "number", static: "boolean" });
   if (args.help) {
-    console.log("usage: node scripts/check-tokens.js [--root <repo root>] [--max <n>] [--static] [--write]");
+    console.log("usage: node scripts/check-tokens.js [--root <repo root>] [--max <n>] [--static]");
     return 0;
   }
   const root = path.resolve(args.root || REPO_ROOT);
   const report = new Report("check-tokens");
   const T = loadTokens(root);
-  if (args.write) {
-    writePreviewSpec(root, T);
-    console.log("cms/previews.js: TOKEN_SPEC rewritten from lib/tokens.js");
-  }
   staticChecks(root, T, report);
   filterChecks(root, T, report);
   if (!args.static) buildChecks(root, T, report);

@@ -1,23 +1,9 @@
-backend:
-  name: git-gateway
-  branch: main
-
-# Every save becomes a draft (a GitHub pull request) that someone must move to Ready and Publish.
-# Nothing reaches the live site until it is published; Netlify builds a preview of each draft.
-publish_mode: editorial_workflow
-
-# Enables editing against the local repo when `npm run cms-local` is running
-# (ignored in production — it only activates if the local proxy is detected).
-local_backend: true
+# COVERED content schema. The source of truth for COVERED Studio's generated schema (`npm run studio:schema`),
+# `check:cms`, the validators and the markers. No editor reads this file directly. Change it with a developer
+# pull request, then regenerate.
 
 media_folder: "images"
 public_folder: "/images"
-
-site_url: https://coveredaccess.netlify.app
-display_url: https://coveredaccess.netlify.app
-logo_url: /images/covered-logo.svg
-
-locale: "en"
 
 collections:
   - name: "content"
@@ -26,7 +12,6 @@ collections:
       - name: "site"
         label: "⚙️ Site-wide (title, contact, CTA)"
         file: "src/_data/site.json"
-        preview_path: "/"
         fields:
           - { label: "Page title (browser tab and Google headline)", name: "pageTitle", widget: "string", pattern: ["^[\\s\\S]{0,120}$","Too long: please keep this to 120 characters or fewer."], hint: "The headline Google shows for this page. Aim for about 50–60 characters; much longer titles are cut off with “…”. Say what the page is, then (optionally) the brand. The preview shows how it will look." }
           - { label: "Meta description (search engines)", name: "metaDescription", widget: "text", pattern: ["^[\\s\\S]{0,320}$","Too long: please keep this to 320 characters or fewer."], hint: "The grey text under the headline in Google results. Aim for about 120–160 characters (a sentence or two that makes someone want to click); longer is cut off. It does not change how well the page ranks, but it does change how many people click." }
@@ -52,7 +37,6 @@ collections:
       - name: "nav"
         label: "🧭 Navigation menu (top bar)"
         file: "src/_data/nav.json"
-        preview_path: "/"
         fields:
           - { label: "Skip link text", name: "skipLink", widget: "string", hint: "A hidden link that appears when someone presses Tab on any page. It lets keyboard and screen-reader users jump straight past the menu to the content." }
           - { label: "Logo link — screen-reader label", name: "homeLabel", widget: "string", hint: "Read aloud by screen readers for the COVERED logo in the top bar and footer. Not visible on the page." }
@@ -65,13 +49,11 @@ collections:
             collapsed: false
             min: 1
             max: 8
-            summary: "{{fields.label}}"
             hint: "The links in the top bar of the homepage, left to right (on phones they appear in the menu that opens from the three-line button). Drag to reorder, add or delete links. Keep it to 8 or fewer so the bar fits. A link to a homepage section disappears by itself while that section is hidden in “Page layout”."
             types:
               - label: "⚓ Jump to a homepage section"
                 name: "section"
                 widget: "object"
-                summary: "{{fields.label}} — jumps to a section"
                 fields:
                   - { label: "Link text", name: "label", widget: "string", hint: "The words shown in the top bar." }
                   - label: "Which section"
@@ -89,7 +71,6 @@ collections:
               - label: "🔗 Link to a page or website"
                 name: "link"
                 widget: "object"
-                summary: "{{fields.label}} — {{fields.url}}"
                 fields:
                   - { label: "Link text", name: "label", widget: "string", hint: "The words shown in the top bar." }
                   - { label: "Address", name: "url", widget: "string", pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the link goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage." }
@@ -97,7 +78,6 @@ collections:
               - label: "✉️ Email us"
                 name: "email"
                 widget: "object"
-                summary: "{{fields.label}} — emails the contact address"
                 fields:
                   - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
                   - { label: "Show as a highlighted button", name: "button", widget: "boolean", default: false, required: false }
@@ -105,7 +85,6 @@ collections:
       - name: "footer"
         label: "🦶 Footer (bottom of every page)"
         file: "src/_data/footer.json"
-        preview_path: "/"
         fields:
           - { label: "Tagline under the logo", name: "tagline", widget: "string", hint: "The short sentence under the COVERED logo in the footer of the homepage." }
           - label: "Link columns"
@@ -114,7 +93,6 @@ collections:
             label_singular: "column"
             collapsed: true
             max: 4
-            summary: "{{fields.heading}}"
             hint: "The columns of links in the footer of the homepage (currently “Explore” and “Partner”). Drag to reorder, add or delete columns."
             fields:
               - { label: "Column heading", name: "heading", widget: "string", hint: "The small capitals heading above the links." }
@@ -125,13 +103,11 @@ collections:
                 label_singular: "link"
                 collapsed: false
                 max: 12
-                summary: "{{fields.label}}"
                 hint: "A link to a homepage section disappears by itself while that section is hidden in “Page layout”."
                 types:
                   - label: "⚓ Jump to a homepage section"
                     name: "section"
                     widget: "object"
-                    summary: "{{fields.label}} — jumps to a section"
                     fields:
                       - { label: "Link text", name: "label", widget: "string" }
                       - label: "Which section"
@@ -148,14 +124,12 @@ collections:
                   - label: "🔗 Link to a page or website"
                     name: "link"
                     widget: "object"
-                    summary: "{{fields.label}} — {{fields.url}}"
                     fields:
                       - { label: "Link text", name: "label", widget: "string" }
                       - { label: "Address", name: "url", widget: "string", pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the link goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage." }
                   - label: "✉️ Email us"
                     name: "email"
                     widget: "object"
-                    summary: "{{fields.label}} — emails the contact address"
                     fields:
                       - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
           - { label: "Copyright line", name: "copyright", widget: "string", hint: "Bottom-left of the footer. Write {year} where the current year should appear — it updates itself every January. (Pages other than the homepage show the line without the year.)" }
@@ -169,27 +143,23 @@ collections:
             label_singular: "link"
             collapsed: true
             max: 6
-            summary: "{{fields.label}}"
             hint: "Every page except the homepage has a slim footer: the copyright line plus these links, separated by dots."
             types:
               - label: "🔗 Link to a page or website"
                 name: "link"
                 widget: "object"
-                summary: "{{fields.label}} — {{fields.url}}"
                 fields:
                   - { label: "Link text", name: "label", widget: "string" }
                   - { label: "Address", name: "url", widget: "string", pattern: ["^(/(?!/)\\S*|#\\S+|https?://\\S+|mailto:\\S+)$", "Start with / for a page on this site (e.g. /about/), /#faq for a section of the homepage, # for a spot on the same page, https:// for another website, or mailto: for an email link. An address like www.example.com must start with https://."], hint: "Where the link goes. Type / for a page on this site (e.g. /about/), /#faq for a section of the homepage, #faq for a spot on the same page, https:// (or http://) for another website, or mailto: for an email link. The box refuses anything else, because an address such as www.example.com or about would quietly turn into a link to the homepage." }
               - label: "✉️ Email us"
                 name: "email"
                 widget: "object"
-                summary: "{{fields.label}} — emails the contact address"
                 fields:
                   - { label: "Link text", name: "label", widget: "string", hint: "Opens an email to the contact address set in “Site-wide”." }
 
       - name: "homepage"
         label: "🧩 Page layout — order, add & hide sections"
         file: "src/_data/homepage.json"
-        preview_path: "/"
         fields:
           - label: "Homepage sections"
             name: "sections"
@@ -200,13 +170,11 @@ collections:
               - label: "🏠 Hero (big opening screen)"
                 name: "hero"
                 widget: "object"
-                summary: "Hero — headline, stamp and buttons"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true, hint: "The hero holds the page's main heading. If you hide it, an invisible fallback heading (the site title) is used so search engines and screen readers still find one — but the page will open more abruptly." }
               - label: "🎞️ Scrolling venue ticker"
                 name: "marquee"
                 widget: "object"
-                summary: "Ticker — the moving strip of venue names"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
                   - label: "Ticker words"
@@ -222,61 +190,51 @@ collections:
               - label: "📊 The problem (stats & photos)"
                 name: "problem"
                 widget: "object"
-                summary: "The problem — statistics and photo strip"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "🔁 The model (Brands pay. You don't.)"
                 name: "model"
                 widget: "object"
-                summary: "The model — how the funding loop works"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "📱 How it works (interactive demo)"
                 name: "how"
                 widget: "object"
-                summary: "How it works — the tap-through machine demo"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "📣 For brands (advertising enquiry)"
                 name: "brands"
                 widget: "object"
-                summary: "For brands — benefits and enquiry form"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "🤝 Partner wall"
                 name: "partners"
                 widget: "object"
-                summary: "Partner wall — the reserved logo slots"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "🏟️ For venues (hosting enquiry)"
                 name: "venues"
                 widget: "object"
-                summary: "For venues — what we handle and the venue form"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "🗺️ Locations (UK map)"
                 name: "locations"
                 widget: "object"
-                summary: "Locations — the UK map and city chips"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "🚀 Vision / roadmap"
                 name: "vision"
                 widget: "object"
-                summary: "Vision — milestones and launch-notify form"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "❓ FAQ"
                 name: "faq"
                 widget: "object"
-                summary: "FAQ — the questions accordion"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
               - label: "✉️ Closing banner (get in touch)"
                 name: "cta"
                 widget: "object"
-                summary: "Closing banner — the big sign-off with email button"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true, hint: "The banner’s heading, text and button label are edited under “Site-wide (title, contact, CTA)”; the fields below are the small extras." }
                   - { label: "Section name — screen-reader label", name: "ariaLabel", widget: "string", hint: "Not visible on the page. Read aloud by screen readers when they reach the closing section (brand animation + banner)." }
@@ -293,7 +251,6 @@ collections:
               - label: "📝 Text section (add your own)"
                 name: "textBlock"
                 widget: "object"
-                summary: "Your text — {{fields.heading}}"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
                   - { label: "Small label above heading", name: "kicker", widget: "string", required: false }
@@ -303,7 +260,6 @@ collections:
               - label: "🖼️ Image + text (add your own)"
                 name: "imageTextBlock"
                 widget: "object"
-                summary: "Your image + text — {{fields.heading}}"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
                   - { label: "Image", name: "image", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The picture shown beside the text. Upload a picture or pick one from the library — web addresses are not accepted. Large photos are fine: the site makes small, fast copies automatically." }
@@ -317,7 +273,6 @@ collections:
               - label: "🔢 Number cards (add your own)"
                 name: "statsBlock"
                 widget: "object"
-                summary: "Your number cards — {{fields.heading}}"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
                   - { label: "Heading", name: "heading", widget: "string", required: false }
@@ -331,7 +286,6 @@ collections:
               - label: "📣 Big call-to-action banner (add your own)"
                 name: "bannerBlock"
                 widget: "object"
-                summary: "Your banner — {{fields.title}}"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
                   - { label: "Title", name: "title", widget: "string" }
@@ -342,7 +296,6 @@ collections:
               - label: "❓ Questions & answers (add your own)"
                 name: "faqBlock"
                 widget: "object"
-                summary: "Your Q&A — {{fields.heading}}"
                 fields:
                   - { label: "Show this section", name: "enabled", widget: "boolean", default: true }
                   - { label: "Heading", name: "heading", widget: "string", required: false }
@@ -357,7 +310,6 @@ collections:
       - name: "theme"
         label: "🎨 Colours & theme"
         file: "src/_data/theme.json"
-        preview_path: "/"
         fields:
           - label: "Page background"
             name: "paper"
@@ -465,7 +417,6 @@ collections:
       - name: "tokens"
         label: "🔤 Type & spacing"
         file: "src/_data/tokens.json"
-        preview_path: "/"
         fields:
           - label: "Fonts"
             name: "fonts"
@@ -694,7 +645,6 @@ collections:
       - name: "motion"
         label: "🎬 Animations"
         file: "src/_data/motion.json"
-        preview_path: "/"
         fields:
           - label: "Animations on/off"
             name: "enabled"
@@ -763,7 +713,6 @@ collections:
       - name: "hero"
         label: "🏠 Hero (top of page)"
         file: "src/_data/hero.json"
-        preview_path: "/"
         fields:
           - { label: "Badge text", name: "badge", widget: "string", hint: "The small pill with the pulsing dot above the headline." }
           - { label: "Headline — main part", name: "headlineMain", widget: "string", hint: "The big page heading. It runs straight on into the highlighted part below, on the same line." }
@@ -778,7 +727,6 @@ collections:
       - name: "problem"
         label: "📊 The Problem section"
         file: "src/_data/problem.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker (small label above heading)", name: "kicker", widget: "string", hint: "The small label above the heading of the problem section, e.g. “The problem”." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading at the top of the problem section. Type <br /> where you want a line break." }
@@ -797,7 +745,6 @@ collections:
             name: "stats"
             label_singular: "statistic"
             widget: "list"
-            summary: "{{fields.number}}{{fields.suffix}} — {{fields.label}}"
             hint: "The big counting-up numbers in the row of cards. They count up from 0 as visitors scroll."
             fields:
               - { label: "Number", name: "number", widget: "number", value_type: "int", min: 0, max: 1000000, hint: "A whole number. It counts up from 0 when the card scrolls into view." }
@@ -810,7 +757,6 @@ collections:
             name: "photos"
             label_singular: "photo"
             widget: "list"
-            summary: "{{fields.caption}}"
             hint: "The strip of tilted photo cards under the statistics. Drag to reorder."
             fields:
               - { label: "Photo", name: "src", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The photo for this card. Upload a picture or pick one from the library — web addresses are not accepted. Large photos are fine: the site makes small, fast copies automatically." }
@@ -822,7 +768,6 @@ collections:
       - name: "model"
         label: "🔁 The Model (Brands pay. You don't.)"
         file: "src/_data/model.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the model section." }
           - { label: "Heading", name: "title", widget: "string", hint: "The big heading of the model section (plain text, no line breaks)." }
@@ -831,7 +776,6 @@ collections:
             name: "steps"
             label_singular: "step"
             widget: "list"
-            summary: "{{fields.emoji}} {{fields.title}}"
             hint: "The funding loop: the steps shown in a row with an arrow between each."
             fields:
               - { label: "Emoji", name: "emoji", widget: "string" }
@@ -874,7 +818,6 @@ collections:
                 label_singular: "line"
                 widget: "list"
                 required: false
-                summary: "{{fields.label}} — {{fields.value}}"
                 hint: "The itemised lines above the total (name on the left, price on the right)."
                 fields:
                   - { label: "Item", name: "label", widget: "string" }
@@ -893,7 +836,6 @@ collections:
       - name: "how"
         label: "📱 How It Works (demo section text)"
         file: "src/_data/how.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the “How it works” section." }
           - { label: "Heading", name: "title", widget: "string", hint: "The big heading of the “How it works” section. It also names the section for screen readers." }
@@ -905,7 +847,6 @@ collections:
             widget: "list"
             required: false
             label_singular: "photo moment"
-            summary: "{{fields.title}}"
             collapsed: true
             hint: "The row of photo cards above the demo. Leave empty to hide the strip. Titles ending in a full stop get the brand's coloured full stop automatically."
             fields:
@@ -980,7 +921,6 @@ collections:
       - name: "brands"
         label: "📣 For Brands section"
         file: "src/_data/brands.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the For Brands section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the For Brands section. Type <br /> where you want a line break." }
@@ -1000,7 +940,6 @@ collections:
             name: "benefits"
             label_singular: "benefit"
             widget: "list"
-            summary: "{{fields.icon}} {{fields.title}}"
             hint: "The grid of benefit cards. Drag to reorder."
             fields:
               - { label: "Icon (emoji)", name: "icon", widget: "string", hint: "A single emoji shown at the top of the card." }
@@ -1025,7 +964,6 @@ collections:
                 collapsed: true
                 min: 1
                 max: 15
-                summary: "{{fields.label}} ({{fields.type}})"
                 hint: "The questions visitors fill in, in the order shown. Drag to reorder, add new ones with the + button, or delete ones you do not need. Keep at least one Email box so the team can reply — the form does not check this for you."
                 fields:
                   - { label: "Internal field id (do not edit)", name: "id", widget: "hidden", required: false }
@@ -1070,7 +1008,6 @@ collections:
       - name: "partners"
         label: "🤝 Partners wall"
         file: "src/_data/partners.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Partners section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Partners section. Type <br /> where you want a new line." }
@@ -1080,7 +1017,6 @@ collections:
             name: "slots"
             widget: "list"
             label_singular: "slot"
-            summary: "{{fields.logoText}} · {{fields.category}}"
             collapsed: true
             hint: "The boxes on the partner wall, in order. Swap in a brand’s name as partners sign up."
             fields:
@@ -1092,7 +1028,6 @@ collections:
       - name: "venues"
         label: "🏟️ For Venues section"
         file: "src/_data/venues.json"
-        preview_path: "/"
         fields:
           - { label: "Pilot ribbon text", name: "ribbon", widget: "string", hint: "The ribbon above the heading of the For Venues section." }
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading." }
@@ -1129,7 +1064,6 @@ collections:
             label_singular: "photo"
             widget: "list"
             required: false
-            summary: "{{fields.caption}}"
             hint: "The strip of tilted venue photos above the form. Leave empty to hide the strip. Drag to reorder."
             fields:
               - { label: "Photo", name: "src", widget: "image", choose_url: false, pattern: ["^[A-Za-z0-9._-]+\\.([jJ][pP][eE]?[gG]|[pP][nN][gG]|[wW][eE][bB][pP]|[gG][iI][fF]|[aA][vV][iI][fF]|[sS][vV][gG])$", "Pick or upload a picture (.jpg, .png, .webp, .gif, .avif or .svg). The file name may only use letters, numbers, dots, dashes and underscores."], hint: "The photo for this card. Upload a picture or pick one from the library — web addresses are not accepted. Large photos are fine: the site makes small, fast copies automatically." }
@@ -1150,7 +1084,6 @@ collections:
                 collapsed: true
                 min: 1
                 max: 15
-                summary: "{{fields.label}} ({{fields.type}})"
                 hint: "The questions visitors fill in, in the order shown. Drag to reorder, add new ones with the + button, or delete ones you do not need. Keep at least one Email box so the team can reply — the form does not check this for you."
                 fields:
                   - { label: "Internal field id (do not edit)", name: "id", widget: "hidden", required: false }
@@ -1195,7 +1128,6 @@ collections:
       - name: "locations"
         label: "🗺️ Locations / UK map"
         file: "src/_data/locations.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "Small label above the heading of the Locations section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "Big heading of the Locations section. Type <br /> where you want a new line." }
@@ -1209,7 +1141,6 @@ collections:
             name: "cities"
             widget: "list"
             label_singular: "city"
-            summary: "{{fields.name}}"
             collapsed: true
             hint: "One pin on the map and one button above the description box for each city, in the order they drop onto the map."
             fields:
@@ -1223,7 +1154,6 @@ collections:
             name: "citiesHidden"
             widget: "list"
             label_singular: "parked city"
-            summary: "{{fields.name}}"
             collapsed: true
             required: false
             hint: "Cities you have worked out but are keeping off the map for now (nothing here appears on the website). To show one, copy its details into “Cities” above. They are kept here so no work is lost."
@@ -1238,7 +1168,6 @@ collections:
             name: "placeTypes"
             widget: "list"
             label_singular: "venue type"
-            summary: "{{fields.emoji}} {{fields.label}}"
             hint: "The pills under the city description, e.g. Universities."
             fields:
               - { label: "Emoji", name: "emoji", widget: "string", hint: "One emoji shown before the label. Known ones (🎓 🛍️ 🏟️ 🚆 ☕ 📍) are swapped for the site’s own icon." }
@@ -1261,7 +1190,6 @@ collections:
       - name: "vision"
         label: "🚀 Vision / roadmap"
         file: "src/_data/vision.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the heading of the vision section." }
           - { label: "Heading (line breaks allowed, e.g. <br />)", name: "title", widget: "string", hint: "The big heading of the vision section. Type <br /> where you want a line break." }
@@ -1269,7 +1197,6 @@ collections:
             name: "milestones"
             label_singular: "milestone"
             widget: "list"
-            summary: "{{fields.tag}} — {{fields.title}}"
             hint: "The roadmap cards. Drag to reorder."
             fields:
               - { label: "Phase tag", name: "tag", widget: "string", hint: "The small tag on top of the card, e.g. Phase 2." }
@@ -1297,7 +1224,6 @@ collections:
       - name: "faq"
         label: "❓ FAQ"
         file: "src/_data/faq.json"
-        preview_path: "/"
         fields:
           - { label: "Kicker", name: "kicker", widget: "string", hint: "The small label above the FAQ heading." }
           - { label: "Heading", name: "title", widget: "string", hint: "The big heading above the list of questions." }
@@ -1305,7 +1231,6 @@ collections:
             name: "items"
             label_singular: "question"
             widget: "list"
-            summary: "{{fields.q}}"
             collapsed: true
             hint: "The expandable questions, top to bottom. The same questions and answers are also given to Google as an FAQ."
             fields:
@@ -1315,13 +1240,11 @@ collections:
       - name: "redirects"
         label: "↪️ Redirects (old addresses to new ones)"
         file: "src/_data/redirects.json"
-        preview_path: "/"
         fields:
           - label: "Redirects"
             name: "items"
             widget: "list"
             label_singular: "redirect"
-            summary: "{{fields.fromLink}} → {{fields.toLink}}"
             collapsed: true
             min: 0
             max: 100
@@ -1339,11 +1262,6 @@ collections:
     label: "📄 Pages (add your own)"
     label_singular: "Page"
     folder: "src/pages"
-    create: true
-    slug: "{{slug}}"
-    preview_path: "{{fields.permalink}}"
-    editor:
-      preview: true
     fields:
       - { label: "Page title", name: "title", widget: "string" }
       - { label: "URL path", name: "permalink", widget: "string", hint: "Where the page will live, e.g. /about/ — lowercase, wrapped in slashes", pattern: ["^/[a-z0-9-]+/$", "Must look like /about/ — lowercase letters, numbers or dashes, wrapped in slashes"] }
@@ -1362,7 +1280,6 @@ collections:
       - label: "Page sections"
         name: "sections"
         widget: "list"
-        summary: "{{fields.heading}}{{fields.title}}"
         types:
           - label: "🏠 Big heading (top of page)"
             name: "hero"
@@ -1436,10 +1353,6 @@ collections:
     label: "🤖 Ask Claude (change requests)"
     label_singular: "request"
     folder: "requests"
-    create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    editor:
-      preview: false
     fields:
       - { label: "What do you want changed?", name: "title", widget: "string" }
       - { label: "Details — the more specific, the better", name: "body", widget: "markdown" }

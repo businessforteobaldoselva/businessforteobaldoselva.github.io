@@ -149,4 +149,8 @@ Scope: `studio/AI-DESIGN.md`. A founder types a request; a model proposes a JSON
 (not written yet)
 
 ### P1-DECAP (what removing Decap and Netlify Identity changes)
-(not written yet)
+
+* **Removed attack surface:** the Decap bundle loaded from a third-party CDN, the Netlify Identity widget script, the invite-link forwarder on the home page, and Git Gateway (a second route to write to the repository that bypassed Studio's validation, CI gate and second-person rule). With the old draft workflow gone there is no other draft path.
+* **What stays risky until Teo acts:** Identity and Git Gateway are Netlify site settings, not code. While they stay enabled, anyone with an old invite or a signed-up Identity account could still obtain a Git Gateway token even though no page uses it. Runbook 4c.4 lists the three switches (disable Identity and delete users, disable Git Gateway, remove the leftover GitHub grant). Until then the open signup noted in the security audit is still open.
+* **`/cms/`:** a static page with no script, no third-party loads and noindex; old deep links redirect to it, so there is no editor login form to phish with.
+* **Regression guard:** `check-no-decap.js` fails on any return of the dead strings, files or settings; its selftest puts each back and expects a failure.
