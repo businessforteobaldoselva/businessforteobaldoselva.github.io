@@ -110,7 +110,8 @@
         try {
           if (document.hidden) return true;
           if (typeof document.hasFocus === "function" && !document.hasFocus()) return true;
-          var a = root.getRootNode && root.getRootNode().activeElement;
+          var rn = root.getRootNode ? root.getRootNode() : document;
+          var a = rn && rn.activeElement;
           return !(a && root.contains(a));
         } catch (e) { return false; }
       }

@@ -76,7 +76,8 @@ function siteIds(site, route) {
   const f = path.join(site, route === "/" ? "" : route.replace(/^\/|\/$/g, ""), "index.html");
   const ids = new Set();
   if (!exists(f)) return ids;
-  for (const m of readText(f).matchAll(/\sid="([A-Za-z][A-Za-z0-9_:.-]*)"/g)) ids.add(m[1]);
+  // minified html drops the quotes (id=how), so accept both
+  for (const m of readText(f).matchAll(/\sid=(?:"([^"]+)"|'([^']+)'|([^\s"'<>=`]+))/g)) ids.add(m[1] || m[2] || m[3]);
   return ids;
 }
 
