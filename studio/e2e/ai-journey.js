@@ -319,8 +319,18 @@ async function main() {
     await signIn(molly, "Molly");
     await openAi(molly);
     const b0 = branches(), main0 = mainSha();
+    // Phase 1: typing shows what the request would cost before anything is sent to the model
+    {
+      const box0 = (await molly.evaluateHandle(() => document.getElementById("covered-studio").shadowRoot.querySelector("#csx-ai-instr"))).asElement();
+      await box0.focus();
+      await molly.keyboard.type("make the hero shorter and warmer");
+      await waitShadow(molly, (r) => { const e = r.querySelector("[data-estimate]"); return e && e.textContent.trim().length > 0; }, undefined, 15000);
+      step("the cost estimate appeared while typing: " + JSON.stringify(await inShadow(molly, (r) => r.querySelector("[data-estimate]").textContent.trim().slice(0, 120))));
+    }
     await ask(molly, "make the hero shorter and warmer");
     assert.equal(await resultKind(molly), "patch");
+    assert.ok(await inShadow(molly, (r) => !!r.querySelector("[data-meter]")), "the result shows the usage meter line");
+    step("the result shows the usage meter");
     assert.deepEqual(branches(), b0, "asking writes nothing: no new branch");
     assert.equal(mainSha(), main0);
     const shown = await inShadow(molly, (r) => ({
@@ -372,6 +382,10 @@ async function main() {
     // send for review from the panel, then the guards
     step("sending for review; building the draft and running " + (QUICK ? "3 guards" : "every guard in npm run check") + " on the draft branch (takes a while)");
     await clickText(molly, "Send for review");
+    // Phase 1: the button opens "who should look?"; the second press, inside the dialog, sends it
+    await waitShadow(molly, (r) => r.querySelector('[role="dialog"] .btn-primary'));
+    await inShadow(molly, (r) => r.querySelector('[role="dialog"] .btn-primary').click());
+    await waitShadow(molly, (r) => r.querySelector(".csx-rv-sent"));
     const approverView = await waitChecks("approver", draftId);
     const last = jobs.get(approverView.json.draft.headSha);
     assert.ok(last && last.done, "the check runner ran on the draft head");
@@ -436,7 +450,7 @@ async function main() {
     const nc = await inShadow(molly2, (r) => ({ title: r.querySelector("[data-req='title']").value, body: r.querySelector("[data-req='body']").value, copy: !!r.querySelector("[data-act='copy']"), askHref: (r.querySelector("a.csx-ai-link") || {}).href || "", save: !!r.querySelector("[data-act='save']") }));
     assert.ok(nc.title && nc.body, "a ready-to-send request is shown");
     assert.ok(nc.copy, "Copy request is offered");
-    assert.ok(/^https?:\/\/[^ ]+\/admin\/#\/collections\/requests\/new$/.test(nc.askHref), "an Ask Claude link is offered: " + nc.askHref);
+    assert.ok(!nc.askHref, "no Ask Claude link unless an address is configured (the Decap editor is retired): " + nc.askHref);
     assert.equal(nc.save, false, "there is nothing to save: no code change is ever made");
     assert.deepEqual(branches(), b3, "needs-code writes nothing");
     await clickText(molly2, "Done");

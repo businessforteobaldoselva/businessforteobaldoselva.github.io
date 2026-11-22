@@ -260,7 +260,7 @@
           row.moreLines.length ? el("button", { type: "button", class: "csx-link", "aria-expanded": open ? "true" : "false", on: { click: function () { state.expanded[row.number] = !open; paint(); focusRow(row.number, ".csx-link"); } } },
             open ? "Show fewer" : "Show " + row.moreLines.length + " more") : null,
           el("div", { class: "csx-actions" },
-            row.url ? el("a", { href: row.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "View on GitHub") : null,
+            row.url ? el("a", { href: row.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "See technical details (opens GitHub)") : null,
             row.canRestore
               ? el("button", { type: "button", class: "csx-btn", disabled: state.busy != null, "data-restore": String(row.number), "aria-label": "Restore: undo " + row.title, on: { click: function () { onRestore(row); } } }, state.busy === row.number ? "Creating draft…" : "Restore")
               : el("span", { class: "csx-muted" }, row.restoreHint)));
@@ -287,7 +287,7 @@
               "It is waiting for review",
               state.result.skipped && state.result.skipped.length ? " (" + plural(state.result.skipped.length, "part was", "parts were") + " left as they are because they changed since)" : "",
               ". ",
-              state.result.draft && state.result.draft.url ? el("a", { href: state.result.draft.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Open pull request #" + state.result.draft.number) : null));
+              state.result.draft && state.result.draft.url ? el("a", { href: state.result.draft.url, target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "See technical details (opens GitHub)") : null));
           } else {
             kids.push(el("div", { class: "csx-result csx-error", role: "alert", "data-result": "error" }, state.result.message));
           }

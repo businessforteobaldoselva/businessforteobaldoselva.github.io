@@ -79,6 +79,12 @@
     closePanel: shell.closePanel,
     togglePanel: shell.togglePanel,
     registerCommand: shell.registerCommand,
+    registerPaletteSource: shell.registerPaletteSource,
+    paletteSources: shell.paletteSources,
+    registerDockItem: shell.registerDockItem,
+    setPanelAttention: shell.setPanelAttention,
+    rebuildDock: shell.buildDock,
+    currentPanel: shell.currentPanel,
     registerEmptyState: shell.registerEmptyState,
     emptyState: shell.emptyState,
     toast: shell.toast,
@@ -120,14 +126,14 @@
     shell.buildDock();
     if (mode !== "edit") shell.closePanel(true);
     S.events.emit("mode:change", { mode: mode });
-    S.dom.announce(mode === "edit" ? "Edit mode on. Click any text or picture to change it." : "Edit mode off. The page works normally.");
+    S.dom.announce(mode === "edit" ? "Edit mode on. " + (S.ext && S.ext.legend && S.ext.legend.liveSentence ? S.ext.legend.liveSentence() + " " : "") + "Click any text or picture to change it." : "Edit mode off. The page works normally.");
   }
 
   // ---- commands + panels --------------------------------------------------------
   function registerBuiltins() {
     shell.registerPanel({ id: "changes", title: "Changes", glyph: "✎", order: 10, render: S.panelChanges.render, onShow: function () { if (drafts) drafts.startPolling(); }, onHide: function () { if (drafts) drafts.stopPolling(); } });
     shell.registerPanel({ id: "sections", title: "Sections", glyph: "☰", order: 20, render: S.panelSections.render });
-    shell.registerPanel({ id: "fields", title: "Fields", glyph: "▤", order: 30, render: S.panelFields.render });
+    shell.registerPanel({ id: "fields", title: "All fields", glyph: "▤", order: 30, render: S.panelFields.render });
     shell.registerPanel({ id: "account", title: "Account", glyph: "☺", order: 90, render: S.panelAccount.render });
     var isEdit = function () { return S.state.mode === "edit" && !!S.state.me; };
     shell.registerCommand({ id: "save", title: "Save draft", keywords: ["save", "draft", "store"], group: "Draft", shortcut: "Ctrl+S", when: function () { return isEdit() && staging.count() > 0; }, run: function () { shell.openPanel("changes"); drafts.save({}).then(function () { shell.toast("Saved as a draft.", { kind: "success" }); }, function (e) { shell.toast(e.userMessage || e.message, { kind: "error" }); }); } });
@@ -137,7 +143,7 @@
     shell.registerCommand({ id: "toggle-edit", title: "Toggle edit mode", keywords: ["edit", "browse"], group: "Studio", shortcut: "E", run: function () { studio.toggleEdit(); } });
     shell.registerCommand({ id: "open-changes", title: "Open Changes", keywords: ["changes", "review"], group: "Panels", when: isEdit, run: function () { shell.openPanel("changes"); } });
     shell.registerCommand({ id: "open-sections", title: "Open Sections", keywords: ["sections", "hide", "reorder"], group: "Panels", when: isEdit, run: function () { shell.openPanel("sections"); } });
-    shell.registerCommand({ id: "open-fields", title: "Open Fields", keywords: ["fields", "form"], group: "Panels", when: isEdit, run: function () { shell.openPanel("fields"); } });
+    shell.registerCommand({ id: "open-fields", title: "Open All fields", keywords: ["fields", "form", "everything"], group: "Panels", when: isEdit, run: function () { shell.openPanel("fields"); } });
     shell.registerCommand({ id: "sign-out", title: "Sign out", keywords: ["logout"], group: "Account", when: function () { return !!S.state.me; }, run: function () { S.auth.signOut(); setMode("browse"); } });
   }
 
@@ -174,6 +180,8 @@
       if (d.me) attachStorage().then(function () { if (drafts.remembered()) drafts.refresh().catch(function () { /* draft may be gone */ }); });
     });
     S.events.on("auth:expired", function () { S.auth.signOut(); shell.openPanel("account"); });
+    // the sign-in service is paused or unreachable: say so plainly once, and keep the person's edits (PHASE1-DESIGN 4.2)
+    S.events.on("service:change", function (d) { if (d && d.down) shell.toast(d.down.message, { kind: "error" }); });
     window.addEventListener("online", function () {
       if (drafts.status().offline) shell.toast("You're back online.", { kind: "info", actionLabel: "Send now", onAction: function () { drafts.save({ retry: true }).catch(function () { /* shown in the panel */ }); } });
     });

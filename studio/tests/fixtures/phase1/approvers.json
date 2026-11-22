@@ -1,0 +1,1 @@
+{ "approvers": [ { "id": "7c1d0c3e-0000-4000-8000-000000000001", "displayName": "Molly", "role": "approver", "notify": "github" }, { "id": "7c1d0c3e-0000-4000-8000-000000000002", "displayName": "Teo", "role": "admin", "notify": "manual" } ] }

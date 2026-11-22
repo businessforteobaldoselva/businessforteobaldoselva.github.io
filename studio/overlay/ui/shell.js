@@ -48,6 +48,9 @@
 
     var panels = [];
     var commands = [];
+    var paletteSources = [];
+    var dockItems = [];
+    var attention = {};
     var emptyStates = {};
     var openId = null;
     var cleanup = null;
@@ -70,6 +73,24 @@
       commands = commands.filter(function (c) { return c.id !== def.id; });
       commands.push(def);
     }
+    // Phase 1 extension point (studio/PHASE1-DESIGN.md 9.3): a palette source adds dynamic rows to Ctrl/Cmd+K.
+    // def = { id, search(query) -> [{ id, title, hint?, group, run() }] }  (sync, cheap, no network inside search)
+    function registerPaletteSource(def) {
+      if (!def || !def.id || typeof def.search !== "function") return;
+      paletteSources = paletteSources.filter(function (s) { return s.id !== def.id; });
+      paletteSources.push(def);
+    }
+    // Phase 1 (EDIT): a small thing in the dock that is not a panel button (the "N editable things here" chip).
+    // def = { id, order?, build() -> element | null }  (edit mode only; build runs on every dock rebuild)
+    // a small dot on a dock button ("your suggestion is ready") until that panel is opened or the person says they saw it
+    function setPanelAttention(id, on) { if (!!attention[id] === !!on) return; attention[id] = !!on; buildDock(); }
+    function registerDockItem(def) {
+      if (!def || !def.id || typeof def.build !== "function") return;
+      dockItems = dockItems.filter(function (d) { return d.id !== def.id; });
+      dockItems.push(def);
+      dockItems.sort(function (a, b) { return (a.order || 50) - (b.order || 50); });
+      buildDock();
+    }
     function visiblePanels() {
       return panels.filter(function (p) { return !p.minRole || role() >= (ROLE_RANK[p.minRole] || 0); });
     }
@@ -80,6 +101,7 @@
       if (openId === id) return;
       if (openId) closePanel(true);
       openId = id;
+      if (attention[id]) { attention[id] = false; buildDock(); }
       panelTitle.textContent = def.title;
       panel.setAttribute("aria-label", def.title);
       clear(panelBody);
@@ -126,9 +148,12 @@
         h("span", { class: "pill-label" }, S.state.mode === "edit" ? "Editing" : "Edit"), badge);
       dock.appendChild(editBtn);
       if (S.state.mode === "edit") {
+        dockItems.forEach(function (d) { var n = null; try { n = d.build(); } catch (e) { n = null; } if (n) dock.appendChild(n); });
         visiblePanels().forEach(function (p) {
+          if (p.noDock) return; // opened by something else (the legend chip), not by a dock button
           var b = h("button", { type: "button", class: "dock-btn", "data-panel-id": p.id, "data-tour": "panel-" + p.id, "aria-expanded": openId === p.id ? "true" : "false", "aria-label": p.title, title: p.title, on: { click: function () { togglePanel(p.id); } } },
-            h("span", { class: "dock-glyph", "aria-hidden": "true" }, p.glyph || p.title.charAt(0)), h("span", { class: "dock-text" }, p.title));
+            h("span", { class: "dock-glyph", "aria-hidden": "true" }, p.glyph || p.title.charAt(0)), h("span", { class: "dock-text" }, p.short || p.title), attention[p.id] ? h("span", { class: "dock-dot", "data-dock-dot": p.id, "aria-hidden": "true" }) : null);
+          if (attention[p.id]) b.setAttribute("aria-label", p.title + ", new result");
           panelBtns[p.id] = b;
           dock.appendChild(b);
         });
@@ -176,6 +201,10 @@
         dialogStack = dialogStack.filter(function (d) { return d !== api; });
         wrapper.parentNode.removeChild(wrapper);
         if (release) release();
+        // the opener may have been repainted while the dialog was open: never leave the keyboard user with no focus
+        var rn = wrap.getRootNode && wrap.getRootNode();
+        var lost = (rn && rn.host && document.activeElement === rn.host && !rn.activeElement) || document.activeElement === document.body;
+        if (lost) { var back2 = openId ? panelTitle : S.dom.focusables(dock)[0]; if (back2 && back2.focus) back2.focus(); }
         if (o.onClose) o.onClose(result);
       }
       var api = { el: dlg, body: body, foot: foot, close: close, wrapper: wrapper };
@@ -225,12 +254,23 @@
       studioRef = studio;
       document.body.appendChild(host);
       buildDock();
+      // keyboard users: the dock is last in the page's tab order, so offer a first stop that jumps to it (shown only while focused)
+      try {
+        var skip = document.createElement("a");
+        skip.href = "#covered-studio"; skip.setAttribute("data-studio-ui", ""); skip.textContent = "Skip to Studio controls";
+        var hide = "position:fixed;left:-9999px;top:8px;z-index:2147483647;padding:8px 12px;background:#fff;color:#000;border:2px solid #000;font:600 14px/1.2 system-ui,sans-serif;";
+        skip.style.cssText = hide;
+        skip.addEventListener("focus", function () { skip.style.left = "8px"; });
+        skip.addEventListener("blur", function () { skip.style.left = "-9999px"; });
+        skip.addEventListener("click", function (e) { e.preventDefault(); var first = S.dom.focusables(dock)[0]; if (first) first.focus(); });
+        document.body.insertBefore(skip, document.body.firstChild);
+      } catch (e) { /* optional */ }
       trackViewport();
     }
 
     return {
       host: host, root: root, layer: layer, wrap: wrap, mount: mount, buildDock: buildDock, setBadge: setBadge,
-      registerPanel: registerPanel, registerCommand: registerCommand, openPanel: openPanel, closePanel: closePanel, togglePanel: togglePanel, refreshPanel: refreshPanel,
+      registerPanel: registerPanel, registerCommand: registerCommand, registerPaletteSource: registerPaletteSource, registerDockItem: registerDockItem, setPanelAttention: setPanelAttention, paletteSources: function () { return paletteSources; }, openPanel: openPanel, closePanel: closePanel, togglePanel: togglePanel, refreshPanel: refreshPanel,
       toast: toast, dialog: dialog, confirm: confirm, hasDialog: hasDialog, panels: function () { return panels; }, commands: function () { return commands; },
       registerEmptyState: function (id, fn) { emptyStates[id] = fn; }, emptyState: function (id) { return emptyStates[id] || null; },
       currentPanel: function () { return openId; }, panelBody: panelBody, sheetOk: sheetOk,

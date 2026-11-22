@@ -1,15 +1,17 @@
 (function (S) {
   "use strict";
-  // First-run tour (studio/DESIGN.md 11): 7 short steps, each anchored to a real control or to a real editable thing
+  // First-run tour (studio/DESIGN.md 11): 9 short steps, each anchored to a real control or to a real editable thing
   // on the page, with a centred card when the anchor is not there. Skippable, keyboard operable, replayable from Help
   // and the palette. Progress is remembered per user in localStorage (try/catch; works without storage).
 
   var STEPS = [
     { id: "welcome", title: "Welcome to Studio", body: "Change the website's words and pictures right on the page. Nothing goes live until someone has reviewed it, so you cannot break anything.", anchors: [] },
+    { id: "legend", title: "How much can you change here?", body: "The number in the bar at the bottom is how many things on this page you can edit. Press E to switch editing on or off, then [ and ] to jump from one editable thing to the next.", anchors: ['[data-tour="pill"]'] },
     { id: "text", title: "Click any text to change it", body: "Switch on Edit mode, then click a headline or a paragraph and type. Press Enter when you are done.", anchors: ['[data-cms-kind="text"]', '[data-cms-kind="longtext"]', '[data-cms-kind="markdown"]'], scroll: true },
     { id: "image", title: "Click a picture to swap it", body: "Choose a new photo and crop it. We will ask for a short description, so people using a screen reader know what is in it.", anchors: ['[data-cms-kind="image"]'], scroll: true },
     { id: "sections", title: "Hide or move a section", body: "The Sections list shows every part of the home page. Hide one, bring it back, or move it up and down. This works on a phone too.", anchors: ['[data-tour="panel-sections"]', '[data-panel-id="sections"]', '[data-panel="sections"]'] },
-    { id: "save", title: "Your changes are kept as a draft", body: "Press Save draft to keep your work safely on the side. The live website stays exactly as it is until an approver publishes.", anchors: ['[data-tour="save"]', '[data-tour="panel-changes"]', '[data-panel-id="changes"]', '[data-panel="changes"]'] },
+    { id: "save", title: "Your changes are kept as a draft", body: "Press Save draft to keep your work safely on the side. The live website stays exactly as it is until an approver publishes. Next comes Check my changes, then Send for review.", anchors: ['[data-tour="save"]', '[data-tour="panel-changes"]', '[data-panel-id="changes"]', '[data-panel="changes"]'] },
+    { id: "review", title: "Check, then send for review", body: "Check my changes looks for problems before anyone else sees your draft. Send for review asks a second person to look at it. Status shows where each of your drafts has got to.", anchors: ['[data-tour="panel-status"]', '[data-tour="panel-changes"]'] },
     { id: "history", title: "History: see what changed, and undo it", body: "Every change that has gone live is listed with who made it. If something is wrong, press Restore to prepare an undo.", anchors: ['[data-tour="panel-history"]', '[data-panel-id="history"]', '[data-panel="history"]'] },
     { id: "palette", title: "Press Ctrl/Cmd + K any time", body: "Type what you want to do, for example \"hide partners\" or \"change the logo\", and press Enter. You can also open Help with the ? key.", anchors: ['[data-tour="palette"]', '[data-tour="pill"]'] },
   ];

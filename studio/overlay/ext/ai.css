@@ -134,3 +134,11 @@
 /* The dock holds seven buttons on a 390 px phone and no more. Below 460 px the panel is opened from the Changes panel
    ("Or describe a change in words") or the command palette instead of a dock button of its own. */
 @media (max-width: 459px) { .dock-btn[data-panel-id="ai"] { display: none; } }
+
+/* Phase 1: cost estimate, meter line, recent requests, finish signal (studio/PHASE1-DESIGN.md 9.5) */
+.csx-ai-est, .csx-ai-meter { margin: 4px 0 8px; color: var(--csx-muted); }
+.csx-ai-est:empty { display: none; }
+.csx-ai-recent { margin: 14px 0 4px; border-top: 1px solid var(--csx-line); padding-top: 8px; }
+.csx-ai-recent summary { cursor: pointer; padding: 6px 0; min-height: 24px; color: var(--csx-fg); font-weight: 600; }
+.csx-ai-recentlist { margin: 6px 0; padding-left: 18px; }
+.csx-ai-recentlist li { margin: 4px 0; overflow-wrap: anywhere; }

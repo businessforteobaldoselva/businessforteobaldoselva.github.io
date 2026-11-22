@@ -91,7 +91,8 @@ function validateChange(c, at, out) {
 
 function validateProposal(p) {
   const out = [];
-  if (!exact(p, ["id", "kind", "mode", "summary", "base", "instructionHash", "model", "provider", "changes", "skipped", "needsCode", "question", "findings", "warnings", "usage"].concat(Object.prototype.hasOwnProperty.call(p || {}, "overall") ? ["overall"] : []), "proposal", out)) return out;
+  if (!exact(p, ["id", "kind", "mode", "summary", "base", "instructionHash", "model", "provider", "changes", "skipped", "needsCode", "question", "findings", "warnings", "usage"].concat(Object.prototype.hasOwnProperty.call(p || {}, "overall") ? ["overall"] : [], Object.prototype.hasOwnProperty.call(p || {}, "meter") ? ["meter"] : []), "proposal", out)) return out;
+  if (Object.prototype.hasOwnProperty.call(p, "meter") && require("../shapes/phase1").validateAiMeter(p.meter).length) out.push("proposal.meter");
   if (Object.prototype.hasOwnProperty.call(p, "overall") && ["on_brand", "mostly", "off_brand"].indexOf(p.overall) < 0) out.push("proposal.overall");
   if (!/^p_[a-z0-9]{12}$/.test(String(p.id))) out.push("proposal.id");
   if (KINDS.indexOf(p.kind) < 0) out.push("proposal.kind");
@@ -146,7 +147,11 @@ function validateStatus(s) {
   if (["anthropic", "replay", "none"].indexOf(s.provider) < 0 || !(s.model === null || isStr(s.model, 80))) out.push("status.provider/model");
   if (!Array.isArray(s.modes) || s.modes.some((m) => MODES.indexOf(m) < 0)) out.push("status.modes");
   if (exact(s.limits, ["instructionChars", "feedbackChars", "contextRefs", "maxChanges"], "status.limits", out) && !Object.values(s.limits).every(isInt)) out.push("status.limits numbers");
-  if (exact(s.usage, ["requestsToday", "requestsLimit", "yourRequestsToday", "yourRequestsLimit", "resetsAt"], "status.usage", out)) {
+  // Phase 1 adds four keys. They are optional HERE so an older stub (the overlay's offline demo) still validates; the API's own
+  // tests require them (studio/tests/p1-backend/ai-usage.test.js)
+  const phase1 = s.usage && Object.prototype.hasOwnProperty.call(s.usage, "tokensToday");
+  if (exact(s.usage, ["requestsToday", "requestsLimit", "yourRequestsToday", "yourRequestsLimit", "resetsAt"].concat(phase1 ? ["tokensToday", "tokensLimit", "pctOfDay", "store"] : []), "status.usage", out)) {
+    if (phase1 && !(isInt(s.usage.tokensToday) && isInt(s.usage.tokensLimit) && typeof s.usage.pctOfDay === "number" && s.usage.pctOfDay >= 0 && s.usage.pctOfDay <= 100 && ["memory", "supabase"].indexOf(s.usage.store) >= 0)) out.push("status.usage Phase 1 fields");
     if (!["requestsToday", "requestsLimit", "yourRequestsToday", "yourRequestsLimit"].every((k) => isInt(s.usage[k])) || !/^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(String(s.usage.resetsAt))) out.push("status.usage fields");
   }
   return out;

@@ -9,15 +9,18 @@
 //   getPr(n) -> Pr|null                           listPrs({headPrefix,state}) -> [Pr]    markReady(n)    closePr(n, comment)    deleteBranch(name)
 //   merge(n,{method:"squash",sha}) -> {sha}       listMerged({limit,cursor}) -> {items,next}   getMergedPr(n) -> item|null
 //   findCommitByTrailer(branch, key, value) -> {sha}|null     getBaseBranch() -> "main"
+//   requestReviewers(n, logins[]) -> {requested:[login]}   (Phase 1: asks GitHub to notify these people; a failure never fails a submit)
 //   changedFiles(a, b) -> [path] changed between the merge base of a and b, and b   prUrl(n) -> string       (both added by unit B, see NOTES-api.md)
 //
-// Pr = { fromFork,number,url,state:"open"|"closed",draft,merged,headRef,headSha,baseSha,behindBase,mergeable,labels,authorLogin,title,body,checks:{state,failing[]},mergeCommitSha }
+// Pr = { labelsApplied (false when the label write failed: the PR still exists, see isStudioDraft), fromFork,number,url,state:"open"|"closed",draft,merged,headRef,headSha,baseSha,behindBase,mergeable,labels,authorLogin,title,body,checks:{state,failing[]},mergeCommitSha }
 // Merged item = { number,title,body,mergedAt,mergeSha,parentSha,authorLogin,mergedByLogin,headRef,files:[path],labels }
 
 const { assertInScope, assertStudioBranch, ScopeError } = require("../../../validate/scope");
+const { parseMarker } = require("../../services/pr-text");
+const { idFromBranch } = require("../../services/ids");
 
 const REQUIRED_CHECKS = ["Build and guards", "studio-scope"];
-const METHODS = ["getHead", "readTextFile", "readFileBytes", "hasFile", "listDir", "createBranch", "commitFiles", "resetBranch", "openPr", "updatePr", "getPr", "listPrs", "markReady", "closePr", "deleteBranch", "merge", "listMerged", "getMergedPr", "findCommitByTrailer", "getBaseBranch", "changedFiles", "prUrl"];
+const METHODS = ["getHead", "readTextFile", "readFileBytes", "hasFile", "listDir", "createBranch", "commitFiles", "resetBranch", "openPr", "updatePr", "getPr", "listPrs", "markReady", "closePr", "deleteBranch", "merge", "listMerged", "getMergedPr", "findCommitByTrailer", "getBaseBranch", "changedFiles", "prUrl", "requestReviewers"];
 
 class GitError extends Error {
   constructor(code, message, details) { super(message); this.name = "GitError"; this.code = code; this.details = details || {}; }
@@ -37,6 +40,24 @@ function guardFiles(files) {
 function guardPrCreate({ head, base }, baseBranch) {
   assertStudioBranch(head);
   if (base !== baseBranch) throw new ScopeError("pull requests may only target " + baseBranch, base);
+}
+
+// Is this pull request a Studio draft? By IDENTITY, not by label: a studio/ branch of THIS repository, aimed at the base
+// branch, whose body ends with Studio's own marker. Labels are a convenience that can fail to be written (the GitHub App may
+// lack "Issues: write"); merge() and the draft finder must not depend on them (PHASE1-DESIGN 4.3).
+function isStudioDraft(pr, baseBranch) {
+  if (!pr || typeof pr.headRef !== "string" || !/^studio\//.test(pr.headRef) || pr.fromFork || pr.baseRef !== baseBranch) return false;
+  const m = parseMarker(pr.body); // the marker's draft id must be the branch's own
+  return m !== null && m.draftId === idFromBranch(pr.headRef);
+}
+// finish a Pr view: a Studio draft always reports the "studio-draft" label (so the code that lists drafts keeps working when the
+// label could not be written) and says plainly that the label itself is missing
+function withIdentity(view, baseRef, baseBranch) {
+  const has = view.labels.indexOf("studio-draft") >= 0;
+  const id = isStudioDraft({ headRef: view.headRef, baseRef: baseRef, fromFork: view.fromFork, body: view.body }, baseBranch);
+  view.labelsApplied = has || !id;
+  if (id && !has) view.labels = view.labels.concat("studio-draft").sort();
+  return view;
 }
 
 // Summarise the required checks from check runs [{name,status,conclusion}] and commit statuses [{context,state}].
@@ -65,4 +86,4 @@ function trailerValue(message, key) {
   return m ? m[1].trim() : null;
 }
 
-module.exports = { REQUIRED_CHECKS, METHODS, GitError, guardBranchWrite, guardFiles, guardPrCreate, summarizeChecks, trailerValue, ScopeError };
+module.exports = { REQUIRED_CHECKS, METHODS, GitError, guardBranchWrite, guardFiles, guardPrCreate, isStudioDraft, withIdentity, summarizeChecks, trailerValue, ScopeError };

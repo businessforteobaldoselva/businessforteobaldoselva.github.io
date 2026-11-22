@@ -136,3 +136,50 @@ Scope: `studio/AI-DESIGN.md`. A founder types a request; a model proposes a JSON
 * Treat any change to `allowlist.snapshot.json` as a security review: the guard fails until a human has looked at what the AI can now reach.
 * Do not add a second write path for AI. The only write is `drafts.saveDraft`; `check-ai` fails otherwise.
 * Never raise the overlay or API trust of AI output "just for this feature". If a field needs to be writable by AI, make it writable by hand-editing first.
+
+## Phase 1 additions (one subsection per unit; edit only your own, see studio/PHASE1-DESIGN.md section 2)
+
+### P1-BACKEND (health route, usage tables, label fallback)
+**New inputs and who can call them**
+
+| Input | Who | What it can do | What stops abuse |
+|---|---|---|---|
+| `GET /v1/health` | anyone (no token) | Learn whether Supabase and GitHub answer and whether AI help is on. | The answer is fixed sentences and states: no address, key, error text, version or count. Cached (default 30 s) with ONE shared in-flight check, so a flood costs one upstream call per window; the anonymous IP rate limit still applies; no audit entry (it is polled). The check itself sends only the public key, to the sign-in service's own health address. |
+| `POST /v1/ai/estimate`, `GET /v1/ai/recent` | editor and above | Estimate a request's cost (it builds the prompt, calls no model, reserves and counts nothing); list the caller's own last 20 requests. | Same role and CSRF rules as the other AI routes. Estimate reads Git like propose does but never writes; recent returns only the caller's rows, ids and counters, never instruction text. Rate class `read`. |
+| `studio_ai_*` functions (`003`) | the caller's own JWT, through PostgREST | Count the caller's own usage and read the caller's own recent list. | `security definer`, pinned search path, active-person check on every function, only the caller's rows (`auth.uid()`), tables closed to anon and signed-in users (RLS on, no policies), nothing stored but counters and request ids. Applied by a human; Studio never applies it. |
+| Label write on a pull request | the GitHub App | Add labels. | A failure is logged once and ignored. Labels are not trusted: merge identifies a Studio draft by `studio/` branch + this repository + base branch + Studio's marker. |
+| `requestReviewers` | the API (REVIEW's submit) | Ask GitHub to notify named collaborators. | Logins are validated against GitHub's own pattern inside the provider; at most 10; a refusal never fails a submit; it cannot approve, merge or request itself. |
+
+**What an editor can newly do:** see how healthy the services are, see the cost estimate of their own request and their own recent requests. **What an editor can no longer do:** use up other people's daily suggestions (the per-person cap is enforced in the store, and a shared store makes it hold across API copies); push the global counter past its caps with several API copies when the shared store is on.
+
+**What got safer.** An outage of the sign-in service used to look like "please sign in again" (and counted toward the bad-sign-in limit, so an outage could lock people out); it is now a 503 with a plain sentence and is not counted. A missing "Issues" permission used to make saving a draft report an error (the pull request was already created); it no longer does.
+
+**Failure modes (all fail closed).** Shared usage store unreachable, paused, not set up, or answering strangely: the request is served from the memory store with the same caps (never "unlimited") and one `usage.store_fallback` line is logged per minute. Health check hangs: it is abandoned at `STUDIO_HEALTH_TIMEOUT_MS` and reported as unreachable. A forged marker on a non-`studio/` branch or on a fork is refused by the branch guard and the fork check before the marker is even read.
+
+**Residual risks.** (1) Anyone who can edit a pull request's body on a `studio/` branch in the repository can write a marker; they could already add a label, they already have repository write access, and the pull request still needs CI, `studio-scope` and a second person. (2) The health route tells an anonymous caller when a service is down; that is the same thing the login page needs to show a founder, and it reveals nothing about the configuration. (3) The memory counters are per API copy: with the shared store off, the real ceiling is the limit times the number of copies (the runbook says so).
+
+### P1-REVIEW (board, review screen, reviewer notification)
+New inputs: `reviewerId` on submit (must match `[a-z0-9-]{1,30}` AND an id in the server-side list, else 400); the draft id in the review route (same parser as every draft route); `STUDIO_REVIEWERS` (operator-set, validated at start-up). New outputs: the board, the review list, the approver list, the review link.
+Who can call: board and approvers: any signed-in role. Review: the draft's owner or an approver/admin; anyone else gets the same 404 as for a missing draft. Submit: owner only. No new write route: publishing is still POST /v1/drafts/:id/publish with its gates (CI, studio-scope, second person, head sha, ready state).
+Newly possible for an editor: seeing a COUNT of other people's waiting drafts (never titles or authors); asking GitHub to request a review from a listed approver (the request names only the configured login; an editor cannot supply a login). Nothing is removed.
+Leaks considered: GitHub logins and Studio user ids stay on the server (the approver list carries id, first name, role and how they are told); the audit entry records the reviewer id only. Text from drafts reaches the browser only as text nodes; the review route also swaps `<` and `>` for look-alikes and strips control characters. The review link holds the draft id, not a secret: opening it needs a Studio sign-in, and viewing the draft needs ownership or an approver role. A notification failure never blocks a submit and never shows upstream error text. The board is cached 15 s per role and person; a stale board cannot publish anything (the publish route re-reads the pull request).
+Residual: who can open the Netlify preview is a separate door, see `studio/NOTES-preview-access.md`.
+
+### P1-EDIT (rule engine, checks panel, palette sources)
+
+**New inputs.** (1) The content the rules read: editor-controlled text, links and picture names. The engine and the rules are pure (no DOM, network, clock, `eval`), run on plain data, put the editor's words in a finding only as a string that the overlay renders with `textContent`, and cut every message to 300 characters; a hostile test seeds markup, `|`, control characters, 5000-character values and checks the report still validates and no rule throws. (2) `facts` in `content.json`: built by the build, not by an editor; the overlay treats it as untrusted data (it only compares strings with it). (3) `field-roles.json` and the schema: committed files. (4) The answers of `POST /v1/ai/estimate`, `GET /v1/ai/recent` and `GET /v1/health`: only numbers, fixed words and an https link are used (validated, `rel="noopener noreferrer"`); text from the server is never shown as it is and never reaches `innerHTML` (there is none).
+
+**Who can call what.** Nothing new on the API side. The overlay calls the estimate and recent routes as an editor (BACKEND's routes, same rate limits), once per pause in typing and once per opening of "Recent requests"; the palette asks `/v1/history?limit=5` once when it opens. Palette search itself reads caches only (a guard fails if `search` reaches for the network).
+
+**What an editor can newly do.** Ignore a warning or a note on their own device for one draft (a list of finding keys in `localStorage`, never sent, cleared with the browser; CI does not see it). They cannot ignore a block finding, cannot make the panel send anything, and cannot disable the check: it is a hint that also runs in CI, where the same rules can fail the build. The gate on **Send for review** is a convenience, not the control: the control is the CI guard on the pull request, so a person who removes the gate in their browser still cannot publish a draft with a new block finding.
+
+**What an editor can no longer do.** Send a draft for review from the overlay while it has a block finding that is not already on the live site.
+
+**Risks accepted.** A rule can be wrong (it flags something fine): warnings are advisory and the block rules (a missing picture description, a link to a page that does not exist) are narrow; `baseline.json` is the escape hatch and needs a developer pull request. A link to an id that exists only in a template and is not reserved would be called broken (the reserved-ids guard already forbids that). The estimate is a guess, the real number is the meter on the answer. The finish signal uses a toast and a dot only: no sound and no browser notification permission, so nothing new can be asked of the browser. The bundle grew by about 60 KiB of script (budget 460 KiB).
+
+### P1-DECAP (what removing Decap and Netlify Identity changes)
+
+* **Removed attack surface:** the Decap bundle loaded from a third-party CDN, the Netlify Identity widget script, the invite-link forwarder on the home page, and Git Gateway (a second route to write to the repository that bypassed Studio's validation, CI gate and second-person rule). With the old draft workflow gone there is no other draft path.
+* **What stays risky until Teo acts:** Identity and Git Gateway are Netlify site settings, not code. While they stay enabled, anyone with an old invite or a signed-up Identity account could still obtain a Git Gateway token even though no page uses it. Runbook 4c.4 lists the three switches (disable Identity and delete users, disable Git Gateway, remove the leftover GitHub grant). Until then the open signup noted in the security audit is still open.
+* **`/cms/`:** a static page with no script, no third-party loads and noindex; old deep links redirect to it, so there is no editor login form to phish with.
+* **Regression guard:** `check-no-decap.js` fails on any return of the dead strings, files or settings; its selftest puts each back and expects a failure.

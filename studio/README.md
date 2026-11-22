@@ -32,7 +32,7 @@ Owns (nothing else was touched except where noted):
 |---|---|
 | `overlay/ext/history.js` | History panel: merged changes, who and when, plain-English lines, Restore with confirmation, conflict handling, empty/loading/error states, pure view model |
 | `overlay/ext/help.js` | Help panel ("?"): quick start, what the words mean, what this role can do, shortcuts, replay tour, build info |
-| `overlay/ext/tour.js` | First-run tour (7 steps), anchored highlights, keyboard operable, remembered per user, replay |
+| `overlay/ext/tour.js` | First-run tour (9 steps), anchored highlights, keyboard operable, remembered per user, replay |
 | `overlay/ext/palette.js` | Ctrl/Cmd+K combobox, fuzzy search, synonyms, generated section/field commands |
 | `overlay/ext/ext.css` | styles for the four (inside the overlay's shadow root) |
 | `api/services/history-diff.js`, `api/services/history.js` | pure `invertDiff`; `createHistoryService({git, drafts, ...}).list/restore` |
@@ -148,3 +148,86 @@ See the runbook, Part 2. Summary of DESIGN.md section 17: create the GitHub App 
 * `npm run studio:ai-eval` (part of `npm run check`): 63 recorded model answers, 25 valid patches and 33 hostile or failing ones, through the real API; every valid one is undone by History > Restore byte for byte.
 * `studio/guards/check-ai.js` (part of `check:studio`) and 19 scenarios in `studio/guards/selftest-ai-core.js` that break it on purpose.
 * Try it on your machine without a key: `STUDIO_AI_ENABLED=1 npm run studio:dev` (a replay stand-in that knows the sample requests).
+
+## Phase 1 (units BACKEND, REVIEW, EDIT, DECAP)
+
+Contract: `studio/PHASE1-DESIGN.md`. Each unit writes ONLY under its own heading below (what it built, how to run its tests, Deviations).
+
+### BACKEND
+**What it built** (contract: `studio/PHASE1-DESIGN.md` sections 4 and 10; plan items 3, 4, 17 and the backend half of 11).
+
+* `GET /v1/health` (`api/services/health.js`, `api/routes/health.js`): anonymous, cached 30 s, one shared in-flight check, fixed plain sentences only. `service_unavailable` (503) in `api/errors.js`; the handler uses it for a role lookup that fails and for signing keys that cannot be fetched (a bad token stays 401, and an outage is not counted as a failed sign-in).
+* Sign-in page (`login/login.js`): asks the health route first, shows the fixed sentence in its live region, also on a 5xx or network failure from Supabase.
+* Git provider: labels can fail without failing a pull request (`applyLabels`, `onLabelFailure` -> audit `label.failed`); `Pr.labelsApplied`; merge recognises a Studio draft by identity (`studio/` branch, this repository, aimed at the base branch, Studio's marker) via `providers/git/interface.js` `isStudioDraft`; new method `requestReviewers` on all three providers (GitHub: `POST /pulls/{n}/requested_reviewers`).
+* AI usage: async `BudgetStore` (`api/ai/budget.js` memory + selector; `api/providers/usage/supabase-budget.js` shared), per-person counters, rejected answers give the request back and keep the tokens, `proposal.meter`, `POST /v1/ai/estimate`, `GET /v1/ai/recent`, extra keys in `GET /v1/ai/status.usage`, `studio/sql/003_studio_ai_usage.sql` (for human review).
+* Guard `studio/guards/check-resilience.js` (auto-run by `check:studio`) and 11 selftest scenarios in `studio/guards/selftest-p1-backend.js`.
+
+**Run its tests:** `node --require ./studio/guards/no-network.js --test studio/tests/p1-backend/*.test.js` (also part of `npm run studio:test`), `node studio/guards/check-resilience.js`, `npm run check:selftest` (scenarios "studio p1 backend: ...").
+
+**Items 2 and 3 of the plan (verified).** The content fixture no longer pins live words (`tests/markers/schema.test.js` only checks it names real files) and `studio-scope.yml` copies `scripts/lib/image-rules.js`. Added proofs: `tests/p1-backend/scope-guard-behaviour.test.js` executes the workflow's own "take the guard from main" lines in a throwaway git repository and judges real pull requests; the selftest breaks the workflow's copy line and checks `ci/scope-workflow.test.js` notices; the selftest applies three ordinary publishes (headline, a hidden section, an alt text) to a copy and runs the content-reading tests, with a control that re-pins the fixture and must fail.
+
+**Deviations from the contract** (for the integrator to fold back):
+
+1. `Pr.labelsApplied` is computed from identity when read back: a Studio draft always REPORTS the `studio-draft` label in `Pr.labels` even when GitHub never stored it (so `services/drafts.js`, which finds drafts by that label, keeps working unchanged with no edit by REVIEW). `labelsApplied` is the honest flag. The contract's "label present OR could not be written" is stateless: merge requires the marker, not the label.
+2. The shared usage store lives in `api/providers/usage/supabase-budget.js`, not under `api/ai/`, because `check-ai.js` S3 forbids any network primitive in `api/ai/`. `api/ai/budget.js` keeps the memory store and the fallback selector.
+3. `check-ai.js` (D1 now expects 5 AI routes; D8 reads the async snapshot) and `selftest-ai-core.js` (the "budget reservation removed" anchor) were updated because of the async store. `tests/ai/routes.test.js` was updated the same way.
+4. The per-person daily limit moved from the in-memory rate limiter (`ai:ud:`) into the store (`caps.userRequests`), because the limiter would also count rejected answers. The wording of that refusal is new: "You have used your N AI suggestions for today. They come back at midnight (UTC)." (still 429 `rate_limited` with `Retry-After`).
+5. A rejected proposal's error carries `error.details.meter` (the same `AiMeter` shape, `counted: false`) so the panel can say "This one did not count toward your limit."
+6. `validateStatus` accepts the four new `usage` keys but does not require them (the overlay's offline demo stub predates them); `tests/p1-backend/ai-usage.test.js` requires them from the real API.
+7. `dev/mock-github-server.js` gained `head.repo` / `base.repo`, `state.failLabels`, `state.failReviewers` and the requested-reviewers route; the audit action list gained `label.failed` and `usage.store_fallback`.
+8. `STUDIO_AI_BUDGET_STORE=supabase` is refused together with `STUDIO_DEV=1` (the dev sign-in has no database to call).
+9. The health route's AI line reports THIS instance's counters (no token, so it cannot ask the shared store); with the shared store the AI panel's own status is the authoritative number.
+10. Known limits: if the shared store fails between a reservation and its settlement, that one estimate stays on the shared counter until the day ends (the settlement is applied to the memory counters the call fell back to). `003` was not run against a real PostgreSQL (none is installed here); its logic is modelled by `tests/p1-backend/fake-postgrest.js` and its safety properties are checked as text; a human reads it before applying, as the header says.
+
+### REVIEW
+Built: **status board** (`GET /v1/board`, overlay panel Status, palette source `status.waiting`), **review screen** (`GET /v1/drafts/:id/review`, panel Review, deep link `#review=<id>`, one **Approve and publish** button that calls the existing publish route), **send for review** (`GET /v1/people/approvers`, `POST /v1/drafts/:id/submit` with `reviewerId`, dialog with Copy link / Email it), and the preview-access research note.
+Files: `api/services/{board,review}.js`, `api/routes/{board,review}.js`, `api/review-config.js`, `api/services/drafts.js` (`publishBlockers`, `isStudioPr`, `submitDraft`), `validate/describe.js` (`describe`), `overlay/ext/{status,review}.{js,css}`, `overlay/core/drafts.js`, `overlay/ui/panel-changes.js`, `guards/{check-review,selftest-p1-review}.js`, `tests/p1-review/`, `NOTES-preview-access.md`.
+Run: `node --require ./studio/guards/no-network.js --test studio/tests/p1-review/*.test.js`; `node studio/guards/check-review.js`; `node scripts/selftest.js --only "p1 review"`. The browser walkthrough (`browser.test.js`) skips without puppeteer-core; run it with `STUDIO_PUPPETEER_DIR=<folder with node_modules>`.
+Deviations:
+- `STUDIO_REVIEWERS` entries accept an optional `userId` (Studio user id) so the author is left out of their own approver list and cannot pick themselves; the contract had no way to know who "the author" is.
+- Side by side is two links ("See the live page", "See this draft"), not a frame: the overlay's element factory has no iframe and the guards forbid one.
+- A Studio draft is recognised by the `studio-draft` label OR (studio/ branch, same repository, strictly valid marker whose draft id matches the branch) so a draft whose label write failed still lists and reviews. The provider's `merge()` fallback (PHASE1-DESIGN 4.3) is BACKEND's; until it lands, publishing such a draft is refused by the provider.
+- The line `Studio-Changes: N` is added to pull request bodies (`pr-text.js`) for the board's change count.
+- A replayed submit with the same idempotency key returns the first answer from an in-instance cache; after a restart the draft is already ready, so GitHub is not asked again and the message says it was already sent.
+- `requestReviewers` is called only if the provider has it (BACKEND adds it); without it the submit reports `github_unavailable` and offers copy-link.
+- Overlay size: about 30 KiB of script and 2 KiB of styles on top of the Phase 1 base. The palette source needs EDIT's palette to merge `paletteSources()`; until then the source exists but no row shows in Ctrl+K.
+
+### EDIT
+
+What it built (contract: `studio/PHASE1-DESIGN.md` sections 8 and 9; plan items 8 to 11): the edit-mode legend and count, the always-visible **All fields** drawer, **Check my changes** on a rule engine shared with CI, the palette upgrade and the AI panel's cost meter, finish signal and recent requests.
+
+* **Rule engine** `studio/content-rules/`: `engine.js` (registry and `run`), `rules.js` (the ten rules), `index.js` (Node entry; applies `field-roles.json`), `facts-node.js` (`buildFacts(root, { site? })`, Node only), `seeds.js` (a known-bad example per rule), `baseline.json`. Pure: no DOM, fs, network, clock or randomness in the engine and the rules, so the overlay bundle and Node run the same bytes.
+* **CI guard** `studio/guards/check-content-rules.js` (auto-run by `check:studio`): runs the engine on the checkout, fails on a block finding outside `baseline.json` and on a stale baseline entry, proves every rule still flags its example, maps field roles, checks picture fields have a description pair or an exemption, and pins the panel's promises (header and sub-line, no "WCAG"/"accessible" claim, a block cannot be ignored, Send for review is refused for a new block, the legend count, the estimate debounce, no network in palette search).
+* **Overlay:** `ext/legend.js` + `ext/legend.css` (chip, legend, All fields drawer styles, Check my changes styles), `ext/checks.js` (panel, gate on `studio.drafts.submit`), `ui/panel-fields.js` (the drawer), `ext/palette.js` (palette sources `fields.jump`, `sections.jump`, `history.recent`; footer line), `ext/ai.js` + `ext/ai-view.js` + `ext/ai.css` (estimate, meter, finish signal, recent), `ext/help.js` (health line), `core/api-client.js` (`service_unavailable`, request cancel), `ui/shell.js` (`registerDockItem`, `setPanelAttention`, `short` and `noDock` on panels), `main.js`.
+* **Facts in `content.json`:** `studio/markers/snapshot.js` adds the top-level key `facts` (about 6 KB; `schemaVersion` stays 1). `studio/overlay/bundle.js` puts `field-roles.json` on `S.fieldRoles`.
+* **Ratchet:** `studio/guards/check-markers.js` stores `pageCounts` per built page in `studio/schema/marker-coverage.json`; a page may not lose editable things.
+* **Tests** `studio/tests/p1-edit/`: `rules.test.js` (each rule good, bad, hostile, empty, huge; determinism; valid report), `ci-parity.test.js` (one bad draft per rule in a throwaway checkout: the guard's `--json` and the engine loaded like the bundle report the same keys, severities and words), `facts.test.js` (routes equal a real build's sitemap; snapshot), `ui-pure.test.js` (legend, checks, palette rows, service-unavailable, request cancel, bundle roles), `ai-meter.test.js` (view-model and the real panel on the test DOM, against the same example payloads the API is validated with), `browser.test.js` (a real CMS_EDIT build in Chrome: the chip equals the DOM count on `/` and `/about/`, the drawer finds the meta description by its label, palette jumps with the keyboard only, Check my changes and the refusal to send). Selftest: `studio/guards/selftest-p1-edit.js` (every rule switched off, baseline ratchet, blind facts, unmapped role, ignorable block, ungated submit, lost disclaimer, off-by-one legend, estimate per keystroke, network in palette search, lost footer).
+* **Run:** `node studio/guards/check-content-rules.js`; `node scripts/check-studio.js --only content`; `node scripts/selftest.js --only "content rules"`; the browser tests need puppeteer-core and Chrome (`STUDIO_PUPPETEER`, `STUDIO_CHROME`) and skip without them.
+
+**Deviations** (the integrator folds these into the contract):
+
+1. **`facts.tools` (additive).** `facts` has a fifth list, `tools`: the built pages that are not in the sitemap (`/og/`, `/ident/`, `/scroll/`, and the passthrough `/admin/`, `/cms/`), so a link to them is not called broken. `routes` stays equal to the sitemap, as the contract says.
+2. **Anchors are static.** `facts.anchors` is the reserved ids of `studio-schema.json` plus the `anchor` values in the data, never ids read from a built site (that option exists in `buildFacts` for tests only), so the panel and CI always see the same set. A link to an id that exists only in a template and is not reserved would be flagged; the reserved-ids guard already forces every such id to be reserved.
+3. **`field-roles.json` shape.** `{ namedLike, map }`; roles `seoTitle, seoDescription, socialDescription, heading, label, body, ignore`. The engine reads `input.roles` (the contract's `run` input gained this optional key); Node's `index.js` supplies the file, the overlay bundle supplies it as `S.fieldRoles` (so `studio/overlay/bundle.js`, not in anyone's list, got three lines).
+4. **Finding paths.** `file` is the file key (`pages:about`, `faq`), `path` the JSON pointer; a markdown finding adds `#linkN` (the N-th link) so keys stay unique; `page-weight` has `file` = the route and an empty path. The jump target is in `data.ref`.
+5. **`seeds.js` and a seed per rule** are part of the guard (the contract asks for selftest scenarios; the seeds make the proof run on every `check:studio`, not only in the selftest).
+6. **Dock changes.** The chip would have wrapped the dock at 1280 px and covered it with the toast column, so: toasts sit above the dock row (`overlay.css`), the Check panel's dock label is "Check" (its title and aria-label stay "Check my changes"), and on phones (up to 759 px or coarse pointers) the chip and the Check button are hidden because the dock must stay on one row (a 375 px test pins it): the count and a button for the legend and for Check my changes are at the top of **All fields** instead. The count is still announced when edit mode starts.
+7. **Panel rename.** The Fields panel is now titled "All fields" (command "Open All fields"); tests that click it were updated.
+8. **Palette.** "Go to <section>" became "Jump to section: <name>" (a palette source); the section list is read from `studio.staging` (the old code read `studio.content.files()` as an object, which only the test stub provides).
+9. **Pre-existing test harness fixes.** `tests/ext/harness/stub-studio.js` lacked `util.local` (the tour needs it), so the keyboard browser tests of History, Help, Tour and palette could not start; it now has it and the harness answers `/v1/health`. `tests/overlay/bundle.test.js` size limit raised from 400 to 560 KiB (the Phase 1 overlay budget is 460 + 64 KiB plus the schema).
+10. **`check-ai-overlay.js`** now allows `details`/`summary` and the `open` property in the AI panel and the routes `GET /v1/ai/recent` and `POST /v1/ai/estimate`.
+11. **`stub-server.js`** gained `siteDir` (serve a real edit build and point its overlay at the stub), used by `browser.test.js`; **`ai-demo.js`** gained the estimate and recent routes and a `meter` on its proposals, so the AI journey shows the new lines.
+12. **Not done:** the dock chip text on phones, a "legend outline colour" per kind (the overlay draws one outline style, so the legend names each kind with a small shape instead of a colour), and `runbook` screenshots.
+
+### DECAP
+
+Decap CMS and the Netlify Identity / Git Gateway login are retired. Inventory and decisions: `studio/NOTES-p1-decap.md`. For Teo: runbook 4c.4.
+
+* Removed: `cms/index.html`, `cms/previews.js`, `cms/custom.css`, `scripts/check-previews.js` (+ lib, known issues), the npm scripts `cms-local` and `check:previews`, the Decap local-proxy dev dependency, the Identity forwarder in `src/index.njk` and in the stale root `index.html` mirror, and every Decap-only key of `cms/config.yml` (backend, publish_mode, local_backend, site_url, display_url, logo_url, locale, preview_path, editor, create, slug, summary).
+* Kept: `cms/config.yml` as the schema source (header comment says so), `cms/contrast.js`, `cms/redirect-rules.js`. The folder is not renamed (about 25 consumers).
+* `/cms/` is now `cms/moved.html` (static, no script, noindex); `netlify.toml` redirects `/cms/*` to it.
+* Guard `studio/guards/check-no-decap.js` (auto-run by `check:studio`), 21 selftest scenarios in `studio/guards/selftest-p1-decap.js` (`npm run check:selftest`, or `node scripts/selftest.js --only "decap:"`), tests in `studio/tests/p1-decap/`.
+* Schema proof: `npm run studio:schema` after the strip changed `configSha256` and nothing else (checked by diffing the JSON before and after).
+* Parity exception E1 (the only change to production output): `/index.html` loses the Identity forwarder script; `/cms/index.html` is the moved page instead of the editor. See Deviations.
+
+**Deviations:** (1) the contract lists `check-seo.js` under none of the edits, but it required the Redirects preview in `cms/previews.js`, so that one check was removed. (2) The stale root `index.html` (github.io mirror, not built) also held the forwarder; it was removed there too so the guard can scan the whole repo. (3) A few field hints in `cms/config.yml` still say "the preview shows how it will look"; they are part of the generated schema and the contract says the schema must not change, so they are left for a later wording pass. (4) The AI "Open Ask Claude" link (`studio/overlay/ext/ai*.js`, EDIT/AI territory) points at `/admin/#/collections/requests/new`, an address that belonged to the retired editor; it needs a new target in a later change.

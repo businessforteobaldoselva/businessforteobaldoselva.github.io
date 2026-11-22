@@ -2,6 +2,8 @@
   "_about": "Concatenation order of the overlay bundle (studio/DESIGN.md 10.4). Every script is an IIFE over window.__CoveredStudioBoot. A missing file is skipped with a warning. ../schema/resolve.js is not listed: core/schema-client.js carries its own small resolver (see studio/NOTES-overlay.md).",
   "scripts": [
     "../../cms/contrast.js",
+    "../content-rules/engine.js",
+    "../content-rules/rules.js",
     "core/util.js",
     "core/events.js",
     "core/dom.js",
@@ -25,9 +27,19 @@
     "ext/help.js",
     "ext/tour.js",
     "ext/palette.js",
+    "ext/legend.js",
+    "ext/checks.js",
+    "ext/status.js",
+    "ext/review.js",
     "ext/ai-view.js",
     "ext/ai.js",
     "main.js"
   ],
-  "styles": ["overlay.css", "ext/ext.css", "ext/ai.css"]
+  "styles": [
+    "overlay.css",
+    "ext/ext.css",
+    "ext/ai.css",
+    "ext/legend.css",
+    "ext/review.css"
+  ]
 }

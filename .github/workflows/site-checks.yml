@@ -36,7 +36,7 @@ jobs:
         id: install
         run: npm ci
 
-      # Build, then: CMS structure and coverage, previews, copy trace, sentinel wiring, hostile input.
+      # Build, then: CMS structure and coverage, copy trace, sentinel wiring, hostile input.
       - name: Build the site and run the guards
         run: npm run check
         env:

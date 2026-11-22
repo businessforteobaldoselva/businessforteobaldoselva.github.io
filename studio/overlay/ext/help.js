@@ -74,7 +74,6 @@
       var parts = [];
       parts.push("Version " + (studio.version || 1));
       if (b.sha) parts.push("build " + String(b.sha).slice(0, 7));
-      if (b.branch) parts.push("branch " + b.branch);
       try { var sh = studio.schema && studio.schema.raw && studio.schema.raw.configSha256; if (sh) parts.push("rules " + String(sh).slice(0, 8)); } catch (e) { /* optional */ }
       return parts.join(" · ");
     }
@@ -95,9 +94,21 @@
         root.appendChild(section("Something not working?", el("p", null,
           mail ? ["Tell us at ", el("strong", null, mail), " and say what you were doing. "] : "Tell the person who set Studio up and say what you were doing. ",
           "If a save is refused, the message next to the field says what to fix.")));
+        root.appendChild(section("Studio status", el("p", { class: "csx-health", role: "status", "aria-live": "polite", "data-health": "1" }, healthText || "Checking…")));
         root.appendChild(el("p", { class: "csx-muted csx-build" }, buildInfo()));
       }
+      // GET /v1/health (PHASE1-DESIGN 4.1, 9.4): fetched when Help opens; the answer goes in as a text node
+      var healthText = "";
+      function loadHealth() {
+        if (!studio.api || typeof studio.api.get !== "function") return;
+        studio.api.get("/v1/health", { noAuth: true }).then(function (res) {
+          healthText = res && res.ok === true ? "Everything is working." : (res && typeof res.message === "string" && res.message ? res.message.slice(0, 240) : "Studio is having trouble right now.");
+        }, function (e) {
+          healthText = e && e.code === "offline" ? "Studio cannot be reached right now. Your edits on this page are safe." : (e && e.userMessage) || "Studio is having trouble right now.";
+        }).then(function () { var n = root.querySelector("[data-health]"); if (n) n.textContent = healthText; });
+      }
       paint();
+      loadHealth();
       container.appendChild(root);
       var off = studio.on("auth:change", paint);
       return function () { if (typeof off === "function") off(); if (root.parentNode) root.parentNode.removeChild(root); };

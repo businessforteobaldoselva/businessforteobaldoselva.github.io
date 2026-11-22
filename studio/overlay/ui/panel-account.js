@@ -15,6 +15,7 @@
       S.dom.clear(container);
       var me = studio.me;
       var cfg = studio.config;
+      if (S.state.serviceDown) container.appendChild(h("p", { class: "error", role: "alert", "data-service-down": "1" }, S.state.serviceDown.message));
       if (!cfg.apiBase) {
         container.appendChild(h("p", { class: "error" }, "Studio isn't connected to a service yet, so changes can't be saved from this preview."));
         container.appendChild(h("p", { class: "hint" }, "The site owner needs to finish the Studio setup (see studio/README.md). You can still look around."));
@@ -38,6 +39,7 @@
         container.appendChild(h("p", null, h("strong", null, me.user.name || me.user.email), " ", h("span", { class: "hint" }, "(" + me.user.email + ")")));
         container.appendChild(h("p", null, "Role: ", h("strong", null, me.role)));
         container.appendChild(h("p", { class: "hint" }, CAN[me.role] || ""));
+        container.appendChild(h("button", { type: "button", class: "btn", "data-open-help": "1", on: { click: function () { studio.ui.openPanel("help"); } } }, "Open Help"));
         container.appendChild(h("button", { type: "button", class: "btn", on: { click: function () { S.auth.signOut(); studio.setMode("browse"); } } }, "Sign out"));
       }
       var b = studio.config.build || {};
@@ -53,6 +55,7 @@
         function (e) { studio.ui.toast((e && (e.userMessage || e.message)) || "Sign-in failed.", { kind: "error" }); });
     }
     offs.push(studio.on("auth:change", paint));
+    offs.push(studio.on("service:change", paint));
     paint();
     return function () { offs.forEach(function (o) { o(); }); };
   }

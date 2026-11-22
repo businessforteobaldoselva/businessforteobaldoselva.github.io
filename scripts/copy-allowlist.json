@@ -3,7 +3,7 @@
   "excludePages": [
     { "path": "/og/", "reason": "Internal social-card generator (noindex tool); not part of the public site." },
     { "path": "/ident/", "reason": "Internal brand-ident animation tool (noindex); not part of the public site." },
-    { "path": "/cms/", "reason": "The Decap CMS shell (passthrough copy of cms/); editor tooling, not site copy." },
+    { "path": "/cms/", "reason": "A static page telling people the old editor has moved; not site copy." },
     { "path": "/admin/", "reason": "Operations dashboard (passthrough copy of admin/); internal tool, not site copy." }
   ],
   "entries": [

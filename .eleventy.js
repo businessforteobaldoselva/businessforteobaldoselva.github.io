@@ -91,7 +91,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("images");
   eleventyConfig.addPassthroughCopy("fonts");
   eleventyConfig.addPassthroughCopy("admin");
-  eleventyConfig.addPassthroughCopy("cms");
+  eleventyConfig.addPassthroughCopy({ "cms/moved.html": "cms/index.html" });
   eleventyConfig.addPassthroughCopy("robots.txt");
   eleventyConfig.addPassthroughCopy("llms.txt");
   eleventyConfig.addPassthroughCopy(".well-known");

@@ -69,12 +69,12 @@ test("propose repeats are cached per person and key; a different key calls the m
   const a = await api.call("editor", "POST", "/v1/ai/propose", b);
   const again = await api.call("editor", "POST", "/v1/ai/propose", b);
   assert.deepEqual(again.json, a.json);
-  assert.equal(api.deps.ai._budget.snapshot(api.deps.now().toISOString().slice(0, 10)).requests, 1);
+  assert.equal((await api.deps.ai._budget.snapshot({ day: api.deps.now().toISOString().slice(0, 10) })).global.requests, 1);
   await api.call("editor", "POST", "/v1/ai/propose", body(REQ));
-  assert.equal(api.deps.ai._budget.snapshot(api.deps.now().toISOString().slice(0, 10)).requests, 2);
+  assert.equal((await api.deps.ai._budget.snapshot({ day: api.deps.now().toISOString().slice(0, 10) })).global.requests, 2);
   const other = await api.call("approver", "POST", "/v1/ai/propose", b);
   assert.equal(other.status, 200);
-  assert.equal(api.deps.ai._budget.snapshot(api.deps.now().toISOString().slice(0, 10)).requests, 3, "another person's request with the same key is not a repeat");
+  assert.equal((await api.deps.ai._budget.snapshot({ day: api.deps.now().toISOString().slice(0, 10) })).global.requests, 3, "another person's request with the same key is not a repeat");
 });
 
 test("limits: per person per 10 minutes, per person per day, for everybody per hour; each refusal says when to retry", async () => {
@@ -101,7 +101,7 @@ test("budget: requests and estimated tokens are reserved before the call and set
   const api = await replayApi(REQ, Object.assign({}, GOOD, { usage: { inTok: 300, outTok: 50 } }), { env: { STUDIO_AI_DAILY_REQUESTS: "2" } });
   const day = api.deps.now().toISOString().slice(0, 10);
   await api.call("editor", "POST", "/v1/ai/propose", body(REQ));
-  assert.equal(api.deps.ai._budget.snapshot(day).tokens, 350, "the estimate was replaced by the real usage");
+  assert.equal((await api.deps.ai._budget.snapshot({ day })).global.tokens, 350, "the estimate was replaced by the real usage");
   await api.call("editor", "POST", "/v1/ai/propose", body(REQ));
   const third = await api.call("editor", "POST", "/v1/ai/propose", body(REQ));
   assert.equal(third.status, 429);
@@ -113,17 +113,19 @@ test("budget: requests and estimated tokens are reserved before the call and set
   assert.equal((await api.call("editor", "POST", "/v1/ai/propose", body(REQ))).status, 200, "a new UTC day starts a new allowance");
 });
 
-test("budget store: reserve, settle, release, snapshot", () => {
-  const b = createMemoryBudget({ dailyRequests: 2, dailyTokens: 1000 });
-  assert.equal(b.reserve("d", 600).ok, true);
-  assert.equal(b.reserve("d", 600).ok, false, "tokens over the cap");
-  b.settle("d", 600, 100);
-  assert.equal(b.snapshot("d").tokens, 100);
-  assert.equal(b.reserve("d", 600).ok, true);
-  assert.equal(b.reserve("d", 1).ok, false, "requests over the cap");
-  b.release("d", 600);
-  assert.deepEqual([b.snapshot("d").requests, b.snapshot("d").tokens], [1, 100]);
-  assert.equal(b.reserve("e", 1).ok, true, "days are separate");
+test("budget store: reserve, settle, release, snapshot", async () => {
+  const b = createMemoryBudget({ dailyRequests: 2, dailyTokens: 1000, userPerDay: 5 });
+  const caps = { requests: 2, tokens: 1000, userRequests: 5 };
+  assert.equal((await b.reserve({ day: "d", tokens: 600, userId: "u", caps })).ok, true);
+  assert.equal((await b.reserve({ day: "d", tokens: 600, userId: "u", caps })).ok, false, "tokens over the cap");
+  await b.settle({ day: "d", reserved: 600, actual: 100, userId: "u", countRequest: true });
+  assert.equal((await b.snapshot({ day: "d", userId: "u" })).global.tokens, 100);
+  assert.equal((await b.reserve({ day: "d", tokens: 600, userId: "u", caps })).ok, true);
+  assert.equal((await b.reserve({ day: "d", tokens: 1, userId: "u", caps })).ok, false, "requests over the cap");
+  await b.release({ day: "d", reserved: 600, userId: "u" });
+  const s = (await b.snapshot({ day: "d", userId: "u" })).global;
+  assert.deepEqual([s.requests, s.tokens], [1, 100]);
+  assert.equal((await b.reserve({ day: "e", tokens: 1, userId: "u", caps })).ok, true, "days are separate");
 });
 
 test("a provider failure releases the budget, costs nothing and says so in plain words", async () => {
@@ -133,8 +135,8 @@ test("a provider failure releases the budget, costs nothing and says so in plain
   assert.equal(r.status, 502);
   assert.equal(r.json.error.code, "ai_unavailable");
   assert.match(r.json.error.message, /did not answer/);
-  assert.equal(api.deps.ai._budget.snapshot(day).requests, 0);
-  assert.equal(api.deps.ai._budget.snapshot(day).tokens, 0);
+  assert.equal((await api.deps.ai._budget.snapshot({ day })).global.requests, 0);
+  assert.equal((await api.deps.ai._budget.snapshot({ day })).global.tokens, 0);
   const e = api.audit.entries.find((x) => x.action === "ai.propose");
   assert.equal(e.outcome, "error");
 });
@@ -221,7 +223,7 @@ test("a double submit while the first call is still running makes ONE model call
   assert.deepEqual(all.map((x) => x.status), [200, 200, 200, 200, 200]);
   assert.equal(calls, 1, "five identical submits, one model call");
   assert.equal(new Set(all.map((x) => x.json.proposal.id)).size, 1);
-  assert.equal(api.deps.ai._budget.snapshot(api.deps.now().toISOString().slice(0, 10)).requests, 1, "one slot of the daily allowance");
+  assert.equal((await api.deps.ai._budget.snapshot({ day: api.deps.now().toISOString().slice(0, 10) })).global.requests, 1, "one slot of the daily allowance");
   // the same key with another draft or selection is another request, not a replay of the first
   const other = await api.call("editor", "POST", "/v1/ai/propose", Object.assign({}, b, { context: { refs: ["hero.headlineMain"] } }));
   assert.equal(other.status, 200);

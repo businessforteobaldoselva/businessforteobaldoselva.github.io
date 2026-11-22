@@ -1,0 +1,53 @@
+/* Phase 1, REVIEW unit: the Status board, the review screen and the "Send for review" dialog. Lives inside the overlay's shadow root.
+   Same colour variables and fallbacks as ext.css (contrast >= 4.5:1 light and dark); buttons and badges reuse the csx-* classes of ext.css. */
+.csx-rv {
+  --csx-bg: var(--cs-bg, #ffffff);
+  --csx-fg: var(--cs-fg, #1d2a24);
+  --csx-muted: var(--cs-muted, #4a5a52);
+  --csx-line: var(--cs-line, #cfd8d3);
+  --csx-accent: var(--cs-accent, #1f5c43);
+  --csx-accent-fg: var(--cs-accent-fg, #ffffff);
+  --csx-soft: var(--cs-soft, #eef3f0);
+  --csx-danger: var(--cs-danger, #a12020);
+  --csx-focus: var(--cs-focus, #0b57d0);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--csx-fg);
+  padding: 4px 2px 16px;
+}
+@media (prefers-color-scheme: dark) {
+  .csx-rv {
+    --csx-bg: var(--cs-bg, #17201b);
+    --csx-fg: var(--cs-fg, #e9f0ec);
+    --csx-muted: var(--cs-muted, #b2c2b9);
+    --csx-line: var(--cs-line, #35453c);
+    --csx-accent: var(--cs-accent, #8fd3b0);
+    --csx-accent-fg: var(--cs-accent-fg, #0f1a14);
+    --csx-soft: var(--cs-soft, #22302a);
+    --csx-danger: var(--cs-danger, #ff9d9d);
+    --csx-focus: var(--cs-focus, #8ab4ff);
+  }
+}
+.csx-rv-title { margin: 0 0 4px; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.csx-rv-title:focus-visible, .csx-rv-sent:focus-visible { outline: 3px solid var(--csx-focus); outline-offset: 2px; }
+.csx-rv-summary { margin: 0 0 8px; font-weight: 600; }
+.csx-rv-list { list-style: none; margin: 0; padding: 0; }
+.csx-rv-item { border: 1px solid var(--csx-line); border-radius: 10px; padding: 10px 12px; margin: 0 0 8px; background: var(--csx-bg); }
+.csx-rv-line { margin: 0 0 8px; font-weight: 600; overflow-wrap: anywhere; }
+.csx-rv-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.csx-rv-box { border: 1px solid var(--csx-line); border-radius: 8px; padding: 6px 8px; background: var(--csx-soft); min-width: 0; }
+.csx-rv-text { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; unicode-bidi: plaintext; max-height: 12em; overflow: auto; }
+.csx-rv-checks { margin: 12px 0 4px; font-weight: 600; }
+.csx-rv-blockers { margin: 0 0 8px; padding-left: 20px; color: var(--csx-danger); }
+.csx-rv-radios { display: grid; gap: 6px; margin: 8px 0; }
+.csx-rv-radio { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border: 1px solid var(--csx-line); border-radius: 8px; cursor: pointer; }
+.csx-rv-radio input { margin-top: 3px; }
+.csx-rv-radio input:focus-visible, .csx-rv-share:focus-visible { outline: 3px solid var(--csx-focus); outline-offset: 2px; }
+.csx-rv-share { width: 100%; box-sizing: border-box; font: inherit; color: var(--csx-fg); background: var(--csx-bg); border: 1px solid var(--csx-line); border-radius: 8px; padding: 8px; margin: 8px 0 0; }
+.csx-rv-sent { margin: 0 0 4px; font-weight: 600; }
+.csx-status .csx-badge, .csx-review .csx-badge { margin-left: 8px; }
+@media (max-width: 480px) {
+  .csx-rv-cmp { grid-template-columns: 1fr; }
+}
+@media (pointer: coarse) {
+  .csx-rv-radio { min-height: 44px; align-items: center; }
+}

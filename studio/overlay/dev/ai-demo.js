@@ -139,6 +139,7 @@ function createAiDemo(env) {
       id, kind: sc.kind, mode: req.mode, summary: sc.summary, base: { sha: SHA, draftId: req.draftId || null, headSha: null }, instructionHash: ih, model: demo.model, provider: "replay",
       changes: sc.kind === "patch" || sc.kind === "tone" ? changes : [], skipped: sc.skipped || [], needsCode: sc.kind === "needs_code" ? { reason: sc.reason, request: sc.request } : null,
       question: sc.kind === "clarify" ? sc.question : null, findings, warnings: sc.warnings || [], usage: { inTok: 12000, outTok: 400, latencyMs: 40 },
+      meter: { usedTokens: 12400, tookMs: 4300, pctOfDayUsed: 0.4, requestsLeftToday: 147, counted: true },
     };
     if (sc.overall) p.overall = sc.overall;
     return p;
@@ -157,6 +158,7 @@ function createAiDemo(env) {
       return { status: 200, body: { enabled: on, reason: on ? null : demo.status, provider: on ? "replay" : "none", model: on ? demo.model : null, vision: false, modes: MODES, limits: { instructionChars: 1000, feedbackChars: 300, contextRefs: 5, maxChanges: 40 },
         usage: { requestsToday: 3, requestsLimit: 150, yourRequestsToday: 1, yourRequestsLimit: 60, resetsAt: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 1)).toISOString() } } };
     }
+    if (ctx.pathname === "/v1/ai/recent" && ctx.method === "GET") return { status: 200, body: { store: "memory", items: [] } };
     if (ctx.method !== "POST") return bad(404, "not_found", "No such route.");
     let body;
     try { body = await ctx.readJson(); } catch (e) { return bad(400, "bad_request", "Not JSON."); }
@@ -164,6 +166,13 @@ function createAiDemo(env) {
     if (demo.status === "budget_exhausted") return bad(429, "ai_budget_exhausted", "Today's allowance is used.", { resetsAt: new Date().toISOString() });
     if (!body || typeof body !== "object" || Array.isArray(body)) return bad(400, "bad_request", "Body must be an object.");
     demo.calls[demo.calls.length - 1].body = body;
+
+    if (ctx.pathname === "/v1/ai/estimate") {
+      // PHASE1-DESIGN 10.4: the same body as propose, no key needed; nothing is reserved or counted
+      if (typeof body.instruction === "string" && body.instruction.length > 1000) return bad(400, "bad_request", "instruction too long.");
+      const est = Math.round(8000 + String(body.instruction || "").length * 4);
+      return { status: 200, body: { estimate: { inputTokens: 8000, maxOutputTokens: 6000, estTokens: est, typicalTokens: null, pctOfDay: Math.round(est / 3000) / 10, requestsLeftToday: 147, yourRequestsLeftToday: 59, label: "About " + (Math.round(est / 3000) / 10) + "% of today's AI allowance.", wouldFit: true } } };
+    }
 
     if (ctx.pathname === "/v1/ai/propose") {
       const extra = strict(body, ALLOWED_PROPOSE);

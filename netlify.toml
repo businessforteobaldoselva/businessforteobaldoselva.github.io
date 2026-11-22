@@ -30,6 +30,12 @@
   status = 301
   force = true
 
+# The old editor lived at /cms/ (and its sub-addresses): send every old link to the "editor has moved" page.
+[[redirects]]
+  from = "/cms/*"
+  to = "/cms/"
+  status = 302
+
 [[headers]]
   for = "/images/*"
   [headers.values]

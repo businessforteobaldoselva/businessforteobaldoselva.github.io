@@ -39,7 +39,7 @@ const BANNED_TAGS = new Set(["script", "style", "iframe", "link", "object", "emb
 const LITERAL_TAGS = new Set(["div", "canvas", "br", "span", "a", "input"]);
 const OK_HOSTS = /^(localhost|127\.0\.0\.1|(www\.)?example\.(com|test|org)|[a-z0-9-]+\.test|github\.test)$/i;
 const CDN = /(cdn|unpkg|jsdelivr|cdnjs|googleapis|gstatic|jquery|bootstrapcdn|fontawesome|cloudflare|polyfill)/i;
-const BUDGET = { scriptsKiB: 330, cssKiB: 48 }; // 260 before History/palette/tour/help (unit D, ~65 KiB); Phase 5 "Describe a change" panel (AI-DESIGN 1.2, at most 330 / 48)
+const BUDGET = { scriptsKiB: 460, cssKiB: 64 }; // 260 before History/palette/tour/help (unit D, ~65 KiB); 330 / 48 with the Phase 5 AI panel; 460 / 64 for Phase 1 (rule engine, checks, status board, review screen: studio/PHASE1-DESIGN.md 11)
 const LOGIN_KIB = 16; // the login page is a separate static site, budgeted apart from the overlay
 
 const problems = [];

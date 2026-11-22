@@ -14,6 +14,9 @@
     return e;
   }
 
+  // The sentence for a paused or unreachable sign-in service (PHASE1-DESIGN 4.2); the same words the API and the login page use.
+  var SERVICE_DOWN = "Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute.";
+
   // What a founder reads, per error code (DESIGN 7.2).
   function humanMessage(err) {
     if (!err) return "Something went wrong.";
@@ -32,6 +35,7 @@
       case "validation_failed": return "Some of your changes can't be saved yet. Fix the items marked in red.";
       case "rate_limited": return "You're going a bit fast. Wait a moment and try again.";
       case "upstream_error": return "The publishing service is having trouble. Try again in a minute.";
+      case "service_unavailable": return SERVICE_DOWN;
       case "bad_request": return "The request was not understood. Please reload the page and try again.";
       default: return "Something went wrong on our side. Nothing was lost; try again in a moment.";
     }
@@ -49,6 +53,13 @@
   }
 
   var cfg = { base: "", getToken: null, timeoutMs: 30000 };
+  // The last answer said "the sign-in service is down" (or did not): the Account panel shows the sentence instead of a blank screen.
+  function markService(v) {
+    if (!S.state) return;
+    var had = !!S.state.serviceDown;
+    S.state.serviceDown = v;
+    if (!!v !== had && S.events) S.events.emit("service:change", { down: v });
+  }
   function configure(c) { Object.assign(cfg, c || {}); }
 
   function request(method, path, body, opts) {
@@ -61,19 +72,24 @@
       if (body !== undefined) headers["Content-Type"] = "application/json";
       var ctl = typeof AbortController === "function" ? new AbortController() : null;
       var timer = ctl ? setTimeout(function () { ctl.abort(); }, cfg.timeoutMs) : null;
+      // opts.signal: the caller can cancel (the AI cost estimate does when the person keeps typing)
+      if (ctl && opts.signal) { if (opts.signal.aborted) ctl.abort(); else opts.signal.addEventListener("abort", function () { ctl.abort(); }); }
       return fetch(url, { method: method, headers: headers, body: body === undefined ? undefined : JSON.stringify(body), credentials: "omit", mode: "cors", cache: "no-store", signal: ctl ? ctl.signal : undefined })
         .then(
           function (res) {
             if (timer) clearTimeout(timer);
             var retryAfter = Number(res.headers.get("Retry-After")) || 0;
             return res.text().then(function (txt) {
-              var data = null;
-              try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; }
-              if (res.ok) return data || {};
+              var data = null, junk = false;
+              try { data = txt ? JSON.parse(txt) : null; } catch (e) { data = null; junk = true; }
+              // a 2xx that is not JSON is a captive-portal / proxy page, not our API: never report it as success
+              if (res.ok && junk) { var bad = StudioError(502, "upstream_error", "The answer was not understood"); bad.userMessage = humanMessage(bad); throw bad; }
+              if (res.ok) { markService(null); return data || {}; }
               var er = data && data.error ? data.error : {};
               var se = StudioError(res.status, er.code || "internal", er.message, er.details, data && data.requestId);
               se.retryAfter = retryAfter;
               se.userMessage = humanMessage(se);
+              markService(se.code === "service_unavailable" ? { service: se.details && typeof se.details.service === "string" ? se.details.service : "auth", message: SERVICE_DOWN } : null);
               throw se;
             });
           },
@@ -95,5 +111,6 @@
     del: function (p, o) { return request("DELETE", p, undefined, o); },
     StudioError: StudioError,
     humanMessage: humanMessage,
+    SERVICE_DOWN: SERVICE_DOWN,
   };
 })(window.__CoveredStudioBoot);

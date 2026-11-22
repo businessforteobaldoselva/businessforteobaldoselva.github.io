@@ -150,7 +150,7 @@ test("headline: click, type, Enter -> staged; the Changes panel says it in plain
   const auth = stub.requests.filter((r) => r.path === "/v1/drafts" && r.method === "POST")[0].auth;
   assert.equal(auth, "Bearer dev:editor:molly@covered.test");
   assert.match(await shadowText(page), /Your draft/);
-  assert.match(await shadowText(page), /pull request/);
+  assert.match(await shadowText(page), /technical details/);
   assert.deepEqual(page.__errors, []);
   await close(page);
 });
@@ -453,7 +453,7 @@ test("keyboard + accessibility of the overlay itself", { skip: SKIP }, async () 
   await page.keyboard.down("Control"); await page.keyboard.press("z"); await page.keyboard.up("Control");
   assert.equal(await page.evaluate(() => window.CoveredStudio.staging.get("hero.badge")), "Now in 12 venues");
   // structure of the chrome
-  await openPanel(page, "Fields");
+  await openPanel(page, "All fields");
   const a11y = await page.evaluate(() => {
     const r = document.getElementById("covered-studio").shadowRoot;
     const unnamed = Array.from(r.querySelectorAll("button, input, select, textarea")).filter((e) => { if (e.type === "hidden") return false; const name = (e.getAttribute("aria-label") || e.textContent || "").trim() || (e.id && r.querySelector('label[for="' + e.id + '"]')) || (e.closest("label")); return !name; }).map((e) => e.outerHTML.slice(0, 80));
@@ -484,6 +484,9 @@ test("roles: an editor cannot publish; an approver sees Publish; self-publish is
   await click(page, "Save draft");
   await waitSaved(page);
   await click(page, "Send for review");
+  await page.waitForFunction(() => document.getElementById("covered-studio").shadowRoot.querySelector('[role="dialog"] .btn-primary')); // Phase 1: "who should look?"
+  await page.evaluate(() => document.getElementById("covered-studio").shadowRoot.querySelector('[role="dialog"] .btn-primary').click());
+  await click(page, "Done"); // close the "sent for review" dialog
   await page.waitForFunction(() => window.CoveredStudio.drafts.current().state === "ready");
   await click(page, "Publish");
   await click(page, "Publish", { exact: true }); // confirm dialog button

@@ -132,10 +132,9 @@ test("needs-code: card with the drafted request, Copy, Open Ask Claude; no draft
   const page = await page$();
   await H.openAi(page);
   await H.ask(page, "make the hero video autoplay with parallax");
-  const info = await H.inShadow(page, (r) => ({ title: r.querySelector("textarea[data-req='title']").value, link: r.querySelector("a.csx-ai-link") && r.querySelector("a.csx-ai-link").href, rel: r.querySelector("a.csx-ai-link").rel, save: !!r.querySelector("[data-act='save']") }));
+  const info = await H.inShadow(page, (r) => ({ title: r.querySelector("textarea[data-req='title']").value, link: r.querySelector("a.csx-ai-link") && r.querySelector("a.csx-ai-link").href, rel: null, save: !!r.querySelector("[data-act='save']") }));
   assert.match(info.title, /autoplay/);
-  assert.match(info.link, /\/admin\/#\/collections\/requests\/new$/);
-  assert.match(info.rel, /noopener/);
+  assert.equal(info.link, null, "no Ask Claude link unless configured (the Decap page is retired)");
   assert.equal(info.save, false);
   await H.click(page, "Copy request");
   await H.waitShadow(page, (r) => r.querySelector("[data-copy-note]").textContent.length > 0);

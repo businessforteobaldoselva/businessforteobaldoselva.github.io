@@ -29,17 +29,19 @@ You change the website on the page itself. Your changes are saved as a **draft**
 
 1. Open the **preview link** from the draft (or any preview of the site) and add `/?studio=1` to the end of the address. In the Studio on your own computer it is `http://localhost:8080/?studio=1`.
 2. Sign in with your email. Studio sends you a code.
-3. Press **E** (or the **Edit** button) to switch editing on. Things you can change get an outline.
+3. Press **E** (or the **Edit** button) to switch editing on. Things you can change get an outline. The grey chip next to it says how many things you can change on this page ("14 editable things here"); press it to see what each outline means and which keys move you around.
 4. **Text:** click it, type, press **Enter**.
 5. **A picture:** click it, choose a new photo, drag to crop. Studio asks for a short description of the photo (for people who cannot see it). If the picture is only decoration, switch on "decorative".
 6. **Hide a section** (this works on a phone too): open **Sections**, press **Hide** on the section. Hidden sections show as dimmed; they are only hidden on the live site after publishing. Use the arrows to move a section up or down.
-7. Press **Save draft** (or Ctrl/Cmd + S). Studio checks everything and keeps it as a draft. If something is not allowed, it tells you which field and why, and nothing is lost.
-8. Press **Send for review**. Tell your approver.
+6a. **Something that is not on the page** (the line Google shows under the page title, the text on a share card, a link address, a picture description): press **All fields**. It lists what is on this page first and "Not visible on the page" after it. Type a few words of its name in the search box, or press **Ctrl/Cmd + K** and type them ("meta description" finds it). Press **Everything** to see the fields of the whole site.
+6b. Press **Check my changes** (the tick button; on a phone it is inside **All fields**). It reads your words, links and pictures and tells you in plain English if a link goes nowhere, a picture has no description or a title is too long. **Fix** takes you to the field. A warning can be ignored on your device; a problem that would stop the change from going live cannot, and **Send for review** will not work until it is fixed. These checks are not a full accessibility audit.
+7. Press **Save draft** (or Ctrl/Cmd + S). Studio checks everything and keeps it as a draft. If something is not allowed, it tells you which field and why, and nothing is lost. Saving is never blocked by the checks.
+8. Press **Send for review**. Studio asks who should look and tells you what was done: if the approver is set up for GitHub they are notified there; otherwise Studio gives you a short message to copy (**Copy link**) or e-mail (**Email it**). Press **Status** at any time to see where your draft is.
 
 ### Publish (approvers)
 
-1. Open the draft. Studio shows what changed in plain English and whether the safety checks are green.
-2. When the checks are green and you are happy, press **Publish**. The site updates in a few minutes.
+1. Open the review link you were sent, or press **Status** and then **Review** on a draft that is waiting. Studio lists every change in plain English, "Look at these carefully" first (links, pictures, hidden sections, contact or legal wording), each with what is live now and what the draft says.
+2. When the safety checks are green and you are happy, press **Approve and publish**, the only publish button, then confirm. The site updates in a few minutes. The button stays off, with the reason in words, if the checks are not green, you wrote the draft yourself, or the draft changed after you opened it (press Refresh).
 3. If the checks are not green, do not publish. Ask the editor to look, or see "When it breaks" below.
 
 ### Undo something that already went live
@@ -57,7 +59,7 @@ This only appears when a Studio admin has switched AI help on. If you open **Des
 
 1. Open **Describe a change** (the sparkle button, or press **Ctrl/Cmd + K** and type `describe`). On a very small phone screen it is the link **Or describe a change in words** at the top of **Changes**.
 2. Say what you want in your own words: "make the hero shorter and warmer", "translate the FAQ to Welsh", "add a question about venues to the FAQ". If you clicked something on the page first, the panel says **About: ...** and the suggestion stays on that part. Press the small x to remove it.
-3. Press **Suggest changes** (or Ctrl/Cmd + Enter). It usually takes 5 to 20 seconds, longer for a translation. You can **Cancel**.
+3. Once you have written a sentence, Studio shows what it will cost before you ask ("About 0.4% of today's AI allowance. You have 55 suggestions left today."). Press **Suggest changes** (or Ctrl/Cmd + Enter). It usually takes 5 to 20 seconds, longer for a translation. You can **Cancel**. If you switch to another window while it works, a message and a dot on the button tell you when the suggestion is ready. After a suggestion it says how much of today's allowance it used; an answer Studio could not use is given back ("This one did not count toward your limit."). **Recent requests** at the bottom lists your last requests with how many changes you accepted.
 4. Read the suggestion. Every change is a card with a **Before** and an **After**: removed words are struck through and added words are underlined (and read out as "[removed]" and "[added]" to a screen reader). **Nothing is saved yet.**
 5. Tick the ones you want. **Select all**, **Select none** and **Discard** do what they say. Some changes go together (for example a new FAQ question and its answer): ticking one ticks the other, and Studio tells you.
 6. Press **Save N changes as a draft**. It becomes a normal draft, exactly like one you made by hand: send it for review, an approver publishes it. **Nothing goes live until an approver publishes it.**
@@ -191,7 +193,7 @@ For the Netlify site (Deploy Preview context only), also set `STUDIO_API_URL` (t
 
 What it is: a text box in Studio. A founder types "make the hero shorter and warmer" or "translate the FAQ to Welsh". A model suggests changes, Studio shows each one as BEFORE and AFTER, and the person saves all, some or none of them as an ordinary draft. Everything after that (preview, checks, a second person publishing, History and Restore) is exactly as for a hand-made edit.
 
-What it can **never** do, and why you can rely on it: the model's answer is treated like text from a stranger. Studio only accepts changes to words, switches and colours in `src/_data/` and `src/pages/` that the content editor already offers. It cannot touch code, templates, styles, configuration, workflows, `package.json`, pictures, redirects or page addresses; an answer that tries is thrown away whole. This is enforced by code and by the same checks as a hand-made edit, not by asking the model nicely. If a request needs code, the model says so and Studio offers a ready-to-send note for **Ask Claude** (nothing is filed for you).
+What it can **never** do, and why you can rely on it: the model's answer is treated like text from a stranger. Studio only accepts changes to words, switches and colours in `src/_data/` and `src/pages/` that Studio already offers. It cannot touch code, templates, styles, configuration, workflows, `package.json`, pictures, redirects or page addresses; an answer that tries is thrown away whole. This is enforced by code and by the same checks as a hand-made edit, not by asking the model nicely. If a request needs code, the model says so and Studio offers a ready-to-send note for **Ask Claude** (nothing is filed for you).
 
 **Settings.** Set these where the API runs (same place as step 4). Only the first two are needed.
 
@@ -210,7 +212,7 @@ What it can **never** do, and why you can rely on it: the model's answer is trea
 | `STUDIO_AI_DAILY_TOKENS` | 3000000 | estimated tokens (input plus output) per UTC day, in total | no |
 | `STUDIO_AI_MAX_BODY_BYTES` | 16000 | largest request from the browser | no |
 | `STUDIO_AI_MAX_INPUT_CHARS` | 120000 | largest amount of site text sent in one request (the whole site is about 90,000 today) | no |
-| `STUDIO_ASK_CLAUDE_URL` | derived | the address of the "Ask Claude" new-request page in the content editor, if it is not `<site>/admin/#/collections/requests/new` | no |
+| `STUDIO_ASK_CLAUDE_URL` | derived | an optional https address for an "Ask Claude" link; with nothing set, Studio shows no such link | no |
 
 The daily limits are counted **in memory by each running copy of the API**. On a host that starts several copies at once, every copy counts alone, so the real ceiling is the limit times the number of copies. The spend limit you set in the Anthropic console (step 1 below) is the real ceiling; the numbers here are a second, softer one. `studio/sql/002_studio_ai.sql` is an optional, never-applied way to share one counter.
 
@@ -233,6 +235,122 @@ The daily limits are counted **in memory by each running copy of the API**. On a
 **Review once before you turn it on.** The voice the model is told to write in is in `studio/api/ai/brand-voice.js` (taken from `CANON.md`, `BRIEF.md` and the site copy), and what counts as "where visitors go" (so it is flagged and unticked by default) is in `studio/api/ai/policy.js`. Read both and change them if they are wrong.
 
 **If AI help misbehaves.** Everything it does ends up as a normal draft pull request. Discard the draft, or after publishing use History, Restore. The audit log (the host's log, lines starting `studioAudit`) shows who asked, when, how many tokens, what the outcome was and a hash of the request, but never the request text or the key.
+
+### 4c. Phase 1 additions (one subsection per unit; edit ONLY your own, see studio/PHASE1-DESIGN.md section 2)
+
+#### 4c.1 Health line, usage table and sign-in email (BACKEND unit)
+
+What this adds: a health check anyone (and the sign-in page) can ask, plain messages when the sign-in service is down, labels that can fail without hurting anything, and an optional shared counter for AI use. Nothing here is switched on by merging it: with no new setting, Studio behaves as before, plus the health route and the plain messages.
+
+**New settings** (all optional; set them where `STUDIO_ALLOWED_ORIGINS` is set; a junk value stops the API at start-up with a plain error):
+
+| Setting | Default | What it does |
+|---|---|---|
+| `STUDIO_AI_BUDGET_STORE` | `memory` | Where AI help counts its daily allowance. `memory` = each running copy of the API counts alone (fine for one copy). `supabase` = one shared count in your database; needs `studio/sql/003_studio_ai_usage.sql` applied first (below). Anything else stops the API. |
+| `STUDIO_HEALTH_TTL_SECONDS` | `30` | How long the health answer is remembered, 5 to 300. Keeps people (and the login page) from hammering Supabase and GitHub. |
+| `STUDIO_HEALTH_TIMEOUT_MS` | `3000` | How long each health check waits for Supabase or GitHub before calling it unreachable, 500 to 10000. |
+| `STUDIO_AI_PROVIDER` | `anthropic` | Which model service AI help talks to. Leave it alone. `replay` (canned answers, no network) is refused unless this is a development machine. |
+
+**The health line.** `GET <api>/v1/health` needs no sign-in and shows no address, key, count or error text from anyone else's service. It says whether the sign-in service (Supabase) and GitHub answer, and whether AI help is on. The Help panel and the sign-in page use it.
+
+| State | What it means | What to do |
+|---|---|---|
+| `ok` | Answered normally. | Nothing. |
+| `slow` | Answered, but took over 1.5 seconds. Still counts as working. | Nothing. Note it if it keeps happening. |
+| `paused` | Supabase paused the project because it was idle (the free plan does this after about a week of no use). People cannot sign in. | Supabase dashboard, your project, **Restore project**. It takes a minute or two. The weekly keep-alive (two calls a week from the API host's scheduler, see `studio/api/deploy/wrangler.example.toml`) exists to stop this: if it happened, check that the scheduler is on. |
+| `unreachable` | Supabase or GitHub did not answer in time, or answered with an error. | Wait a minute and look again. If it stays, check status.supabase.com or githubstatus.com, then the API host's logs. People's unsaved edits on the page are safe. |
+| `unknown` (AI only) | The AI service could not be asked. | Does not affect anything else. |
+
+The overall `ok` is false only when sign-in or GitHub is unreachable or paused. AI being off, out of key or out of allowance never makes it false. The answer is kept for `STUDIO_HEALTH_TTL_SECONDS` and one check is shared by everybody who asks at the same moment.
+
+**When sign-in is down.** The API answers `503 service_unavailable` with one plain sentence ("Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute."), the sign-in page shows the same sentence (it asks the health route before it sends a code), and the Account panel shows it instead of a blank screen. A wrong code or a wrong address is not an outage and keeps its own words. An outage is not counted as a failed sign-in, so nobody gets locked out by it.
+
+**Sign-in e-mail.** Supabase's built-in e-mail sender is for testing only: it allows a handful of messages an hour and many mail systems drop it. Before real founders use Studio, set up custom SMTP: Supabase dashboard, **Authentication**, **SMTP Settings**, with a transactional mail service (Resend, Postmark, Brevo, Amazon SES; most have a free tier far above what COVERED needs), a "from" address on your own domain, and the SPF and DKIM records the mail service tells you to add. The e-mail Studio sends contains a sign-in link (and a code), so a person can sign in by clicking the link without typing anything. **Acceptance check (yours, by hand):** from a private window, ask for 20 codes in a row for yourself; 20 codes arrive within 60 seconds. If fewer arrive, the mail service or the DNS records are not right yet. Studio cannot test this for you.
+
+**GitHub labels (the App's "Issues" permission).** Studio puts labels such as `studio-draft` on its pull requests. GitHub treats labels as Issues, so the App needs **Issues: Read and write** for them. If you leave that permission off, **everything still works**: the pull request is created, listed, reviewed and published; it just carries no labels, and one `label.failed` line appears in the log for each save that tried. Studio recognises its own drafts by the hidden marker it writes in each one and by the `studio/` branch name, not by the label. To add the permission later: GitHub, Settings, Developer settings, GitHub Apps, your app, Permissions and events, Repository permissions, Issues: **Read and write**, save, then accept the change on the installation page.
+
+**The shared AI usage counter (optional).** Without it, every running copy of the API counts the day's AI use on its own, so on a host that starts several copies the real daily ceiling is the limit times the number of copies. The counter also does not survive a restart. To make it one shared count (and to keep each person's own count and a short "recent requests" list):
+
+1. Open `studio/sql/003_studio_ai_usage.sql` and read it. It creates three tables (two of counters, one holding the daily limits that only you can change) and seven functions, all closed to direct access, callable only by signed-in active people, and it stores counters and request ids only (no instruction text, no page content, no names). Studio never applies it for you.
+2. Supabase dashboard, **SQL Editor**, paste it, **Run**. (It builds on `002_studio_ai.sql`, which must already be applied.)
+3. Set `STUDIO_AI_BUDGET_STORE` to `supabase` on the API host and redeploy.
+4. Check: ask for one suggestion, then in the SQL Editor run `select * from studio_ai_usage;`. Today's row shows 1 request.
+
+If the database is down, paused, or the SQL was never applied, AI help keeps working on the memory counters (the daily limits still apply, never "unlimited"), one `usage.store_fallback` line goes to the log and is not repeated for a minute, and the AI panel's usage line says `memory`. To go back for good, set `STUDIO_AI_BUDGET_STORE` to `memory`; the tables simply sit unused (you can delete them in the SQL Editor with `drop table studio_ai_requests, studio_ai_user_usage;` and `drop function` for the seven `studio_ai_*2`, `studio_ai_record`, `studio_ai_attach` and `studio_ai_recent` functions, if you want them gone).
+
+**What counts toward the limits.** A suggestion counts once the person got an answer they could use (a patch, a question back, a "needs a developer" note). If the AI gave an answer Studio had to throw away (unsafe or unusable), the request does **not** count against the person's or the site's daily limit, but the words it used are still counted in the token meter, because the money was spent. A model service that did not answer counts for nothing. Before sending, the AI panel can show an estimate ("About 0.4% of today's AI allowance."); the estimate calls no model and counts nothing.
+
+**After merging this change:** redeploy the API (new routes), and redeploy the sign-in page (`studio/login`) so its new messages are live.
+
+#### 4c.2 Status board and asking for a review (REVIEW unit)
+
+The **Status** panel shows what is live (and "Published, the site updates in a few minutes" for ten minutes after a publish), what waits for approval, what was restored recently and your own drafts. Editors see only their own drafts and a count of other people's. The **Review** screen is the plain-English "what will change" list with the one **Approve and publish** button. Both read from GitHub and write nothing; publishing still goes through the same gates: both CI checks green, a second person, the head the approver saw.
+
+Settings (all optional; the API works with every one unset):
+
+| Setting | What it does |
+|---|---|
+| `STUDIO_REVIEWERS` | JSON list of people who can be asked to review, at most 10: `[{"id":"amelia","name":"Amelia","github":"ameliagh","role":"approver"}]`. `github` is their GitHub user name (they must be collaborators on the repository) or `null`. Optional `userId` (their Studio user id) stops them choosing themselves. Logins are never sent to the browser |
+| `STUDIO_REVIEW_BASE_URL` | https address used for review links when a draft has no preview address |
+| `STUDIO_SITE_URL` | https address of the live site (only for the side-by-side links) |
+| `STUDIO_PREVIEW_EMBED` | `1` shows "See the live page / See this draft" links on the review screen. Leave `0` until founders can open previews (see `studio/NOTES-preview-access.md`) |
+| `STUDIO_SETTLING_MINUTES` | how long "Published, the site updates" shows, 1 to 60, default 10 |
+
+Asking for a review: the author picks an approver. With a GitHub login Studio asks GitHub to request their review (they get GitHub's own notification). Without one, or if GitHub refuses or is down, the draft is still sent and the author gets a ready-to-paste message with the review link, a **Copy link** button and an **Email it** button (opens their mail program with no recipient; Studio sends no e-mail itself). The review link is `<address>/?studio=1#review=<draft id>`; opening it signs the person in, then shows the review screen.
+
+Preview access (research only, nothing changed): founders cannot open Netlify previews while the site is unlaunched. `studio/NOTES-preview-access.md` compares the options and recommends one; the decision is Teo's.
+
+#### 4c.3 Checks, edit-mode legend and AI meter (EDIT unit)
+
+This unit adds no setting and no environment variable. It is all in the overlay and in one guard.
+
+**"Check my changes" (the tick button, or Ctrl/Cmd + K and "check").** It runs ten content rules on the draft in the browser, in plain English. The same rules, from the same code (`studio/content-rules/`), run in CI on every pull request as `studio/guards/check-content-rules.js` (part of `npm run check:studio`), so what a founder sees in the panel is what CI will say.
+
+| Rule | Severity | Flags |
+|---|---|---|
+| alt-missing | blocks | a picture that is not "decorative" has no description |
+| alt-weak | warning | a description under 5 or over 150 characters, equal to the file name, or starting "image of" / "picture of" |
+| title-length | warning | a search title under 15 or over 60 characters |
+| description-length | warning | a search description under 70 or over 160 (share text: under 40 or over 200) |
+| duplicate-text | warning | the same search title or description twice, the same FAQ question twice, the same heading twice in a list |
+| vague-link-text | warning | a link or button that says "click here", "here", "read more", "learn more" and the like |
+| broken-internal-link | blocks | a link to a page that does not exist, or to a #section that is not on that page (a link that goes through a redirect is a note) |
+| heading-skip | warning | a markdown heading that skips a level, or a top-level heading in page text |
+| image-heavy | warning | a picture over 600 KB or 3000 pixels wide |
+| page-weight | warning | the pictures of one page add up to over 3 MB |
+
+* A **block** finding fails CI (`Build and guards`) unless it is already listed in `studio/content-rules/baseline.json`; the list is empty and can only shrink (a listed finding that no longer occurs also fails, so the list is cleaned up). In the overlay **Send for review** refuses to run while the draft has a block finding that is not already on the live site, and says "Fix these first; they would stop your change from going live". Saving a draft is never blocked.
+* A warning or a note can be **ignored**. That is remembered on that person's device for that draft only; it is never sent anywhere and CI does not know about it. A block cannot be ignored.
+* The panel says it checks words, links and pictures and is **not a full accessibility audit**. Do not describe it as one anywhere (the guard fails if the panel text claims otherwise).
+* What the rules know about the site beyond the data (which pages exist, which sections a page has, how big the pictures are) is the "facts": built by `studio/content-rules/facts-node.js`, stored in `content.json` of the preview (key `facts`) and rebuilt for CI. If a preview was built without them the panel says so and skips the link and picture-size checks.
+* **Adding a rule:** write it in `studio/content-rules/rules.js` (a function that returns plain findings, no network, no clock), give it a known-bad example in `studio/content-rules/seeds.js` (the guard fails when a rule stops flagging its own example), and add a scenario in `studio/guards/selftest-p1-edit.js`. A new schema field named like a role (`title`, `description`, `label`, `cta...`) must be listed in `studio/content-rules/field-roles.json` (use `ignore` when no rule applies).
+* The overlay bundle carries `field-roles.json` and the rules; after changing either, rebuild the preview (the Studio API does not need a redeploy for this).
+
+**Edit-mode legend.** The chip next to the Edit button counts the things that can be edited on the page you are on (distinct text, picture, link, colour and switch markers; not sections or list items). `studio/schema/marker-coverage.json` holds the count of every built page (`pageCounts`) and `npm run check:studio` fails if a page loses editable things; after an intended change run `node studio/guards/check-markers.js --update`. On phones the chip is hidden to keep the dock on one row; the count and the legend are at the top of **All fields**.
+
+**All fields and the palette.** The **All fields** button is always in the dock in edit mode: fields with a marker on this page first, "Not visible on the page" after, **Everything** for the whole site. Ctrl/Cmd + K also jumps to any field of the files the page uses ("Jump to field: Site-wide > Meta description"), to a homepage section, to History and to the last five published changes. Nothing is fetched while searching except the five recent changes, once, when the palette opens.
+
+**The AI meter.** Under the instruction box Studio asks `POST /v1/ai/estimate` once the person has typed 10 characters and paused for 0.6 seconds (never on every key, never when AI is off, and the call is cancelled when they keep typing); it costs nothing and counts nothing. After a suggestion the panel prints "Used about X% of today's allowance (Y seconds)" from the answer's `meter`. If the answer could not be used it says "This one did not count toward your limit." If the person is in another window or tab when the answer arrives, a message "Your suggestion is ready" and a dot on the button tell them (no sound, no browser notification permission). **Recent requests** lists their last 20 (date, kind, "N of M accepted", the pull request link) from `GET /v1/ai/recent`; it never shows what they typed. These routes belong to the BACKEND unit (4c.1); until the API is redeployed the meter and the list stay empty and nothing else changes.
+
+**Help panel and plain errors.** **Help** shows "Studio status" (from `GET /v1/health`). When the API says `service_unavailable` the Account panel and a message say "Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute."
+
+#### 4c.4 Decap retired (DECAP unit)
+
+The old website editor (Decap CMS, at `/cms/`) and its Netlify Identity / Git Gateway login are gone from the code. COVERED Studio is the only editor.
+
+**What changed on the website:**
+* `/cms/` (and any old link under it) now shows a short page: "The old website editor has been retired", with how to use Studio. The page has no scripts and asks search engines not to list it.
+* The home page no longer carries the small script that forwarded Netlify invite and password-reset links to `/cms/`. This is the only change to the live pages.
+* `cms/config.yml` stays, but only as the list of what can be edited (the schema). Nobody opens it in an editor; a developer changes it with a pull request.
+
+**What Teo switches off in Netlify (the code cannot do this; do it after this change is merged and live):**
+1. Site configuration > Identity: disable Identity and delete the users. Old invite emails then stop working.
+2. Site configuration > Identity > Services: disable Git Gateway.
+3. GitHub > Settings > Applications: remove any leftover "Netlify Git Gateway" grant or personal access token.
+
+**After merging, redeploy the Studio API** (the Cloudflare Worker). The schema file was regenerated; until the Worker is redeployed, Studio's Account panel shows "editing rules are out of date". Nothing is lost while it shows.
+
+**Guard:** `studio/guards/check-no-decap.js` (part of `npm run check`) fails if any of this comes back.
 
 ### 5. Deploy the API (one adapter)
 
@@ -294,7 +412,7 @@ Add each founder in Studio (Admin, People) or in `studio_roles`: email, display 
 | Sign-in window opens and closes with no result | The login page does not know this preview address | Check `allowedOrigins` and `previewOriginTemplate` in the login `config.json` and `STUDIO_ALLOWED_ORIGINS` / `STUDIO_PREVIEW_ORIGIN_TEMPLATE` |
 | "You have not been invited" | Email is not in `studio_roles`, or `active` is false | Add or reactivate the person |
 | Every request answers "internal error" | The API refused to start because of a bad combination of settings | Read the host's log: it names the setting (for example `STUDIO_DEV` together with a real key, or a missing `GITHUB_*`) |
-| Save says a field is not allowed | The rules of the site (same as the content editor) refused it | Read the message next to the field and fix that one |
+| Save says a field is not allowed | The rules of the site (the same rules the website's own checks apply) refused it | Read the message next to the field and fix that one |
 | "Someone changed these since you started" | Another draft was published first | Choose Keep mine or Take theirs per item, or Refresh |
 | Publish is greyed out with "checks not green" | The site build or a guard failed on the draft | Open the pull request, read the failing check. Fix in a new save, or discard the draft |
 | Publish says "not your own draft" | The four-eyes rule | Ask the other approver |
@@ -303,7 +421,7 @@ Add each founder in Studio (Admin, People) or in `studio_roles`: email, display 
 
 ### Emergency switches
 
-* **Stop all Studio writes right now:** suspend or uninstall the GitHub App (GitHub, Settings, Applications). The website and its normal content editor keep working; nobody can save a draft.
+* **Stop all Studio writes right now:** suspend or uninstall the GitHub App (GitHub, Settings, Applications). The live website keeps working; nobody can save a draft until the App is allowed again.
 * **Stop one person:** set `active` to false in `studio_roles`.
 * **Undo a bad publish:** History, Restore, then an approver publishes. If Studio itself is down, revert the pull request on GitHub as usual.
 * **Rotate a leaked GitHub App key:** generate a new private key in the app settings, replace `GITHUB_APP_PRIVATE_KEY`, delete the old key.

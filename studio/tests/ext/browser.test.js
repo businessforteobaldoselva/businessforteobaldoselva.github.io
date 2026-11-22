@@ -224,9 +224,11 @@ test("browser tests (keyboard-only walkthroughs)", { skip: SKIP }, async (t) => 
     await waitShadow(page, (r) => r.querySelector(".csx-tour-card"));
     const card = await inShadow(page, (r) => { const c = r.querySelector(".csx-tour-card"); return { role: c.getAttribute("role"), labelled: r.getElementById ? null : null, title: c.querySelector(".csx-tour-title").textContent, count: c.querySelector(".csx-tour-count").textContent, focus: r.activeElement && r.activeElement.getAttribute("data-tour-next"), labelledby: c.getAttribute("aria-labelledby") }; });
     assert.equal(card.role, "dialog");
-    assert.equal(card.count, "Step 1 of 7");
+    assert.equal(card.count, "Step 1 of 9");
     assert.equal(card.focus, "1");
     assert.equal(card.labelledby, "csx-tour-title");
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await inShadow(page, (r) => r.querySelector(".csx-tour-title").textContent), "How much can you change here?");
     await page.keyboard.press("ArrowRight");
     assert.equal(await inShadow(page, (r) => r.querySelector(".csx-tour-title").textContent), "Click any text to change it");
     // the spotlight sits over the real headline
@@ -237,11 +239,11 @@ test("browser tests (keyboard-only walkthroughs)", { skip: SKIP }, async (t) => 
     assert.ok(geom2.spot[0] <= geom2.head[0] && geom2.spot[1] <= geom2.head[1] && geom2.spot[2] >= geom2.head[2] && geom2.spot[3] >= geom2.head[3], "spotlight covers the headline: " + JSON.stringify(geom2));
     await page.keyboard.press("ArrowRight"); // image
     await page.keyboard.press("ArrowRight"); // sections tab (stub has data-tour attrs only once panels exist)
-    assert.equal(await inShadow(page, (r) => r.querySelector(".csx-tour-count").textContent), "Step 4 of 7");
+    assert.equal(await inShadow(page, (r) => r.querySelector(".csx-tour-count").textContent), "Step 5 of 9");
     // Tab never leaves the card
     for (let i = 0; i < 8; i++) { await page.keyboard.press("Tab"); assert.equal(await inShadow(page, (r) => !!(r.activeElement && r.activeElement.closest(".csx-tour-card"))), true); }
     await page.keyboard.press("ArrowLeft");
-    assert.equal(await inShadow(page, (r) => r.querySelector(".csx-tour-count").textContent), "Step 3 of 7");
+    assert.equal(await inShadow(page, (r) => r.querySelector(".csx-tour-count").textContent), "Step 4 of 9");
     await page.keyboard.press("Escape");
     assert.equal(await inShadow(page, (r) => !r.querySelector(".csx-tour-card")), true);
     assert.equal(await page.evaluate(() => window.localStorage.getItem("covered.studio.v1.tour.u-newbie")), "done");
@@ -257,7 +259,7 @@ test("browser tests (keyboard-only walkthroughs)", { skip: SKIP }, async (t) => 
     await page.keyboard.press("Enter");
     await waitShadow(page, (r) => r.querySelector(".csx-tour-card"));
     // walk to the end with Next and finish
-    for (let i = 0; i < 6; i++) await page.keyboard.press("Enter");
+    for (let i = 0; i < 8; i++) await page.keyboard.press("Enter");
     assert.match(await inShadow(page, (r) => r.querySelector("[data-tour-next]").textContent), /Done/);
     await page.keyboard.press("Enter");
     assert.equal(await inShadow(page, (r) => !r.querySelector(".csx-tour-card")), true);

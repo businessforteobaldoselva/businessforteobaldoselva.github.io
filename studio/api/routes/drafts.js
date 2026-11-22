@@ -39,7 +39,7 @@ const routes = [
   },
   {
     method: "POST", path: "/v1/drafts/:id/submit", cls: "write",
-    async run(ctx, req) { bodyObject(await req.json(), ["idempotencyKey"]); return { status: 200, body: await svc.submitDraft(ctx, req.params.id) }; },
+    async run(ctx, req) { const b = bodyObject(await req.json(), ["idempotencyKey", "reviewerId"]); return { status: 200, body: await svc.submitDraft(ctx, req.params.id, { reviewerId: b.reviewerId, idempotencyKey: b.idempotencyKey }) }; },
   },
   {
     method: "POST", path: "/v1/drafts/:id/publish", cls: "publish", minRole: "approver",

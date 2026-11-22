@@ -26,6 +26,13 @@ class ConfigError extends Error {
 const list = (s) => String(s || "").split(",").map((x) => x.trim()).filter((x) => x.length > 0);
 const flag = (v) => v === "1" || v === "true";
 
+function whole(e, name, def, lo, hi) {
+  const raw = e[name];
+  if (raw === undefined || raw === null || String(raw).trim() === "") return def;
+  if (!/^[0-9]{1,9}$/.test(String(raw).trim())) throw new ConfigError(name + " must be a whole number");
+  return Math.max(lo, Math.min(hi, Number(String(raw).trim())));
+}
+
 function loadConfig(env) {
   const e = env || {};
   const studioEnv = e.STUDIO_ENV || "production";
@@ -63,6 +70,11 @@ function loadConfig(env) {
   const aiCfg = loadAiConfig(e);
   if (production && aiCfg.enabled && !e.STUDIO_AUDIT_SALT) throw new ConfigError("STUDIO_AUDIT_SALT is required when AI help is switched on (it keeps instruction hashes in the log from being guessed)");
 
+  // Phase 1 BACKEND: where the AI daily counters live (memory, or the Supabase tables of studio/sql/003) and the health route's timing
+  const budgetStore = e.STUDIO_AI_BUDGET_STORE === undefined || e.STUDIO_AI_BUDGET_STORE === "" ? "memory" : String(e.STUDIO_AI_BUDGET_STORE);
+  if (budgetStore !== "memory" && budgetStore !== "supabase") throw new ConfigError("STUDIO_AI_BUDGET_STORE must be memory or supabase");
+  if (budgetStore === "supabase" && dev) throw new ConfigError("STUDIO_AI_BUDGET_STORE=supabase needs real sign-in (not STUDIO_DEV=1)");
+
   return {
     env: studioEnv,
     production,
@@ -80,7 +92,10 @@ function loadConfig(env) {
     baseBranch: e.GITHUB_BASE_BRANCH || "main",
     github: m ? { owner: m[1], repo: m[2], appId: e.GITHUB_APP_ID || "", installationId: e.GITHUB_APP_INSTALLATION_ID || "" } : null,
     supabase: { url: e.SUPABASE_URL || "", anonKey: e.SUPABASE_ANON_KEY || "", jwtMode },
+    health: { ttlSeconds: whole(e, "STUDIO_HEALTH_TTL_SECONDS", 30, 5, 300), timeoutMs: whole(e, "STUDIO_HEALTH_TIMEOUT_MS", 3000, 500, 10000) },
+    aiBudgetStore: budgetStore,
     ai: aiCfg, // plain numbers and flags only: the AI key is never part of the configuration
+    review: require("./review-config").load(e), // Phase 1: REVIEW unit settings (reviewers, preview embedding, site address)
   };
 }
 
@@ -91,6 +106,7 @@ function buildDeps(config, env, overrides) {
   const e = env || {};
   const now = o.now || (() => new Date());
   const doFetch = o.fetch || ((...a) => fetch(...a));
+  const audit = o.audit || createAudit({ sinks: [consoleSink], salt: config.auditSalt, now });
   let auth = o.auth;
   let roles = o.roles;
   let git = o.git;
@@ -101,9 +117,8 @@ function buildDeps(config, env, overrides) {
   } else {
     if (!auth) auth = createSupabaseAuth({ supabaseUrl: config.supabase.url, mode: config.supabase.jwtMode, jwtSecret: e.SUPABASE_JWT_SECRET, fetch: doFetch, now });
     if (!roles) roles = createSupabaseRoles({ supabaseUrl: config.supabase.url, anonKey: config.supabase.anonKey, fetch: doFetch });
-    if (!git) git = createGithubGit({ owner: config.github.owner, repo: config.github.repo, baseBranch: config.baseBranch, appId: config.github.appId, installationId: config.github.installationId, privateKey: e.GITHUB_APP_PRIVATE_KEY, fetch: doFetch, now });
+    if (!git) git = createGithubGit({ owner: config.github.owner, repo: config.github.repo, baseBranch: config.baseBranch, appId: config.github.appId, installationId: config.github.installationId, privateKey: e.GITHUB_APP_PRIVATE_KEY, fetch: doFetch, now, onLabelFailure: () => audit.write({ requestId: "git", action: "label.failed", outcome: "error" }) });
   }
-  const audit = o.audit || createAudit({ sinks: [consoleSink], salt: config.auditSalt, now });
   if (!o.schema) throw new ConfigError("a schema is required (adapters load studio/schema/studio-schema.json)");
   const reserved = o.reservedIds || makeReserved(o.schema);
   const deps = {

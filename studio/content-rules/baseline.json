@@ -1,0 +1,1 @@
+{ "_about": "Block findings that already exist on the live content when the rules were introduced (studio/PHASE1-DESIGN.md 8.5). CI fails on any block finding that is not listed here and on any entry that no longer occurs, so this list can only shrink. It is empty: the live content is clean.", "blocked": [] }

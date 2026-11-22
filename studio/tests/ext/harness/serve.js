@@ -47,6 +47,7 @@ function start() {
     if (m && FILES.includes(m[1])) return send(200, "text/javascript", fs.readFileSync(path.join(EXT, m[1])));
     if (url.pathname === "/favicon.ico") return send(204, "image/x-icon", "");
     if (url.pathname === "/__log") return send(200, "application/json", JSON.stringify(log));
+    if (url.pathname === "/api/v1/health" && req.method === "GET") return send(200, "application/json", JSON.stringify(state.health || { ok: true, checkedAt: "2026-11-22T10:00:00Z", cached: false, services: { auth: { state: "ok", message: null }, git: { state: "ok", message: null }, ai: { state: "off", store: "memory", message: null } }, message: null }));
     if (url.pathname === "/api/v1/history" && req.method === "GET") {
       log.push("GET history cursor=" + (url.searchParams.get("cursor") || ""));
       return send(200, "application/json", JSON.stringify(history(url.searchParams.get("cursor") === "page2" ? "2" : "1")));

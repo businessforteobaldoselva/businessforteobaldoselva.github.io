@@ -296,10 +296,9 @@ test("needs-code card: request text, Ask Claude address checks", () => {
   const v = V.normalizeProposal(clone(SAMPLE.proposals.needs_code));
   assert.equal(v.kind, "needs_code");
   assert.match(V.requestText(v.needsCode), /^Title: Make the hero video autoplay with a parallax effect\nWhere: Hero\nHow soon: Whenever\n\nThe hero video should start/);
-  assert.equal(V.askClaudeUrl(null, "https://www.coveredaccess.com"), "https://www.coveredaccess.com/admin/#/collections/requests/new");
-  assert.equal(V.askClaudeUrl(null, "http://localhost:8080/"), "http://localhost:8080/admin/#/collections/requests/new");
+  assert.equal(V.askClaudeUrl(null, "https://www.coveredaccess.com"), null, "no default address: the Decap editor page is gone");
   assert.equal(V.askClaudeUrl("https://cms.example.test/new", "https://x.test"), "https://cms.example.test/new");
-  assert.equal(V.askClaudeUrl("javascript:alert(1)", "https://x.test"), "https://x.test/admin/#/collections/requests/new", "a bad configured address falls back to the site's own");
+  assert.equal(V.askClaudeUrl("javascript:alert(1)", "https://x.test"), null, "a bad configured address shows no link");
   assert.equal(V.askClaudeUrl("http://evil.test/", null), null);
   assert.equal(V.askClaudeUrl("https://user:pw@evil.test/", null), null);
   assert.equal(V.askClaudeUrl(null, "data:text/html,x"), null);

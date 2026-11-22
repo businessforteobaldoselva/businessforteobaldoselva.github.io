@@ -12,7 +12,8 @@ const { ApiError } = require("../errors");
 const { validatePatch } = require("../../validate");
 const { assertProvider, ProviderError } = require("./providers/interface");
 const { createDisabledProvider } = require("./providers/disabled");
-const { createMemoryBudget, dayKey, nextMidnight } = require("./budget");
+const { createMemoryBudget, selectStore, dayKey, nextMidnight } = require("./budget");
+const { createSupabaseBudget } = require("../providers/usage/supabase-budget");
 const A = require("./allowlist");
 const policy = require("./policy");
 const T = require("./tool-schema");
@@ -49,25 +50,34 @@ function createAiService(opts) {
   const cfg = o.config || (deps.config && deps.config.ai);
   if (!cfg) throw new TypeError("AI settings are required");
   const provider = assertProvider(o.provider || createDisabledProvider());
-  const budget = o.budget || createMemoryBudget({ dailyRequests: cfg.dailyRequests, dailyTokens: cfg.dailyTokens });
+  // the daily counters (PHASE1-DESIGN 10): this instance's memory store always exists; the shared Supabase one is opt-in
+  // (STUDIO_AI_BUDGET_STORE=supabase, needs studio/sql/003 applied) and is bound to the caller's own JWT for each request
+  const budget = o.budget || createMemoryBudget({ dailyRequests: cfg.dailyRequests, dailyTokens: cfg.dailyTokens, userPerDay: cfg.userPerDay, now: deps.now });
+  const sharedState = {};
+  const caps = { requests: cfg.dailyRequests, tokens: cfg.dailyTokens, userRequests: cfg.userPerDay };
+  const wantShared = !o.budget && deps.config.aiBudgetStore === "supabase" && !deps.config.dev;
+  function storeFor(ctx) {
+    if (!wantShared) return budget;
+    const sb = createSupabaseBudget({ deps, token: ctx.token, limits: { dailyRequests: cfg.dailyRequests, dailyTokens: cfg.dailyTokens, userPerDay: cfg.userPerDay } });
+    return selectStore({ memory: budget, supabase: sb, shared: sharedState, now: deps.now, log: (x) => { try { deps.audit.write({ requestId: ctx.requestId, action: "usage.store_fallback", outcome: "error", ai: { codes: [String(x.why).slice(0, 40)] } }); } catch (e) { /* a log must never break a request */ } } });
+  }
   const worldId = o.worldId || "default";
   let allowCache = null;
   const allow = () => allowCache || (allowCache = A.deriveAllowList(deps.schema));
   const cache = new Map(); // userKey|idempotencyKey -> { at, sig, proposal }
   const inflight = new Map(); // userKey|idempotencyKey|sig -> Promise<{ proposal }> of a model call that has not finished yet
-  const usageToday = new Map(); // day|userKey -> count
   const today = () => dayKey(deps.now());
   const modes = policy.MODES.slice();
 
   const keyPresent = () => provider.id !== "disabled";
   const isEnabled = () => !!cfg.enabled && keyPresent();
-  function reasonNow() {
+  function reasonFrom(snap) {
     if (!cfg.enabled) return "disabled";
     if (!keyPresent()) return "no_key";
-    const snap = budget.snapshot(today());
-    if (snap.requests >= cfg.dailyRequests || snap.tokens >= cfg.dailyTokens) return "budget_exhausted";
+    if (snap.global.requests >= cfg.dailyRequests || snap.global.tokens >= cfg.dailyTokens) return "budget_exhausted";
     return null;
   }
+  const pct = (n, of) => Math.min(100, Math.round(((n / Math.max(1, of)) * 100) * 10) / 10);
 
   async function audit(ctx, action, outcome, ai, extra) {
     try { await deps.audit.write(Object.assign({ requestId: ctx.requestId, actor: actorOf(ctx), action, outcome, ai }, extra || {})); } catch (e) { /* an audit sink must never break a request */ }
@@ -75,9 +85,10 @@ function createAiService(opts) {
 
   // ---- status -----------------------------------------------------------------------------------------------------------
   async function status(ctx) {
-    const reason = reasonNow();
     const day = today();
-    const snap = budget.snapshot(day);
+    const store = storeFor(ctx);
+    const snap = await store.snapshot({ day, userId: ctx.userKey });
+    const reason = reasonFrom(snap);
     const ok = reason === null;
     const s = {
       enabled: ok, reason,
@@ -86,11 +97,19 @@ function createAiService(opts) {
       vision: ok && !!cfg.vision,
       modes: ok ? modes : [],
       limits: { instructionChars: policy.CAPS.instruction, feedbackChars: policy.CAPS.feedback, contextRefs: policy.CAPS.refs, maxChanges: policy.CAPS.changes },
-      usage: { requestsToday: snap.requests, requestsLimit: cfg.dailyRequests, yourRequestsToday: usageToday.get(day + "|" + ctx.userKey) || 0, yourRequestsLimit: cfg.userPerDay, resetsAt: nextMidnight(deps.now()) },
+      usage: { requestsToday: snap.global.requests, requestsLimit: cfg.dailyRequests, yourRequestsToday: snap.user.requests, yourRequestsLimit: cfg.userPerDay, resetsAt: nextMidnight(deps.now()), tokensToday: snap.global.tokens, tokensLimit: cfg.dailyTokens, pctOfDay: pct(snap.global.tokens, cfg.dailyTokens), store: store.kind },
     };
     const bad = shapes.validateStatus(s);
     if (bad.length) throw new Error("status shape: " + bad[0]);
     return s;
+  }
+
+  // the health route's view of AI help (no person, no token): from the settings, the key and THIS instance's counters
+  async function health() {
+    const store = wantShared && !(sharedState.downUntil && deps.now().getTime() < sharedState.downUntil) ? "supabase" : "memory";
+    const reason = reasonFrom(await budget.snapshot({ day: today(), userId: "" }));
+    const state = reason === null ? "ready" : reason === "disabled" ? "off" : reason;
+    return { state, store, message: state === "budget_exhausted" ? COPY.budget : null };
   }
 
   // ---- the request ------------------------------------------------------------------------------------------------------
@@ -202,9 +221,18 @@ function createAiService(opts) {
   async function proposeCall(ctx, req, day, cacheKey, sig, instrHash, t0) {
 
     limit(ctx, "ai:u:" + ctx.userKey, { limit: cfg.userPer10Min, windowMs: 600000 }, "rate_user");
-    limit(ctx, "ai:ud:" + ctx.userKey + ":" + day, { limit: cfg.userPerDay, windowMs: 86400000 }, "rate_user_day");
     limit(ctx, "ai:g", { limit: cfg.globalPerHour, windowMs: 3600000 }, "rate_global");
 
+    const prep = await prepare(ctx, req, instrHash);
+    if (prep.early) { // alt text with nothing to describe: answered without spending a model call
+      await audit(ctx, "ai.propose", "ok", Object.assign({}, prep.meta, { kind: "clarify", provider: prep.proposal.provider, model: prep.proposal.model, changes: 0, skipped: 0, codes: ["no_pairs"] }));
+      return remember(cacheKey, sig, prep.proposal, ctx, day);
+    }
+    return runModel(ctx, req, day, cacheKey, sig, instrHash, t0, prep);
+  }
+
+  // everything up to the budget step: what the model would be sent. Reads Git, writes nothing, spends nothing.
+  async function prepare(ctx, req, instrHash) {
     const git = deps.git;
     const mainHead = (await git.getHead(git.getBaseBranch())).sha;
     let ref = mainHead;
@@ -228,8 +256,7 @@ function createAiService(opts) {
     // alt text with nothing to describe: answer without spending a model call
     if (req.mode === "alt_text" && !pack.pairs.length) {
       const pr = finish(Object.assign({ id: await prop.proposalId(ctx.userKey, mainHead, draftHead, []), kind: "clarify", summary: "No pictures to describe.", changes: [], skipped: [], needsCode: null, question: "I could not find a picture that needs a description. Click a picture on the page, then ask again.", findings: [], warnings: req.warnings, usage: { inTok: 0, outTok: 0, latencyMs: 0 } }, common));
-      await audit(ctx, "ai.propose", "ok", Object.assign({}, meta, { kind: "clarify", provider: pr.provider, model: pr.model, changes: 0, skipped: 0, codes: ["no_pairs"] }));
-      return remember(cacheKey, sig, pr, ctx, day);
+      return { early: true, proposal: pr, meta };
     }
 
     const build = (pk, images) => prompt.buildPrompt({ mode: req.mode, instruction: req.instruction, feedback: req.feedback, refs: req.context.refs, pack: pk, images, nonce: hexNonce() });
@@ -243,14 +270,24 @@ function createAiService(opts) {
       if (built.user.length > cfg.maxInputChars) throw new ApiError("bad_request", "There is too much content for one request. Pick a section and try again.");
     }
 
-    // budget: estimate now, settle with real usage after
-    const est = Math.ceil((built.system.length + built.user.length) / 3) + cfg.maxOutputTokens;
-    const rv = budget.reserve(day, est);
+    const inputTokens = Math.ceil((built.system.length + built.user.length) / 3);
+    return { early: false, mainHead, draftHead, ref, al, docs, pack, built, images, meta, common, inputTokens };
+  }
+
+  // ---- budget: reserve an estimate before the call, settle with the real usage after ---------------------------------------------
+  async function runModel(ctx, req, day, cacheKey, sig, instrHash, t0, prep) {
+    const { mainHead, draftHead, ref, al, docs, pack, built, images, meta, common } = prep;
+    const store = storeFor(ctx);
+    const est = prep.inputTokens + cfg.maxOutputTokens;
+    const rv = await store.reserve({ day, tokens: est, userId: ctx.userKey, caps });
     if (!rv.ok) {
-      await audit(ctx, "ai.denied", "denied", { codes: ["budget_exhausted"] });
+      await audit(ctx, "ai.denied", "denied", { codes: [rv.reason === "user_requests" ? "user_day_limit" : "budget_exhausted"] });
+      if (rv.reason === "user_requests") {
+        const sec = Math.max(1, Math.ceil((Date.parse(nextMidnight(deps.now())) - deps.now().getTime()) / 1000));
+        throw new ApiError("rate_limited", "You have used your " + cfg.userPerDay + " AI suggestions for today. They come back at midnight (UTC).", { retryAfterSec: sec }, { headers: { "Retry-After": String(sec) } });
+      }
       throw new ApiError("ai_budget_exhausted", COPY.budget, { resetsAt: nextMidnight(deps.now()) });
     }
-    usageToday.set(day + "|" + ctx.userKey, (usageToday.get(day + "|" + ctx.userKey) || 0) + 1);
 
     const replayKey = await prop.replayKey(req.mode, req.instruction, req.feedback, req.context.refs, !!req.draftId, worldId);
     let res;
@@ -262,16 +299,29 @@ function createAiService(opts) {
         meta: { replayKey, mode: req.mode },
       });
     } catch (e) {
-      budget.release(day, est);
+      await store.release({ day, reserved: est, userId: ctx.userKey });
       const code = e instanceof ProviderError ? e.code : "unavailable";
       if (code === "disabled") throw new ApiError("ai_disabled", COPY.disabled);
       await audit(ctx, code === "auth" ? "ai.denied" : "ai.propose", code === "auth" ? "denied" : "error", Object.assign({}, meta, { provider: provider.id, model: provider.model, codes: [code === "auth" ? "provider_auth" : "provider_" + code].concat(e && e.status ? ["http_" + e.status] : []) }));
       throw new ApiError("ai_unavailable", COPY.unavailable);
     }
     const usage = { inTok: Math.max(0, Math.floor(res.usage && res.usage.inTok) || 0), outTok: Math.max(0, Math.floor(res.usage && res.usage.outTok) || 0) };
-    budget.settle(day, est, usage.inTok + usage.outTok);
     usage.latencyMs = Math.max(0, Date.now() - t0);
     common.model = typeof res.model === "string" && res.model ? res.model.slice(0, 80) : provider.model;
+    const used = usage.inTok + usage.outTok;
+    // The real tokens are ALWAYS counted (the money was spent and the meter must match the provider's bill). The REQUEST only counts
+    // when the person got an answer they could use: a Gate 1 rejection or "nothing usable" gives the request back (PHASE1-DESIGN 10.3).
+    const settle = async (counted) => {
+      try { await store.settle({ day, reserved: est, actual: used, userId: ctx.userKey, countRequest: counted }); } catch (e) { /* the memory store cannot fail; a shared one falls back by itself */ }
+      return { usedTokens: used, tookMs: usage.latencyMs, pctOfDayUsed: pct(used, cfg.dailyTokens), requestsLeftToday: Math.max(0, cfg.dailyRequests - (rv.global.requests - (counted ? 0 : 1))), counted };
+    };
+    const record = (id, mode, kind, tokens) => store.recordRequest({ userId: ctx.userKey, id, mode, kind, tokens }).catch(() => {});
+    const rejected = async (err) => {
+      const meter = await settle(false);
+      err.details = Object.assign({}, err.details, { meter });
+      await record("p_" + hexNonce().slice(0, 12), req.mode, "rejected", used);
+      return err;
+    };
 
     // Gate 1
     const parsed = out.parseModelOutput(res, { mode: req.mode, allow: al, docs, filesSent: pack.filesSent });
@@ -279,7 +329,7 @@ function createAiService(opts) {
       const codes = parsed.violations.map((v) => v.code);
       await audit(ctx, "ai.rejected", "invalid", Object.assign({}, meta, { provider: provider.id, model: common.model, usage, codes: [...new Set(codes)] }));
       const long = codes.indexOf("max_tokens") >= 0;
-      throw new ApiError("ai_bad_output", long ? COPY.tooLong : COPY.badOutput, { violations: parsed.violations.slice(0, 10).map((v) => ({ code: v.code, where: typeof v.where === "number" ? "ops/" + v.where : String(v.where) })) });
+      throw await rejected(new ApiError("ai_bad_output", long ? COPY.tooLong : COPY.badOutput, { violations: parsed.violations.slice(0, 10).map((v) => ({ code: v.code, where: typeof v.where === "number" ? "ops/" + v.where : String(v.where) })) }));
     }
     if (pack.injectionRefs.length) await audit(ctx, "ai.injection_suspected", "ok", { mode: req.mode, instrHash, codes: [] }, { target: { refs: pack.injectionRefs.slice(0, 10) } });
 
@@ -287,7 +337,16 @@ function createAiService(opts) {
     let proposal;
     if (parsed.kind === "clarify") proposal = finish(Object.assign({ id: await prop.proposalId(ctx.userKey, mainHead, draftHead, []), kind: "clarify", summary: parsed.summary, changes: [], skipped: [], needsCode: null, question: parsed.question, findings: [], warnings: pack.warnings.concat(req.warnings), usage }, common));
     else if (parsed.kind === "needs_code") proposal = finish(Object.assign({ id: await prop.proposalId(ctx.userKey, mainHead, draftHead, []), kind: "needs_code", summary: parsed.summary, changes: [], skipped: [], needsCode: { reason: parsed.reason, request: parsed.request }, question: null, findings: [], warnings: pack.warnings.concat(req.warnings), usage }, common));
-    else proposal = await buildChangeProposal(idBase, parsed, { meta, audit: (a, oc, x) => audit(ctx, a, oc, x) });
+    else {
+      try { proposal = await buildChangeProposal(idBase, parsed, { meta, audit: (a, oc, x) => audit(ctx, a, oc, x) }); } catch (e) {
+        if (e instanceof ApiError && e.code === "ai_bad_output") throw await rejected(e); // nothing usable: the request is given back
+        await settle(true); // a bug on our side after the model answered: the tokens and the request were spent
+        throw e;
+      }
+    }
+    proposal.meter = await settle(true);
+    finish(proposal);
+    await record(proposal.id, req.mode, req.mode === "alt_text" && proposal.kind === "patch" ? "alt_text" : proposal.kind, used);
 
     await audit(ctx, "ai.propose", "ok", Object.assign({}, meta, { kind: proposal.kind, provider: proposal.provider, model: proposal.model, usage, changes: proposal.changes.length, skipped: proposal.skipped.length, codes: proposal.skipped.map((s) => s.code).slice(0, 10) }));
     return remember(cacheKey, sig, proposal, ctx, day);
@@ -417,9 +476,12 @@ function createAiService(opts) {
     return finish(p);
   }
 
-  const svcAccept = (ctx, body) => require("../services/ai").accept(ctx, body, { deps, allow: allow(), cfg, isEnabled, audit });
+  const svcAccept = (ctx, body) => require("../services/ai").accept(ctx, body, { deps, allow: allow(), cfg, isEnabled, audit, attach: (c, a) => storeFor(c).attachAccept(Object.assign({ userId: c.userKey }, a)) });
+  const usageSvc = () => require("../services/ai-usage");
+  const estimate = async (ctx, body) => usageSvc().estimate(ctx, body, { deps, cfg, isEnabled, parseRequest, prepare, store: storeFor(ctx), today, caps, pct, audit });
+  const recent = async (ctx) => usageSvc().recent(ctx, { deps, store: storeFor(ctx) });
 
-  return { status, propose, accept: svcAccept, provider: { id: provider.id, model: provider.model }, _budget: budget };
+  return { status, propose, accept: svcAccept, estimate, recent, health, provider: { id: provider.id, model: provider.model }, _budget: budget };
 }
 
 module.exports = { createAiService, COPY };
