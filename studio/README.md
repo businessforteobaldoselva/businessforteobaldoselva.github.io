@@ -183,7 +183,7 @@ What it built (contract: `studio/PHASE1-DESIGN.md` sections 8 and 9; plan items 
 8. **Palette.** "Go to <section>" became "Jump to section: <name>" (a palette source); the section list is read from `studio.staging` (the old code read `studio.content.files()` as an object, which only the test stub provides).
 9. **Pre-existing test harness fixes.** `tests/ext/harness/stub-studio.js` lacked `util.local` (the tour needs it), so the keyboard browser tests of History, Help, Tour and palette could not start; it now has it and the harness answers `/v1/health`. `tests/overlay/bundle.test.js` size limit raised from 400 to 560 KiB (the Phase 1 overlay budget is 460 + 64 KiB plus the schema).
 10. **`check-ai-overlay.js`** now allows `details`/`summary` and the `open` property in the AI panel and the routes `GET /v1/ai/recent` and `POST /v1/ai/estimate`.
-11. **`stub-server.js`** gained `siteDir` (serve a real edit build and point its overlay at the stub), used by `browser.test.js`.
+11. **`stub-server.js`** gained `siteDir` (serve a real edit build and point its overlay at the stub), used by `browser.test.js`; **`ai-demo.js`** gained the estimate and recent routes and a `meter` on its proposals, so the AI journey shows the new lines.
 12. **Not done:** the dock chip text on phones, a "legend outline colour" per kind (the overlay draws one outline style, so the legend names each kind with a small shape instead of a colour), and `runbook` screenshots.
 
 ### DECAP

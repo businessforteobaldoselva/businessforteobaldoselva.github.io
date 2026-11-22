@@ -191,10 +191,20 @@ test("palette: keyboard only - jump to a field that is not on the page, to a sec
 test("palette: every field of the files the page uses can be reached by name", { skip: SKIP }, async () => {
   const page = await newPage("/about/");
   await signIn(page);
-  const refs = await page.evaluate(() => { const c = window.CoveredStudio; const files = new Set(); document.querySelectorAll("[data-cms]").forEach((n) => files.add(n.getAttribute("data-cms").split(".")[0])); files.add("site"); const out = []; files.forEach((f) => { if (!c.staging.files().includes(f)) return; c.schemaClient.leaves(f, c.staging._base()[f], 4000).forEach((r) => { if (r.field.widget !== "hidden") out.push(f + "." + r.segs.join(".")); }); }); return out.length; });
-  const found = await page.evaluate(() => { const rows = window.__CoveredStudioBoot && null; return rows; });
-  void found;
-  assert.ok(refs > 30);
+  // every field of every file this page uses (and the site-wide file) has a row in the palette's field source
+  const reach = await page.evaluate(() => {
+    const c = window.CoveredStudio;
+    const src = c.ui.paletteSources().find((s) => s.id === "fields.jump");
+    const have = new Set(src.search("field").map((r) => r.ref));
+    const files = new Set(["site"]);
+    document.querySelectorAll("[data-cms]").forEach((n) => files.add(n.getAttribute("data-cms").split(".")[0]));
+    const miss = [];
+    let total = 0;
+    files.forEach((f) => { if (!c.staging.files().includes(f)) return; c.schemaClient.leaves(f, c.staging._base()[f], 4000).forEach((r) => { if (r.field.widget === "hidden") return; total += 1; const ref = f + "." + r.segs.join("."); if (!have.has(ref)) miss.push(ref); }); });
+    return { miss: miss.slice(0, 5), n: miss.length, total };
+  });
+  assert.ok(reach.total > 30, "the page uses many fields: " + reach.total);
+  assert.equal(reach.n, 0, "fields the palette cannot reach: " + reach.miss.join(", "));
   // the palette finds a few known fields by their schema labels
   await press(page, "Control", "k");
   await waitShadow(page, (root) => root.querySelector(".csx-pal"));
