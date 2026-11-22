@@ -198,6 +198,8 @@
     }
 
     function homepageSections() {
+      // the real host keeps the editable files in studio.staging (studio.content.files() is only a list of names there); the test stub has them in content.files()
+      try { var b = studio.staging && studio.staging._base ? studio.staging._base() : null; if (b && b.homepage) return b.homepage.sections || []; } catch (e) { /* fall back */ }
       try { var f = studio.content.files(); return (f.homepage && f.homepage.data && f.homepage.data.sections) || []; } catch (e) { return []; }
     }
     function sectionLabel(i, sec) {
@@ -246,14 +248,15 @@
       try {
         var files = [];
         document.querySelectorAll("[data-cms]").forEach(function (n) { var ref = n.getAttribute("data-cms") || ""; var f = ref.split(".")[0]; if (f && files.indexOf(f) < 0) files.push(f); });
-        if (files.indexOf("site") < 0) files.push("site");
-        var have = studio.content.files() || {};
+        files = files.filter(function (f) { return f !== "site"; });
+        files.unshift("site"); // site-wide search and sharing text first: it is what people look for by name
+        var have = studio.staging && studio.staging.files ? studio.staging.files() : [];
         files.forEach(function (file) {
-          if (!have[file]) return;
+          if (have.indexOf(file) < 0) return;
           var doc = studio.staging && studio.staging._base ? studio.staging._base()[file] : null;
           if (!doc) return;
-          studio.schemaClient.leaves(file, doc, 600).forEach(function (r) {
-            if (r.field.widget === "hidden" || rows.length >= 1500) return;
+          studio.schemaClient.leaves(file, doc, 1500).forEach(function (r) {
+            if (r.field.widget === "hidden" || rows.length >= 4000) return;
             var ref = file + "." + r.segs.join(".");
             var label = studio.schema.label(ref);
             rows.push({ id: "fields.jump." + ref, title: "Jump to field: " + label, keywords: [typeof r.value === "string" ? r.value.slice(0, 160) : "", "field", "edit", "change"], group: "Fields", kind: "edit-ref", ref: ref, run: function () { return ui.editRef(ref); } });

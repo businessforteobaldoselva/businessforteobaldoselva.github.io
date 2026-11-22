@@ -30,6 +30,11 @@ const CLEAN_ENV = { COVERED_IMG_FAST: "1", STUDIO_API_URL: "", STUDIO_APP_URL: "
 const TAG_RE = /<script src="\/studio\/overlay\.js"[^>]*><\/script>/g;
 const ATTR_RE = / data-cms[a-z-]*="[^"]*"/g;
 const COVERAGE_PAGES = ["index.html", "about/index.html"];
+// the kinds the dock chip ("N editable things here") counts: leaves only, once per ref (studio/overlay/ext/legend.js, PHASE1-DESIGN 9.1)
+const LEAF_KINDS = new Set(["text", "longtext", "markdown", "image", "link", "color", "toggle"]);
+function editableCount(markers) {
+  return new Set(markers.filter((m) => LEAF_KINDS.has(m.kind)).map((m) => m.ref)).size;
+}
 
 // Same behaviour as the site's `safeUrl` filter (.eleventy.js); lib/rules.js is preferred once it exists.
 function loadSafeUrl(root) {
@@ -229,6 +234,9 @@ function main() {
         }
       }
     }
+    // how many editable things each built page offers: may not shrink (the chip tells a founder this number)
+    const pageCounts = {};
+    for (const [f, ms] of allMarkers) { const n = editableCount(ms); if (n > 0) pageCounts[f] = n; }
     report.note("markers: " + total + " on " + allMarkers.size + " pages (" + Object.keys(kinds).sort().map((k) => k + " " + kinds[k]).join(", ") + ")");
     if (total === 0) report.add("Markers", "the edit build contains no markers at all");
 
@@ -236,13 +244,17 @@ function main() {
     const cov = coverage(root, normalDir, markedKeys);
     const covFile = path.join(root, "studio", "schema", "marker-coverage.json");
     if (args.update) {
-      fs.writeFileSync(covFile, JSON.stringify({ version: 1, note: "Visible text of / and /about/ that carries a Studio marker. May only grow. Update with: node studio/guards/check-markers.js --update", count: cov.covered.length, covered: cov.covered }, null, 2) + "\n");
+      fs.writeFileSync(covFile, JSON.stringify({ version: 1, note: "Visible text of / and /about/ that carries a Studio marker. May only grow. Update with: node studio/guards/check-markers.js --update", count: cov.covered.length, covered: cov.covered, pageCounts: pageCounts }, null, 2) + "\n");
       report.note("coverage: wrote " + cov.covered.length + " covered leaves to studio/schema/marker-coverage.json");
     } else if (!fs.existsSync(covFile)) {
       report.add("Coverage ratchet", "studio/schema/marker-coverage.json is missing", "Run: node studio/guards/check-markers.js --update");
     } else {
       const have = JSON.parse(readText(covFile));
       const now = new Set(cov.covered);
+      for (const f of Object.keys(have.pageCounts || {})) {
+        if ((pageCounts[f] || 0) < have.pageCounts[f]) report.add("Coverage ratchet", f + ": " + (pageCounts[f] || 0) + " editable things on the page, " + have.pageCounts[f] + " before", "A marker was removed. Restore it, or run --update if this is deliberate.");
+      }
+      if (!have.pageCounts) report.add("Coverage ratchet", "studio/schema/marker-coverage.json has no pageCounts", "Run: node studio/guards/check-markers.js --update");
       const lost = (have.covered || []).filter((k) => !now.has(k));
       for (const k of lost) report.add("Coverage ratchet", "no longer editable in place: " + k, "A marker was removed (or the text moved). Restore the marker, or run --update if this is deliberate.");
       report.note("coverage: " + cov.covered.length + " visible text fields editable in place (ratchet " + (have.count || 0) + "), " + cov.unmarked.length + " visible but Fields-panel-only");

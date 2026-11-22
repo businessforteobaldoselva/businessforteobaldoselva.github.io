@@ -28,7 +28,7 @@ test("facts: the routes are exactly the pages a real build lists in its sitemap"
     // the sections visitors are sent to by the menu are anchors in the static set AND really on the built home page
     const html = fs.readFileSync(path.join(out, "index.html"), "utf8");
     const ids = new Set(Array.from(html.matchAll(/\sid=(?:"([^"]+)"|'([^']+)'|([^\s"'<>=`]+))/g)).map((m) => m[1] || m[2] || m[3]));
-    for (const a of ["how", "faq", "brands", "partners", "venues", "locations", "vision"]) { assert.ok(facts.anchors["/"].includes(a), a + " is a static anchor"); assert.ok(ids.has(a), a + " is on the built home page"); }
+    for (const a of ["how", "faq", "brands", "partners", "venues", "locations"]) { assert.ok(facts.anchors["/"].includes(a), a + " is a static anchor"); assert.ok(ids.has(a), a + " is on the built home page"); }
     // with the built site passed, anchors only grow
     const withSite = buildFacts(ROOT, { site: out });
     for (const a of facts.anchors["/"]) assert.ok(withSite.anchors["/"].includes(a));

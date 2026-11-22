@@ -214,7 +214,22 @@ function start(options) {
     return err(res, 404, "not_found", "No such route.");
   }
 
+  // options.siteDir: serve a REAL edit build of the site (CMS_EDIT=1, overlay.js and content.json included) instead of the fixture page;
+  // the overlay's data-api address is pointed at this stub. Used by studio/tests/p1-edit/browser.test.js.
+  function realSite(req, res) {
+    const base = path.resolve(options.siteDir);
+    let p = decodeURIComponent(new URL(req.url, "http://x").pathname);
+    if (p.endsWith("/")) p += "index.html";
+    const file = path.normalize(path.join(base, p));
+    if (!file.startsWith(base + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end("not found"); return; }
+    let body = fs.readFileSync(file);
+    if (file.endsWith(".html")) body = Buffer.from(body.toString("utf8").replace(/data-api="[^"]*"/, 'data-api="' + apiOrigin + '"'));
+    res.writeHead(200, { "Content-Type": MIME[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-store" });
+    res.end(body);
+  }
+
   function site(req, res) {
+    if (options.siteDir) return realSite(req, res);
     const url = new URL(req.url, "http://x");
     let p = decodeURIComponent(url.pathname);
     if (p === "/favicon.ico") { res.writeHead(204); res.end(); return; }

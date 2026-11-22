@@ -134,7 +134,7 @@
     function group(id, title, rows, q) {
       if (!rows.length) return null;
       var cap = q || extra[id] ? rows.length : MAX_ROWS;
-      var shown = rows.slice(0, cap);
+      var shown = rows.filter(function (r, i) { return i < cap || open[r.ref]; }); // a row somebody opened (or was sent to) is never hidden by the cap
       var sec = h("section", { class: "ff-group", "aria-labelledby": "ffg-" + id },
         h("h3", { id: "ffg-" + id, class: "ff-group-title" }, title + " (" + rows.length + ")"),
         shown.map(rowEl));
@@ -152,7 +152,7 @@
       if (!rows.length) listEl.appendChild(h("p", { class: "empty" }, q ? "No field matches “" + query + "”." : "Nothing to edit here."));
       [group("page", "On this page", on, q), group("hidden", "Not visible on the page", off, q)].forEach(function (g) { if (g) listEl.appendChild(g); });
       S.dom.announce(rows.length + " field" + (rows.length === 1 ? "" : "s") + " shown");
-      focusPending();
+      Promise.resolve().then(focusPending); // after the shell has put the focus on the panel title
     }
     // opening or closing one row keeps the person's place
     function paintKeep(ref) {
