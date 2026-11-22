@@ -26,7 +26,6 @@ const GUARDS = {
   images: "check-images.js",
   cms: "check-cms.js",
   copy: "check-copy.js",
-  previews: "check-previews.js",
   wiring: "check-wiring.js",
   hostile: "check-hostile.js",
   tokens: "check-tokens.js",
@@ -95,7 +94,7 @@ const scenarios = [
     name: "control: the untouched copy passes every guard",
     build: true,
     run(ws, site) {
-      for (const g of ["cms", "previews"]) expectRun(g + " passes", runGuard(g, ws.dir), { code: 0 });
+      expectRun("cms passes", runGuard("cms", ws.dir), { code: 0 });
       expectRun("copy passes", runGuard("copy", ws.dir, ["--site", site]), { code: 0 });
       expectRun("wiring passes (sentinel build and its switch / dropdown variants)", runGuard("wiring", ws.dir), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir), { code: 0 });
@@ -163,7 +162,6 @@ const scenarios = [
     build: true,
     run(ws, site) {
       expectRun("cms passes", runGuard("cms", ws.dir), { code: 0 });
-      expectRun("previews pass", runGuard("previews", ws.dir), { code: 0 });
       expectRun("copy passes (new words are traceable, derived sentences still match)", runGuard("copy", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
       expectRun("wiring passes (every new field reaches the page)", runGuard("wiring", ws.dir, FAST), { code: 0 });
       expectRun("a11y passes (the new page, form field and menu link are accessible too)", runGuard("a11y", ws.dir, ["--site", site]), { code: 0, has: ["/press/"] });
@@ -207,7 +205,6 @@ const scenarios = [
     build: true,
     run(ws, site) {
       expectRun("cms passes", runGuard("cms", ws.dir), { code: 0 });
-      expectRun("previews pass", runGuard("previews", ws.dir), { code: 0 });
       expectRun("copy passes", runGuard("copy", ws.dir, ["--site", site]), { code: 0 });
       expectRun("seo passes (hidden page out of the sitemap, redirect targets exist, tags complete)", runGuard("seo", ws.dir, ["--site", site, "--no-probe"]), { code: 0, has: ["2 public page(s)"] });
       expectRun("wiring passes", runGuard("wiring", ws.dir, FAST), { code: 0 });
@@ -308,7 +305,6 @@ const scenarios = [
     build: true,
     run(ws, site) {
       expectRun("cms passes", runGuard("cms", ws.dir), { code: 0 });
-      expectRun("previews pass", runGuard("previews", ws.dir), { code: 0 });
       expectRun("copy passes; allow-list entries for the missing features are only noted", runGuard("copy", ws.dir, ["--site", site]), { code: 0, has: ["note:"] });
       expectRun("wiring passes (sections that are off are switched on for the test)", runGuard("wiring", ws.dir, FAST), { code: 0 });
       expectRun("hostile passes", runGuard("hostile", ws.dir, ["--quick"]), { code: 0 });
@@ -714,7 +710,7 @@ const scenarios = [
     },
   },
   {
-    name: "an image field whose pattern needs a folder (Decap only checks the file name)",
+    name: "an image field whose pattern needs a folder (only the file name is checked)",
     mutate: (ws) => edit(ws, "cms/config.yml", (t) => t.replace("pattern: [\"^[A-Za-z0-9._-]+", "pattern: [\"^/?images/[A-Za-z0-9._/-]+")),
     run(ws) {
       expectRun("check-cms refuses the folder-based pattern", runGuard("cms", ws.dir), { code: 1, has: ["must match a bare file name"] });
@@ -725,27 +721,6 @@ const scenarios = [
     mutate: (ws) => edit(ws, "src/_includes/scripts/map.njk", (t) => t + "\n      if (typeof pinsG !== \"undefined\" && pinsG) { pinsG.innerHTML = MAP_COPY.statusLive; }\n"),
     run(ws) {
       expectRun("check-hostile's static rule flags innerHTML", runGuard("hostile", ws.dir, ["--quick"]), { code: 1, has: ["Scripts feeding data into HTML / code", "innerHTML"] });
-    },
-  },
-  {
-    name: "a preview that throws on an empty entry",
-    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('" " + g(e, ["badge"])', '" " + e.getIn(["data", "badge"]).trim()')),
-    run(ws) {
-      expectRun("check-previews reports the crash", runGuard("previews", ws.dir), { code: 1, has: ["Preview crashes", "hero"] });
-    },
-  },
-  {
-    name: "a preview that prints typed text as live HTML",
-    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('h("p", { className: "hero-sub" }, g(e, ["subhead"]))', 'h("p", { className: "hero-sub", dangerouslySetInnerHTML: { __html: g(e, ["subhead"]) } })')),
-    run(ws) {
-      expectRun("check-previews reports the new sink", runGuard("previews", ws.dir), { code: 1, has: ["Hostile markup reaches the preview", "preview 'hero'"] });
-    },
-  },
-  {
-    name: "a preview that prints \"undefined\" for a missing field",
-    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('h("p", { className: "hero-sub" }, g(e, ["subhead"]))', 'h("p", { className: "hero-sub" }, "Sub: " + e.getIn(["data", "subhead"]))')),
-    run(ws) {
-      expectRun("check-previews reports the broken text", runGuard("previews", ws.dir), { code: 1, has: ["Preview shows broken text", "undefined"] });
     },
   },
   {
@@ -845,10 +820,10 @@ const scenarios = [
     },
   },
   {
-    name: "the live preview carries an out-of-date copy of the token limits",
-    mutate: (ws) => edit(ws, "cms/previews.js", replaceOnce('"def":0.93,"min":0.7,"max":1.2', '"def":0.93,"min":0.7,"max":9')),
+    name: "a CMS field whose limits drift from the token table",
+    mutate: (ws) => edit(ws, "cms/config.yml", replaceOnce("min: 0.7, max: 1.2, step: 0.01, default: 0.93", "min: 0.7, max: 9, step: 0.01, default: 0.93")),
     run(ws) {
-      expectRun("check-tokens reports the stale copy", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["TOKEN_SPEC is out of date"] });
+      expectRun("check-tokens reports the drifted bound", runGuard("tokens", ws.dir, ["--static"]), { code: 1, has: ["max"] });
     },
   },
 ];

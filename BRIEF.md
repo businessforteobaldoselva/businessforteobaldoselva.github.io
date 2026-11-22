@@ -20,7 +20,7 @@ asking for help; in this model someone else has already paid, so the user owes
 nothing at the moment of need.
 
 - HARD: palette (client decree), logo (client decree), licensed brand fonts
-  (Motor / Rumble Brave / Open Sauce), WCAG AA, Eleventy + Decap CMS bindings
+  (Motor / Rumble Brave / Open Sauce), WCAG AA, Eleventy + data-driven content (COVERED Studio edits it)
   (titles/copy are editor-owned text — design may not depend on rewriting them).
 - SOFT: section order, card shapes, motion style, decorative motifs.
 - ASSUMPTION (rejected): "more colour = more creative." Colour saturation was

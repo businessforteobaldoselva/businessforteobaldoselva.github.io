@@ -139,11 +139,6 @@ function ruleChecks(report, seo, root) {
     const got = R([it]).lines;
     if (got.length) report.add("Redirect rules", "'" + label + "' was written to the redirects file", JSON.stringify(got));
   }
-  // the preview in the CMS must use the build's own rule checker, so no rule is silently left out without a mark
-  const pv = readText(path.join(root, "cms", "previews.js"));
-  const idx = readText(path.join(root, "cms", "index.html"));
-  if (!/CoveredRedirects/.test(pv) || !/\.analyse\(/.test(pv)) report.add("Redirect rules", "the Redirects preview in cms/previews.js does not use the shared checker (cms/redirect-rules.js)", "It would mark other rules than the build drops. Use window.CoveredRedirects.analyse(items).");
-  if (!/<script src="redirect-rules\.js"><\/script>\s*<script src="previews\.js"><\/script>/.test(idx)) report.add("Redirect rules", "cms/index.html does not load redirect-rules.js before previews.js", "The Redirects preview would show nothing marked.");
   // a rule on a page that exists is written but never fires: the build says so
   {
     const r = seo.analyseRedirects([item("/about/", "/x/", true)], { pages: { "/about": true } });

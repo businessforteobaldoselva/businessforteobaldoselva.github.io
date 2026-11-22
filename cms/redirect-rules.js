@@ -1,8 +1,7 @@
-/* COVERED - the redirect rules, shared by the build and the CMS.
+/* COVERED - the redirect rules, shared by the build, the validators and COVERED Studio.
    One plain UMD file with no dependencies:
      - lib/eleventy/seo.js loads it with require() and writes the Netlify _redirects file from the result;
-     - cms/index.html loads it with a <script> tag and the "Redirects" preview (cms/previews.js) uses the
-       very same function to mark every rule the website will leave out, with the same reason.
+     - the Studio validators use the very same function to refuse every rule the website would leave out.
    It only does string tests: no network, no DOM, no eval, and it never produces HTML. Tested by
    scripts/check-seo.js (rule battery, fuzzing, hostile builds). */
 (function (root, factory) {

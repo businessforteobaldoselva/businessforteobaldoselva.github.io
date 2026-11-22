@@ -251,7 +251,7 @@ fieldsAt(schema, fileKey, segs, doc)  -> [Field]                                
 * An image op's `value` has the field's own form (`"/images/x.jpg"` or bare `"x.jpg"`, per `x.imageStyle`). A new picture is an `uploads` entry referenced by exactly one op value (unreferenced upload => 422). Any other picture reference must name a file that exists at the draft head.
 * Limits: ops <= 200; uploads <= 4; one upload <= 4 MB decoded (the overlay re-encodes to <= 1.5 MB, <= 2400 px long side, which also strips EXIF); strings per `schema.limits`; JSON depth <= 20.
 * Idempotency: the key is written as commit trailer `Studio-Idempotency: <key>`; a repeat with the same key and user returns the original result, HTTP 200, `"replayed": true` (lookback 30 commits).
-* Only uploads create files (under `images/`). An existing `images/` file is never overwritten (different bytes => `422 image` "pick another file name"; identical bytes => accepted no-op). No new data files, no new pages (Decap keeps that), no file deletion.
+* Only uploads create files (under `images/`). An existing `images/` file is never overwritten (different bytes => `422 image` "pick another file name"; identical bytes => accepted no-op). No new data files, no new pages (a developer pull request does that), no file deletion.
 * Free text (title, values) is data: control characters stripped and `@` neutralised (`@` + zero-width space) wherever it is written into PR text.
 * Response `201` (new) / `200` (update, replay): `{ "draft": Draft, "changes": [Change], "replayed": false, "warnings": [Problem] }` (shapes in 7.4).
 

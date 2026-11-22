@@ -12,7 +12,6 @@ problem and exits `1` on any violation (`2` for a usage error such as a missing 
 | `npm run check` | runs the id guard and the guards below, fast ones first | ~1 min |
 | `npm run check:ids` | the built-in page ids that editor anchors must not reuse are read from the templates, and every CMS anchor pattern lists them all (`lib/reserved-ids.js --check`) | <1 s |
 | `npm run check:cms` | `cms/config.yml` is well formed and **covers every key** of the content | <1 s |
-| `npm run check:previews` | the live previews survive empty / broken / hostile entries | <1 s |
 | `npm run check:tokens` | **design tokens** ("Type & spacing") are bounded, wired to the stylesheet and match the CMS | ~20 s |
 | `npm run check:copy` | **every visible word, picture and outward link on the built site is traceable to editable data** | <1 s |
 | `npm run check:wiring` | **sentinel test**: every editable field really reaches the page, and no word is hard-coded | ~15 s |
@@ -119,26 +118,14 @@ above.
 
 * **Structure:** `config.yml` parses; field names (camelCase, unique among siblings), labels, widgets,
   select options and defaults, patterns (valid regular expressions with a message), list types,
-  `min/max`, `summary` placeholders, `media_folder: images` / `public_folder: /images`, preview templates
-  registered for real collections / files only, `previews.js` parses. Conventions that are not
-  failures (lists without `label_singular` / `summary`, optional objects with required children,
-  entries without a preview) are counted and listed with `--warnings`.
+  `min/max`, `media_folder: images` / `public_folder: /images`. Conventions that are not
+  failures (lists without `label_singular`, optional objects with required children) are counted and
+  listed with `--warnings`. `cms/config.yml` is the content schema that COVERED Studio, the validators and
+  the markers are generated from; no editor reads it directly (the old Decap editor is retired).
 * **Coverage:** every key of every `src/_data/*.json` and every front-matter key of `src/pages/*.md`
   has a visible CMS field of the right kind; every data file has a CMS entry; page bodies are
   editable; every stored value is valid for its own field (select option, pattern, boolean, number
   range); every required field has a value (otherwise the CMS refuses to save the entry).
-
-## check-previews
-
-Renders each preview in `cms/previews.js` the way Decap does (a tiny `h` and an Immutable-like
-`entry`) with the real data and ~40 broken variants (empty entry, empty strings, nulls, emptied lists,
-huge strings, random keys and items removed, every key missing in turn): no exception, no `undefined`
-text. Markup typed into any field must not reach the preview as live HTML (the output of every
-`dangerouslySetInnerHTML` is parsed: only `<br>` may stay live, escaped text such as `&lt;img&gt;` is fine)
-and a `javascript:` value must not reach a link. Problems that existed when the guard was added are
-listed with a reason in `scripts/previews-known-issues.json`; new ones fail, and a listed one that has
-been fixed should be removed (strict mode). It also reports (information only) how many editable
-values show up in their preview.
 
 ## check-hostile
 
@@ -175,12 +162,11 @@ in `theme.json` ("Colours & theme"). The rules that keep this safe:
   button/field padding, the smaller radii (stamp 14px, chips 12px ...), the one-off shadows (button glow, machine,
   polaroid), `--font-script` / `--font-stamp`, section `max-width`s in `ch`, and every media-query breakpoint.
 
-`npm run check:tokens` (part of `npm run check`, ~20 s; `--static` skips the builds; `--write` regenerates the
-`TOKEN_SPEC` copy inside `cms/previews.js`):
+`npm run check:tokens` (part of `npm run check`, ~20 s; `--static` skips the builds):
 
 1. **In sync:** every token has a CMS field with exactly the filter's `min` / `max` / `step` / options and a hint, no CMS
    field is extra, `site-styles.css` defaults equal the table, every `--tk-*` is used by `var()` (no dead token) and every
-   `var(--tk-*)` is declared, the preview carries the current table.
+   `var(--tk-*)` is declared.
 2. **Bounded:** ~40 hostile token documents (attack strings, template syntax, huge / negative / tiny numbers, objects,
    arrays, `__proto__`, scalars in place of groups) go through the real filters; every printed declaration is checked
    against the table independently of the clamping code.
@@ -194,7 +180,7 @@ in `theme.json` ("Colours & theme"). The rules that keep this safe:
    CMS limits can never turn large text into normal text and fail the accessibility gate for the wrong reason.
 
 Adding a token: add a row to `lib/tokens.js`, the default to the `TOKENS` block of `site-styles.css`, use `var(--tk-…)`,
-add the field to the "Type & spacing" entry of `cms/config.yml` and `tokens.json`, run `node scripts/check-tokens.js --write`.
+add the field to the "Type & spacing" entry of `cms/config.yml` and `tokens.json`.
 ## check-a11y (accessibility gate)
 
 Builds the checkout (or reads `--site <dir>`) and, for every public page (everything `check-copy` scans; the
@@ -268,13 +254,8 @@ by this script, so the CMS and the pull-request check use **the same code**. Its
 block type and yes / no switch turned on** (the copy `check-wiring` builds), so switching a feature off or adding a
 block never makes it stale. `npm run check` fails when the site contains a themed pairing the table does not know
 (a stylesheet or template change: run `--write-pairs` and commit), and `--maximal` (used by selftest) makes the same
-check against the every-option copy. The "Colours & theme" preview
-(`cms/previews.js`, template `theme`) re-runs every pairing against the colours currently typed into the form and
-lists the ones that are too low with their ratio; pairings that are recorded known issues show as "worth a second
-look" until they get worse. It prints plain text only (the only styled values are `#RRGGBB` strings produced by the
-maths), so it adds no HTML sink. A custom Decap colour **widget** was not used on purpose: a widget only sees its own
-value, so it could not judge a colour against the others without reaching into Decap's internals (and it would
-replace the built-in picker); the preview sees the whole entry.
+check against the every-option copy. The colour maths (`cms/contrast.js`) is also bundled into the Studio overlay, which uses
+it to list the pairings that are too low with their ratio. It prints plain text only, so it adds no HTML sink.
 
 ## check-seo
 
@@ -325,12 +306,10 @@ another host is only accepted when the host is on the approved list `EXTERNAL_HO
 (exact host names, no ports, no IP addresses; a change to that file is a code review): a redirect starts on our own
 address, so an unapproved target would let a stolen editor session send visitors from `coveredaccess.com` to a
 lookalike site. Encoded dot-segments and slashes (`%2e`, `%2f`, `%5c`) are refused. The rules live in one shared file,
-`cms/redirect-rules.js`, used by the build (`lib/eleventy/seo.js`) and by the CMS preview, so the preview marks exactly
-the rules the build drops, with the same reason; a rule whose old address is a page that exists is written but the
+`cms/redirect-rules.js`, used by the build (`lib/eleventy/seo.js`) and by the Studio validators, so a rule the build would drop is refused with the same reason; a rule whose old address is a page that exists is written but the
 build says it never fires. A rule that points to itself,
 closes a loop, repeats an earlier old address, makes a chain of more than 5 steps, or is number 101+ is dropped (with a
-build warning). The CMS field patterns say the same in plain English, so a valid CMS save is never dropped; the
-Redirects preview marks lines that would be ignored.
+build warning). The CMS field patterns say the same in plain English, so a valid save is never dropped.
 
 **Netlify precedence** (Netlify documentation, not testable offline): redirect rules in a `_redirects` file in the
 published folder are processed *before* the `[[redirects]]` of `netlify.toml`, first match wins, and neither is
@@ -364,12 +343,12 @@ Editors upload a photo of any size (a 4 MB JPEG is fine); nothing else is done b
   pictures, the share picture and the SVG map keep pointing at the original file.
 * **Picture descriptions.** Every picture field in `cms/config.yml` has an `alt` text field and a boolean
   "Decorative picture (no description needed)" (`decorative`) beside it; the macro prints `alt=""` for
-  decorative pictures. Decap cannot require a field only while a switch is off, so the form leaves `alt`
+  decorative pictures. a field cannot be required only while a switch is off, so the form leaves `alt`
   optional (hint: required unless decorative) and the rule is enforced by the guards: `check:cms` fails a
   picture field with no `alt` + `decorative` pair (structure) and any picture in the data that has
   neither a description nor `decorative: true` (values). Pictures that are never drawn as a picture are
   listed with a reason in `scripts/alt-exemptions.json` (share image, map backdrop, two video cover
-  frames); an entry that exempts nothing is an error. The CMS previews print a warning under such a picture.
+  frames); an entry that exempts nothing is an error. 
   `check:wiring` keeps every `decorative` switch off in its token build (otherwise the description would
   vanish and look like a dead field) and flips it in the alternating variants.
 * `check:images` (`scripts/check-images.js`) reads a build and requires, per public page: every content
@@ -443,7 +422,6 @@ scripts/
   check-*.js                  the guards                 selftest.js   the regression proof
   a11y-config.json            gate settings              a11y-known-issues.json   recorded defects
   copy-allowlist.json         accepted non-data text     wiring-ignore.json   skipped fields
-  previews-known-issues.json  known preview problems
   fixtures/                   detector fixtures
   lib/                        parsing, corpus, sentinel, workspace, hostile analysis
 ../lib/tokens.js             design-token table (bounds, defaults, CSS)

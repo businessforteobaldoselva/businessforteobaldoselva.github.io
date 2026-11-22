@@ -163,4 +163,14 @@ Contract: `studio/PHASE1-DESIGN.md`. Each unit writes ONLY under its own heading
 (not written yet)
 
 ### DECAP
-(not written yet)
+
+Decap CMS and the Netlify Identity / Git Gateway login are retired. Inventory and decisions: `studio/NOTES-p1-decap.md`. For Teo: runbook 4c.4.
+
+* Removed: `cms/index.html`, `cms/previews.js`, `cms/custom.css`, `scripts/check-previews.js` (+ lib, known issues), the npm scripts `cms-local` and `check:previews`, the dev dependency `decap-server`, the Identity forwarder in `src/index.njk` and in the stale root `index.html` mirror, and every Decap-only key of `cms/config.yml` (backend, publish_mode, local_backend, site_url, display_url, logo_url, locale, preview_path, editor, create, slug, summary).
+* Kept: `cms/config.yml` as the schema source (header comment says so), `cms/contrast.js`, `cms/redirect-rules.js`. The folder is not renamed (about 25 consumers).
+* `/cms/` is now `cms/moved.html` (static, no script, noindex); `netlify.toml` redirects `/cms/*` to it.
+* Guard `studio/guards/check-no-decap.js` (auto-run by `check:studio`), 21 selftest scenarios in `studio/guards/selftest-p1-decap.js` (`npm run check:selftest`, or `node scripts/selftest.js --only "decap:"`), tests in `studio/tests/p1-decap/`.
+* Schema proof: `npm run studio:schema` after the strip changed `configSha256` and nothing else (checked by diffing the JSON before and after).
+* Parity exception E1 (the only change to production output): `/index.html` loses the Identity forwarder script; `/cms/index.html` is the moved page instead of the editor. See Deviations.
+
+**Deviations:** (1) the contract lists `check-seo.js` under none of the edits, but it required the Redirects preview in `cms/previews.js`, so that one check was removed. (2) The stale root `index.html` (github.io mirror, not built) also held the forwarder; it was removed there too so the guard can scan the whole repo. (3) A few field hints in `cms/config.yml` still say "the preview shows how it will look"; they are part of the generated schema and the contract says the schema must not change, so they are left for a later wording pass. (4) The AI "Open Ask Claude" link (`studio/overlay/ext/ai*.js`, EDIT/AI territory) points at `/admin/#/collections/requests/new`, an address that belonged to the retired editor; it needs a new target in a later change.

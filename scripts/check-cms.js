@@ -4,8 +4,7 @@
 //
 //   node scripts/check-cms.js [--root .] [--max 200] [--warnings]
 //
-// Structure   field names / labels / widgets, select options, patterns, list types, defaults,
-//             preview templates registered for real collections / files, previews.js parses
+// Structure   field names / labels / widgets, select options, patterns, list types, defaults
 // Coverage    every key in src/_data/*.json, every front-matter key of src/pages/*.md has a visible
 //             (not widget: hidden) CMS field of the right kind; every data file has a CMS entry;
 //             every stored value is valid for its own field (select option, pattern, boolean ...)
@@ -15,7 +14,6 @@
 
 const fs = require("fs");
 const path = require("path");
-const vm = require("vm");
 const { runMain, strictStale, parseArgs, readJson, readText, exists, Report, REPO_ROOT, SCRIPTS_DIR, clip } = require("./lib/util");
 const { loadSources, schemaPath, pathString } = require("./lib/data");
 const { KNOWN_WIDGETS, loadConfig, widgetOf, contentCollections, listItemFields, alignData } = require("./lib/cmsconfig");
@@ -48,7 +46,6 @@ function main() {
   const S = "CMS config structure";
   if (cfg.media_folder !== "images") report.add(S, "media_folder must be \"images\" (uploads land in /images)", "found " + JSON.stringify(cfg.media_folder));
   if (cfg.public_folder !== "/images") report.add(S, "public_folder must be \"/images\" (image paths are stored as /images/name.jpg)", "found " + JSON.stringify(cfg.public_folder));
-  if (!cfg.backend || !cfg.backend.name) report.add(S, "backend is missing");
   if (!Array.isArray(cfg.collections) || !cfg.collections.length) report.add(S, "collections is missing or empty");
 
   let fieldCount = 0;
@@ -86,10 +83,10 @@ function main() {
         } else {
           try {
             const re = new RegExp(f.pattern[0]);
-            // Decap tests an image/file widget's pattern against the file NAME only (last path segment),
+            // An image/file widget's pattern is tested against the file NAME only (last path segment),
             // so a pattern that needs a folder prefix rejects every value and blocks Publish.
             if ((w === "image" || w === "file") && !["jpg", "png", "webp", "gif", "avif", "svg", "mp4", "webm", "m4v"].some((x) => re.test("some-file_1." + x))) {
-              report.add(S, at + ": an image/file pattern must match a bare file name like some-file.jpg (Decap checks the name only, not the folder)", f.pattern[0].slice(0, 60));
+              report.add(S, at + ": an image/file pattern must match a bare file name like some-file.jpg (only the file name is checked, not the folder)", f.pattern[0].slice(0, 60));
             }
           } catch (e) {
             report.add(S, at + ": pattern is not a valid regular expression", e.message);
@@ -133,16 +130,6 @@ function main() {
             checkFieldList(t.fields, tat);
           }
         }
-        if (f.summary !== undefined) {
-          const names = new Set();
-          for (const x of f.fields || []) names.add(x.name);
-          for (const t of f.types || []) for (const x of t.fields || []) names.add(x.name);
-          if (f.field) names.add(f.field.name);
-          const re = /\{\{\s*fields\.([A-Za-z0-9_]+)/g;
-          let m;
-          while ((m = re.exec(String(f.summary)))) if (names.size && !names.has(m[1])) report.add(S, at + ": summary refers to a field that does not exist: fields." + m[1]);
-        }
-        if ((f.fields || f.types) && !f.summary) warnings.push(at + ": list of objects has no summary (items show as \"item 1, item 2\" in the CMS)");
         if (!f.label_singular) warnings.push(at + ": list has no label_singular (the add button reads \"Add item\")");
       }
       if (w === "object" && f.required === false && Array.isArray(f.fields)) {
@@ -181,28 +168,11 @@ function main() {
     } else report.add(S, "collection " + c.name + " has neither files nor folder");
   }
 
-  // preview templates
-  const previewFile = path.join(root, "cms", "previews.js");
-  let previewNames = [];
-  if (exists(previewFile)) {
-    const src = readText(previewFile);
-    try {
-      new vm.Script(src, { filename: "cms/previews.js" });
-    } catch (e) {
-      report.add("Previews", "cms/previews.js has a syntax error", e.message);
-    }
-    previewNames = [...src.matchAll(/registerPreviewTemplate\(\s*["']([^"']+)["']/g)].map((m) => m[1]);
-    for (const n of previewNames) if (!collectionNames.has(n) && !fileEntryNames.has(n)) report.add("Previews", "a preview is registered for \"" + n + "\", which is no collection or file entry in cms/config.yml (it would never show)");
-    const dup = previewNames.filter((n, i) => previewNames.indexOf(n) !== i);
-    for (const n of new Set(dup)) report.add("Previews", "preview \"" + n + "\" is registered twice (the later one silently replaces the earlier)");
-    for (const e of contentCollections(cfg)) if (e.kind === "file" && !previewNames.includes(e.name)) warnings.push("no preview registered for " + e.name);
-  } else report.add("Previews", "cms/previews.js is missing");
-
   // ------------------------------------------------------------------ picture descriptions
   // Every picture field needs a description (alt) next to it and a "Decorative picture" switch, so the
   // site can print alt="" only for pictures an editor marked decorative. Pictures that are not shown as
   // pictures (share image, video cover frame, map backdrop) are listed with a reason in
-  // scripts/alt-exemptions.json. (Decap cannot make a field required only when a switch is off, so the
+  // scripts/alt-exemptions.json. (A field cannot be required only while a switch is off, so the
   // description is not "required" in the form; the value rule below and check-images refuse the empty case.)
   const A = "Picture descriptions";
   const altFile = path.join(SCRIPTS_DIR, "alt-exemptions.json");
@@ -357,7 +327,7 @@ function main() {
     for (const e of unusedIgnores) report.add("wiring-ignore.json", "entry '" + e.path + "' skipped nothing in the CMS check", "Remove it, or fix the path. Unused entries would silently excuse the same field in future.");
   } else if (unusedIgnores.length) warnings.push(unusedIgnores.length + " wiring-ignore entr" + (unusedIgnores.length === 1 ? "y" : "ies") + " skipped nothing in the CMS check (" + unusedIgnores.map((e) => e.path).join(", ") + "); --strict-stale makes that an error");
 
-  report.note("check-cms: " + (cfg.collections || []).length + " collections, " + entries.filter((e) => e.kind === "file").length + " data-file entries, " + fieldCount + " field definitions, " + previewNames.length + " previews; " + sources.filter((s) => s.kind !== "njk").length + " content sources checked against the config");
+  report.note("check-cms: " + (cfg.collections || []).length + " collections, " + entries.filter((e) => e.kind === "file").length + " data-file entries, " + fieldCount + " field definitions; " + sources.filter((s) => s.kind !== "njk").length + " content sources checked against the config");
   notes.forEach((n) => report.note(n));
   if (warnings.length) {
     report.note("  " + warnings.length + " convention warning" + (warnings.length === 1 ? "" : "s") + " (not failures" + (args.warnings ? "" : "; --warnings lists them") + ")");

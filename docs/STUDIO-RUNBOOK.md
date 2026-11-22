@@ -250,7 +250,21 @@ The daily limits are counted **in memory by each running copy of the API**. On a
 
 #### 4c.4 Decap retired (DECAP unit)
 
-(To be written by the DECAP unit: what was removed, what Teo switches off in Netlify (Identity, Git Gateway), where the old /cms address now goes.)
+The old website editor (Decap CMS, at `/cms/`) and its Netlify Identity / Git Gateway login are gone from the code. COVERED Studio is the only editor.
+
+**What changed on the website:**
+* `/cms/` (and any old link under it) now shows a short page: "The old website editor has been retired", with how to use Studio. The page has no scripts and asks search engines not to list it.
+* The home page no longer carries the small script that forwarded Netlify invite and password-reset links to `/cms/`. This is the only change to the live pages.
+* `cms/config.yml` stays, but only as the list of what can be edited (the schema). Nobody opens it in an editor; a developer changes it with a pull request.
+
+**What Teo switches off in Netlify (the code cannot do this; do it after this change is merged and live):**
+1. Site configuration > Identity: disable Identity and delete the users. Old invite emails then stop working.
+2. Site configuration > Identity > Services: disable Git Gateway.
+3. GitHub > Settings > Applications: remove any leftover "Netlify Git Gateway" grant or personal access token.
+
+**After merging, redeploy the Studio API** (the Cloudflare Worker). The schema file was regenerated; until the Worker is redeployed, Studio's Account panel shows "editing rules are out of date". Nothing is lost while it shows.
+
+**Guard:** `studio/guards/check-no-decap.js` (part of `npm run check`) fails if any of this comes back.
 
 ### 5. Deploy the API (one adapter)
 

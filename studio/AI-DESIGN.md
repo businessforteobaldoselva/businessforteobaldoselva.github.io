@@ -459,7 +459,7 @@ Shadow root only; `h()` the only element factory with its tag/prop allow-list; t
 
 ---------------------------------------------------------------------------------------------------
 ## 15. "Needs code" and the Ask Claude channel
-The existing channel is the Decap collection `requests` (`cms/config.yml`, label "Ask Claude (change requests)", folder `requests/`, fields title, body, where, priority, status). It is outside Studio's scope by design. Phase 5 does not widen scope to it: the model drafts the request (`needsCode.request`), the human files it in the CMS in two clicks (Copy request + Open Ask Claude; the instruction text is not put in a URL). Pre-filling the Decap form through query parameters is NOT relied on. `priority` outside `Whenever|This week|ASAP` => Gate-1 `bad_op_shape`; the default is `Whenever`.
+The existing channel is the `requests` collection (`cms/config.yml`, label "Ask Claude (change requests)", folder `requests/`, fields title, body, where, priority, status). It is outside Studio's scope by design. Phase 5 does not widen scope to it: the model drafts the request (`needsCode.request`), the human files it in the CMS in two clicks (Copy request + Open Ask Claude; the instruction text is not put in a URL). Pre-filling the Decap form through query parameters is NOT relied on. `priority` outside `Whenever|This week|ASAP` => Gate-1 `bad_op_shape`; the default is `Whenever`.
 
 ---------------------------------------------------------------------------------------------------
 ## 16. Eval harness and fixtures (CORE)
