@@ -34,6 +34,9 @@
       return b;
     }
     var listEl = h("div", { class: "fields" });
+    if (S.ext && S.ext.legend && S.ext.legend.liveSentence && studio.ui.panels().some(function (p) { return p.id === "legend"; })) {
+      container.appendChild(h("p", { class: "hint ff-count", "data-fields-count": "1" }, S.ext.legend.liveSentence() + " ", h("button", { type: "button", class: "btn btn-small", on: { click: function () { studio.ui.openPanel("legend"); } } }, "What can I edit here?"), " ", h("button", { type: "button", class: "btn btn-small", on: { click: function () { studio.ui.openPanel("checks"); } } }, "Check my changes")));
+    }
     container.appendChild(h("div", { class: "ff-scopes", role: "group", "aria-label": "Which fields" }, scopeBtn("page", "On this page"), scopeBtn("all", "Everything")));
     container.appendChild(h("div", { class: "field" }, h("label", { for: "ff-q" }, "Find a field"), search));
     container.appendChild(listEl);

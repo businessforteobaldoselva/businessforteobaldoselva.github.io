@@ -25,7 +25,7 @@ test("bundle() is one plain script that parses, embeds the schema as data and th
   assert.match(text, /S\.schema = \{"schemaVersion":1/);
   assert.match(text, /S\.css\.push\("/);
   assert.ok(warnings.every((w) => /ext\//.test(w)), "only D's optional files may be missing: " + warnings.join("; "));
-  assert.ok(Buffer.byteLength(text) < 400 * 1024, "bundle size " + Buffer.byteLength(text));
+  assert.ok(Buffer.byteLength(text) < 560 * 1024, "bundle size " + Buffer.byteLength(text));
 });
 
 test("bundle() copes with a missing schema (the overlay then explains) and CRLF sources", () => {

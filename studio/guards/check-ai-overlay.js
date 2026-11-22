@@ -44,13 +44,14 @@ const FILES = { view: "studio/overlay/ext/ai-view.js", panel: "studio/overlay/ex
 // ---- what h() allows (studio/overlay/core/dom.js): tags and properties
 const TAGS = new Set("div span p a button input textarea select option label form fieldset legend ul ol li h1 h2 h3 h4 h5 h6 strong em code pre table thead tbody tr th td img canvas small br hr details summary section header footer nav main aside figure figcaption kbd mark".split(" "));
 // and what this panel actually needs (a narrower list: anything else is a decision somebody should take on purpose)
-const USED_TAGS = new Set("div span p a button input textarea label ul li h3 h4 h5 strong".split(" "));
-const PROPS = new Set("class id type value placeholder title role tabindex hidden disabled checked rows for name href target rel maxlength spellcheck readonly required".split(" "));
+const USED_TAGS = new Set("div span p a button input textarea label ul li h3 h4 h5 strong details summary".split(" "));
+const PROPS = new Set("class id type value placeholder title role tabindex hidden disabled checked rows for name href target rel maxlength spellcheck readonly required open".split(" "));
 const BANNED_MEMBERS = new Set(["innerHTML", "outerHTML", "insertAdjacentHTML", "insertAdjacentElement", "srcdoc", "createContextualFragment", "execCommand", "parseFromString", "cookie"]);
 const NET = new Set(["fetch", "XMLHttpRequest", "WebSocket", "EventSource", "sendBeacon", "importScripts", "Worker", "SharedWorker"]);
 const IMPURE = new Set(["document", "navigator", "location", "localStorage", "sessionStorage", "indexedDB", "setTimeout", "setInterval", "clearTimeout", "clearInterval", "requestAnimationFrame", "Date", "console", "performance", "XMLHttpRequest", "fetch", "AbortController", "Image", "Audio"]);
 const OPS_FIELDS = new Set(["ops", "expect", "file", "path", "value", "op", "from"]);
-const API_PATHS = { get: ["/v1/ai/status"], post: ["/v1/ai/propose", "/v1/ai/accept"] };
+// Phase 1 (PHASE1-DESIGN 9.5): the cost estimate (POST, no model call) and the recent-requests list (GET)
+const API_PATHS = { get: ["/v1/ai/status", "/v1/ai/recent"], post: ["/v1/ai/propose", "/v1/ai/accept", "/v1/ai/estimate"] };
 const SECRET_STRINGS = ["STUDIO_AI_API_KEY", "x-api-key", "api.anthropic.com", "anthropic-version"];
 const OK_HOSTS = /^(localhost|127\.0\.0\.1|(www\.)?example\.(com|test|org)|[a-z0-9-]+\.test)$/i;
 
@@ -153,7 +154,7 @@ if (panel) {
     if (n.type === "CallExpression" && n.callee.type === "Identifier" && elLike.has(n.callee.name)) {
       const tag = n.arguments[0];
       if (!isStr(tag) || !TAGS.has(tag.value)) fail(at(panel, n), "el() tag is not a literal from the allowed list: " + (isStr(tag) ? tag.value : "(computed)"));
-      else if (!USED_TAGS.has(tag.value)) fail(at(panel, n), "el(" + tag.value + "): this panel's tag list is div span p a button input textarea label ul li h3 h4 h5 strong; widen it on purpose");
+      else if (!USED_TAGS.has(tag.value)) fail(at(panel, n), "el(" + tag.value + "): this panel's tag list is div span p a button input textarea label ul li h3 h4 h5 strong details summary; widen it on purpose");
       const props = n.arguments[1];
       if (props && props.type === "ObjectExpression") {
         for (const p of props.properties) {

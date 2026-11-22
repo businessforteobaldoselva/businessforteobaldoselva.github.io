@@ -34,7 +34,7 @@ function bundle(opts) {
       warn("skipping missing stylesheet " + rel);
       continue;
     }
-    out.push("S.css.push(" + JSON.stringify(fs.readFileSync(file, "utf8")) + ");\n");
+    out.push("S.css.push(" + JSON.stringify(fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n")) + ");\n");
   }
   const schemaPath = opts.schemaPath || path.resolve(DIR, "..", "schema", "studio-schema.json");
   if (fs.existsSync(schemaPath)) {

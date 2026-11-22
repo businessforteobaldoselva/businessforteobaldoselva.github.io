@@ -111,7 +111,7 @@
     }
 
     ui.registerPanel({
-      id: "checks", title: HEADER, glyph: "✓", order: 12, minRole: "editor",
+      id: "checks", title: HEADER, short: "Check", glyph: "✓", order: 12, minRole: "editor",
       render: function (container) {
         var root = h("div", { class: "ck" });
         var live = h("p", { class: "ck-status", role: "status", "aria-live": "polite", "data-ck-status": "1" });

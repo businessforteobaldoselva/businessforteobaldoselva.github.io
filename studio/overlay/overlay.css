@@ -139,7 +139,7 @@ textarea { resize: vertical; }
 .draft { border: 1px solid var(--s-line); border-radius: 8px; padding: 8px 12px; background: var(--s-bg2); }
 
 /* toasts */
-.toasts { position: fixed; bottom: 12px; left: 12px; width: min(420px, calc(100vw - 24px)); display: flex; flex-direction: column-reverse; gap: 8px; z-index: 9; pointer-events: none; }
+.toasts { position: fixed; bottom: calc(72px + var(--s-kb, 0px)); left: 12px; width: min(420px, calc(100vw - 24px)); display: flex; flex-direction: column-reverse; gap: 8px; z-index: 9; pointer-events: none; }
 .toasts > * { pointer-events: none; }
 .toast button { pointer-events: auto; }
 .toast { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; border-radius: 10px; background: var(--s-ink); color: var(--s-ink-fg); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3); }

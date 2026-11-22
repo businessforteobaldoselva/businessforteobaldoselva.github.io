@@ -82,6 +82,7 @@
     registerPaletteSource: shell.registerPaletteSource,
     paletteSources: shell.paletteSources,
     registerDockItem: shell.registerDockItem,
+    setPanelAttention: shell.setPanelAttention,
     rebuildDock: shell.buildDock,
     currentPanel: shell.currentPanel,
     registerEmptyState: shell.registerEmptyState,
