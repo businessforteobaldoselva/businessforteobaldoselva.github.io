@@ -24,9 +24,9 @@
 
   function sev(s) { return SEVERITIES.indexOf(s); }
 
-  // input = { files: { fileKey: data }, schema, facts, only?: [ruleId] }  ->  Report
+  // input = { files: { fileKey: data }, schema, facts, roles?, only?: [ruleId] }  ->  Report
   function run(input, helpers) {
-    var ctx = Object.assign({ files: input.files || {}, schema: input.schema || null, facts: input.facts || {} }, helpers || {});
+    var ctx = Object.assign({ files: input.files || {}, schema: input.schema || null, facts: input.facts || {}, roles: input.roles || {} }, helpers || {});
     var findings = [];
     var ran = [];
     registry.slice().sort(function (a, b) { return a.id < b.id ? -1 : a.id > b.id ? 1 : 0; }).forEach(function (rule) {

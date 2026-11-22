@@ -49,6 +49,7 @@
     var panels = [];
     var commands = [];
     var paletteSources = [];
+    var dockItems = [];
     var emptyStates = {};
     var openId = null;
     var cleanup = null;
@@ -77,6 +78,15 @@
       if (!def || !def.id || typeof def.search !== "function") return;
       paletteSources = paletteSources.filter(function (s) { return s.id !== def.id; });
       paletteSources.push(def);
+    }
+    // Phase 1 (EDIT): a small thing in the dock that is not a panel button (the "N editable things here" chip).
+    // def = { id, order?, build() -> element | null }  (edit mode only; build runs on every dock rebuild)
+    function registerDockItem(def) {
+      if (!def || !def.id || typeof def.build !== "function") return;
+      dockItems = dockItems.filter(function (d) { return d.id !== def.id; });
+      dockItems.push(def);
+      dockItems.sort(function (a, b) { return (a.order || 50) - (b.order || 50); });
+      buildDock();
     }
     function visiblePanels() {
       return panels.filter(function (p) { return !p.minRole || role() >= (ROLE_RANK[p.minRole] || 0); });
@@ -134,7 +144,9 @@
         h("span", { class: "pill-label" }, S.state.mode === "edit" ? "Editing" : "Edit"), badge);
       dock.appendChild(editBtn);
       if (S.state.mode === "edit") {
+        dockItems.forEach(function (d) { var n = null; try { n = d.build(); } catch (e) { n = null; } if (n) dock.appendChild(n); });
         visiblePanels().forEach(function (p) {
+          if (p.noDock) return; // opened by something else (the legend chip), not by a dock button
           var b = h("button", { type: "button", class: "dock-btn", "data-panel-id": p.id, "data-tour": "panel-" + p.id, "aria-expanded": openId === p.id ? "true" : "false", "aria-label": p.title, title: p.title, on: { click: function () { togglePanel(p.id); } } },
             h("span", { class: "dock-glyph", "aria-hidden": "true" }, p.glyph || p.title.charAt(0)), h("span", { class: "dock-text" }, p.title));
           panelBtns[p.id] = b;
@@ -238,7 +250,7 @@
 
     return {
       host: host, root: root, layer: layer, wrap: wrap, mount: mount, buildDock: buildDock, setBadge: setBadge,
-      registerPanel: registerPanel, registerCommand: registerCommand, registerPaletteSource: registerPaletteSource, paletteSources: function () { return paletteSources; }, openPanel: openPanel, closePanel: closePanel, togglePanel: togglePanel, refreshPanel: refreshPanel,
+      registerPanel: registerPanel, registerCommand: registerCommand, registerPaletteSource: registerPaletteSource, registerDockItem: registerDockItem, paletteSources: function () { return paletteSources; }, openPanel: openPanel, closePanel: closePanel, togglePanel: togglePanel, refreshPanel: refreshPanel,
       toast: toast, dialog: dialog, confirm: confirm, hasDialog: hasDialog, panels: function () { return panels; }, commands: function () { return commands; },
       registerEmptyState: function (id, fn) { emptyStates[id] = fn; }, emptyState: function (id) { return emptyStates[id] || null; },
       currentPanel: function () { return openId; }, panelBody: panelBody, sheetOk: sheetOk,

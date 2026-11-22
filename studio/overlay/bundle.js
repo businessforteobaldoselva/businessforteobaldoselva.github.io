@@ -43,6 +43,9 @@ function bundle(opts) {
   } else {
     warn("no generated schema at " + schemaPath + " (run `npm run studio:schema`); the overlay will report missing rules");
   }
+  // the content rules' field roles (studio/content-rules/field-roles.json): data, like the schema; the overlay passes them to the engine
+  const rolesPath = path.resolve(DIR, "..", "content-rules", "field-roles.json");
+  if (fs.existsSync(rolesPath)) out.push("S.fieldRoles = " + JSON.stringify(JSON.parse(fs.readFileSync(rolesPath, "utf8"))) + ";\n");
   for (const rel of manifest.scripts) {
     const file = path.resolve(DIR, rel);
     if (!fs.existsSync(file)) {
