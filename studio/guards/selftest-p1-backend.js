@@ -78,7 +78,7 @@ module.exports = (h) => {
 
     // labels
     broken("a label failure fails creating the pull request again", [[API + "providers/git/github.js", once("if (typeof opts.onLabelFailure === \"function\") {", "throw e; if (typeof opts.onLabelFailure === \"function\") {")]], ["R7", "opening a pull request failed when the label write was refused"]),
-    broken("merge needs the label again (a draft with no label can never be published)", [[API + "providers/git/interface.js", once("&& parseMarker(pr.body) !== null;", "&& false;")]], ["R7", "could not be merged"]),
+    broken("merge needs the label again (a draft with no label can never be published)", [[API + "providers/git/interface.js", once("return m !== null && m.draftId === idFromBranch(pr.headRef);", "return false;")]], ["R7", "could not be merged"]),
 
     // the studio-scope gate (plan items 2 and 3)
     {
