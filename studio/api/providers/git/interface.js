@@ -17,6 +17,7 @@
 
 const { assertInScope, assertStudioBranch, ScopeError } = require("../../../validate/scope");
 const { parseMarker } = require("../../services/pr-text");
+const { idFromBranch } = require("../../services/ids");
 
 const REQUIRED_CHECKS = ["Build and guards", "studio-scope"];
 const METHODS = ["getHead", "readTextFile", "readFileBytes", "hasFile", "listDir", "createBranch", "commitFiles", "resetBranch", "openPr", "updatePr", "getPr", "listPrs", "markReady", "closePr", "deleteBranch", "merge", "listMerged", "getMergedPr", "findCommitByTrailer", "getBaseBranch", "changedFiles", "prUrl", "requestReviewers"];
@@ -45,7 +46,9 @@ function guardPrCreate({ head, base }, baseBranch) {
 // branch, whose body ends with Studio's own marker. Labels are a convenience that can fail to be written (the GitHub App may
 // lack "Issues: write"); merge() and the draft finder must not depend on them (PHASE1-DESIGN 4.3).
 function isStudioDraft(pr, baseBranch) {
-  return !!pr && typeof pr.headRef === "string" && /^studio\//.test(pr.headRef) && !pr.fromFork && pr.baseRef === baseBranch && parseMarker(pr.body) !== null;
+  if (!pr || typeof pr.headRef !== "string" || !/^studio\//.test(pr.headRef) || pr.fromFork || pr.baseRef !== baseBranch) return false;
+  const m = parseMarker(pr.body); // the marker's draft id must be the branch's own
+  return m !== null && m.draftId === idFromBranch(pr.headRef);
 }
 // finish a Pr view: a Studio draft always reports the "studio-draft" label (so the code that lists drafts keeps working when the
 // label could not be written) and says plainly that the label itself is missing

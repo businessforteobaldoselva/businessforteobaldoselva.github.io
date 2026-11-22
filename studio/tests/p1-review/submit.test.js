@@ -93,7 +93,7 @@ test("GitHub refuses (not a collaborator) or is down: the submit still succeeds 
   const d3 = await draftBy(crash, "editor");
   assert.equal((await submit(crash, "editor", d3, "amelia")).json.notified.reason, "github_unavailable");
 
-  const noMethod = api(); // a provider without requestReviewers yet
+  const noMethod = api(); noMethod.git.requestReviewers = undefined; // a provider without requestReviewers
   const d4 = await draftBy(noMethod, "editor");
   const r4 = await submit(noMethod, "editor", d4, "amelia");
   assert.equal(r4.status, 200);
