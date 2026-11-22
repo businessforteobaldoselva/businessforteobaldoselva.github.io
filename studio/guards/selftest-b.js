@@ -85,7 +85,7 @@ module.exports = (h) => {
       name: "[studio api] publishing ignores the checks",
       mutate(ws) {
         withScripts(ws);
-        edit(ws, "studio/api/services/drafts.js", replaceOnce("  if (pr.checks.state !== \"success\") return \"checks_pending\";\n", ""));
+        edit(ws, "studio/api/services/drafts.js", replaceOnce("  if (pr.checks.state === \"failure\") add(\"checks_failed\");\n  else if (pr.checks.state !== \"success\") add(\"checks_pending\");\n", ""));
       },
       run(ws) {
         expectRun("the publish-gate tests fail", unitTest(ws, "publish-gates.test.js"), { code: 1 });
