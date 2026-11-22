@@ -3,6 +3,8 @@
 .dock-chip { font-weight: 600; font-size: 13px; padding: 0 10px; }
 /* phones: the dock is full already (it must stay on one row), so the count and the legend live at the top of All fields instead */
 @media (max-width: 759px), (pointer: coarse) { .dock-chip, .dock-btn[data-panel-id="checks"] { display: none; } }
+/* below 460 px the dock holds seven buttons and no more: Help is opened from Account instead */
+@media (max-width: 459px) { .dock-btn[data-panel-id="help"] { display: none; } }
 .dock-chip .dock-text { white-space: nowrap; }
 .dock-dot { position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--s-danger); border: 2px solid var(--s-bg); }
 .dock-btn { position: relative; }

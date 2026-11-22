@@ -197,6 +197,7 @@
       title: "Review",
       glyph: "✔",
       order: 9,
+      noDock: true, // opened from Status or a review link; keeps the phone dock on one row
       render: function (container) {
         instance = render(container);
         return function () { if (instance) instance.destroy(); instance = null; };

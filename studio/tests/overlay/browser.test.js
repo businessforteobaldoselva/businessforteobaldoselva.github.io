@@ -484,6 +484,9 @@ test("roles: an editor cannot publish; an approver sees Publish; self-publish is
   await click(page, "Save draft");
   await waitSaved(page);
   await click(page, "Send for review");
+  await page.waitForFunction(() => document.getElementById("covered-studio").shadowRoot.querySelector('[role="dialog"] .btn-primary')); // Phase 1: "who should look?"
+  await page.evaluate(() => document.getElementById("covered-studio").shadowRoot.querySelector('[role="dialog"] .btn-primary').click());
+  await click(page, "Done"); // close the "sent for review" dialog
   await page.waitForFunction(() => window.CoveredStudio.drafts.current().state === "ready");
   await click(page, "Publish");
   await click(page, "Publish", { exact: true }); // confirm dialog button

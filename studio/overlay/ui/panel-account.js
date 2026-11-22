@@ -39,6 +39,7 @@
         container.appendChild(h("p", null, h("strong", null, me.user.name || me.user.email), " ", h("span", { class: "hint" }, "(" + me.user.email + ")")));
         container.appendChild(h("p", null, "Role: ", h("strong", null, me.role)));
         container.appendChild(h("p", { class: "hint" }, CAN[me.role] || ""));
+        container.appendChild(h("button", { type: "button", class: "btn", "data-open-help": "1", on: { click: function () { studio.ui.openPanel("help"); } } }, "Open Help"));
         container.appendChild(h("button", { type: "button", class: "btn", on: { click: function () { S.auth.signOut(); studio.setMode("browse"); } } }, "Sign out"));
       }
       var b = studio.config.build || {};
