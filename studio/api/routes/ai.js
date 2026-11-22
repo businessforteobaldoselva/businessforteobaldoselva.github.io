@@ -17,6 +17,18 @@ const routes = [
     async run(ctx) { return { status: 200, body: await service(ctx).status(ctx) }; },
   },
   {
+    // what a request would cost, BEFORE it is sent: builds the prompt, calls no model, reserves and counts nothing
+    method: "POST", path: "/v1/ai/estimate", cls: "read", minRole: "editor",
+    async run(ctx, req) {
+      const body = await readJson(req.request, ctx.deps.config.ai.maxBodyBytes);
+      return { status: 200, body: await service(ctx).estimate(ctx, body) };
+    },
+  },
+  {
+    method: "GET", path: "/v1/ai/recent", cls: "read", minRole: "editor",
+    async run(ctx) { return { status: 200, body: await service(ctx).recent(ctx) }; },
+  },
+  {
     method: "POST", path: "/v1/ai/propose", cls: "ai", minRole: "editor",
     async run(ctx, req) {
       const body = await readJson(req.request, ctx.deps.config.ai.maxBodyBytes);

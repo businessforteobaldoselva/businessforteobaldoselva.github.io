@@ -124,6 +124,8 @@ async function accept(ctx, body, env) {
   }
   await audit("ai.accept", "ok", Object.assign({}, meta, { changes: order.length, skipped: pr.changes.length - order.length, codes: [] }));
   const ai = { proposalId: pr.id, accepted: order.length, total: pr.changes.length };
+  // the "recent requests" list shows how many suggestions were taken and which pull request they became; best effort
+  if (env.attach) { try { await env.attach(ctx, { id: pr.id, accepted: order.length, total: pr.changes.length, prNumber: r.draft && r.draft.number ? r.draft.number : null }); } catch (e) { /* a usage note must never fail a save */ } }
   if (r.noop) return { status: 200, body: { noop: true, draft: r.draft, changes: [], replayed: false, warnings: r.warnings, ai } };
   return { status: r.replayed || draftId ? 200 : 201, body: { draft: r.draft, changes: r.changes, replayed: r.replayed, warnings: r.warnings, ai } };
 }

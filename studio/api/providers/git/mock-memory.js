@@ -115,9 +115,9 @@ class MemoryRepo {
   createPr({ head, base, title, body, draft, labels, authorLogin }) {
     if (!this.head(head)) throw new GitError("not_found", "head branch does not exist");
     const n = this.nextPr++;
-    const pr = { number: n, headRef: head, baseRef: base, title, body: body || "", draft: !!draft, labels: new Set(labels || []), state: "open", merged: false, authorLogin: authorLogin || this.botLogin, createdAt: this.now(), updatedAt: this.now(), mergeSha: null, mergedAt: null, mergedBy: null, parentSha: null, headShaAtClose: null, files: null };
+    const pr = { number: n, headRef: head, baseRef: base, title, body: body || "", draft: !!draft, labels: new Set(this.failLabels ? [] : labels || []), state: "open", merged: false, authorLogin: authorLogin || this.botLogin, createdAt: this.now(), updatedAt: this.now(), mergeSha: null, mergedAt: null, mergedBy: null, parentSha: null, headShaAtClose: null, files: null };
     this.prs.set(n, pr);
-    (labels || []).forEach((l) => this.labels.add(l));
+    if (!this.failLabels) (labels || []).forEach((l) => this.labels.add(l));
     return pr;
   }
 
@@ -153,11 +153,11 @@ class MemoryRepo {
       for (const p of this.changedPaths(base, headSha)) if (mainTree.get(p) !== baseTree.get(p) && mainTree.get(p) !== headTree.get(p)) mergeable = false;
     }
     const ck = headSha ? this.checksFor(headSha) : { runs: [], statuses: [] };
-    return {
+    return iface.withIdentity({
       fromFork: !!pr.fromFork, number: pr.number, url: (urlBase || "https://github.com/" + this.owner + "/" + this.name) + "/pull/" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged,
       headRef: pr.headRef, headSha, baseSha: base, behindBase: !pr.merged && !!base && base !== mainSha, mergeable, labels: [...pr.labels].sort(), authorLogin: pr.authorLogin,
       title: pr.title, body: pr.body, checks: summarizeChecks(ck.runs, ck.statuses), mergeCommitSha: pr.mergeSha, createdAt: pr.createdAt, updatedAt: pr.updatedAt,
-    };
+    }, pr.baseRef, this.baseBranch);
   }
 
   // squash merge: the PR's changed files (relative to the merge base) land on main in one commit
@@ -249,7 +249,7 @@ class MemoryGit {
     if (!pr) throw new GitError("not_found", "no such pull request");
     if (patch.title !== undefined) pr.title = patch.title;
     if (patch.body !== undefined) pr.body = patch.body;
-    if (patch.labels) { patch.labels.forEach((l) => { pr.labels.add(l); this.repo.labels.add(l); }); }
+    if (patch.labels && !this.repo.failLabels) { patch.labels.forEach((l) => { pr.labels.add(l); this.repo.labels.add(l); }); }
     pr.updatedAt = this.repo.now();
     return this.repo.prView(pr);
   }
@@ -262,6 +262,17 @@ class MemoryGit {
       out.push(this.repo.prView(pr));
     }
     return out.sort((a, b) => b.number - a.number);
+  }
+  // test hooks: `repo.failLabels = true` makes label writes silently not happen (like a missing "Issues: write");
+  // `repo.failReviewers = "<GitError code>"` makes requestReviewers fail
+  async requestReviewers(n, logins) {
+    const pr = this.repo.prs.get(n);
+    if (!pr) throw new GitError("not_found", "no such pull request");
+    const list = Array.isArray(logins) ? logins.filter((l) => typeof l === "string" && /^[A-Za-z0-9-]{1,39}$/.test(l)) : [];
+    if (!list.length || list.length !== logins.length) throw new GitError("bad_request", "reviewer logins are not valid");
+    if (this.repo.failReviewers) throw new GitError(this.repo.failReviewers, "reviewer request refused");
+    pr.reviewers = (pr.reviewers || []).concat(list);
+    return { requested: list };
   }
   async markReady(n) { const pr = this.repo.prs.get(n); if (!pr) throw new GitError("not_found", "no such pull request"); pr.draft = false; pr.updatedAt = this.repo.now(); }
   async closePr(n, comment) {
@@ -279,7 +290,7 @@ class MemoryGit {
     if (!pr) throw new GitError("not_found", "no such pull request");
     if (method !== "squash") throw new GitError("bad_request", "only squash merges");
     iface.guardBranchWrite(pr.headRef);
-    if (!pr.labels.has("studio-draft")) throw new iface.ScopeError("only Studio drafts can be merged here", pr.headRef);
+    if (!iface.isStudioDraft({ headRef: pr.headRef, baseRef: pr.baseRef, fromFork: pr.fromFork, body: pr.body }, this.repo.baseBranch)) throw new iface.ScopeError("only Studio drafts can be merged here", pr.headRef);
     if (pr.state !== "open" || pr.draft) throw new GitError("not_mergeable", "the pull request is not open and ready");
     return { sha: this.repo.squashMerge(n, sha, this.repo.botLogin) };
   }

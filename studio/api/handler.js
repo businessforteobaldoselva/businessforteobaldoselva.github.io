@@ -15,6 +15,8 @@ const drafts = require("./services/drafts");
 const ROLE_RANK = drafts.ROLE_RANK;
 const ROLE_TTL_MS = 30000;
 const WRITE_METHODS = new Set(["POST", "PUT", "DELETE", "PATCH"]);
+const UNAVAILABLE = { auth: "Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute." };
+const unavailable = (service) => new ApiError("service_unavailable", UNAVAILABLE[service], { service });
 
 function allRoutes() {
   return [].concat(
@@ -85,6 +87,8 @@ function createHandler(deps) {
     if (!token) { take("anon:" + ip, LIMITS.anon); await deny(requestId, ip, "missing token"); }
     let user;
     try { user = await deps.auth.verify(token, { now: deps.now(), url: request.url }); } catch (e) {
+      // the sign-in service itself being down is not a bad token: say so plainly and do not count it as a failed sign-in
+      if ((e instanceof AuthError || (e && e.name === "AuthError")) && e.code === "keys_unavailable") throw unavailable("auth");
       take("badauth:" + ip, LIMITS.badAuth);
       if (e instanceof AuthError || (e && e.name === "AuthError")) await deny(requestId, ip, e.code);
       throw e;
@@ -96,7 +100,7 @@ function createHandler(deps) {
     const cached = deps.roleCache.get(user.userId);
     if (cached && nowMs - cached.at < ROLE_TTL_MS) person = cached.value;
     else {
-      try { person = await deps.roles.getRole(user, token); } catch (e) { throw new ApiError("upstream_error", "The people list is unavailable."); }
+      try { person = await deps.roles.getRole(user, token); } catch (e) { throw unavailable("auth"); }
       if (person && person.active && ROLE_RANK[person.role]) deps.roleCache.set(user.userId, { at: nowMs, value: person });
     }
     if (!person || !person.active || !ROLE_RANK[person.role]) {

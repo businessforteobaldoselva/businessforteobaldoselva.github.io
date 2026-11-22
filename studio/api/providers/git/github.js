@@ -144,6 +144,19 @@ function createGithubGit(opts) {
       ensured.add(l);
     }
   }
+  // Labels are a convenience. Whatever goes wrong (the App has no "Issues: write", GitHub hiccups) must never fail creating or
+  // updating a pull request: say so once through opts.onLabelFailure (no body, no names) and carry on. -> true when written
+  async function applyLabels(n, labels) {
+    if (!labels || !labels.length) return true;
+    try {
+      await ensureLabels(labels);
+      must(await call("POST", R + "/issues/" + n + "/labels", { body: { labels } }), "POST labels");
+      return true;
+    } catch (e) {
+      if (typeof opts.onLabelFailure === "function") { try { opts.onLabelFailure({ pr: n }); } catch (x) { /* a log hook must not break a request */ } }
+      return false;
+    }
+  }
 
   async function checksFor(sha) {
     const runs = await call("GET", R + "/commits/" + sha + "/check-runs?per_page=100");
@@ -159,11 +172,11 @@ function createGithubGit(opts) {
       const cmp = await call("GET", R + "/compare/" + encodeURIComponent(base) + "..." + p.head.sha);
       if (cmp.status === 200 && cmp.json) { baseSha = cmp.json.merge_base_commit ? cmp.json.merge_base_commit.sha : null; behind = (cmp.json.behind_by || 0) > 0; }
     }
-    return {
+    return iface.withIdentity({
       number: p.number, url: p.html_url, fromFork: !!(p.head && p.head.repo && p.base && p.base.repo && p.head.repo.full_name !== p.base.repo.full_name) || !(p.head && p.head.repo), state: p.state === "open" ? "open" : "closed", draft: !!p.draft, merged, headRef: p.head.ref, headSha: p.head.sha, baseSha, behindBase: behind,
       mergeable: merged ? null : typeof p.mergeable === "boolean" ? p.mergeable : null, labels: (p.labels || []).map((l) => l.name).sort(), authorLogin: p.user ? p.user.login : "", title: p.title, body: p.body || "",
       checks: await checksFor(p.head.sha), mergeCommitSha: p.merge_commit_sha || null, createdAt: p.created_at, updatedAt: p.updated_at,
-    };
+    }, p.base && p.base.ref, base);
   }
 
   const MERGED_FIELDS = "number title body mergedAt headRefName author { login } mergedBy { login } mergeCommit { oid parents(first: 1) { nodes { oid } } } labels(first: 20) { nodes { name } } files(first: 100) { nodes { path } }";
@@ -240,16 +253,20 @@ function createGithubGit(opts) {
     async openPr({ head, base: baseRef, title, body, labels, draft }) {
       iface.guardPrCreate({ head, base: baseRef }, base);
       const p = must(await call("POST", R + "/pulls", { body: { title, head, base: baseRef, body: body || "", draft: !!draft } }), "POST pulls");
-      if (labels && labels.length) { await ensureLabels(labels); must(await call("POST", R + "/issues/" + p.number + "/labels", { body: { labels } }), "POST labels"); }
-      return this.getPr(p.number);
+      const done = await applyLabels(p.number, labels);
+      const pr = await this.getPr(p.number);
+      if (!done) pr.labelsApplied = false;
+      return pr;
     },
     async updatePr(n, patch) {
       const body = {};
       if (patch.title !== undefined) body.title = patch.title;
       if (patch.body !== undefined) body.body = patch.body;
       if (Object.keys(body).length) must(await call("PATCH", R + "/pulls/" + n, { body }), "PATCH pull");
-      if (patch.labels && patch.labels.length) { await ensureLabels(patch.labels); must(await call("POST", R + "/issues/" + n + "/labels", { body: { labels: patch.labels } }), "POST labels"); }
-      return this.getPr(n);
+      const done = await applyLabels(n, patch.labels);
+      const pr = await this.getPr(n);
+      if (!done) pr.labelsApplied = false;
+      return pr;
     },
     async getPr(n) {
       const r = await call("GET", R + "/pulls/" + n);
@@ -267,6 +284,13 @@ function createGithubGit(opts) {
       const views = [];
       for (const p of out.slice(0, 50)) views.push(await view(p));
       return views;
+    },
+    // ask GitHub to notify these people (they must be collaborators; GitHub refuses others). Logins are validated here, never trusted.
+    async requestReviewers(n, logins) {
+      const list = Array.isArray(logins) ? logins.filter((l) => typeof l === "string" && /^[A-Za-z0-9-]{1,39}$/.test(l)).slice(0, 10) : [];
+      if (!list.length || list.length !== logins.length) throw new GitError("bad_request", "reviewer logins are not valid");
+      must(await call("POST", R + "/pulls/" + Number(n) + "/requested_reviewers", { body: { reviewers: list } }), "POST requested_reviewers");
+      return { requested: list };
     },
     async markReady(n) {
       const p = must(await call("GET", R + "/pulls/" + n), "GET pull");
@@ -287,7 +311,8 @@ function createGithubGit(opts) {
       if (method !== "squash") throw new GitError("bad_request", "only squash merges");
       const p = must(await call("GET", R + "/pulls/" + n), "GET pull");
       iface.guardBranchWrite(p.head.ref);
-      if (!(p.labels || []).some((l) => l.name === "studio-draft")) throw new iface.ScopeError("only Studio drafts can be merged here", p.head.ref);
+      const fromFork = !(p.head && p.head.repo && p.base && p.base.repo && p.head.repo.full_name === p.base.repo.full_name);
+      if (!iface.isStudioDraft({ headRef: p.head.ref, baseRef: p.base && p.base.ref, fromFork, body: p.body || "" }, base)) throw new iface.ScopeError("only Studio drafts can be merged here", p.head.ref);
       const r = await call("PUT", R + "/pulls/" + n + "/merge", { body: { merge_method: "squash", sha, commit_title: p.title + " (#" + n + ")" } });
       if (r.status === 409) throw new GitError("sha_mismatch", "Head branch was modified. Review and try the merge again.");
       if (r.status === 405) throw new GitError("not_mergeable", "Pull Request is not mergeable");

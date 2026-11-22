@@ -1,7 +1,13 @@
 "use strict";
-// Phase 1 placeholder, owned by the BACKEND unit (studio/PHASE1-DESIGN.md section 2): GET /v1/health.
-// Pre-registered in handler.js allRoutes() so no unit edits the handler. Same shape as the other route files.
+// GET /v1/health (BACKEND unit, PHASE1-DESIGN 4.1): anonymous, rate-limited by IP, never needs a token and never audits (it is polled).
 
-const routes = [];
+const { forDeps } = require("../services/health");
+
+const routes = [
+  {
+    method: "GET", path: "/v1/health", anon: true, cls: "anon",
+    async run(ctx) { return { status: 200, body: await forDeps(ctx.deps).check() }; },
+  },
+];
 
 module.exports = { routes };

@@ -20,7 +20,7 @@ function createMockGithub(opts) {
   const clock = o.now || (() => new Date());
   const tokens = new Map(); // token -> expiresAt ms
   const requests = [];
-  const state = { failNext: null, tokenTtlMs: o.tokenTtlMs || 3600 * 1000, tokensIssued: 0 };
+  const state = { failNext: null, failLabels: 0, failReviewers: 0, tokenTtlMs: o.tokenTtlMs || 3600 * 1000, tokensIssued: 0 };
   const R = "/repos/" + repo.owner + "/" + repo.name;
 
   function verifyAppJwt(h) {
@@ -36,7 +36,7 @@ function createMockGithub(opts) {
 
   const prJson = (pr) => {
     const v = repo.prView(pr, "https://github.com/" + repo.owner + "/" + repo.name);
-    return { number: pr.number, node_id: "PR_" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged, merged_at: pr.mergedAt, title: pr.title, body: pr.body, html_url: v.url, head: { ref: pr.headRef, sha: v.headSha }, base: { ref: pr.baseRef, sha: v.baseSha }, user: { login: pr.authorLogin }, labels: [...pr.labels].map((name) => ({ name })), mergeable: v.mergeable, merge_commit_sha: pr.mergeSha, created_at: pr.createdAt, updated_at: pr.updatedAt };
+    return { number: pr.number, node_id: "PR_" + pr.number, state: pr.state, draft: pr.draft, merged: pr.merged, merged_at: pr.mergedAt, title: pr.title, body: pr.body, html_url: v.url, head: { ref: pr.headRef, sha: v.headSha, repo: { full_name: pr.fromFork ? "someone-else/" + repo.name : repo.owner + "/" + repo.name } }, base: { ref: pr.baseRef, sha: v.baseSha, repo: { full_name: repo.owner + "/" + repo.name } }, user: { login: pr.authorLogin }, labels: [...pr.labels].map((name) => ({ name })), mergeable: v.mergeable, merge_commit_sha: pr.mergeSha, created_at: pr.createdAt, updated_at: pr.updatedAt };
   };
 
   const gqlNode = (pr) => {
@@ -157,6 +157,16 @@ function createMockGithub(opts) {
     if (method === "GET" && (m = /^\/commits\/([0-9a-f]{40})\/status$/.exec(rp))) {
       const ck = repo.checksFor(m[1]);
       return [200, { state: ck.statuses.length ? "success" : "pending", statuses: ck.statuses }];
+    }
+    // test hooks: state.failLabels = 403 makes every label write answer that status (a missing "Issues: write" permission)
+    if (state.failLabels && method === "POST" && (rp === "/labels" || /^\/issues\/\d+\/labels$/.test(rp))) return [state.failLabels, { message: "Resource not accessible by integration" }];
+    if (method === "POST" && (m = /^\/pulls\/(\d+)\/requested_reviewers$/.exec(rp))) {
+      const pr = repo.prs.get(Number(m[1]));
+      if (!pr) return [404, { message: "Not Found" }];
+      if (state.failReviewers) return [state.failReviewers, { message: "Review cannot be requested" }];
+      if (!Array.isArray(body.reviewers) || !body.reviewers.length) return [422, { message: "Validation Failed" }];
+      pr.reviewers = (pr.reviewers || []).concat(body.reviewers);
+      return [201, { number: pr.number, requested_reviewers: pr.reviewers.map((login) => ({ login })) }];
     }
     if (method === "POST" && rp === "/labels") {
       if (repo.labels.has(body.name)) return [422, { message: "Validation Failed", errors: [{ code: "already_exists" }] }];
