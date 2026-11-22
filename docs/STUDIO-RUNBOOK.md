@@ -29,11 +29,13 @@ You change the website on the page itself. Your changes are saved as a **draft**
 
 1. Open the **preview link** from the draft (or any preview of the site) and add `/?studio=1` to the end of the address. In the Studio on your own computer it is `http://localhost:8080/?studio=1`.
 2. Sign in with your email. Studio sends you a code.
-3. Press **E** (or the **Edit** button) to switch editing on. Things you can change get an outline.
+3. Press **E** (or the **Edit** button) to switch editing on. Things you can change get an outline. The grey chip next to it says how many things you can change on this page ("14 editable things here"); press it to see what each outline means and which keys move you around.
 4. **Text:** click it, type, press **Enter**.
 5. **A picture:** click it, choose a new photo, drag to crop. Studio asks for a short description of the photo (for people who cannot see it). If the picture is only decoration, switch on "decorative".
 6. **Hide a section** (this works on a phone too): open **Sections**, press **Hide** on the section. Hidden sections show as dimmed; they are only hidden on the live site after publishing. Use the arrows to move a section up or down.
-7. Press **Save draft** (or Ctrl/Cmd + S). Studio checks everything and keeps it as a draft. If something is not allowed, it tells you which field and why, and nothing is lost.
+6a. **Something that is not on the page** (the line Google shows under the page title, the text on a share card, a link address, a picture description): press **All fields**. It lists what is on this page first and "Not visible on the page" after it. Type a few words of its name in the search box, or press **Ctrl/Cmd + K** and type them ("meta description" finds it). Press **Everything** to see the fields of the whole site.
+6b. Press **Check my changes** (the tick button; on a phone it is inside **All fields**). It reads your words, links and pictures and tells you in plain English if a link goes nowhere, a picture has no description or a title is too long. **Fix** takes you to the field. A warning can be ignored on your device; a problem that would stop the change from going live cannot, and **Send for review** will not work until it is fixed. These checks are not a full accessibility audit.
+7. Press **Save draft** (or Ctrl/Cmd + S). Studio checks everything and keeps it as a draft. If something is not allowed, it tells you which field and why, and nothing is lost. Saving is never blocked by the checks.
 8. Press **Send for review**. Studio asks who should look and tells you what was done: if the approver is set up for GitHub they are notified there; otherwise Studio gives you a short message to copy (**Copy link**) or e-mail (**Email it**). Press **Status** at any time to see where your draft is.
 
 ### Publish (approvers)
@@ -57,7 +59,7 @@ This only appears when a Studio admin has switched AI help on. If you open **Des
 
 1. Open **Describe a change** (the sparkle button, or press **Ctrl/Cmd + K** and type `describe`). On a very small phone screen it is the link **Or describe a change in words** at the top of **Changes**.
 2. Say what you want in your own words: "make the hero shorter and warmer", "translate the FAQ to Welsh", "add a question about venues to the FAQ". If you clicked something on the page first, the panel says **About: ...** and the suggestion stays on that part. Press the small x to remove it.
-3. Press **Suggest changes** (or Ctrl/Cmd + Enter). It usually takes 5 to 20 seconds, longer for a translation. You can **Cancel**.
+3. Once you have written a sentence, Studio shows what it will cost before you ask ("About 0.4% of today's AI allowance. You have 55 suggestions left today."). Press **Suggest changes** (or Ctrl/Cmd + Enter). It usually takes 5 to 20 seconds, longer for a translation. You can **Cancel**. If you switch to another window while it works, a message and a dot on the button tell you when the suggestion is ready. After a suggestion it says how much of today's allowance it used; an answer Studio could not use is given back ("This one did not count toward your limit."). **Recent requests** at the bottom lists your last requests with how many changes you accepted.
 4. Read the suggestion. Every change is a card with a **Before** and an **After**: removed words are struck through and added words are underlined (and read out as "[removed]" and "[added]" to a screen reader). **Nothing is saved yet.**
 5. Tick the ones you want. **Select all**, **Select none** and **Discard** do what they say. Some changes go together (for example a new FAQ question and its answer): ticking one ticks the other, and Studio tells you.
 6. Press **Save N changes as a draft**. It becomes a normal draft, exactly like one you made by hand: send it for review, an approver publishes it. **Nothing goes live until an approver publishes it.**
@@ -300,7 +302,37 @@ Preview access (research only, nothing changed): founders cannot open Netlify pr
 
 #### 4c.3 Checks, edit-mode legend and AI meter (EDIT unit)
 
-(To be written by the EDIT unit: what "Check my changes" does and does not cover, how a rule is added, and how to read the AI meter.)
+This unit adds no setting and no environment variable. It is all in the overlay and in one guard.
+
+**"Check my changes" (the tick button, or Ctrl/Cmd + K and "check").** It runs ten content rules on the draft in the browser, in plain English. The same rules, from the same code (`studio/content-rules/`), run in CI on every pull request as `studio/guards/check-content-rules.js` (part of `npm run check:studio`), so what a founder sees in the panel is what CI will say.
+
+| Rule | Severity | Flags |
+|---|---|---|
+| alt-missing | blocks | a picture that is not "decorative" has no description |
+| alt-weak | warning | a description under 5 or over 150 characters, equal to the file name, or starting "image of" / "picture of" |
+| title-length | warning | a search title under 15 or over 60 characters |
+| description-length | warning | a search description under 70 or over 160 (share text: under 40 or over 200) |
+| duplicate-text | warning | the same search title or description twice, the same FAQ question twice, the same heading twice in a list |
+| vague-link-text | warning | a link or button that says "click here", "here", "read more", "learn more" and the like |
+| broken-internal-link | blocks | a link to a page that does not exist, or to a #section that is not on that page (a link that goes through a redirect is a note) |
+| heading-skip | warning | a markdown heading that skips a level, or a top-level heading in page text |
+| image-heavy | warning | a picture over 600 KB or 3000 pixels wide |
+| page-weight | warning | the pictures of one page add up to over 3 MB |
+
+* A **block** finding fails CI (`Build and guards`) unless it is already listed in `studio/content-rules/baseline.json`; the list is empty and can only shrink (a listed finding that no longer occurs also fails, so the list is cleaned up). In the overlay **Send for review** refuses to run while the draft has a block finding that is not already on the live site, and says "Fix these first; they would stop your change from going live". Saving a draft is never blocked.
+* A warning or a note can be **ignored**. That is remembered on that person's device for that draft only; it is never sent anywhere and CI does not know about it. A block cannot be ignored.
+* The panel says it checks words, links and pictures and is **not a full accessibility audit**. Do not describe it as one anywhere (the guard fails if the panel text claims otherwise).
+* What the rules know about the site beyond the data (which pages exist, which sections a page has, how big the pictures are) is the "facts": built by `studio/content-rules/facts-node.js`, stored in `content.json` of the preview (key `facts`) and rebuilt for CI. If a preview was built without them the panel says so and skips the link and picture-size checks.
+* **Adding a rule:** write it in `studio/content-rules/rules.js` (a function that returns plain findings, no network, no clock), give it a known-bad example in `studio/content-rules/seeds.js` (the guard fails when a rule stops flagging its own example), and add a scenario in `studio/guards/selftest-p1-edit.js`. A new schema field named like a role (`title`, `description`, `label`, `cta...`) must be listed in `studio/content-rules/field-roles.json` (use `ignore` when no rule applies).
+* The overlay bundle carries `field-roles.json` and the rules; after changing either, rebuild the preview (the Studio API does not need a redeploy for this).
+
+**Edit-mode legend.** The chip next to the Edit button counts the things that can be edited on the page you are on (distinct text, picture, link, colour and switch markers; not sections or list items). `studio/schema/marker-coverage.json` holds the count of every built page (`pageCounts`) and `npm run check:studio` fails if a page loses editable things; after an intended change run `node studio/guards/check-markers.js --update`. On phones the chip is hidden to keep the dock on one row; the count and the legend are at the top of **All fields**.
+
+**All fields and the palette.** The **All fields** button is always in the dock in edit mode: fields with a marker on this page first, "Not visible on the page" after, **Everything** for the whole site. Ctrl/Cmd + K also jumps to any field of the files the page uses ("Jump to field: Site-wide > Meta description"), to a homepage section, to History and to the last five published changes. Nothing is fetched while searching except the five recent changes, once, when the palette opens.
+
+**The AI meter.** Under the instruction box Studio asks `POST /v1/ai/estimate` once the person has typed 10 characters and paused for 0.6 seconds (never on every key, never when AI is off, and the call is cancelled when they keep typing); it costs nothing and counts nothing. After a suggestion the panel prints "Used about X% of today's allowance (Y seconds)" from the answer's `meter`. If the answer could not be used it says "This one did not count toward your limit." If the person is in another window or tab when the answer arrives, a message "Your suggestion is ready" and a dot on the button tell them (no sound, no browser notification permission). **Recent requests** lists their last 20 (date, kind, "N of M accepted", the pull request link) from `GET /v1/ai/recent`; it never shows what they typed. These routes belong to the BACKEND unit (4c.1); until the API is redeployed the meter and the list stay empty and nothing else changes.
+
+**Help panel and plain errors.** **Help** shows "Studio status" (from `GET /v1/health`). When the API says `service_unavailable` the Account panel and a message say "Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute."
 
 #### 4c.4 Decap retired (DECAP unit)
 

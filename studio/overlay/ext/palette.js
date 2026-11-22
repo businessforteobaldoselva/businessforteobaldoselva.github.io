@@ -136,7 +136,8 @@
     return out;
   }
 
-  var api = { score: score, search: search, tokens: tokens, norm: norm, SYNONYMS: SYNONYMS, sectionCommands: sectionCommands, fieldCommands: fieldCommands, mergeById: mergeById, tokenScore: tokenScore };
+  var FOOTER = "Up/Down to move, Enter to run, Esc to close, ? for help";
+  var api = { FOOTER: FOOTER, score: score, search: search, tokens: tokens, norm: norm, SYNONYMS: SYNONYMS, sectionCommands: sectionCommands, fieldCommands: fieldCommands, mergeById: mergeById, tokenScore: tokenScore };
   if (typeof module === "object" && module && module.exports) module.exports = api;
   if (!S) return;
   S.ext = S.ext || {};
@@ -197,6 +198,8 @@
     }
 
     function homepageSections() {
+      // the real host keeps the editable files in studio.staging (studio.content.files() is only a list of names there); the test stub has them in content.files()
+      try { var b = studio.staging && studio.staging._base ? studio.staging._base() : null; if (b && b.homepage) return b.homepage.sections || []; } catch (e) { /* fall back */ }
       try { var f = studio.content.files(); return (f.homepage && f.homepage.data && f.homepage.data.sections) || []; } catch (e) { return []; }
     }
     function sectionLabel(i, sec) {
@@ -214,14 +217,9 @@
     function fieldLabel(ref) { try { return studio.schema.label(ref); } catch (e) { return null; } }
 
     function generated() {
-      var cmds = sectionCommands(homepageSections(), sectionLabel).concat(fieldCommands(pageMarkers(), fieldLabel));
+      var cmds = sectionCommands(homepageSections(), sectionLabel).filter(function (c) { return c.kind !== "go-section"; }).concat(fieldCommands(pageMarkers(), fieldLabel));
       cmds.forEach(function (c) {
-        if (c.kind === "go-section") c.run = function (s) {
-          var node = document.querySelector('[data-cms="' + c.ref + '"][data-cms-kind="section"]');
-          if (node && node.scrollIntoView) node.scrollIntoView({ block: "start", behavior: "smooth" });
-          else callUi("openPanel", "sections");
-        };
-        else if (c.kind === "toggle-section") c.run = function (s) { return s.staging.toggle(c.ref); };
+        if (c.kind === "toggle-section") c.run = function (s) { return s.staging.toggle(c.ref); };
         else if (c.kind === "edit-ref") c.run = function (s) { return ui.editRef(c.ref); };
       });
       return cmds;
@@ -234,6 +232,63 @@
     function allCommands() {
       // order = what you see with an empty query: draft actions first, then navigation
       return mergeById([staticCommands(), registered(), generated()]);
+    }
+
+    // ---- palette sources (PHASE1-DESIGN 9.3): dynamic rows for "jump to a field", "jump to a section", "recent changes".
+    // search(query) is synchronous and cheap: it reads caches only, never the network.
+    function jumpToSection(c) {
+      var node = document.querySelector('[data-cms="' + c.ref + '"][data-cms-kind="section"]');
+      if (node && node.scrollIntoView) node.scrollIntoView({ block: "start", behavior: "smooth" });
+      else callUi("openPanel", "sections");
+    }
+    var fieldRowsCache = null;
+    function fieldRows() {
+      if (fieldRowsCache) return fieldRowsCache;
+      var rows = [];
+      try {
+        var files = [];
+        document.querySelectorAll("[data-cms]").forEach(function (n) { var ref = n.getAttribute("data-cms") || ""; var f = ref.split(".")[0]; if (f && files.indexOf(f) < 0) files.push(f); });
+        files = files.filter(function (f) { return f !== "site"; });
+        files.unshift("site"); // site-wide search and sharing text first: it is what people look for by name
+        var have = studio.staging && studio.staging.files ? studio.staging.files() : [];
+        files.forEach(function (file) {
+          if (have.indexOf(file) < 0) return;
+          var doc = studio.staging && studio.staging._base ? studio.staging._base()[file] : null;
+          if (!doc) return;
+          studio.schemaClient.leaves(file, doc, 1500).forEach(function (r) {
+            if (r.field.widget === "hidden" || rows.length >= 4000) return;
+            var ref = file + "." + r.segs.join(".");
+            var label = studio.schema.label(ref);
+            rows.push({ id: "fields.jump." + ref, title: "Jump to field: " + label, keywords: [typeof r.value === "string" ? r.value.slice(0, 160) : "", "field", "edit", "change"], group: "Fields", kind: "edit-ref", ref: ref, run: function () { return ui.editRef(ref); } });
+          });
+        });
+      } catch (e) { rows = []; }
+      fieldRowsCache = rows;
+      return rows;
+    }
+    var historyRows = [];
+    function loadHistory() {
+      if (!studio.me || !studio.api || typeof studio.api.get !== "function") return;
+      studio.api.get("/v1/history?limit=5").then(function (res) {
+        historyRows = ((res && res.items) || []).slice(0, 5).map(function (it) {
+          return { id: "history.recent." + it.number, title: "Recent change: " + String(it.title || "#" + it.number).slice(0, 80), keywords: ["history", "published", "restore", "undo", "past"], group: "History", run: function () { callUi("openPanel", "history"); } };
+        });
+        if (open) open.refresh();
+      }, function () { historyRows = []; });
+    }
+    if (typeof ui.registerPaletteSource === "function") {
+      ui.registerPaletteSource({ id: "fields.jump", search: function (q) { return tokens(q).length ? fieldRows() : []; } });
+      ui.registerPaletteSource({ id: "sections.jump", search: function () {
+        return sectionCommands(homepageSections(), sectionLabel).filter(function (c) { return c.kind === "go-section"; }).map(function (c) {
+          return { id: "sections.jump." + c.index, title: c.title.replace(/^Go to /, "Jump to section: "), keywords: c.keywords, group: "Sections", run: function () { jumpToSection(c); } };
+        });
+      } });
+      ui.registerPaletteSource({ id: "history.recent", search: function (q) { return tokens(q).length ? historyRows : []; } });
+    }
+    function sourceRows(q) {
+      var out = [];
+      try { (ui.paletteSources ? ui.paletteSources() : []).forEach(function (src) { try { (src.search(q) || []).slice(0, 200).forEach(function (r) { if (r && r.id && r.title && typeof r.run === "function") out.push(r); }); } catch (e) { /* one bad source never breaks the palette */ } }); } catch (e) { /* none */ }
+      return out;
     }
 
     // ---- UI
@@ -250,7 +305,7 @@
       var input = el("input", { type: "text", class: "csx-pal-input", role: "combobox", "aria-expanded": "true", "aria-controls": id + "-list", "aria-autocomplete": "list", "aria-label": "Search commands", placeholder: "Type what you want to do…", autocomplete: "off", spellcheck: "false" });
       var list = el("ul", { class: "csx-pal-list", id: id + "-list", role: "listbox", "aria-label": "Commands" });
       var status = el("div", { class: "csx-visually-hidden", role: "status", "aria-live": "polite" });
-      var hint = el("div", { class: "csx-pal-hint" }, "Up and Down to choose, Enter to run, Esc to close");
+      var hint = el("div", { class: "csx-pal-hint", "data-pal-footer": "1" }, FOOTER);
       var dlg = el("div", { class: "csx-pal", role: "dialog", "aria-modal": "true", "aria-label": "Command palette" }, input, list, status, hint);
       var backdrop = el("div", { class: "csx-pal-backdrop", on: { mousedown: function (ev) { if (ev.target === backdrop) close(); } } }, dlg);
       var wrap = el("div", { class: "csx-pal-wrap", "data-studio-ui": "" }, backdrop);
@@ -287,7 +342,7 @@
           items = search(pool, q, MAX);
         } else {
           var visible = allCommands().filter(function (c) { try { return !c.when || c.when(studio); } catch (e) { return false; } });
-          items = search(visible, q, MAX);
+          items = search(mergeById([visible, sourceRows(q)]), q, MAX);
         }
         active = 0;
         paint();
@@ -334,7 +389,8 @@
       }
       input.addEventListener("input", refresh);
       document.addEventListener("keydown", onKey, true);
-      open = { close: close };
+      open = { close: close, refresh: refresh };
+      loadHistory();
       refresh();
       input.focus();
     }

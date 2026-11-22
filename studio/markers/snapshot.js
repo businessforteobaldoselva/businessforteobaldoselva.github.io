@@ -64,8 +64,22 @@ function schemaSha(root) {
   }
 }
 
+// The facts the content rules need that are not in the data (which pages exist, picture sizes): PHASE1-DESIGN 8.2.
+// Additive key, schemaVersion stays 1. A failure leaves the key out: the overlay then skips the facts-based rules and says so.
+function factsOf(root) {
+  try {
+    const facts = require("../content-rules/facts-node").buildFacts(root);
+    return Buffer.byteLength(JSON.stringify(facts)) <= 40 * 1024 ? facts : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function snapshot(root, env) {
-  return { schemaVersion: 1, build: buildInfo(root, env), schemaSha256: schemaSha(root), files: readFiles(root) };
+  const out = { schemaVersion: 1, build: buildInfo(root, env), schemaSha256: schemaSha(root), files: readFiles(root) };
+  const facts = factsOf(root);
+  if (facts) out.facts = facts;
+  return out;
 }
 
 module.exports = { snapshot, readFiles, splitFrontMatter, buildInfo, readText };

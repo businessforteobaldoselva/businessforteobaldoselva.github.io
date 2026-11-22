@@ -7,6 +7,7 @@ const path = require("path");
 const { load } = require("../../overlay/load.js");
 const { createDom, ev } = require("./dom-stub.js");
 
+const P1 = path.resolve(__dirname, "..", "..", "fixtures", "phase1");
 const SAMPLE = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "..", "fixtures", "ai-proposals.sample.json"), "utf8"));
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -21,15 +22,22 @@ function apiError(status, body) {
 // Fake of the three routes. `queue` = scripted answers for the next propose calls: a Proposal, or { error: <sample error body>, status }.
 function createFakeApi(opts) {
   opts = opts || {};
-  const api = { calls: [], queue: [], statusKey: "enabled", statusFail: false, hold: null, acceptStatus: null, accepts: [] };
+  // estimate / recent (Phase 1, PHASE1-DESIGN 10.4 and 10.5): the shared example payloads unless a test replaces them; null = the route does not exist
+  const api = { calls: [], queue: [], statusKey: "enabled", statusFail: false, hold: null, acceptStatus: null, accepts: [], estimate: JSON.parse(fs.readFileSync(path.join(P1, "ai-estimate.json"), "utf8")), recent: JSON.parse(fs.readFileSync(path.join(P1, "ai-recent.json"), "utf8")) };
   api.get = async function (p) {
     api.calls.push({ method: "GET", path: p });
+    if (p === "/v1/ai/recent") { if (!api.recent) throw apiError(404, { error: { code: "not_found", message: "no" } }); return clone(api.recent); }
     if (p !== "/v1/ai/status") throw apiError(404, { error: { code: "not_found", message: "no" } });
     if (api.statusFail) throw apiError(0, { error: { code: "offline", message: "offline" } });
     return clone(SAMPLE.status[api.statusKey]);
   };
   api.post = async function (p, body) {
     api.calls.push({ method: "POST", path: p, body: clone(body) });
+    if (p === "/v1/ai/estimate") {
+      if (!api.estimate) throw apiError(404, { error: { code: "not_found", message: "no" } });
+      if (body.idempotencyKey !== undefined) throw apiError(400, { error: { code: "bad_request", message: "the estimate takes no key" } });
+      return clone(typeof api.estimate === "function" ? api.estimate(body) : api.estimate);
+    }
     if (api.hold) await api.hold.promise;
     if (p === "/v1/ai/propose") {
       const allowed = ["idempotencyKey", "mode", "instruction", "context", "draftId", "retryOf", "feedback"];
@@ -70,6 +78,7 @@ function createHost(options) {
   const commands = [];
   const toasts = [];
   const opened = [];
+  const attention = [];
   const state = { selection: null, markers: options.markers || {}, selected: [] };
   const me = options.signedOut ? null : { role: options.role || "editor", user: { id: "u1", name: "Molly" } };
   const drafts = { set: [], refreshed: 0, submitted: 0, setCurrent(d) { this.set.push(d); }, refresh() { this.refreshed++; return Promise.resolve(null); }, current() { return options.currentDraft || null; }, submit() { this.submitted++; return Promise.resolve({}); } };
@@ -77,7 +86,7 @@ function createHost(options) {
     version: 1, me, mode: options.mode || "edit", api, previewConfig: options.previewConfig || {}, on: S.events.on, emit: S.events.emit,
     ui: {
       h: S.dom.h, registerPanel: (d) => { panels[d.id] = d; }, registerCommand: (c) => { commands.push(c); },
-      openPanel: (id) => { opened.push(id); }, toast: (m, o) => { toasts.push({ message: m, opts: o || {} }); },
+      openPanel: (id) => { opened.push(id); }, setPanelAttention: (id, on) => { attention.push([id, on]); }, toast: (m, o) => { toasts.push({ message: m, opts: o || {} }); },
     },
     schema: { label: (ref) => "Label for " + ref },
     inspect: { selected: () => (state.selection ? { ref: state.selection } : null), markerForRef: (r) => state.markers[r] || null, select: (m, o) => { state.selected.push({ m, o }); } },
@@ -86,7 +95,7 @@ function createHost(options) {
   };
   S._flushReady(studio);
 
-  const host = { S, dom, document, api, studio, panels, commands, toasts, opened, copied, drafts, state, container: null, dispose: null };
+  const host = { S, dom, document, api, studio, panels, commands, toasts, opened, attention, copied, drafts, state, container: null, dispose: null };
   host.openPanel = function () {
     const c = document.createElement("div");
     c.setAttribute("class", "panel-body");

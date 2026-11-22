@@ -15,6 +15,7 @@
       S.dom.clear(container);
       var me = studio.me;
       var cfg = studio.config;
+      if (S.state.serviceDown) container.appendChild(h("p", { class: "error", role: "alert", "data-service-down": "1" }, S.state.serviceDown.message));
       if (!cfg.apiBase) {
         container.appendChild(h("p", { class: "error" }, "Studio isn't connected to a service yet, so changes can't be saved from this preview."));
         container.appendChild(h("p", { class: "hint" }, "The site owner needs to finish the Studio setup (see studio/README.md). You can still look around."));
@@ -53,6 +54,7 @@
         function (e) { studio.ui.toast((e && (e.userMessage || e.message)) || "Sign-in failed.", { kind: "error" }); });
     }
     offs.push(studio.on("auth:change", paint));
+    offs.push(studio.on("service:change", paint));
     paint();
     return function () { offs.forEach(function (o) { o(); }); };
   }

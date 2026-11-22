@@ -5,7 +5,9 @@
   "use strict";
   var params = new URLSearchParams(location.search);
   var queue = [];
-  var Boot = (window.__CoveredStudioBoot = { ready: function (fn) { queue.push(fn); } });
+  // util.local mirrors core/util.js (the tour reads and writes its "seen" flag through it); try/catch like the real one
+  var local = { get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { window.localStorage.setItem(k, v); return true; } catch (e) { return false; } } };
+  var Boot = (window.__CoveredStudioBoot = { ready: function (fn) { queue.push(fn); }, util: { local: local } });
 
   var TAGS = "div span p ul ol li h2 h3 h4 button a strong em label input select textarea section header footer nav".split(" ");
   var PROPS = "class id type value placeholder title role tabindex hidden disabled checked min max rows for name href target rel src alt width height open autocomplete spellcheck".split(" ");

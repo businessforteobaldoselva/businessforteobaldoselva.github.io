@@ -166,7 +166,16 @@ Leaks considered: GitHub logins and Studio user ids stay on the server (the appr
 Residual: who can open the Netlify preview is a separate door, see `studio/NOTES-preview-access.md`.
 
 ### P1-EDIT (rule engine, checks panel, palette sources)
-(not written yet)
+
+**New inputs.** (1) The content the rules read: editor-controlled text, links and picture names. The engine and the rules are pure (no DOM, network, clock, `eval`), run on plain data, put the editor's words in a finding only as a string that the overlay renders with `textContent`, and cut every message to 300 characters; a hostile test seeds markup, `|`, control characters, 5000-character values and checks the report still validates and no rule throws. (2) `facts` in `content.json`: built by the build, not by an editor; the overlay treats it as untrusted data (it only compares strings with it). (3) `field-roles.json` and the schema: committed files. (4) The answers of `POST /v1/ai/estimate`, `GET /v1/ai/recent` and `GET /v1/health`: only numbers, fixed words and an https link are used (validated, `rel="noopener noreferrer"`); text from the server is never shown as it is and never reaches `innerHTML` (there is none).
+
+**Who can call what.** Nothing new on the API side. The overlay calls the estimate and recent routes as an editor (BACKEND's routes, same rate limits), once per pause in typing and once per opening of "Recent requests"; the palette asks `/v1/history?limit=5` once when it opens. Palette search itself reads caches only (a guard fails if `search` reaches for the network).
+
+**What an editor can newly do.** Ignore a warning or a note on their own device for one draft (a list of finding keys in `localStorage`, never sent, cleared with the browser; CI does not see it). They cannot ignore a block finding, cannot make the panel send anything, and cannot disable the check: it is a hint that also runs in CI, where the same rules can fail the build. The gate on **Send for review** is a convenience, not the control: the control is the CI guard on the pull request, so a person who removes the gate in their browser still cannot publish a draft with a new block finding.
+
+**What an editor can no longer do.** Send a draft for review from the overlay while it has a block finding that is not already on the live site.
+
+**Risks accepted.** A rule can be wrong (it flags something fine): warnings are advisory and the block rules (a missing picture description, a link to a page that does not exist) are narrow; `baseline.json` is the escape hatch and needs a developer pull request. A link to an id that exists only in a template and is not reserved would be called broken (the reserved-ids guard already forbids that). The estimate is a guess, the real number is the meter on the answer. The finish signal uses a toast and a dot only: no sound and no browser notification permission, so nothing new can be asked of the browser. The bundle grew by about 60 KiB of script (budget 460 KiB).
 
 ### P1-DECAP (what removing Decap and Netlify Identity changes)
 

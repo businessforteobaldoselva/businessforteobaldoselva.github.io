@@ -53,6 +53,11 @@
       var startedAt = 0;
       var focusNext = false;
       var showRetry = false;
+      var est = null;           // the cost estimate for the text typed so far (PHASE1-DESIGN 9.5)
+      var estTimer = null;
+      var estSeq = 0;
+      var estCtl = null;
+      var recent = { open: false, loaded: false, rows: [], failed: false };
       var root = el("div", { class: "csx-ai" });
       var live = el("div", { class: "csx-visually-hidden", role: "status", "aria-live": "polite" });
       container.appendChild(root);
@@ -65,6 +70,82 @@
       function leave(label, act, o) { return btn(label, function () { focusNext = true; dispatch(act); }, o || { quiet: true }); }
       function refocus() { var t = root.querySelector("#csx-ai-instr"); if (t) t.focus(); }
       function stopTimers() { clearInterval(tick); tick = null; }
+      // ---- cost estimate: asked once the person has typed enough and paused; never on every keystroke, abortable, never when AI is off
+      function stopEstimate() {
+        clearTimeout(estTimer); estTimer = null; estSeq += 1;
+        if (estCtl) { try { estCtl.abort(); } catch (e) { /* already done */ } estCtl = null; }
+      }
+      function estimateText() { return est ? (est.wouldFit ? V.estimateLines(est).join(" ") : est.reason) : ""; }
+      function paintEstimate() {
+        var n = root.querySelector("#csx-ai-est");
+        if (n) n.textContent = estimateText();
+        syncSubmit();
+      }
+      var estSig = "";
+      function sig() { return [state.mode, state.refs.join(","), state.scopeMissing, state.instruction].join("|"); }
+      function scheduleEstimate() {
+        stopEstimate();
+        estSig = sig();
+        if (!V.estimateWanted(state)) { est = null; paintEstimate(); return; }
+        var seq = estSeq;
+        estTimer = setTimeout(function () {
+          estTimer = null;
+          var body = V.buildEstimateBody(state, { page: currentPage(), draftId: currentDraftId() });
+          estCtl = typeof AbortController === "function" ? new AbortController() : null;
+          studio.api.post("/v1/ai/estimate", body, estCtl ? { signal: estCtl.signal } : undefined).then(function (res) {
+            if (!alive || seq !== estSeq) return;
+            est = V.normalizeEstimate(res); paintEstimate();
+          }, function () { if (!alive || seq !== estSeq) return; est = null; paintEstimate(); });
+        }, 600);
+      }
+      function syncSubmit() {
+        var go = root.querySelector("[data-act='submit']");
+        var hint = root.querySelector("#csx-ai-hint");
+        var ok = V.canSubmit(state) && !(est && !est.wouldFit);
+        if (go) go.disabled = !ok;
+        if (hint) hint.textContent = est && !est.wouldFit ? est.reason : V.submitHint(state);
+      }
+      // ---- finish signal: the answer came while the page or the panel was not being looked at
+      function lookingAway() {
+        try {
+          if (document.hidden) return true;
+          if (typeof document.hasFocus === "function" && !document.hasFocus()) return true;
+          var rn = root.getRootNode ? root.getRootNode() : document;
+          var a = rn && rn.activeElement;
+          return !(a && root.contains(a));
+        } catch (e) { return false; }
+      }
+      function finishSignal() {
+        if (!alive || !lookingAway()) return;
+        ui.toast(C.ready, { kind: "success" });
+        if (typeof ui.setPanelAttention === "function") {
+          ui.setPanelAttention("ai", true);
+          var clear = function () { ui.setPanelAttention("ai", false); root.removeEventListener("focusin", clear); root.removeEventListener("click", clear); };
+          root.addEventListener("focusin", clear);
+          root.addEventListener("click", clear);
+        }
+      }
+      function loadRecent() {
+        if (recent.loaded) return;
+        studio.api.get("/v1/ai/recent").then(function (res) {
+          if (!alive) return;
+          recent.loaded = true; recent.failed = false; recent.rows = V.normalizeRecent(res); paintRecent();
+        }, function () { if (!alive) return; recent.failed = true; paintRecent(); });
+      }
+      function recentList() {
+        if (recent.failed) return el("p", { class: "csx-muted" }, "Recent requests are not available right now.");
+        if (!recent.loaded) return el("p", { class: "csx-muted" }, "Loading…");
+        if (!recent.rows.length) return el("p", { class: "csx-muted" }, "Nothing yet.");
+        return el("ul", { class: "csx-ai-recentlist" }, recent.rows.map(function (r) {
+          return el("li", null, r.date + " · " + r.kind + " · " + r.accepted, r.url ? [" · ", el("a", { href: httpUrl(r.url), target: "_blank", rel: "noopener noreferrer", class: "csx-link" }, "Open the pull request")] : null);
+        }));
+      }
+      function paintRecent() {
+        var n = root.querySelector("[data-recent-list]");
+        if (!n) return;
+        while (n.firstChild) n.removeChild(n.firstChild);
+        n.appendChild(recentList());
+      }
       function dispatch(a, quiet) {
         state = V.reduce(state, a);
         if (!quiet) paint();
@@ -85,6 +166,7 @@
 
       function propose(extra) {
         extra = extra || {};
+        stopEstimate();
         var key = extra.reuseKey && state.key ? state.key : uuid();
         dispatch({ type: "submit", key: key, retryOf: extra.retryOf || null, feedback: extra.feedback, instruction: extra.instruction }, true);
         if (state.phase !== "working") { paint(); return; }
@@ -103,9 +185,9 @@
         // the answer of a request that was cancelled or whose panel was closed is ignored
         function answer(a) { if (!alive || seq !== reqSeq) return false; stopTimers(); focusNext = true; dispatch(a); return true; }
         studio.api.post("/v1/ai/propose", body).then(function (res) {
-          if (answer({ type: "result", proposal: res && res.proposal })) announceResult();
+          if (answer({ type: "result", proposal: res && res.proposal })) { announceResult(); finishSignal(); }
         }, function (err) {
-          if (answer({ type: "fail", error: err })) say(state.error ? state.error.message : V.offCopy(V.offReasonOf(state)));
+          if (answer({ type: "fail", error: err })) { say(state.error ? state.error.message : V.offCopy(V.offReasonOf(state))); finishSignal(); }
         });
       }
       function cancel() {
@@ -160,6 +242,7 @@
         if (!info) return null;
         return el("div", { class: "csx-error csx-ai-error", role: "alert", "data-error": info.code },
           el("p", null, info.message),
+          info.notCounted ? el("p", { class: "csx-muted", "data-not-counted": "1" }, C.notCounted) : null,
           info.requestId ? el("p", { class: "csx-muted csx-ai-ref" }, "Reference: " + info.requestId) : null);
       }
 
@@ -200,6 +283,10 @@
           m ? el("button", { type: "button", class: "csx-link csx-ai-show", "aria-label": "Show on the page: " + d.label, on: { click: function () { try { studio.inspect.select(m, { scroll: true }); } catch (e) { /* the element may be gone */ } } } }, "Show on the page") : null);
       }
 
+      function meterBlock(v) {
+        var lines = v && v.meter ? V.meterLines(v.meter) : [];
+        return lines.length ? el("p", { class: "csx-muted csx-ai-meter", "data-meter": "1" }, lines.join(" ")) : null;
+      }
       // change card
       function changeCard(c, o) {
         o = o || {};
@@ -291,6 +378,7 @@
         return el("div", { class: "csx-ai-result", "data-kind": v.kind },
           heading(v.changes.length ? "Suggested changes" : C.empty),
           v.summary ? para(v.summary, "csx-ai-summary") : null,
+          meterBlock(v),
           warningsBlock(v),
           state.error && state.phase === "result" ? errorBlock(state.error) : null,
           state.problems && state.problems.general.length ? el("ul", { class: "csx-ai-probs", role: "alert" }, state.problems.general.map(function (t) { return el("li", null, t); })) : null,
@@ -317,6 +405,7 @@
         return el("div", { class: "csx-ai-result", "data-kind": "tone" },
           heading("Tone check"),
           el("p", { class: "csx-ai-verdict", "data-overall": v.overall }, el("strong", null, v.overallText), v.summary ? " – " + v.summary : ""),
+          meterBlock(v),
           v.findings.length ? items : para(C.toneNone, "csx-ai-p"),
           rest,
           warningsBlock(v),
@@ -369,6 +458,7 @@
         return el("div", { class: "csx-ai-result", "data-kind": "clarify" },
           heading(C.clarifyTitle),
           para(v.question || v.summary || "", "csx-ai-question"),
+          meterBlock(v),
           el("label", { for: "csx-ai-answer" }, "Your answer"),
           ans,
           el("div", { class: "csx-ai-footbtns" },
@@ -440,18 +530,13 @@
               dispatch({ type: "instruction", text: ev.target.value }, true);
               var cnt = root.querySelector("#csx-ai-count");
               if (cnt) cnt.textContent = V.counterText(ev.target.value.length);
-              syncSubmit();
+              est = null;
+              paintEstimate();
+              scheduleEstimate();
             },
             keydown: function (ev) { if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") { ev.preventDefault(); if (V.canSubmit(state)) propose(); } },
           },
         });
-        function syncSubmit() {
-          var go = root.querySelector("[data-act='submit']");
-          var h = root.querySelector("#csx-ai-hint");
-          var ok = V.canSubmit(state);
-          if (go) go.disabled = !ok;
-          if (h) h.textContent = V.submitHint(state);
-        }
         var modeBtns = V.MODES.map(function (m) {
           return el("button", { type: "button", class: "csx-ai-mode", "aria-pressed": state.mode === m ? "true" : "false", "data-mode": m, on: { click: function () { focusNext = false; dispatch({ type: "mode", mode: m }); refocus(); } } }, V.MODE_INFO[m].tab);
         });
@@ -474,8 +559,11 @@
           state.mode === "edit" ? el("div", { class: "csx-ai-examples", role: "group", "aria-label": "Examples" },
             el("span", { class: "csx-muted" }, "Or try: "),
             V.EXAMPLES.map(function (t) { return el("button", { type: "button", class: "csx-ai-ex", on: { click: function () { focusNext = false; dispatch({ type: "instruction", text: t }); refocus(); } } }, t); })) : null,
-          el("p", { class: "csx-muted csx-ai-hint", id: "csx-ai-hint", role: "status" }, hint),
-          el("div", { class: "csx-ai-footbtns" }, el("button", { type: "button", class: "csx-btn csx-ai-big", "data-act": "submit", disabled: !can, on: { click: function () { propose(); } } }, info.button)));
+          el("p", { class: "csx-muted csx-ai-est", id: "csx-ai-est", "aria-live": "polite", "data-estimate": "1" }, estimateText()),
+          el("p", { class: "csx-muted csx-ai-hint", id: "csx-ai-hint", role: "status" }, est && !est.wouldFit ? est.reason : hint),
+          el("details", { class: "csx-ai-recent", "data-recent": "1", open: recent.open, on: { toggle: function (ev) { recent.open = !!ev.target.open; if (recent.open) loadRecent(); } } },
+            el("summary", null, "Recent requests"), el("div", { "data-recent-list": "1" }, recentList())),
+          el("div", { class: "csx-ai-footbtns" }, el("button", { type: "button", class: "csx-btn csx-ai-big", "data-act": "submit", disabled: !can || !!(est && !est.wouldFit), on: { click: function () { propose(); } } }, info.button)));
       }
 
       function paint() {
@@ -493,6 +581,7 @@
           var v = state.view;
           body = v.kind === "needs_code" ? screenNeedsCode(v) : v.kind === "clarify" ? screenClarify(v) : v.kind === "tone" ? screenTone(v) : screenPatch(v);
         } else body = el("p", { class: "csx-muted" }, C.generic);
+        if (p === "idle" && sig() !== estSig) { est = null; scheduleEstimate(); }
         root.setAttribute("aria-busy", p === "working" || p === "saving" || p === "loadingStatus" ? "true" : "false");
         while (root.firstChild) root.removeChild(root.firstChild);
         root.appendChild(body);
@@ -528,6 +617,7 @@
         refresh: function () { if (state.phase === "idle" || state.phase === "off" || state.phase === "loadingStatus") loadStatus(); },
         destroy: function () {
           alive = false;
+          stopEstimate();
           stopTimers();
           reqSeq += 1;
           if (typeof offSel === "function") offSel();

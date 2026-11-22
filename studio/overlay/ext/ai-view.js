@@ -58,6 +58,11 @@
     leftOutHelp: "These could not be used, so they are not in the list above.",
     notShown: "(not shown)",
     emptyValue: "(empty)",
+    service_unavailable: "Studio cannot reach its sign-in service right now. Your edits on this page are safe. Try again in a minute.",
+    notCounted: "This one did not count toward your limit.",
+    estimateNoFit: "There is not enough of today's allowance left for a request this big. Shorten it, or try tomorrow.",
+    estimateNoneLeft: "You have used all your suggestions for today.",
+    ready: "Your suggestion is ready",
     nothingBefore: "Nothing here yet",
     removedAfter: "Removed",
   };
@@ -237,6 +242,49 @@
       defaultChecked: c.defaultChecked === true,
     };
   }
+  // ---- cost meter, estimate, recent requests (PHASE1-DESIGN 9.5, 10): numbers and fixed sentences only; server text is never shown as is
+  function num(x, max) { return typeof x === "number" && isFinite(x) && x >= 0 && x <= max ? x : null; }
+  function normalizeMeter(m) {
+    if (!isObj(m)) return null;
+    var used = num(m.usedTokens, 1e9), took = num(m.tookMs, 36e5), pct = num(m.pctOfDayUsed, 100), left = num(m.requestsLeftToday, 1e6);
+    if (used === null || took === null || pct === null || left === null || typeof m.counted !== "boolean") return null;
+    return { usedTokens: Math.round(used), tookMs: Math.round(took), pctOfDayUsed: pct, requestsLeftToday: Math.round(left), counted: m.counted };
+  }
+  function pctText(p) { return p < 0.1 ? "less than 0.1%" : p < 10 ? (Math.round(p * 10) / 10) + "%" : Math.round(p) + "%"; }
+  function secondsText(ms) { var s = Math.max(1, Math.round(ms / 1000)); return s === 1 ? "1 second" : s + " seconds"; }
+  // -> [line, ...] shown under a result
+  function meterLines(m) {
+    if (!m) return [];
+    var out = ["Used " + (m.pctOfDayUsed < 0.1 ? "less than 0.1%" : "about " + pctText(m.pctOfDayUsed)) + " of today's allowance (" + secondsText(m.tookMs) + ")."];
+    if (!m.counted) out.push(COPY.notCounted);
+    return out;
+  }
+  function normalizeEstimate(res) {
+    var e = res && isObj(res.estimate) ? res.estimate : null;
+    if (!e || typeof e.wouldFit !== "boolean") return null;
+    var label = oneLine(e.label, 160);
+    var mine = num(e.yourRequestsLeftToday, 1e6), all = num(e.requestsLeftToday, 1e6);
+    if (!label || mine === null || all === null) return null;
+    var left = Math.round(Math.min(mine, all));
+    return { label: label, left: left, wouldFit: e.wouldFit && left > 0, reason: !e.wouldFit ? COPY.estimateNoFit : left === 0 ? COPY.estimateNoneLeft : "" };
+  }
+  function estimateLines(e) { return e ? [e.label, "You have " + plural(e.left, "suggestion", "suggestions") + " left today."] : []; }
+  function estimateWanted(s) { return !!s && s.phase === "idle" && typeof s.instruction === "string" && s.instruction.trim().length >= 10 && !!(s.status && s.status.enabled); }
+  // the estimate asks about the same request a propose would send, without a key (nothing is reserved or counted)
+  function buildEstimateBody(s, env) { var b = buildProposeBody(s, "x", env); delete b.idempotencyKey; return b; }
+  var KIND_WORDS = { patch: "Change", tone: "Tone check", alt_text: "Picture descriptions", audit: "Audit", clarify: "Question", needs_code: "Needs a developer", rejected: "Not usable" };
+  function httpsUrl(u) {
+    try { var x = new URL(u); return x.protocol === "https:" && !x.username && !x.password ? x.href : null; } catch (e) { return null; }
+  }
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function dayText(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})T/.exec(String(iso || "")); return m ? Number(m[3]) + " " + (MONTHS[Number(m[2]) - 1] || "") : ""; }
+  // rows for the "Recent requests" list: date, kind, "N of M accepted", and a link only when it is a plain https address
+  function normalizeRecent(res) {
+    return arr(res && res.items).slice(0, 20).filter(isObj).map(function (it) {
+      var total = num(it.total, 1000), acc = num(it.accepted, 1000);
+      return { date: dayText(it.at), kind: own(KIND_WORDS, it.kind) ? KIND_WORDS[it.kind] : "Request", accepted: total === null ? "Not saved" : (acc === null ? 0 : acc) + " of " + total + " accepted", url: httpsUrl(it.prUrl) };
+    });
+  }
   function normalizeProposal(p) {
     if (!isObj(p)) return null;
     var kinds = ["patch", "needs_code", "clarify", "tone"];
@@ -269,6 +317,7 @@
       findings: findings,
       overall: overall,
       overallText: overall ? OVERALL[overall] : "",
+      meter: normalizeMeter(p.meter),
     };
   }
   // requests
@@ -379,7 +428,7 @@
   // code -> [copy key, actions, off reason]; rate_limited and bad_request are worked out below
   var ERR = {
     ai_disabled: ["off_disabled", [], "disabled"], ai_budget_exhausted: ["off_budget_exhausted", [], "budget_exhausted"],
-    ai_unavailable: ["ai_unavailable", ["retry", "back"]], ai_bad_output: ["ai_bad_output", ["retry", "back"]], offline: ["offline", ["retry", "back"]],
+    ai_unavailable: ["ai_unavailable", ["retry", "back"]], ai_bad_output: ["ai_bad_output", ["retry", "back"]], service_unavailable: ["service_unavailable", ["retry", "back"]], offline: ["offline", ["retry", "back"]],
     bad_request: ["bad_request", ["back"]], payload_too_large: ["too_long", ["back"]], aborted: ["cancelled", ["back"]],
     conflict: ["conflict", ["askAgain", "back"]], base_moved: ["conflict", ["askAgain", "back"]], draft_moved: ["conflict", ["askAgain", "back"]],
     validation_failed: ["validation", []], unauthorized: ["unauthorized", ["signin"]], forbidden: ["forbidden", ["back"]], not_invited: ["forbidden", ["back"]],
@@ -395,6 +444,7 @@
     } else if (own(ERR, code)) {
       var e = ERR[code];
       info.message = COPY[e[0]]; info.actions = e[1]; info.off = e[2] || null;
+      if (code === "ai_bad_output") info.notCounted = true; // a rejected answer gives the request back (PHASE1-DESIGN 10.3)
       if (code === "bad_request" && ctx && ctx.instructionLength > LIMITS.instruction) info.message = COPY.too_long;
     }
     return info;
@@ -531,6 +581,7 @@
     closure: closure, dependents: dependents, normalizeChecked: normalizeChecked, toggle: toggle, selectedIds: selectedIds, initialChecked: initialChecked, alsoText: alsoText,
     normalizeProposal: normalizeProposal, cleanRefs: cleanRefs, buildProposeBody: buildProposeBody, buildAcceptBody: buildAcceptBody,
     canSubmit: canSubmit, submitHint: submitHint, counterText: counterText, saveLabel: saveLabel, countText: countText, workingMessage: workingMessage, metaGuidance: metaGuidance,
+    normalizeMeter: normalizeMeter, meterLines: meterLines, normalizeEstimate: normalizeEstimate, estimateLines: estimateLines, estimateWanted: estimateWanted, buildEstimateBody: buildEstimateBody, normalizeRecent: normalizeRecent, pctText: pctText,
     pageKey: pageKey, askClaudeUrl: askClaudeUrl, requestText: requestText, offReasonOf: offReasonOf, offCopy: offCopy, errorInfo: errorInfo, problemMap: problemMap,
     initialState: initialState, reduce: reduce,
   };

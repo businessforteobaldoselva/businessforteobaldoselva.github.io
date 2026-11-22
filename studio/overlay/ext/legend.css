@@ -1,1 +1,50 @@
-/* Phase 1: owned by the EDIT unit (legend, Show all fields drawer, Check my changes). Placeholder. */
+/* Phase 1, EDIT unit: the "N editable things here" chip and legend, the All fields drawer, "Check my changes".
+   Uses the overlay's own tokens (--s-*, checked in light and dark by studio/guards/check-overlay.js). */
+.dock-chip { font-weight: 600; font-size: 13px; padding: 0 10px; }
+/* phones: the dock is full already (it must stay on one row), so the count and the legend live at the top of All fields instead */
+@media (max-width: 759px), (pointer: coarse) { .dock-chip, .dock-btn[data-panel-id="checks"] { display: none; } }
+.dock-chip .dock-text { white-space: nowrap; }
+.dock-dot { position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--s-danger); border: 2px solid var(--s-bg); }
+.dock-btn { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  .dock-dot { animation: s-dot 1.6s ease-in-out 3; }
+  @keyframes s-dot { 50% { transform: scale(1.5); } }
+}
+
+.lg-count { margin: 0 0 8px; font-weight: 700; }
+.lg-list, .lg-keys { list-style: none; margin: 8px 0; padding: 0; }
+.lg-row { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid var(--s-line); }
+.lg-dot { flex: none; width: 14px; height: 14px; margin-top: 3px; border-radius: 3px; border: 2px solid var(--s-accent); background: var(--s-bg2); }
+.lg-image { border-radius: 50%; }
+.lg-link { border-style: dashed; }
+.lg-color { background: var(--s-accent); }
+.lg-toggle { border-radius: 8px; }
+.lg-section { border-width: 3px; }
+.lg-hint { color: var(--s-muted); }
+.lg-h { font-size: 14px; margin: 14px 0 4px; }
+.lg-keys li { margin: 4px 0; }
+.lg kbd { display: inline-block; min-width: 24px; padding: 1px 6px; border: 1px solid var(--s-line); border-radius: 5px; background: var(--s-bg2); font: inherit; font-weight: 700; text-align: center; }
+
+/* All fields drawer */
+.ff-scopes { display: flex; gap: 6px; margin: 4px 0 8px; }
+.ff-scope[aria-pressed="true"] { background: var(--s-accent); color: var(--s-accent-fg); border-color: var(--s-accent); }
+.ff-group-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--s-muted); margin: 16px 0 6px; }
+.frow-sum { display: flex; width: 100%; gap: 10px; align-items: baseline; justify-content: space-between; min-height: 44px; padding: 6px 8px; border: 1px solid var(--s-line); border-radius: 8px; background: var(--s-bg); color: var(--s-fg); font: inherit; text-align: left; cursor: pointer; }
+.frow-sum[aria-expanded="true"] { border-color: var(--s-accent); }
+.frow-label { font-weight: 600; overflow-wrap: anywhere; }
+.frow-val { color: var(--s-muted); font-size: 13px; overflow-wrap: anywhere; text-align: right; max-width: 55%; }
+.frow-body { padding: 8px 4px 4px; }
+.frow-body input[type="text"], .frow-body input[type="number"], .frow-body textarea, .frow-body select { width: 100%; box-sizing: border-box; }
+
+/* Check my changes */
+.ck-sub { margin: 0 0 8px; color: var(--s-muted); }
+.ck-status { font-weight: 700; margin: 10px 0; }
+.ck-h { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--s-muted); margin: 14px 0 6px; }
+.ck-ul { list-style: none; margin: 0; padding: 0; }
+.ck-item { margin: 0 0 8px; padding: 8px 10px; border: 1px solid var(--s-line); border-left-width: 5px; border-radius: 8px; background: var(--s-bg); }
+.ck-block { border-left-color: var(--s-danger); }
+.ck-warn { border-left-color: var(--s-warn); }
+.ck-info { border-left-color: var(--s-line); }
+.ck-msg { margin: 0 0 4px; overflow-wrap: anywhere; }
+.ck-acts { display: flex; gap: 6px; margin-top: 6px; }
+.ck-ignored summary { cursor: pointer; padding: 6px 0; color: var(--s-muted); }

@@ -453,7 +453,7 @@ test("keyboard + accessibility of the overlay itself", { skip: SKIP }, async () 
   await page.keyboard.down("Control"); await page.keyboard.press("z"); await page.keyboard.up("Control");
   assert.equal(await page.evaluate(() => window.CoveredStudio.staging.get("hero.badge")), "Now in 12 venues");
   // structure of the chrome
-  await openPanel(page, "Fields");
+  await openPanel(page, "All fields");
   const a11y = await page.evaluate(() => {
     const r = document.getElementById("covered-studio").shadowRoot;
     const unnamed = Array.from(r.querySelectorAll("button, input, select, textarea")).filter((e) => { if (e.type === "hidden") return false; const name = (e.getAttribute("aria-label") || e.textContent || "").trim() || (e.id && r.querySelector('label[for="' + e.id + '"]')) || (e.closest("label")); return !name; }).map((e) => e.outerHTML.slice(0, 80));

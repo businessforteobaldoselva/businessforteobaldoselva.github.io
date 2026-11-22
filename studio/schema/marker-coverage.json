@@ -231,5 +231,10 @@
     "vision#/soonChips/1",
     "vision#/soonChips/2",
     "vision#/title"
-  ]
+  ],
+  "pageCounts": {
+    "about/index.html": 23,
+    "index.html": 217,
+    "privacy/index.html": 23
+  }
 }

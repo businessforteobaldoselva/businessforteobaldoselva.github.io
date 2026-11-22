@@ -1,0 +1,28 @@
+{
+  "_about": "Which schema fields play a role the content rules care about (studio/PHASE1-DESIGN.md 8.3). Keys are 'file:field' (file 'pages' stands for every page) or '*:field'. Roles: seoTitle, seoDescription, socialDescription (length rules), heading (duplicate headings in one list), label (a link or button label: judged next to its address), body, ignore (named like a role but no rule applies). Alt text pairs and link addresses are derived from the schema, not listed here. check-content-rules fails when a schema field with one of these names is not mapped, so a new field cannot silently escape the rules.",
+  "namedLike": "^(pageTitle|metaDescription|ogDescription|socialTitle|socialDescription|seoTitle|title|description|label|text|cta[A-Za-z]*|q|heading)$",
+  "map": {
+    "site:pageTitle": "seoTitle",
+    "pages:seoTitle": "seoTitle",
+    "site:metaDescription": "seoDescription",
+    "pages:description": "seoDescription",
+    "site:ogDescription": "socialDescription",
+    "pages:socialDescription": "socialDescription",
+    "site:socialTitle": "ignore",
+    "pages:socialTitle": "ignore",
+    "*:title": "heading",
+    "*:heading": "heading",
+    "*:q": "heading",
+    "*:label": "label",
+    "*:text": "body",
+    "hero:ctaBrand": "label",
+    "hero:ctaVenue": "label",
+    "partners:ctaButton": "label",
+    "locations:ctaButton": "label",
+    "pages:ctaText": "label",
+    "pages:ctaLink": "ignore",
+    "site:ctaBannerTitle": "ignore",
+    "site:ctaBannerText": "ignore",
+    "site:ctaBannerButton": "label"
+  }
+}
