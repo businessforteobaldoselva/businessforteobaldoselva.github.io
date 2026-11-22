@@ -166,7 +166,7 @@ Contract: `studio/PHASE1-DESIGN.md`. Each unit writes ONLY under its own heading
 
 Decap CMS and the Netlify Identity / Git Gateway login are retired. Inventory and decisions: `studio/NOTES-p1-decap.md`. For Teo: runbook 4c.4.
 
-* Removed: `cms/index.html`, `cms/previews.js`, `cms/custom.css`, `scripts/check-previews.js` (+ lib, known issues), the npm scripts `cms-local` and `check:previews`, the dev dependency `decap-server`, the Identity forwarder in `src/index.njk` and in the stale root `index.html` mirror, and every Decap-only key of `cms/config.yml` (backend, publish_mode, local_backend, site_url, display_url, logo_url, locale, preview_path, editor, create, slug, summary).
+* Removed: `cms/index.html`, `cms/previews.js`, `cms/custom.css`, `scripts/check-previews.js` (+ lib, known issues), the npm scripts `cms-local` and `check:previews`, the Decap local-proxy dev dependency, the Identity forwarder in `src/index.njk` and in the stale root `index.html` mirror, and every Decap-only key of `cms/config.yml` (backend, publish_mode, local_backend, site_url, display_url, logo_url, locale, preview_path, editor, create, slug, summary).
 * Kept: `cms/config.yml` as the schema source (header comment says so), `cms/contrast.js`, `cms/redirect-rules.js`. The folder is not renamed (about 25 consumers).
 * `/cms/` is now `cms/moved.html` (static, no script, noindex); `netlify.toml` redirects `/cms/*` to it.
 * Guard `studio/guards/check-no-decap.js` (auto-run by `check:studio`), 21 selftest scenarios in `studio/guards/selftest-p1-decap.js` (`npm run check:selftest`, or `node scripts/selftest.js --only "decap:"`), tests in `studio/tests/p1-decap/`.

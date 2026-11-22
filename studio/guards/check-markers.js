@@ -73,11 +73,11 @@ function markerKey(m) {
   return [m.ref, m.kind].concat(["alt", "decorative", "href", "hide", "cssvar"].map((k) => (m.opts[k] === undefined ? "" : k + "=" + m.opts[k]))).join("|");
 }
 
-// names given to addPassthroughCopy in .eleventy.js
+// names given to addPassthroughCopy in .eleventy.js (a folder, or the published destination of a { source: destination } map)
 function passthroughOf(root) {
   try {
     const text = readText(path.join(root, ".eleventy.js"));
-    return Array.from(text.matchAll(/addPassthroughCopy\(\s*"([^"]+)"/g)).map((m) => m[1]);
+    return Array.from(text.matchAll(/addPassthroughCopy\(\s*(?:"([^"]+)"|\{\s*"[^"]+"\s*:\s*"([^"]+)")/g)).map((m) => m[1] || m[2]);
   } catch (e) {
     return [];
   }
