@@ -291,6 +291,8 @@ async function main() {
       await h.asElement().click();
     };
     const shadowText = (page) => page.evaluate(() => document.getElementById("covered-studio").shadowRoot.textContent);
+    const inShadow = (page, fn, arg) => page.evaluate((src, a) => new Function("root", "arg", "return (" + src + ")(root, arg)")(document.getElementById("covered-studio").shadowRoot, a), fn.toString(), arg);
+    const openDock = async (page, id) => { await inShadow(page, (r, i) => r.querySelector('[data-panel-id="' + i + '"]').click(), id); };
     const signIn = async (page, who) => {
       await page.goto(siteOrigin + "/?studio=1", { waitUntil: "load" });
       await clickText(page, "Edit this page");
@@ -306,6 +308,17 @@ async function main() {
     const molly = await newPage();
     await signIn(molly, "Molly");
     await molly.evaluate(() => window.scrollTo(0, 0));
+
+    // Phase 1: the legend chip counts what can be edited on this page, All fields lists what is not on the page too
+    const chip = await inShadow(molly, (r) => { const c = r.querySelector("[data-legend-chip]"); return c ? c.textContent.trim() : null; });
+    assert.match(String(chip), /\d+ editable things? here$/, "the dock chip says how many things can be edited: " + chip);
+    await openDock(molly, "fields");
+    await waitShadow(molly, (r) => r.querySelector("[data-fields-count]"));
+    const fieldsText = await shadowText(molly);
+    assert.match(fieldsText, /On this page/, "All fields starts with what is on this page");
+    assert.match(fieldsText, /Not visible on the page/, "All fields also lists what is not on the page (search text, share card, link addresses)");
+    step("legend chip: " + JSON.stringify(chip) + "; All fields lists the page first, then what is not visible");
+    await openDock(molly, "fields"); // toggles the panel closed
     // the hero headline holds a second editable part inside it (the highlighted words), so Studio opens a small
     // editor for the main part instead of typing into the page: that is part of what is being proven here
     await molly.click('[data-cms="hero.headlineMain"]');
@@ -357,6 +370,23 @@ async function main() {
     });
     step("section hidden: " + JSON.stringify(hiddenLabel));
 
+    // Phase 1: Check my changes on a seeded bad change (a link to a page that does not exist) finds it, a block cannot be
+    // ignored and Send for review is refused; fixing it lifts the refusal. Saving is never blocked by the checks.
+    const navIdx = await molly.evaluate(() => window.CoveredStudio.contentJson.files.nav.data.items.findIndex((i) => i.type === "link"));
+    assert.ok(navIdx >= 0, "the nav has a link to break");
+    await molly.evaluate((i) => window.CoveredStudio.staging.set("nav.items." + i + ".url", "/no-such-page/"), navIdx);
+    await openDock(molly, "checks");
+    await waitShadow(molly, (r) => /Fix before sending \(1\)/.test((r.querySelector(".ck-list") || { textContent: "" }).textContent));
+    const blocked = await inShadow(molly, (r) => { const it = r.querySelector(".ck-block"); return { text: it.textContent, ignore: !!it.querySelector("[data-ck-ignore]"), status: r.querySelector(".ck-status").textContent }; });
+    assert.match(blocked.text, /there is no page at that address/);
+    assert.equal(blocked.ignore, false, "a block cannot be ignored");
+    const refused = await molly.evaluate(() => window.CoveredStudio.drafts.submit().then(() => "sent", (e) => e.userMessage || e.message));
+    assert.equal(refused, "Fix these first; they would stop your change from going live.", "Send for review is refused while the link is broken");
+    await molly.evaluate((i) => window.CoveredStudio.staging.discard("nav.items." + i + ".url"), navIdx);
+    await waitShadow(molly, (r) => !/Fix before sending/.test(r.querySelector(".ck-list").textContent));
+    step("Check my changes found the broken link, refused to send, and went quiet once it was fixed");
+    await openDock(molly, "checks");
+
     await clickText(molly, "Changes", true);
     await waitShadow(molly, (r) => r.querySelector(".panel-body"));
     const review = await shadowText(molly);
@@ -398,8 +428,11 @@ async function main() {
 
     // ------------------------------------------------------------ 3 the draft builds and passes the guards
     step("submitting the draft for review; building it and running " + (QUICK ? "3 guards" : "every guard in npm run check") + " on the draft branch (takes a while)");
-    const sub = await call("editor", "POST", "/v1/drafts/" + draftId + "/submit", { idempotencyKey: crypto.randomUUID() });
-    assert.ok([200, 201].includes(sub.status), JSON.stringify(sub.json));
+    await clickText(molly, "Send for review");
+    await waitShadow(molly, (r) => r.querySelector('[role="dialog"] .btn-primary'));
+    await inShadow(molly, (r) => r.querySelector('[role="dialog"] .btn-primary').click());
+    await waitShadow(molly, (r) => r.querySelector(".csx-rv-sent"));
+    step("Molly sent it for review: " + JSON.stringify((await inShadow(molly, (r) => r.querySelector(".csx-rv-sent").textContent)).slice(0, 120)));
     const approverView = await waitChecks("approver", draftId);
     const last = jobs.get(approverView.json.draft.headSha);
     assert.ok(last && last.done, "the check runner ran on the draft head");
@@ -409,10 +442,26 @@ async function main() {
     assert.equal(approverView.json.draft.canPublish, true);
     step("draft builds and passes every guard + studio-scope");
 
-    // ------------------------------------------------------------ 4 Amelia publishes
+    // ------------------------------------------------------------ 4 Amelia sees the board, reads the review and publishes
+    step("Amelia opens Status, then the plain-English review, and approves");
+    const amelia = await newPage();
+    await signIn(amelia, "Amelia");
+    await openDock(amelia, "status");
+    await waitShadow(amelia, (r, id) => r.querySelector('.csx-row[data-draft="' + id + '"]'), draftId, 30000);
+    const boardText = await shadowText(amelia);
+    assert.match(boardText, /Waiting for approval/i, "the board has a waiting-for-approval group");
+    await inShadow(amelia, (r, id) => r.querySelector('.csx-row[data-draft="' + id + '"] button[aria-label^="Review"]').click(), draftId);
+    await waitShadow(amelia, (r) => r.querySelector("[data-approve]"));
+    const reviewText = await shadowText(amelia);
+    assert.match(reviewText, /Look at these carefully/, "the review puts the risky changes first");
+    assert.match(reviewText, /Hid |hidden/i, "the review says in words that a section was hidden");
+    assert.ok(!/"op"\s*:|\/headlineMain/.test(reviewText), "the review is plain English, not a patch");
+    await waitShadow(amelia, (r) => { const b = r.querySelector("[data-approve]"); return b && !b.disabled; }, undefined, 60000);
     const before = mainSha();
-    const pub = await call("approver", "POST", "/v1/drafts/" + draftId + "/publish", { expectedHeadSha: approverView.json.draft.headSha, idempotencyKey: crypto.randomUUID() });
-    assert.equal(pub.status, 200, JSON.stringify(pub.json));
+    await inShadow(amelia, (r) => r.querySelector("[data-approve]").click());
+    await waitShadow(amelia, (r) => r.querySelector('[role="dialog"] .btn-primary'));
+    await inShadow(amelia, (r) => r.querySelector('[role="dialog"] .btn-primary').click());
+    await waitShadow(amelia, (r) => /This draft has been published|Published\./.test(r.textContent), undefined, 60000);
     const landed = git(lg.repoDir, ["diff", "--name-only", before, mainSha()]).stdout.trim().split("\n").sort();
     assert.deepEqual(landed, touched, "main gained exactly the draft's files");
     assert.equal(JSON.parse(showAt("main", "src/_data/hero.json")).headlineMain, NEW_HEADLINE);
@@ -420,8 +469,6 @@ async function main() {
 
     // ------------------------------------------------------------ 5 History -> Restore -> revert PR (browser, Amelia)
     step("Amelia opens History and presses Restore");
-    const amelia = await newPage();
-    await signIn(amelia, "Amelia");
     await amelia.keyboard.down("Control"); await amelia.keyboard.press("k"); await amelia.keyboard.up("Control");
     await waitShadow(amelia, (r) => r.querySelector(".csx-pal"));
     await amelia.keyboard.type("history");

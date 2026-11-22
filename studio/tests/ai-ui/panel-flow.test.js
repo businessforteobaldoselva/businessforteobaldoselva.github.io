@@ -373,10 +373,7 @@ test("needs-code: a card with the drafted request, Copy and Open Ask Claude, and
   assert.equal(h.must("textarea[data-req='title']").value, nc.title);
   assert.equal(h.must("textarea[data-req='body']").value, nc.body);
   assert.equal(h.must("textarea[data-req='title']").getAttribute("readonly"), "");
-  const link = h.must("a.csx-ai-link");
-  assert.equal(link.getAttribute("href"), "https://page.test/admin/#/collections/requests/new");
-  assert.equal(link.getAttribute("target"), "_blank");
-  assert.match(link.getAttribute("rel"), /noopener/);
+  assert.equal(h.q("a.csx-ai-link"), null, "no Ask Claude link unless an address is configured (the Decap page is retired)");
   h.must("[data-act='copy']").click();
   await h.settle();
   assert.equal(h.copied.length, 1);
@@ -394,7 +391,7 @@ test("needs-code: the configured Ask Claude address is used only when it is a sa
   good.close();
   const bad = await open({ previewConfig: { askClaudeUrl: "javascript:alert(1)" } });
   await bad.ask("change the font");
-  assert.equal(bad.must("a.csx-ai-link").getAttribute("href"), "https://page.test/admin/#/collections/requests/new");
+  assert.equal(bad.q("a.csx-ai-link"), null);
   bad.close();
   const none = await open({ origin: "data:text/html,x" });
   await none.ask("change the font");

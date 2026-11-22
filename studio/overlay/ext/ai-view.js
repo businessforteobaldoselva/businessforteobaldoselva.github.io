@@ -409,7 +409,6 @@
       } catch (e) { return false; }
     }
     if (typeof configured === "string" && configured && ok(configured)) return configured;
-    if (typeof origin === "string" && ok(origin)) return origin.replace(/\/+$/, "") + "/admin/#/collections/requests/new";
     return null;
   }
   function requestText(nc) {
