@@ -111,7 +111,7 @@ async function dynamicRules() {
 
   // D1 routes
   const routes = rq("studio/api/routes/ai").routes;
-  if (routes.length !== 3) fail("D1", "expected 3 AI routes, found " + routes.length);
+  if (routes.length !== 5) fail("D1", "expected 5 AI routes (status, estimate, recent, propose, accept), found " + routes.length);
   for (const r of routes) {
     if (r.anon) fail("D1", r.method + " " + r.path + " is anonymous; every AI route needs a signed-in person");
     if (!r.cls) fail("D1", r.method + " " + r.path + " has no rate class");
@@ -248,7 +248,7 @@ async function dynamicRules() {
     const rs = await Promise.all([1, 2, 3, 4, 5].map(() => api.call("editor", "POST", "/v1/ai/propose", b)));
     if (rs.some((r) => r.status !== 200)) fail("D8", "five identical submits did not all answer 200: " + rs.map((r) => r.status).join());
     if (calls !== 1) fail("D8", "five identical submits made " + calls + " model calls (each one is billed and takes a slot); they must join the first");
-    const snap = api.deps.ai._budget.snapshot(new Date(api.deps.now()).toISOString().slice(0, 10));
+    const snap = (await api.deps.ai._budget.snapshot({ day: new Date(api.deps.now()).toISOString().slice(0, 10) })).global;
     if (snap.requests !== 1) fail("D8", "five identical submits used " + snap.requests + " slots of the daily allowance");
   }
 

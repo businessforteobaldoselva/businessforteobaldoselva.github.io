@@ -12,7 +12,8 @@ const { ApiError } = require("../errors");
 const { validatePatch } = require("../../validate");
 const { assertProvider, ProviderError } = require("./providers/interface");
 const { createDisabledProvider } = require("./providers/disabled");
-const { createMemoryBudget, createSupabaseBudget, selectStore, dayKey, nextMidnight } = require("./budget");
+const { createMemoryBudget, selectStore, dayKey, nextMidnight } = require("./budget");
+const { createSupabaseBudget } = require("../providers/usage/supabase-budget");
 const A = require("./allowlist");
 const policy = require("./policy");
 const T = require("./tool-schema");
@@ -57,7 +58,7 @@ function createAiService(opts) {
   const wantShared = !o.budget && deps.config.aiBudgetStore === "supabase" && !deps.config.dev;
   function storeFor(ctx) {
     if (!wantShared) return budget;
-    const sb = createSupabaseBudget({ url: deps.config.supabase.url, anonKey: deps.config.supabase.anonKey, token: ctx.token, fetch: deps.fetch, limits: { dailyRequests: cfg.dailyRequests, dailyTokens: cfg.dailyTokens, userPerDay: cfg.userPerDay } });
+    const sb = createSupabaseBudget({ deps, token: ctx.token, limits: { dailyRequests: cfg.dailyRequests, dailyTokens: cfg.dailyTokens, userPerDay: cfg.userPerDay } });
     return selectStore({ memory: budget, supabase: sb, shared: sharedState, now: deps.now, log: (x) => { try { deps.audit.write({ requestId: ctx.requestId, action: "usage.store_fallback", outcome: "error", ai: { codes: [String(x.why).slice(0, 40)] } }); } catch (e) { /* a log must never break a request */ } } });
   }
   const worldId = o.worldId || "default";

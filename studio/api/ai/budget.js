@@ -10,8 +10,8 @@
 //     recent({ userId, limit }) -> [{ id, at, mode, kind, tokens, accepted, total, prNumber }] }
 //
 // memory: per runtime instance (on serverless every instance counts alone, so the real ceiling is the limit times the number of
-// instances; the runbook says so). supabase: ONE shared counter through the RPC functions of studio/sql/003_studio_ai_usage.sql,
-// called with the CALLER'S OWN JWT (the API holds no service key). When the shared store fails or is not set up, that request is
+// instances; the runbook says so). supabase (providers/usage/supabase-budget.js): ONE shared counter through the RPC functions of
+// studio/sql/003_studio_ai_usage.sql, called with the CALLER'S OWN JWT (the API holds no service key). When the shared store fails or is not set up, that request is
 // served by the memory store and one `usage.store_fallback` line is logged: the caps still apply, never "unlimited". Portable.
 
 const dayKey = (d) => d.toISOString().slice(0, 10);
@@ -72,8 +72,11 @@ function createMemoryBudget(opts) {
       return { global: Object.assign(v.global, limits()), user: Object.assign(v.user, { requestsLimit: o.userPerDay }) };
     },
     async recordRequest({ userId, id, mode, kind, tokens }) {
-      const list = recents.get(userId || "") || [];
-      list.unshift({ id, at: now().toISOString(), mode, kind, tokens: nat(tokens), accepted: null, total: null, prNumber: null });
+      // the same proposal id again (the same answer asked for twice) refreshes its row, like the SQL's "on conflict do update"
+      const all = recents.get(userId || "") || [];
+      const old = all.find((x) => x.id === id);
+      const list = all.filter((x) => x.id !== id);
+      list.unshift({ id, at: now().toISOString(), mode, kind, tokens: nat(tokens), accepted: old ? old.accepted : null, total: old ? old.total : null, prNumber: old ? old.prNumber : null });
       recents.set(userId || "", list.slice(0, RECENT_MAX));
       if (recents.size > 500) recents.delete(recents.keys().next().value);
     },
@@ -87,46 +90,7 @@ function createMemoryBudget(opts) {
   };
 }
 
-// ---- the shared store: PostgREST RPC with the caller's own JWT ---------------------------------------------------------------
 class StoreUnavailable extends Error { constructor(why) { super(why); this.name = "StoreUnavailable"; } }
-
-function createSupabaseBudget({ url, anonKey, token, fetch: fetchFn, limits }) {
-  const base = String(url || "").replace(/\/+$/, "") + "/rest/v1/rpc/";
-  const doFetch = fetchFn || ((...a) => fetch(...a));
-  const lim = limits || {};
-  async function rpc(fn, args) {
-    let res;
-    try { res = await doFetch(base + fn, { method: "POST", headers: { apikey: anonKey, Authorization: "Bearer " + token, "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(args) }); } catch (e) { throw new StoreUnavailable("network"); }
-    if (!res.ok) throw new StoreUnavailable("http_" + res.status); // 404 = the functions were never applied; 401/403 = not an active person; 5xx = down
-    const text = await res.text();
-    try { return text ? JSON.parse(text) : null; } catch (e) { throw new StoreUnavailable("bad_json"); }
-  }
-  const first = (r) => (Array.isArray(r) ? r[0] : r) || null;
-  const num = (v) => nat(v);
-  return {
-    kind: "supabase",
-    async reserve({ day, tokens, caps }) {
-      const r = first(await rpc("studio_ai_reserve2", { p_day: day, p_tokens: nat(tokens), p_max_requests: caps.requests, p_max_tokens: caps.tokens, p_user_max_requests: caps.userRequests }));
-      if (!r || typeof r.ok !== "boolean") throw new StoreUnavailable("bad_shape");
-      const reason = r.ok ? null : ["global_requests", "global_tokens", "user_requests"].indexOf(r.reason) >= 0 ? r.reason : "global_requests";
-      return { ok: r.ok, reason, global: { requests: num(r.g_requests), tokens: num(r.g_tokens) }, user: { requests: num(r.u_requests), tokens: num(r.u_tokens) } };
-    },
-    async settle({ day, reserved, actual, countRequest }) { await rpc("studio_ai_settle2", { p_day: day, p_reserved: nat(reserved), p_actual: nat(actual), p_count_request: countRequest !== false }); },
-    async release({ day, reserved }) { await rpc("studio_ai_release2", { p_day: day, p_tokens: nat(reserved) }); },
-    async snapshot({ day }) {
-      const r = first(await rpc("studio_ai_snapshot2", { p_day: day }));
-      if (!r) throw new StoreUnavailable("bad_shape");
-      return { global: { requests: num(r.g_requests), tokens: num(r.g_tokens), requestsLimit: lim.dailyRequests, tokensLimit: lim.dailyTokens }, user: { requests: num(r.u_requests), tokens: num(r.u_tokens), requestsLimit: lim.userPerDay } };
-    },
-    async recordRequest({ id, mode, kind, tokens }) { await rpc("studio_ai_record", { p_id: id, p_mode: mode, p_kind: kind, p_tokens: nat(tokens) }); },
-    async attachAccept({ id, accepted, total, prNumber }) { await rpc("studio_ai_attach", { p_id: id, p_accepted: nat(accepted), p_total: nat(total), p_pr: prNumber === null || prNumber === undefined ? null : nat(prNumber) }); },
-    async recent({ limit }) {
-      const rows = await rpc("studio_ai_recent", { p_limit: Math.max(1, Math.min(RECENT_MAX, limit || RECENT_MAX)) });
-      if (!Array.isArray(rows)) throw new StoreUnavailable("bad_shape");
-      return rows.slice(0, RECENT_MAX).map((r) => ({ id: String(r.id), at: new Date(r.at).toISOString(), mode: String(r.mode || ""), kind: String(r.kind || ""), tokens: num(r.tokens), accepted: r.accepted === null || r.accepted === undefined ? null : num(r.accepted), total: r.total === null || r.total === undefined ? null : num(r.total), prNumber: r.pr_number === null || r.pr_number === undefined ? null : num(r.pr_number) }));
-    },
-  };
-}
 
 // One store for one request: the shared store when it is configured and answering, else the memory store. `shared.down` remembers
 // a failure for a minute so a dead database is not asked on every call; `log` receives { store, why } once per failure.
@@ -152,4 +116,4 @@ function selectStore({ memory, supabase, shared, now, log }) {
   return store;
 }
 
-module.exports = { createMemoryBudget, createSupabaseBudget, selectStore, StoreUnavailable, dayKey, nextMidnight };
+module.exports = { createMemoryBudget, selectStore, StoreUnavailable, dayKey, nextMidnight };

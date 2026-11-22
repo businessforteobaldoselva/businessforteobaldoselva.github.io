@@ -42,7 +42,7 @@ async function githubProvider(opts) {
   const keys = o.keys || makeRsa();
   const server = createMockGithub({ repo: m.repo, appId: "12345", installationId: "67890", publicKey: keys.publicKey, now: o.now, tokenTtlMs: o.tokenTtlMs });
   const base = await server.listen();
-  const git = createGithubGit({ owner: m.repo.owner, repo: m.repo.name, baseBranch: "main", appId: "12345", installationId: "67890", privateKey: o.privateKey || keys.pkcs8, apiBase: base, now: o.now, fetch: o.fetch });
+  const git = createGithubGit({ owner: m.repo.owner, repo: m.repo.name, baseBranch: "main", appId: "12345", installationId: "67890", privateKey: o.privateKey || keys.pkcs8, apiBase: base, now: o.now, fetch: o.fetch, onLabelFailure: o.onLabelFailure });
   return { name: "github", git, repo: m.repo, server, keys, close: () => server.close() };
 }
 
