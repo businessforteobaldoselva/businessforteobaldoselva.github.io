@@ -1,7 +1,13 @@
 "use strict";
-// Phase 1 placeholder, owned by the REVIEW unit (studio/PHASE1-DESIGN.md section 2): GET /v1/board.
-// Pre-registered in handler.js allRoutes() so no unit edits the handler. Same shape as the other route files.
+// GET /v1/board (studio/PHASE1-DESIGN.md section 5). Read only.
 
-const routes = [];
+const { board } = require("../services/board");
+
+const routes = [
+  {
+    method: "GET", path: "/v1/board", cls: "read",
+    async run(ctx) { return { status: 200, body: await board(ctx) }; },
+  },
+];
 
 module.exports = { routes };
