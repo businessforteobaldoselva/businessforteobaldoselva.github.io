@@ -1,0 +1,3 @@
+{ "store": "supabase", "items": [
+  { "id": "p_abcdefghij12", "at": "2026-11-22T09:30:00Z", "mode": "edit", "kind": "patch", "tokens": 7400, "accepted": 2, "total": 3, "prNumber": 58, "prUrl": "https://github.com/o/r/pull/58" },
+  { "id": "p_abcdefghij13", "at": "2026-11-22T09:10:00Z", "mode": "edit", "kind": "rejected", "tokens": 6100, "accepted": null, "total": null, "prNumber": null, "prUrl": null } ] }

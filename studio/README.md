@@ -148,3 +148,19 @@ See the runbook, Part 2. Summary of DESIGN.md section 17: create the GitHub App 
 * `npm run studio:ai-eval` (part of `npm run check`): 63 recorded model answers, 25 valid patches and 33 hostile or failing ones, through the real API; every valid one is undone by History > Restore byte for byte.
 * `studio/guards/check-ai.js` (part of `check:studio`) and 19 scenarios in `studio/guards/selftest-ai-core.js` that break it on purpose.
 * Try it on your machine without a key: `STUDIO_AI_ENABLED=1 npm run studio:dev` (a replay stand-in that knows the sample requests).
+
+## Phase 1 (units BACKEND, REVIEW, EDIT, DECAP)
+
+Contract: `studio/PHASE1-DESIGN.md`. Each unit writes ONLY under its own heading below (what it built, how to run its tests, Deviations).
+
+### BACKEND
+(not written yet)
+
+### REVIEW
+(not written yet)
+
+### EDIT
+(not written yet)
+
+### DECAP
+(not written yet)

@@ -136,3 +136,17 @@ Scope: `studio/AI-DESIGN.md`. A founder types a request; a model proposes a JSON
 * Treat any change to `allowlist.snapshot.json` as a security review: the guard fails until a human has looked at what the AI can now reach.
 * Do not add a second write path for AI. The only write is `drafts.saveDraft`; `check-ai` fails otherwise.
 * Never raise the overlay or API trust of AI output "just for this feature". If a field needs to be writable by AI, make it writable by hand-editing first.
+
+## Phase 1 additions (one subsection per unit; edit only your own, see studio/PHASE1-DESIGN.md section 2)
+
+### P1-BACKEND (health route, usage tables, label fallback)
+(not written yet)
+
+### P1-REVIEW (board, review screen, reviewer notification)
+(not written yet)
+
+### P1-EDIT (rule engine, checks panel, palette sources)
+(not written yet)
+
+### P1-DECAP (what removing Decap and Netlify Identity changes)
+(not written yet)

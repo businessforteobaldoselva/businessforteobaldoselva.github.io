@@ -81,6 +81,7 @@ function loadConfig(env) {
     github: m ? { owner: m[1], repo: m[2], appId: e.GITHUB_APP_ID || "", installationId: e.GITHUB_APP_INSTALLATION_ID || "" } : null,
     supabase: { url: e.SUPABASE_URL || "", anonKey: e.SUPABASE_ANON_KEY || "", jwtMode },
     ai: aiCfg, // plain numbers and flags only: the AI key is never part of the configuration
+    review: require("./review-config").load(e), // Phase 1: REVIEW unit settings (reviewers, preview embedding, site address)
   };
 }
 

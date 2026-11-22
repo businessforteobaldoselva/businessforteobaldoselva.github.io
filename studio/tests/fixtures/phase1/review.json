@@ -1,0 +1,6 @@
+{ "draft": { "id": "u7k2m9qa--summer-edits", "number": 57 }, "generatedAt": "2026-11-22T10:00:00Z", "headSha": "0123456789abcdef0123456789abcdef01234567", "summary": "2 changes on 1 page",
+  "items": [
+    { "id": "r1", "file": "src/_data/hero.json", "path": "/headlineMain", "op": "replace", "kind": "text", "label": "Hero > Headline", "where": "Home page", "line": "Changes the Home page headline from \"We're covering the UK,\" to \"We cover the UK\".", "before": { "text": "We're covering the UK,", "truncated": false, "image": null }, "after": { "text": "We cover the UK", "truncated": false, "image": null }, "pageUrl": "/", "attention": "none" },
+    { "id": "r2", "file": "src/_data/homepage.json", "path": "/sections/4/enabled", "op": "replace", "kind": "section", "label": "Sections > Partner wall", "where": "Home page", "line": "Hides the Partner wall section on the Home page.", "before": { "text": "Shown", "truncated": false, "image": null }, "after": { "text": "Hidden", "truncated": false, "image": null }, "pageUrl": "/", "attention": "hidden" } ],
+  "gates": { "checks": "success", "canPublish": true, "blockers": [] },
+  "sideBySide": null }

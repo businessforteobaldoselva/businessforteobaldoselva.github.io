@@ -23,6 +23,9 @@ function allRoutes() {
     require("./routes/history").routes,
     require("./routes/admin").routes,
     require("./routes/ai").routes,
+    require("./routes/health").routes,
+    require("./routes/board").routes,
+    require("./routes/review").routes,
   );
 }
 

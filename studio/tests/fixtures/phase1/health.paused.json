@@ -1,0 +1,3 @@
+{ "ok": false, "checkedAt": "2026-11-22T10:00:00Z", "cached": true,
+  "services": { "auth": { "state": "paused", "message": "Sign-in is paused because the Studio database has been idle. An admin can wake it from the Supabase dashboard (Restore project)." }, "git": { "state": "ok", "message": null }, "ai": { "state": "off", "store": "memory", "message": null } },
+  "message": "Sign-in is paused because the Studio database has been idle. An admin can wake it from the Supabase dashboard (Restore project)." }
