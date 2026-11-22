@@ -1,7 +1,17 @@
 "use strict";
-// Phase 1 placeholder, owned by the REVIEW unit (studio/PHASE1-DESIGN.md section 2): GET /v1/drafts/:id/review, GET /v1/people/approvers.
-// Pre-registered in handler.js allRoutes() so no unit edits the handler. Same shape as the other route files.
+// GET /v1/drafts/:id/review and GET /v1/people/approvers (studio/PHASE1-DESIGN.md sections 6 and 7.1). Read only.
 
-const routes = [];
+const review = require("../services/review");
+
+const routes = [
+  {
+    method: "GET", path: "/v1/drafts/:id/review", cls: "read",
+    async run(ctx, req) { return { status: 200, body: await review.reviewDraft(ctx, req.params.id) }; },
+  },
+  {
+    method: "GET", path: "/v1/people/approvers", cls: "read",
+    async run(ctx) { return { status: 200, body: review.approvers(ctx) }; },
+  },
+];
 
 module.exports = { routes };

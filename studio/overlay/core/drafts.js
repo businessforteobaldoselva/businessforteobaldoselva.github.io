@@ -130,7 +130,19 @@
         return res.draft;
       });
     }
-    function submit() { return act("submit"); }
+    // Send for review. When the review dialog is loaded (ext/review.js) it asks who should look and shows who was told; it
+    // ends with the server's answer, or rejects with code "cancelled" when the person closes it. Without it: submit directly.
+    function submitRaw(extra) {
+      if (!current) return Promise.reject(new Error("No draft."));
+      return api.post("/v1/drafts/" + encodeURIComponent(current.id) + "/submit", Object.assign({ idempotencyKey: U.uuid() }, extra || {})).then(function (res) {
+        setCurrent(res.draft || current);
+        return res;
+      });
+    }
+    function submit() {
+      if (current && S.reviewDialog) return S.reviewDialog.open({ draft: current, changes: lastChanges });
+      return act("submit");
+    }
     function publish() { return act("publish", { expectedHeadSha: current && current.headSha }); }
     function rebase() { return act("rebase", { expectedHeadSha: current && current.headSha }); }
     function discard() {
@@ -154,7 +166,7 @@
     return {
       current: function () { return current; }, setCurrent: function (d) { if (typeof d === "string") d = d ? { id: d } : null; setCurrent(d); },
       changes: function () { return lastChanges; }, status: function () { return status; },
-      save: save, keepMine: keepMine, takeTheirs: takeTheirs, refresh: refresh, list: list, submit: submit, publish: publish, rebase: rebase, discard: discard,
+      save: save, keepMine: keepMine, takeTheirs: takeTheirs, refresh: refresh, list: list, submit: submit, submitRaw: submitRaw, publish: publish, rebase: rebase, discard: discard,
       startPolling: startPolling, stopPolling: stopPolling, remembered: remembered, mapProblems: mapProblems,
     };
   }

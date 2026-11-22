@@ -94,6 +94,8 @@ function prBody({ authorName, authorId, draftId, changes, previewUrl, opsCount, 
     "### Checks",
     "The site build and all guards must be green before this can be published.",
     "",
+    "Studio-Changes: " + n,
+    "",
   ].concat(aiSection(ai, aiCarry)).concat(["<!-- studio:v1 " + JSON.stringify(marker) + " -->"]).join("\n");
   return body.length > 20000 ? body.slice(0, 19000).replace(/\n[^\n]*$/, "") + "\n\n<!-- studio:v1 " + JSON.stringify(marker) + " -->" : body;
 }
@@ -116,4 +118,10 @@ function parseMarker(body) {
   return o;
 }
 
-module.exports = { carryAi, plain, neutral, oneLine, md, prTitle, commitMessage, prBody, parseMarker, firstName };
+// How many changes the draft held when this body was written (the "Studio-Changes: N" line), or null for older pull requests.
+function parseChangeCount(body) {
+  const m = /^Studio-Changes: ([0-9]{1,5})$/m.exec(String(body || ""));
+  return m ? Number(m[1]) : null;
+}
+
+module.exports = { parseChangeCount, carryAi, plain, neutral, oneLine, md, prTitle, commitMessage, prBody, parseMarker, firstName };

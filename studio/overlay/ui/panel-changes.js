@@ -127,6 +127,7 @@
         var row = h("div", { class: "row-btns" });
         row.appendChild(h("button", { type: "button", class: "btn btn-small", on: { click: function () { drafts.refresh().then(function () { studio.ui.toast("Draft status updated.", { kind: "info" }); }, function (e) { studio.ui.toast(e.userMessage || "Could not refresh.", { kind: "error" }); }); } } }, "Refresh status"));
         if (draft.state === "draft" && me) row.appendChild(h("button", { type: "button", class: "btn btn-small", on: { click: function () { doSubmit(); } } }, "Send for review"));
+        if (me && S.reviewScreen && draft.id && (draft.state === "draft" || draft.state === "ready")) row.appendChild(h("button", { type: "button", class: "btn btn-small", "data-open-review": "1", on: { click: function () { S.reviewScreen.open(draft.id); } } }, "Open review screen"));
         if (me && me.capabilities && me.capabilities.publish && (draft.state === "ready" || draft.state === "draft")) {
           row.appendChild(h("button", { type: "button", class: "btn btn-small btn-primary", disabled: draft.canPublish === false, "aria-label": "Publish this draft to the live site", on: { click: function () { doPublish(); } } }, "Publish"));
         }
@@ -153,7 +154,15 @@
       busy = true; paint();
       return promise.then(function () { busy = false; if (ok) studio.ui.toast(ok, { kind: "success" }); paint(); }, function (e) { busy = false; studio.ui.toast(e.userMessage || e.message || "Something went wrong.", { kind: "error" }); paint(); });
     }
-    function doSubmit() { wrap(drafts.submit(), "Sent for review. An approver can publish it now."); }
+    function doSubmit() {
+      if (!S.reviewDialog) { wrap(drafts.submit(), "Sent for review. An approver can publish it now."); return; }
+      busy = true; paint();
+      drafts.submit().then(function () { busy = false; paint(); }, function (e) {
+        busy = false;
+        if (!e || e.code !== "cancelled") studio.ui.toast((e && (e.userMessage || e.message)) || "Something went wrong.", { kind: "error" });
+        paint();
+      });
+    }
     function doPublish() {
       studio.ui.confirm({ title: "Publish to the live site?", body: "Everything in this draft goes live as soon as the site rebuilds.", confirmLabel: "Publish" }).then(function (ok) { if (ok) wrap(drafts.publish(), "Published. The live site updates in a minute or two."); });
     }

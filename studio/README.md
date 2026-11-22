@@ -180,7 +180,17 @@ Contract: `studio/PHASE1-DESIGN.md`. Each unit writes ONLY under its own heading
 10. Known limits: if the shared store fails between a reservation and its settlement, that one estimate stays on the shared counter until the day ends (the settlement is applied to the memory counters the call fell back to). `003` was not run against a real PostgreSQL (none is installed here); its logic is modelled by `tests/p1-backend/fake-postgrest.js` and its safety properties are checked as text; a human reads it before applying, as the header says.
 
 ### REVIEW
-(not written yet)
+Built: **status board** (`GET /v1/board`, overlay panel Status, palette source `status.waiting`), **review screen** (`GET /v1/drafts/:id/review`, panel Review, deep link `#review=<id>`, one **Approve and publish** button that calls the existing publish route), **send for review** (`GET /v1/people/approvers`, `POST /v1/drafts/:id/submit` with `reviewerId`, dialog with Copy link / Email it), and the preview-access research note.
+Files: `api/services/{board,review}.js`, `api/routes/{board,review}.js`, `api/review-config.js`, `api/services/drafts.js` (`publishBlockers`, `isStudioPr`, `submitDraft`), `validate/describe.js` (`describe`), `overlay/ext/{status,review}.{js,css}`, `overlay/core/drafts.js`, `overlay/ui/panel-changes.js`, `guards/{check-review,selftest-p1-review}.js`, `tests/p1-review/`, `NOTES-preview-access.md`.
+Run: `node --require ./studio/guards/no-network.js --test studio/tests/p1-review/*.test.js`; `node studio/guards/check-review.js`; `node scripts/selftest.js --only "p1 review"`. The browser walkthrough (`browser.test.js`) skips without puppeteer-core; run it with `STUDIO_PUPPETEER_DIR=<folder with node_modules>`.
+Deviations:
+- `STUDIO_REVIEWERS` entries accept an optional `userId` (Studio user id) so the author is left out of their own approver list and cannot pick themselves; the contract had no way to know who "the author" is.
+- Side by side is two links ("See the live page", "See this draft"), not a frame: the overlay's element factory has no iframe and the guards forbid one.
+- A Studio draft is recognised by the `studio-draft` label OR (studio/ branch, same repository, strictly valid marker whose draft id matches the branch) so a draft whose label write failed still lists and reviews. The provider's `merge()` fallback (PHASE1-DESIGN 4.3) is BACKEND's; until it lands, publishing such a draft is refused by the provider.
+- The line `Studio-Changes: N` is added to pull request bodies (`pr-text.js`) for the board's change count.
+- A replayed submit with the same idempotency key returns the first answer from an in-instance cache; after a restart the draft is already ready, so GitHub is not asked again and the message says it was already sent.
+- `requestReviewers` is called only if the provider has it (BACKEND adds it); without it the submit reports `github_unavailable` and offers copy-link.
+- Overlay size: about 30 KiB of script and 2 KiB of styles on top of the Phase 1 base. The palette source needs EDIT's palette to merge `paletteSources()`; until then the source exists but no row shows in Ctrl+K.
 
 ### EDIT
 (not written yet)

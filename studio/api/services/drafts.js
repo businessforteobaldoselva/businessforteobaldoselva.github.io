@@ -78,15 +78,34 @@ function stateOf(pr) {
   return pr.draft ? "draft" : "ready";
 }
 
-// null when the caller may publish this draft right now, else the reason (DESIGN 7.2 not_ready reasons)
+// A Studio draft is a pull request from a studio/ branch of this repository that carries the studio-draft label. When GitHub
+// refused to write labels (PHASE1-DESIGN 4.3) the strictly validated authorship marker, whose draft id must match the branch,
+// stands in for the label. Anything else is not ours and is never listed, opened or published here.
+function isStudioPr(pr) {
+  if (pr.labels.indexOf("studio-draft") >= 0) return true;
+  if (pr.fromFork || !/^studio\//.test(pr.headRef)) return false;
+  const marker = text.parseMarker(pr.body);
+  return !!marker && marker.draftId === ids.idFromBranch(pr.headRef);
+}
+
+// EVERY reason the caller cannot publish this draft right now, first the one publishBlock reports (DESIGN 7.2 not_ready reasons).
+// The publish route and the approver's review screen both call this, so they cannot disagree.
+function publishBlockers(deps, ctx, pr, ownerKey) {
+  const out = [];
+  const add = (reason) => out.push({ reason, message: NOT_READY_TEXT[reason] });
+  if (!atLeast(ctx.role, "approver")) { add("role"); return out; }
+  if (pr.state !== "open" || pr.draft || pr.merged || !/^studio\//.test(pr.headRef) || !isStudioPr(pr)) { add("draft_state"); return out; }
+  if (!deps.config.allowSelfPublish && ownerKey && ownerKey === ctx.userKey) add("self_publish");
+  if (pr.checks.state === "failure") add("checks_failed");
+  else if (pr.checks.state !== "success") add("checks_pending");
+  if (pr.mergeable !== true) add("not_mergeable");
+  return out;
+}
+
+// null when the caller may publish this draft right now, else the first reason
 function publishBlock(deps, ctx, pr, ownerKey) {
-  if (!atLeast(ctx.role, "approver")) return "forbidden";
-  if (pr.state !== "open" || pr.draft || pr.merged || !/^studio\//.test(pr.headRef) || pr.labels.indexOf("studio-draft") < 0) return "draft_state";
-  if (!deps.config.allowSelfPublish && ownerKey && ownerKey === ctx.userKey) return "self_publish";
-  if (pr.checks.state === "failure") return "checks_failed";
-  if (pr.checks.state !== "success") return "checks_pending";
-  if (pr.mergeable !== true) return "not_mergeable";
-  return null;
+  const b = publishBlockers(deps, ctx, pr, ownerKey);
+  return b.length ? (b[0].reason === "role" ? "forbidden" : b[0].reason) : null;
 }
 
 async function toDraft(ctx, pr) {
@@ -120,25 +139,22 @@ async function loadDraft(ctx, id, opts) {
   const parsed = ids.parseId(id);
   if (!parsed) throw new ApiError("not_found", "No such draft.");
   const prs = await ctx.deps.git.listPrs({ headPrefix: parsed.branch, state: "all" });
-  const pr = prs.filter((p) => p.headRef === parsed.branch && p.labels.indexOf("studio-draft") >= 0).sort((a, b) => b.number - a.number)[0];
+  const pr = prs.filter((p) => p.headRef === parsed.branch && isStudioPr(p)).sort((a, b) => b.number - a.number)[0];
   if (!pr) throw new ApiError("not_found", "No such draft.");
   const mine = parsed.userKey === ctx.userKey;
   if (!mine && !(o.allowApprover && atLeast(ctx.role, "approver"))) throw new ApiError("not_found", "No such draft."); // do not reveal other people's drafts
   return { parsed, pr, mine };
 }
 
-// the changes a draft makes relative to the main commit it was built from, in plain English
-async function changesOf(deps, pr) {
+// the operations a draft makes relative to the main commit it was built from, with the parsed documents on both sides
+async function appliedOf(deps, pr) {
   const git = deps.git;
-  const out = [];
+  const out = { before: new Map(), after: new Map(), applied: [], pictures: [] };
   if (!pr.baseSha || !pr.headSha) return out;
   const paths = await git.changedFiles(pr.baseSha, pr.headSha);
-  const before = new Map();
-  const after = new Map();
-  const applied = [];
   for (const p of paths.slice(0, 40)) {
     const kind = scope.classify(p);
-    if (kind === "image") { out.push({ file: p, path: "", op: "add", label: "Pictures", summary: "Added the picture " + p.replace(/^images\//, ""), kind: "image" }); continue; }
+    if (kind === "image") { out.pictures.push(p); continue; }
     if (kind !== "data" && kind !== "page") continue;
     const a = await git.readTextFile(pr.baseSha, p);
     const b = await git.readTextFile(pr.headSha, p);
@@ -146,12 +162,19 @@ async function changesOf(deps, pr) {
     try {
       const da = kind === "data" ? parseWithRanges(a).value : parsePage(a).doc;
       const db = kind === "data" ? parseWithRanges(b).value : parsePage(b).doc;
-      before.set(p, da);
-      after.set(p, db);
-      for (const op of diffOps(p, da, db)) applied.push({ op: op.op, file: p, segs: P.parse(op.path), before: op.expect, after: op.value });
+      out.before.set(p, da);
+      out.after.set(p, db);
+      for (const op of diffOps(p, da, db)) out.applied.push({ op: op.op, file: p, segs: P.parse(op.path), before: op.expect, after: op.value });
     } catch (e) { /* an unreadable file is reported by CI, not here */ }
   }
-  return describeApplied(deps.schema, before, after, applied.slice(0, 200)).concat(out);
+  return out;
+}
+
+// the changes a draft makes relative to the main commit it was built from, in plain English
+async function changesOf(deps, pr) {
+  const d = await appliedOf(deps, pr);
+  const pics = d.pictures.map((p) => ({ file: p, path: "", op: "add", label: "Pictures", summary: "Added the picture " + p.replace(/^images\//, ""), kind: "image" }));
+  return describeApplied(deps.schema, d.before, d.after, d.applied.slice(0, 200)).concat(pics);
 }
 
 function deriveTitle(patch) {
@@ -303,7 +326,7 @@ async function listDrafts(ctx, { scope: sc, state }) {
   const prs = await ctx.deps.git.listPrs({ headPrefix: "studio/", state: state === "all" ? "all" : "open" });
   const out = [];
   for (const pr of prs) {
-    if (pr.labels.indexOf("studio-draft") < 0) continue;
+    if (!isStudioPr(pr)) continue;
     const id = ids.idFromBranch(pr.headRef);
     if (!id) continue;
     if (!all && id.split("--")[0] !== ctx.userKey) continue;
@@ -319,15 +342,67 @@ async function getDraft(ctx, id) {
 }
 
 // ---- transitions --------------------------------------------------------------------------------------------------------
-async function submitDraft(ctx, id) {
+const REVIEWER_RE = /^[a-z0-9-]{1,30}$/;
+
+// the address an approver opens to see a draft: <base>/?studio=1#review=<id>, or null when no https (or localhost) base is known
+function reviewLinkFor(deps, draft) {
+  const base = (deps.config.review && deps.config.review.reviewBaseUrl) || draft.previewUrl || deps.config.appUrl || "";
+  let u;
+  try { u = new URL(base); } catch (e) { return null; }
+  if (u.username || u.password || !(u.protocol === "https:" || (u.protocol === "http:" && /^(localhost|127\.0\.0\.1)$/.test(u.hostname)))) return null;
+  return u.origin + u.pathname.replace(/\/*$/, "/") + "?studio=1#review=" + draft.id;
+}
+
+function notifyMessage(n, name, already) {
+  if (already) return "This draft was already sent for review. Copy the link and send it to the approver if they have not seen it.";
+  if (n.via === "github") return "Sent for review. " + name + " has been notified on GitHub.";
+  if (n.reason === "no_github_login") return "Sent for review. " + name + " is not set up for GitHub notifications, so copy the link and send it to them.";
+  if (n.reason === "github_refused") return "Sent for review. GitHub would not notify " + name + ", so copy the link and send it to them.";
+  if (n.reason === "github_unavailable") return "Sent for review. GitHub could not be reached to notify " + name + ", so copy the link and send it to them.";
+  return "Sent for review. Copy the link and send it to an approver.";
+}
+
+// Mark the draft ready and, when an approver with a GitHub login was chosen, ask GitHub to request their review. A failure to
+// notify NEVER fails the submit: the dialog falls back to "copy the link". A repeated submit does not notify again.
+async function submitDraft(ctx, id, opts) {
+  const o = opts || {};
+  const deps = ctx.deps;
+  const cfg = deps.config.review || { reviewers: [] };
+  let reviewer = null;
+  if (o.reviewerId !== undefined && o.reviewerId !== null) {
+    reviewer = typeof o.reviewerId === "string" && REVIEWER_RE.test(o.reviewerId) ? cfg.reviewers.find((r) => r.id === o.reviewerId) || null : null;
+    if (!reviewer) throw new ApiError("bad_request", "That person is not on the list of approvers.");
+    if (reviewer.userId && reviewer.userId === String(ctx.user.id).toLowerCase()) throw new ApiError("bad_request", "Choose someone else: you cannot review your own changes.");
+  }
+  const cache = deps.submitCache || (deps.submitCache = new Map());
+  const cacheKey = o.idempotencyKey ? ctx.userKey + ":" + id + ":" + o.idempotencyKey : null;
+  if (cacheKey && cache.has(cacheKey)) return cache.get(cacheKey);
+
   const { pr, mine } = await loadDraft(ctx, id);
   if (!mine) throw new ApiError("not_found", "No such draft.");
   if (pr.merged || pr.state !== "open") throw new ApiError("not_ready", "This draft is already closed.", { reason: "draft_state" });
-  if (pr.draft) await ctx.deps.git.markReady(pr.number);
-  const labeled = await ctx.deps.git.updatePr(pr.number, { labels: ["studio-ready"] });
-  ctx.deps.audit.write({ requestId: ctx.requestId, actor: actorOf(ctx), action: "draft.submit", target: { draftId: id, pr: pr.number, branch: pr.headRef, sha: pr.headSha }, outcome: "ok" });
-  const fresh = (await ctx.deps.git.getPr(pr.number)) || labeled;
-  return { draft: await toDraft(ctx, fresh) };
+  const already = !pr.draft && pr.labels.indexOf("studio-ready") >= 0;
+  if (pr.draft) await deps.git.markReady(pr.number);
+  const labeled = await deps.git.updatePr(pr.number, { labels: ["studio-ready"] });
+  const who = reviewer ? { displayName: reviewer.name } : null;
+  let notified;
+  if (already) notified = { via: "none", reviewer: who, reason: reviewer ? "github_unavailable" : "no_reviewer_chosen" };
+  else if (!reviewer) notified = { via: "none", reviewer: null, reason: "no_reviewer_chosen" };
+  else if (!reviewer.github) notified = { via: "none", reviewer: who, reason: "no_github_login" };
+  else {
+    try {
+      if (typeof deps.git.requestReviewers !== "function") throw new GitError("upstream", "not supported");
+      await deps.git.requestReviewers(pr.number, [reviewer.github]);
+      notified = { via: "github", reviewer: who, reason: null };
+    } catch (e) {
+      notified = { via: "none", reviewer: who, reason: e instanceof GitError && ["conflict", "not_found", "bad_request"].indexOf(e.code) >= 0 ? "github_refused" : "github_unavailable" };
+    }
+  }
+  deps.audit.write({ requestId: ctx.requestId, actor: actorOf(ctx), action: "draft.submit", target: { draftId: id, pr: pr.number, branch: pr.headRef, sha: pr.headSha }, outcome: already ? "replayed" : notified.via === "github" ? "ok" : "ok_not_notified", reviewer: reviewer ? reviewer.id : null });
+  const draft = await toDraft(ctx, (await deps.git.getPr(pr.number)) || labeled);
+  const out = { draft, reviewLink: reviewLinkFor(deps, draft), notified, message: notifyMessage(notified, reviewer ? reviewer.name : "", already) };
+  if (cacheKey) { cache.set(cacheKey, out); if (cache.size > 200) cache.delete(cache.keys().next().value); }
+  return out;
 }
 
 async function publishDraft(ctx, id, { expectedHeadSha }) {
@@ -351,6 +426,7 @@ async function publishDraft(ctx, id, { expectedHeadSha }) {
 }
 
 const NOT_READY_TEXT = {
+  role: "Only approvers can publish.",
   checks_pending: "The website checks have not finished yet. Try again in a minute.",
   checks_failed: "The website checks failed, so this cannot go live.",
   not_mergeable: "The live site changed in a way that clashes with this draft. Update the draft first.",
@@ -432,4 +508,18 @@ async function createFromOps(args) {
   return saveDraft(ctx, patch, { labels, revertOf });
 }
 
-module.exports = { saveDraft, listDrafts, getDraft, submitDraft, publishDraft, discardDraft, rebaseDraft, createFromOps, toDraft, changesOf, publishBlock, validatorCtx, mapGit, atLeast, ROLE_RANK };
+// every open Studio draft of the repository, whoever owns it (the status board and the review screen filter by role)
+async function openDrafts(ctx) {
+  const prs = await ctx.deps.git.listPrs({ headPrefix: "studio/", state: "open" });
+  const out = [];
+  for (const pr of prs) {
+    if (!isStudioPr(pr)) continue;
+    const id = ids.idFromBranch(pr.headRef);
+    if (!id) continue;
+    out.push({ pr, draft: await toDraft(ctx, pr) });
+    if (out.length >= 100) break;
+  }
+  return out;
+}
+
+module.exports = { openDrafts, loadDraft, appliedOf, isStudioPr, publishBlockers, reviewLinkFor, saveDraft, listDrafts, getDraft, submitDraft, publishDraft, discardDraft, rebaseDraft, createFromOps, toDraft, changesOf, publishBlock, validatorCtx, mapGit, atLeast, ROLE_RANK };
