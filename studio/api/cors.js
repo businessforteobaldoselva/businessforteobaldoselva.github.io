@@ -19,16 +19,20 @@ function templateToRegExp(tpl) {
   return new RegExp("^" + escapeRe(parts[0]) + "[0-9]{1,6}" + escapeRe(parts[1]) + "$");
 }
 
+// STUDIO_PREVIEW_ORIGIN_TEMPLATE may hold several templates separated by commas (Netlify previews plus the Cloudflare backup).
+const splitTemplates = (v) => String(v || "").split(",").map((x) => x.trim()).filter(Boolean);
+
 function createCors({ allowedOrigins, previewTemplate }) {
   const exact = new Set(allowedOrigins || []);
   for (const o of exact) if (!isValidOrigin(o)) throw new Error("invalid allowed origin: " + o);
-  const re = previewTemplate ? templateToRegExp(previewTemplate) : null;
-  const previewPrefixLen = previewTemplate ? previewTemplate.split("{n}")[0].length : 0;
-  const allowed = (origin) => typeof origin === "string" && (exact.has(origin) || (re !== null && re.test(origin)));
+  const tpls = splitTemplates(previewTemplate).map((t) => ({ re: templateToRegExp(t), prefixLen: t.split("{n}")[0].length }));
+  const allowed = (origin) => typeof origin === "string" && (exact.has(origin) || tpls.some((t) => t.re.test(origin)));
   // the pull request number in a preview address that matches the template (null for exact origins and strangers)
   const previewNumber = (origin) => {
-    if (typeof origin !== "string" || exact.has(origin) || re === null || !re.test(origin)) return null;
-    const m = /[0-9]{1,6}/.exec(origin.slice(previewPrefixLen));
+    if (typeof origin !== "string" || exact.has(origin)) return null;
+    const t = tpls.find((x) => x.re.test(origin));
+    if (!t) return null;
+    const m = /[0-9]{1,6}/.exec(origin.slice(t.prefixLen));
     return m ? Number(m[0]) : null;
   };
   return {
@@ -49,4 +53,4 @@ function createCors({ allowedOrigins, previewTemplate }) {
   };
 }
 
-module.exports = { createCors, isValidOrigin, templateToRegExp };
+module.exports = { createCors, isValidOrigin, templateToRegExp, splitTemplates };

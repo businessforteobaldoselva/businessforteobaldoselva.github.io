@@ -1,0 +1,99 @@
+name: Draft preview (Cloudflare backup)
+
+# Backup route for Studio draft previews: builds the pull request's site with the Studio overlay and publishes it to the
+# Cloudflare Worker "covered-preview" under the alias pr-<number>. Cloudflare Access (one-time email PIN) protects it,
+# so only the allowed email addresses can open it. See docs/STUDIO-RUNBOOK.md, "Draft previews without Netlify".
+#
+# Two jobs on purpose: "build" runs the pull request's code and has NO secrets; "deploy" has the Cloudflare token but
+# runs only trusted steps (main's wrangler, the built files as inert data). Pull requests from forks are skipped.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-cloudflare-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build draft site
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the site with the Studio overlay
+        run: npm run build
+        env:
+          CMS_EDIT: "1"
+          STUDIO_API_URL: https://covered-studio-api.covered-website.workers.dev
+          STUDIO_APP_URL: https://covered-studio.covered-website.workers.dev
+
+      - name: Keep the built site
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: draft-site
+          path: _site
+          retention-days: 3
+          if-no-files-found: error
+
+  deploy:
+    name: Publish draft preview
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      PR: ${{ github.event.pull_request.number }}
+      CLOUDFLARE_ACCOUNT_ID: 2ef98b37c06c7aa57e9cb593fca81d86
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        name: Fetch the built site
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: draft-site
+          path: draft-site
+
+      - if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        name: Publish as pr-N
+        run: |
+          cat > wrangler.toml <<'TOML'
+          name = "covered-preview"
+          compatibility_date = "2026-01-01"
+          workers_dev = true
+          preview_urls = true
+          [assets]
+          directory = "./draft-site"
+          TOML
+          npx --yes wrangler@4.167.0 versions upload --preview-alias "pr-${PR}" --message "PR ${PR}"
+
+      - if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        name: Link the preview on the pull request
+        run: gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --edit-last --create-if-none --body "Draft preview (needs an email code, ask Teo if you are not on the list): https://pr-${PR}-covered-preview.covered-website.workers.dev"
+        env:
+          GH_TOKEN: ${{ github.token }}

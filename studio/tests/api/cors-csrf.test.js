@@ -74,3 +74,11 @@ test("configuration refuses a wildcard, empty entry, path or non-local http orig
   for (const bad of ["*", "http://localhost:8080,", "https://a.example/x", "http://evil.example", " , "]) assert.throws(() => loadConfig(Object.assign({}, base, { STUDIO_ALLOWED_ORIGINS: bad })), /origin|ALLOWED/i, bad);
   assert.doesNotThrow(() => loadConfig(Object.assign({}, base, { STUDIO_ALLOWED_ORIGINS: "http://localhost:8080, http://127.0.0.1:8080" })));
 });
+
+test("two preview templates (Netlify and the Cloudflare backup) are both allowed, strangers are not", () => {
+  const cors = createCors({ allowedOrigins: [], previewTemplate: "https://deploy-preview-{n}--coveredaccess.netlify.app, https://pr-{n}-covered-preview.covered-website.workers.dev" });
+  assert.equal(cors.previewNumber("https://deploy-preview-7--coveredaccess.netlify.app"), 7);
+  assert.equal(cors.previewNumber("https://pr-12-covered-preview.covered-website.workers.dev"), 12);
+  assert.equal(cors.allowed("https://pr-x-covered-preview.covered-website.workers.dev"), false);
+  assert.equal(cors.allowed("https://pr-12-covered-preview.evil.workers.dev"), false);
+});

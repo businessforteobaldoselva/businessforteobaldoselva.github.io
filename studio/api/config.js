@@ -3,7 +3,7 @@
 // refuses unsafe combinations at start-up. buildDeps wires real providers, or the dev ones when config.dev is true.
 // Portable.
 
-const { isValidOrigin, templateToRegExp } = require("./cors");
+const { isValidOrigin, templateToRegExp, splitTemplates } = require("./cors");
 const { createDevAuth, SECRET_VARS } = require("./providers/auth/dev");
 const { createMemoryRoles, DEV_PEOPLE } = require("./providers/roles/memory");
 const { createSupabaseAuth } = require("./providers/auth/supabase");
@@ -42,7 +42,7 @@ function loadConfig(env) {
   const raw = e.STUDIO_ALLOWED_ORIGINS === undefined ? [] : String(e.STUDIO_ALLOWED_ORIGINS).split(",").map((x) => x.trim());
   for (const o of raw) if (!isValidOrigin(o)) throw new ConfigError("STUDIO_ALLOWED_ORIGINS holds an origin that is empty, has a path, uses a wildcard or is http:// but not localhost: " + JSON.stringify(o.slice(0, 60)));
   const allowedOrigins = raw;
-  if (e.STUDIO_PREVIEW_ORIGIN_TEMPLATE) { try { templateToRegExp(e.STUDIO_PREVIEW_ORIGIN_TEMPLATE); } catch (err) { throw new ConfigError(err.message); } }
+  if (e.STUDIO_PREVIEW_ORIGIN_TEMPLATE) { try { splitTemplates(e.STUDIO_PREVIEW_ORIGIN_TEMPLATE).forEach(templateToRegExp); } catch (err) { throw new ConfigError(err.message); } }
 
   if (dev) {
     if (production) throw new ConfigError("STUDIO_DEV=1 is not allowed when STUDIO_ENV is production (set STUDIO_ENV=development on a local machine)");

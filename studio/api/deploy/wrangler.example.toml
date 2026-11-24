@@ -11,7 +11,7 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 STUDIO_ENV = "production"
 STUDIO_ALLOWED_ORIGINS = "https://studio.example.com"
-STUDIO_PREVIEW_ORIGIN_TEMPLATE = "https://deploy-preview-{n}--coveredaccess.netlify.app"
+STUDIO_PREVIEW_ORIGIN_TEMPLATE = "https://deploy-preview-{n}--coveredaccess.netlify.app,https://pr-{n}-covered-preview.covered-website.workers.dev"
 GITHUB_REPO = "owner/name"
 GITHUB_BASE_BRANCH = "main"
 GITHUB_APP_ID = "0"
