@@ -34,8 +34,8 @@
     cfg = cfg || {};
     var list = Array.isArray(cfg.allowedOrigins) ? cfg.allowedOrigins : [];
     if (list.indexOf(origin) >= 0) return true;
-    var re = templateRegExp(cfg.previewOriginTemplate);
-    return !!(re && re.test(origin));
+    // several templates may be listed, separated by commas
+    return String(cfg.previewOriginTemplate || "").split(",").some(function (t) { var re = templateRegExp(t.trim()); return !!(re && re.test(origin)); });
   }
 
   // ---- the page ------------------------------------------------------------
